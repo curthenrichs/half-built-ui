@@ -15,14 +15,17 @@
     "@eslint/js": "^10.0.1",
     "typescript-eslint": "^8.65.0",
     "eslint-plugin-astro": "^1.7.0",
-    "globals": "^17.8.0",
-    "puppeteer-core": "^25.8.0"
+    "globals": "^17.8.0"
   },
   "peerDependencies": {
     "eslint": "^10.8.0",
     "stylelint": "^17.14.1",
     "html-validate": "^9.7.1",
-    "vitest": "^2.1.9"
+    "vitest": "^2.1.9",
+    "puppeteer-core": "^25.8.0"
+  },
+  "peerDependenciesMeta": {
+    "puppeteer-core": { "optional": true }
   },
   "publishConfig": { "access": "public" }
 }

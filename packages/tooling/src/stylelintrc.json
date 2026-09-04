@@ -3,9 +3,9 @@
     "stylelint-config-standard"
   ],
   "ignoreFiles": [
-    "dist/**",
-    "node_modules/**",
-    "public/**"
+    "**/dist/**",
+    "**/node_modules/**",
+    "**/public/**"
   ],
   "rules": {
     "color-no-hex": [
