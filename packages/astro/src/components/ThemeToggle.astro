@@ -1,0 +1,41 @@
+---
+/* Day/night toggle (owner request 2026-08-25): an .icon-box button that
+   flips the site theme. Both glyphs are in the button; CSS shows the
+   current theme's (sun by day, moon by night, owner call 2026-08-26) and
+   the label names the action. State and storage live in
+   scripts/theme-toggle.ts, which mounts every .theme-toggle on the page
+   and keeps them in step; the first paint is stamped by the inline
+   script in Shell.astro's head.
+
+   Two placements: "band" sits beside the date stamp in the header's top
+   band; "phone" sits beside the search icon in the bottom band and shows
+   only under 768px, where the top band is hidden (owner call 2026-08-20),
+   so phones keep a toggle (owner request 2026-08-26). */
+import { ICON_SUN, ICON_MOON } from "../scripts/core/icons";
+interface Props { placement?: "band" | "phone"; class?: string; label?: string }
+const { placement = "band", class: className, label = "Switch to dark mode" } = Astro.props;
+---
+<button type="button" class:list={["theme-toggle", "icon-box", placement === "phone" && "theme-toggle-phone", className]} aria-label={label} aria-pressed="false">
+  <span class="theme-toggle-moon"><Fragment set:html={ICON_MOON} /></span>
+  <span class="theme-toggle-sun"><Fragment set:html={ICON_SUN} /></span>
+</button>
+
+<style>
+  .theme-toggle { font-size: 16px; }
+  .theme-toggle span { display: block; line-height: 0; }
+  /* The glyphs keep their currentColor stroke and take a fill: the moon
+     in the second accent, the sun's disc in the first (owner call
+     2026-08-26). :global because the svg arrives through set:html. */
+  .theme-toggle-moon :global(path) { fill: var(--accent-2); }
+  .theme-toggle-sun :global(circle) { fill: var(--accent-1); }
+  /* Show the glyph of the current theme. Both selectors carry the
+     parent class so they outrank the span rule above. */
+  .theme-toggle .theme-toggle-moon { display: none; }
+  :global(:root[data-theme="dark"]) .theme-toggle .theme-toggle-moon { display: block; }
+  :global(:root[data-theme="dark"]) .theme-toggle .theme-toggle-sun { display: none; }
+  /* The phone placement exists only where the top band does not. */
+  .theme-toggle-phone { display: none; }
+  @media (--bp-phone) {
+    .theme-toggle-phone { display: flex; }
+  }
+</style>

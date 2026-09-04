@@ -1,0 +1,18 @@
+{
+  "name": "half-built-ui-workspace",
+  "private": true,
+  "type": "module",
+  "workspaces": ["packages/*", "site"],
+  "scripts": {
+    "test": "vitest run --passWithNoTests",
+    "build:site": "npm run build --workspace site",
+    "verify-move": "node scripts/verify-move.mjs",
+    "lint": "eslint ."
+  },
+  "devDependencies": {
+    "vitest": "^2.1.9",
+    "jsdom": "^29.1.1",
+    "typescript": "^5.9.3",
+    "@types/node": "^22.0.0"
+  }
+}

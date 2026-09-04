@@ -1,0 +1,70 @@
+{
+  "extends": [
+    "stylelint-config-standard"
+  ],
+  "ignoreFiles": [
+    "**/dist/**",
+    "**/node_modules/**",
+    "**/public/**"
+  ],
+  "rules": {
+    "color-no-hex": [
+      true,
+      {
+        "message": "Hex colors live in tokens.css only; use var(--...) (docs/css-architecture.md)"
+      }
+    ],
+    "media-feature-range-notation": null,
+    "alpha-value-notation": null,
+    "color-function-notation": null,
+    "no-descending-specificity": null,
+    "custom-property-empty-line-before": null,
+    "declaration-empty-line-before": null,
+    "comment-empty-line-before": null,
+    "rule-empty-line-before": null,
+    "value-keyword-case": null,
+    "selector-class-pattern": null,
+    "font-family-name-quotes": null,
+    "shorthand-property-no-redundant-values": null,
+    "declaration-block-no-redundant-longhand-properties": null,
+    "number-max-precision": null,
+    "declaration-block-single-line-max-declarations": null,
+    "selector-pseudo-class-no-unknown": [
+      true,
+      {
+        "ignorePseudoClasses": [
+          "global"
+        ]
+      }
+    ],
+    "at-rule-empty-line-before": null,
+    "color-hex-length": null,
+    "color-function-alias-notation": null,
+    "import-notation": null,
+    "declaration-property-value-disallowed-list": [
+      {
+        "/^(width|min-width|max-width)$/": ["/ch$/"]
+      },
+      {
+        "message": "never-cap-prose (step 11.1): a ch measure exists to cap prose width and has no legitimate non-prose use, so this half of the guard is safe as a blanket, selector-blind rule. The other half, that a prose stylesheet's only max-width is the 100% image-fit exception, needs to know which selectors are prose and which are not; stylelint's property/value rules cannot see selector context, so that half stays a consumer's own test (see half-built-robots-blog/test/tokens.test.ts, \"prose never caps width\", which reads the prose stylesheet directly and asserts its max-width declarations are exactly [\"max-width: 100%;\"])."
+      }
+    ]
+  },
+  "overrides": [
+    {
+      "files": [
+        "**/*.astro"
+      ],
+      "customSyntax": "postcss-html"
+    },
+    {
+      "files": [
+        "**/tokens.css",
+        "**/tokens/*.css"
+      ],
+      "rules": {
+        "color-no-hex": null
+      }
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+/* Layer: base. Floating scroll-to-top, matching the live button: fixed
+   bottom-right, 40x40, hidden until the header scrolls out of the
+   viewport. The JS half (the .show toggle) lives in Base.astro. */
+@layer base {
+  a.scroll-top {
+    position: fixed;
+    bottom: 53px;
+    right: 30px;
+    height: 40px;
+    width: 40px;
+    opacity: 0;
+    visibility: hidden;
+    z-index: var(--z-scroll-top);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    color: var(--ink);
+    background-color: var(--surface);
+    border: 1px solid var(--rule);
+    transition: var(--transition);
+  }
+  a.scroll-top:hover { outline: var(--stroke) solid var(--rule); }
+  a.scroll-top:hover,
+  a.scroll-top:focus-visible { transform: translateY(-10px); }
+  a.scroll-top.show {
+    opacity: 1;
+    visibility: visible;
+  }
+  /* Phones flick-scroll and tap the status bar; the pinned button only
+     ate column pixels there (owner call 2026-08-20). */
+  @media (--bp-phone) {
+    a.scroll-top { display: none; }
+  }
+}

@@ -1,0 +1,225 @@
+---
+/* Kitchen-sink demo page. Renders the chrome (through Base.astro) plus
+   one instance of every component the brief asks for, fed by sample
+   data defined right here. Nothing on this page is blog content: the
+   copy is plain and invented for the demo, and the images are
+   generated geometric placeholders in ../assets. Every component
+   import below is a package specifier into @half-built/astro; nothing
+   reaches into packages/astro/src by relative path. */
+import { Code } from "astro:components";
+import Base from "../layouts/Base.astro";
+import ThemeToggle from "@half-built/astro/components/ThemeToggle.astro";
+import PostCard from "@half-built/astro/components/PostCard.astro";
+import CategoryCard from "@half-built/astro/components/CategoryCard.astro";
+import Pagination from "@half-built/astro/components/Pagination.astro";
+import PostNavigation from "@half-built/astro/components/PostNavigation.astro";
+import LinkListWidget from "@half-built/astro/components/LinkListWidget.astro";
+import Widget from "@half-built/astro/components/Widget.astro";
+import Subscribe from "@half-built/astro/components/Subscribe.astro";
+import Button from "@half-built/astro/content/Button.astro";
+import Callout from "@half-built/astro/content/Callout.astro";
+import Quote from "@half-built/astro/content/Quote.astro";
+import Step from "@half-built/astro/content/Step.astro";
+import Walkthrough from "@half-built/astro/content/Walkthrough.astro";
+import Gallery from "@half-built/astro/content/Gallery.astro";
+import GalleryImage from "@half-built/astro/content/GalleryImage.astro";
+import BlogImage from "@half-built/astro/content/BlogImage.astro";
+import MediaText from "@half-built/astro/content/MediaText.astro";
+import CodeBlock from "@half-built/astro/content/CodeBlock.astro";
+import Palette from "@half-built/astro/content/Palette.astro";
+import Group from "@half-built/astro/content/Group.astro";
+import Spacer from "@half-built/astro/content/Spacer.astro";
+import codeTheme from "@half-built/astro/shiki/code-theme";
+import type { PostCardModel, PostRef, LinkListItem } from "@half-built/astro/components/models";
+import placeholderWide from "../assets/placeholder-wide.svg";
+import placeholderSquare from "../assets/placeholder-square.svg";
+import placeholderTall from "../assets/placeholder-tall.svg";
+
+const posts: PostCardModel[] = [
+  {
+    href: "#",
+    title: "Sample post, plain card",
+    excerpt: "Placeholder excerpt text standing in for a real post summary.",
+    author: "Demo Author",
+    dateStr: "1, Jan 2026",
+    minutes: 4,
+    hero: placeholderWide,
+    categories: [{ name: "Sample", href: "#" }],
+  },
+  {
+    href: "#",
+    title: "Sample post, marked draft",
+    excerpt: "A second placeholder excerpt, this card flagged as a draft.",
+    author: "Demo Author",
+    dateStr: "2, Jan 2026",
+    minutes: 6,
+    hero: placeholderWide,
+    draft: true,
+    categories: [{ name: "Sample", href: "#" }, { name: "Demo", href: "#" }],
+  },
+  {
+    href: "#",
+    title: "Sample post, with corner badges",
+    excerpt: "A third placeholder excerpt, showing the AI Art and Demo badges together.",
+    author: "Demo Author",
+    dateStr: "3, Jan 2026",
+    minutes: 3,
+    hero: placeholderWide,
+    genai: true,
+    demo: true,
+    categories: [{ name: "Demo", href: "#" }],
+  },
+];
+
+const categoryCards = [
+  { name: "Sample", href: "#", image: placeholderSquare },
+  { name: "Demo", href: "#", image: placeholderTall },
+];
+
+const prevPost: PostRef = { href: "#", title: "Older placeholder post" };
+const nextPost: PostRef = { href: "#", title: "Newer placeholder post" };
+
+const linkListItems: LinkListItem[] = [
+  { label: "Item one", href: "#", count: 3 },
+  { label: "Item two", href: "#", count: 1 },
+  { label: "Item three", href: "#" },
+];
+
+const paletteEntries = [
+  { role: "Accent 1", hex: "#ffaa3c", note: "Primary accent (amber)" },
+  { role: "Accent 2", hex: "#3cc7dd", note: "Secondary accent (cyan)" },
+  { role: "Ink (light theme)", hex: "#404040", note: "Body text and rules" },
+];
+
+const codeSample = `def read_ir(code):
+    return "power" if code == 0x40BF else "unknown"`;
+---
+<Base title="Kitchen Sink" description="A demo Astro site built only from the @half-built/css and @half-built/astro packages.">
+  <article class="static-page bracket-frame">
+    <h1>Kitchen Sink</h1>
+    <div class="prose no-hero">
+      <p>This page renders one instance of every component the demo is asked to cover, using sample data defined in this repository, not the blog's. The theme toggle in the header switches both light and dark. Every section below should hold up in either.</p>
+    </div>
+
+    <section id="chrome">
+      <div class="prose no-hero"><h2>Chrome</h2>
+      <p>The header and footer above and below this page come from the package's Masthead and Footer components, fed by sample nav, social, and sitemap data in <code>src/data/site.ts</code>. The theme toggle also renders standalone here.</p></div>
+      <p><ThemeToggle label="Switch theme (standalone demo)" /></p>
+    </section>
+
+    <section id="content">
+      <div class="prose no-hero">
+        <h2>Content components</h2>
+
+        <h3>Button</h3>
+        <p>Four variants, two sizes:</p>
+        <p class="button-row">
+          <Button variant="plain">Plain</Button>
+          <Button variant="shaded">Shaded</Button>
+          <Button variant="accent-1">Accent 1</Button>
+          <Button variant="accent-2" size="lg">Accent 2, large</Button>
+        </p>
+
+        <h3>Callout</h3>
+        <Callout type="note">A note callout, the default look.</Callout>
+        <Callout type="tip" title="Tip">A tip callout, wearing the first accent.</Callout>
+        <Callout type="success">A success callout, wearing the second accent.</Callout>
+        <Callout type="error">An error callout, in the red family.</Callout>
+
+        <h3>Quote</h3>
+        <Quote by="Demo Author" when="2026">A quoted line, with an attribution footer.</Quote>
+
+        <h3>Walkthrough and Step</h3>
+        <Walkthrough numbered>
+          <Step src={placeholderSquare} alt="Placeholder step photo, one">First step. One placeholder photo beside its text.</Step>
+          <Step src={placeholderSquare} alt="Placeholder step photo, two">Second step. Numbering runs down the media column's corner chip.</Step>
+        </Walkthrough>
+
+        <h3>Gallery</h3>
+        <Gallery columns={3} caption="Three placeholder plates in a bracket frame.">
+          <GalleryImage src={placeholderSquare} alt="Placeholder gallery plate, one" caption="Plate one" />
+          <GalleryImage src={placeholderSquare} alt="Placeholder gallery plate, two" caption="Plate two" />
+          <GalleryImage src={placeholderSquare} alt="Placeholder gallery plate, three" caption="Plate three" />
+        </Gallery>
+
+        <h3>Blog image</h3>
+        <BlogImage src={placeholderWide} alt="Wide placeholder image" caption="A full-width figure with a caption." />
+
+        <h3>Media text</h3>
+        <MediaText src={placeholderTall} alt="Tall placeholder image">
+          <p>Media on one side, prose on the other. This is the caption slot, and it takes a short paragraph rather than a single line.</p>
+        </MediaText>
+
+        <h3>Code block</h3>
+        <CodeBlock filename="example.py">
+          <Code code={codeSample} lang="python" theme={codeTheme} />
+        </CodeBlock>
+
+        <h3>Palette</h3>
+        <Palette entries={paletteEntries} />
+
+        <h3>Group</h3>
+        <Group><p>A boxed prose container, no label and no tint, the plain sibling of Callout's box.</p></Group>
+
+        <h3>Spacer</h3>
+        <p>A fixed-height spacer sits below this paragraph.</p>
+        <Spacer size={60} />
+        <p>Normal flow resumes here, after the spacer.</p>
+      </div>
+    </section>
+
+    <section id="cards">
+      <div class="prose no-hero"><h2>Cards and widgets</h2>
+      <p>Rendered outside the prose column, the way an archive grid or a sidebar would use them, from inline sample view models.</p></div>
+
+      <h3>Post cards</h3>
+      <div class="demo-card-grid">
+        {posts.map((post) => <PostCard {...post} />)}
+      </div>
+
+      <h3>Category cards</h3>
+      <div class="demo-card-grid demo-card-grid-narrow">
+        {categoryCards.map((c) => <CategoryCard name={c.name} href={c.href} image={c.image} />)}
+      </div>
+
+      <h3>Pagination</h3>
+      <Pagination current={2} total={4} base="#" />
+
+      <h3>Post navigation</h3>
+      <PostNavigation prev={prevPost} next={nextPost} />
+
+      <h3>Link list widget and Widget</h3>
+      <div class="demo-widget-row">
+        <LinkListWidget title="Sample links" items={linkListItems} />
+        <Widget title="Plain widget">
+          <p>A Widget with arbitrary content in its body, rather than the link-list shape above.</p>
+        </Widget>
+      </div>
+    </section>
+
+    <section id="subscribe">
+      <div class="prose no-hero"><h2>Subscribe</h2></div>
+      <Subscribe variant="page" action="https://example.com/subscribe" publicUrl="example.com/subscribe">
+        <Fragment slot="fine-print">Placeholder form. This demo does not send email. The action above is not a real endpoint.</Fragment>
+      </Subscribe>
+    </section>
+  </article>
+</Base>
+
+<style>
+  .static-page h1 { font-size: var(--font-size-lg); margin: 0 0 15px; }
+  section { margin-top: 40px; }
+  .demo-card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 20px;
+    margin: 20px 0;
+  }
+  .demo-card-grid-narrow { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
+  .demo-widget-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 30px;
+    margin: 20px 0;
+  }
+</style>

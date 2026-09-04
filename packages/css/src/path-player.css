@@ -1,0 +1,138 @@
+/* Layer: components. Path-player content inside a plate-modal (spec
+   2026-08-22). Values echo the lightbox family; colors from tokens
+   only. Imported by FluidPathPlayer.astro so it ships only on pages
+   that embed a player. */
+@layer components.player {
+  /* Desktop: the plate is a wide instrument panel, not a sleeve around
+     the window (owner call 2026-08-26). The square window centers in it
+     and the track strip, caption, and labels take the full width, which
+     also keeps the centered transport clear of the source label at
+     short viewports, where the window shrinks. Phones keep the triage's
+     flow layout below 768px. */
+  @media (--bp-phone-up) {
+    .pp-plate { width: min(88vw, 1100px); }
+  }
+  /* Square (owner call 2026-08-25). The 55vh term keeps the square plus
+     the plate's ~260px of chrome inside any window 580px or taller. */
+  .pp-viewbox {
+    position: relative;
+    width: min(72vw, 55vh, 640px);
+    margin-inline: auto;
+    aspect-ratio: 1;
+    border: var(--stroke) solid var(--rule);
+    background-image:
+      linear-gradient(to right, var(--mat-line) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--mat-line) 1px, transparent 1px);
+    background-size: 12px 12px;
+    background-position: center center;
+  }
+  .pp-viewbox canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+  /* Type from .micro-label; only the centering is here. */
+  .pp-fallback {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Transport straddles the plate's bottom edge, centered, in the
+     manner of the boxed labels and the close box (owner call
+     2026-08-23). */
+  .pp-transport {
+    position: absolute;
+    bottom: -17px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 10px;
+    z-index: 1;
+  }
+  /* Transport buttons are .icon-box; only the glyph size is here. */
+  .pp-play,
+  .pp-restart { font-size: var(--font-size-md); }
+  /* The rotate glyph's circle fills its viewBox denser than the play
+     and pause marks; pulled in a step so the pair reads even. */
+  .pp-restart svg { width: 0.85em; height: 0.85em; }
+  /* Press feedback comes from .press-box; a disabled button never
+     reaches :active. */
+  .pp-play:disabled, .pp-restart:disabled { opacity: 0.4; cursor: default; }
+  /* Air between the square window and the track strip, so the two read
+     as separate instruments instead of one tall panel (owner call
+     2026-08-26; at 14px the window read taller than square). */
+  .pp-timeline { position: relative; margin-top: 24px; }
+  .pp-tracks { width: 100%; display: block; }
+
+  /* Same zero-intrinsic-width trick as the lightbox caption: a long
+     line wraps at the viewbox width instead of sizing the plate. */
+  .pp-caption {
+    font-size: var(--font-size-xs);
+    line-height: 1.6;
+    text-align: center;
+    color: var(--ink);
+    margin: 14px 0 0;
+    width: 0;
+    min-width: 100%;
+  }
+  /* The caption toggle exists for phones only; see the media block. */
+  .pp-caption-toggle { display: none; }
+
+  @media (--bp-phone) {
+    /* Still square; 45vh keeps it plus ~350px of chrome inside a 664px
+       viewport (299px there, the 86vw cap of 335px on taller phones).
+       min() against 100% caps against the plate so viewbox + chrome
+       can never outgrow the visible width (86vw alone overflowed at
+       390px). */
+    .pp-viewbox { width: min(86vw, 100%, 45vh); }
+    /* Narrow plates: the straddling transport and readout would collide
+       with the bottom-left source label, so both join the plate flow:
+       controls centered under the caption, the time under the controls
+       (owner call 2026-08-23). The plate goes flex-column so the two
+       static pieces can order after the caption; the absolutely
+       positioned labels (title, source, close) ignore flex and keep
+       straddling. */
+    .pp-plate { display: flex; flex-direction: column; }
+    .pp-transport {
+      position: static;
+      transform: none;
+      justify-content: center;
+      margin-top: 12px;
+      order: 1;
+    }
+    /* In flow on phones, no longer sharing the bottom rule: the label
+       cap (plate-modal.css) does not apply. */
+    .pp-plate .pp-readout {
+      position: static;
+      order: 2;
+      margin: 8px auto 0;
+      max-width: none;
+    }
+    /* With the readout in flow, the bottom rule has one label, and it
+       reads better centered (owner call 2026-08-25). Two classes so it
+       beats .pm-label-bl regardless of stylesheet order. */
+    .pp-plate .pp-source {
+      left: 50%;
+      translate: -50% 0;
+      max-width: calc(100% - 50px);
+    }
+    /* Caption toggle: box, type, and press feedback come from
+       .boxed-label, .micro-label, and .press-box; placement and the
+       open state (held inverted, like a pressed transport button) are
+       here. */
+    .pp-caption-toggle {
+      display: block;
+      margin: 14px auto 0;
+      padding: 2px 10px;
+    }
+    .pp-caption-toggle[aria-expanded="true"] {
+      background-color: var(--ink);
+      color: var(--on-ink);
+    }
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "name": "@half-built/site",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Kitchen-sink demo: an Astro site that consumes only the published @half-built packages.",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview"
+  },
+  "dependencies": {
+    "@half-built/astro": "0.1.0",
+    "@half-built/css": "0.1.0",
+    "astro": "^5.18.2"
+  },
+  "devDependencies": {
+    "@csstools/postcss-global-data": "^4.0.0",
+    "postcss-custom-media": "^12.0.1"
+  }
+}

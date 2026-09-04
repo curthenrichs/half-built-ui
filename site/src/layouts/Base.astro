@@ -1,0 +1,54 @@
+---
+/* The demo site's one layout, wired the same way the blog's Base.astro
+   wires the package it now consumes: Shell for the document frame,
+   Masthead and Footer for the chrome, and the standard island set
+   mounted in the body-end script. Every import here is a package
+   specifier (@half-built/...); nothing reaches into a package's own
+   src directory by relative path. */
+import "@half-built/css/layers";
+import "@half-built/css/tokens";
+import "@half-built/css";
+import "@half-built/css/patterns.css";
+import "@half-built/css/code.css";
+import "@half-built/css/plate-modal.css";
+import "@half-built/css/lightbox.css";
+import "@half-built/css/prose.css";
+import Shell from "@half-built/astro/components/Shell.astro";
+import Masthead from "@half-built/astro/components/Masthead.astro";
+import Footer from "@half-built/astro/components/Footer.astro";
+import { formatHeaderDate } from "@half-built/astro/lib/header-date";
+import { SITE_NAME, TAGLINE, NAV, SOCIALS, LEGAL_HOLDER, FOOTER_SITEMAP, ECOSYSTEM, ECOSYSTEM_SELF } from "../data/site";
+import { THEME_STORAGE_KEY } from "../lib/theme-key";
+
+interface Props { title?: string; description?: string }
+const { title = "Kitchen Sink", description = "A demo Astro site built only from the @half-built/css and @half-built/astro packages." } = Astro.props;
+---
+<Shell themeStorageKey={THEME_STORAGE_KEY}>
+  <Fragment slot="head">
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <slot name="head" />
+  </Fragment>
+  <Masthead slot="header" siteName={SITE_NAME} tagline={TAGLINE} nav={NAV} socials={SOCIALS} dateStr={formatHeaderDate(new Date())} isHome={true} />
+  <slot />
+  <Footer slot="footer" siteName={SITE_NAME} legalHolder={LEGAL_HOLDER} sitemap={FOOTER_SITEMAP} ecosystem={ECOSYSTEM} ecosystemSelf={ECOSYSTEM_SELF} />
+  <Fragment slot="scripts">
+    <script>
+      import { mountCodeIslands } from "@half-built/astro/scripts/code-island";
+      import { mountLightbox } from "@half-built/astro/scripts/lightbox";
+      import { mountLinkTips } from "@half-built/astro/scripts/link-tip";
+      import { mountThemeToggle } from "@half-built/astro/scripts/theme-toggle";
+      import { mountFocusMode } from "@half-built/astro/scripts/focus-mode";
+      import { mountScrollTop } from "@half-built/astro/scripts/scroll-top";
+      import { THEME_STORAGE_KEY } from "../lib/theme-key";
+      mountFocusMode(document.documentElement);
+      /* Internal and external links share one measured tooltip island. */
+      mountLinkTips(document, { selector: 'a[href^="http"], a[data-tooltip]' });
+      mountThemeToggle(document, { storageKey: THEME_STORAGE_KEY });
+      mountScrollTop(document);
+      mountCodeIslands(document);
+      mountLightbox(document);
+    </script>
+    <slot name="scripts" />
+  </Fragment>
+</Shell>

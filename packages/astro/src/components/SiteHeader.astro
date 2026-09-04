@@ -1,0 +1,326 @@
+---
+/* The real half-built-robots.com header, matching the live DOM structure:
+   site-header-wrapper (bracket frame) containing three bands.
+   - masthead-top: date box + social icons, pulled UP to straddle the top rule
+   - masthead-brand: centered site branding (h1 on home, p elsewhere)
+   - masthead-nav: nav boxes + search flyout, pulled DOWN to straddle the bottom rule
+   No logo image in the header: the live site renders text branding only. */
+import ThemeToggle from "./ThemeToggle.astro";
+import type { NavItem, SocialItem } from "./models";
+interface Props {
+  siteName: string;
+  tagline: string;
+  nav: NavItem[];
+  socials: SocialItem[];
+  /* Preformatted date for the top band's box; the caller owns the format
+     (the blog passes lib/header-date's live-theme format). The client
+     refresh takes a formatDate option (step 11.2) defaulting to lib/header-date;
+     only its package-time home remains a step 11.3 decision. */
+  dateStr: string;
+  isHome?: boolean;
+  searchAction?: string;
+  searchParam?: string;
+  searchLabels?: { prompt?: string; placeholder?: string; submit?: string };
+}
+const {
+  siteName,
+  tagline,
+  nav,
+  socials,
+  dateStr,
+  isHome = false,
+  searchAction = "/search/",
+  searchParam = "s",
+  searchLabels = {},
+} = Astro.props;
+const {
+  prompt: searchPrompt = "Search for:",
+  /* The static markup this replaces wrote the placeholder as the HTML
+     entity `Search &hellip;`, which the compiler decodes to this same
+     character at build time for static text. Written here as the
+     decoded character (not the entity spelling) because a prop value
+     goes through Astro's dynamic attribute path, which escapes a
+     literal "&" instead of decoding it, and would otherwise double
+     encode the entity into `&#38;hellip;` in the built output. */
+  placeholder: searchPlaceholder = "Search …",
+  submit: searchSubmit = "Search",
+} = searchLabels;
+
+const current = Astro.url.pathname;
+/* Home stays the current item on paginated index pages, like WordPress,
+   the component's own documented opinion (not a prop). */
+const isCurrent = (href: string) =>
+  href === "/" ? current === "/" || current.startsWith("/page/") : current === href;
+---
+<header id="masthead" class="site-header">
+  <div class="shell">
+    <div class="site-header-wrapper bracket-frame">
+      <div class="masthead-top">
+        <slot name="band-top"><div class="header-tools">
+          <div class="date boxed-label" id="header-date">{dateStr}</div>
+          <ThemeToggle />
+        </div>
+        <div class="social-icons">
+          {/* Tips drop below and pin to the icon's right edge (scripts/link-tip.ts). */}
+          <ul class="social-links" data-tip-place="below" data-tip-align="end">
+            {socials.map((s) => (
+              <li>
+                <a class="icon-box" href={s.href}>
+                  <span class="screen-reader-text">{s.label}</span>
+                  <Fragment set:html={s.icon} />
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div></slot>
+      </div>
+      <div class="masthead-brand">
+        <slot name="band-brand"><div class="site-branding">
+          <div class="site-identity">
+            {isHome
+              ? <h1 class="site-title"><a href="/" rel="home">{siteName}</a></h1>
+              : <p class="site-title"><a href="/" rel="home">{siteName}</a></p>}
+            <p class="site-description">{tagline}</p>
+          </div>
+        </div></slot>
+      </div>
+      <div class="masthead-nav">
+        <slot name="band-nav"><div class="masthead-nav-inner">
+          <div class="header-nav-search">
+            <div class="header-navigation">
+              <nav id="site-navigation" class="main-navigation" aria-label="Primary">
+                <button type="button" class="menu-toggle" aria-controls="primary-menu" aria-expanded="false">
+                  <span></span><span></span><span></span>
+                  <span class="screen-reader-text">Menu</span>
+                </button>
+                <div class="menu-container">
+                  <ul id="primary-menu" class="menu">
+                    {nav.map((item) => (
+                      <li class={`menu-item${isCurrent(item.href) ? " current-menu-item" : ""}`}>
+                        <a class:list={["press-box", isCurrent(item.href) && "tint-overlay"]} href={item.href} aria-current={isCurrent(item.href) ? "page" : undefined}>{item.label}</a>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </nav>
+            </div>
+            <div class="header-end">
+              {/* Phones lose the top band, so the toggle sits beside the
+                  search there (owner request 2026-08-26). */}
+              <ThemeToggle placement="phone" />
+              <div class="navigation-search">
+                <div class="navigation-search-wrap">
+                  {/* A control that reveals UI is a button, not a link: a
+                      bare-hash anchor navigates (scroll jump + history
+                      entry), audit finding A3. focus-within still opens the
+                      flyout when the button takes focus. */}
+                  <button type="button" title="Search" class="navigation-search-icon icon-box">
+                    <svg viewBox="0 0 512 512" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M505 442.7L405.3 343c28.4-34.9 45.7-79 45.7-127C451 96.5 354.5 0 235.5 0S20 96.5 20 215.5 116.5 431 235.5 431c48 0 92.1-17.3 127-45.7L462.3 485c5.9 5.9 15.4 5.9 21.3 0l21.4-21.4c5.9-5.9 5.9-15.4 0-20.9zM235.5 371c-85.9 0-155.5-69.6-155.5-155.5S149.6 60 235.5 60 391 129.6 391 215.5 321.4 371 235.5 371z"/></svg>
+                    <span class="screen-reader-text">Search</span>
+                  </button>
+                  <div class="navigation-search-form">
+                    <form role="search" class="search-form field-join" action={searchAction} method="get">
+                      <label>
+                        <span class="screen-reader-text">{searchPrompt}</span>
+                        <input type="search" class="search-field field-join-input" placeholder={searchPlaceholder} name={searchParam} />
+                      </label>
+                      <input type="submit" class="search-submit field-join-button press-box press-box-shaded" value={searchSubmit} />
+                    </form>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div></slot>
+      </div>
+    </div>
+  </div>
+</header>
+
+<style>
+  .site-header { margin-block: 30px 10px; }
+
+  /* Frame comes from the .bracket-frame pattern; only the stacking context
+     is contextual here. */
+  .site-header-wrapper { z-index: 1; }
+
+  /* Top band straddles the top rule via the negative margin. */
+  .masthead-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: calc(-30px + (-12px));
+  }
+  .masthead-top .date {
+    padding: 4px 10px;
+    display: grid;
+    place-items: center;
+    font-size: var(--font-size-sm);
+  }
+  /* Date box and the day/night toggle sit together on the left of the
+     top band, spaced like the social icons on the right. */
+  .header-tools { display: flex; align-items: center; gap: 10px; }
+  /* Bottom band's right end: the phone toggle (hidden on desktop) beside
+     the search icon, spaced like the top band's tools. */
+  .header-end { display: flex; align-items: center; gap: 10px; }
+  /* No background on the list itself: the header's top rule must stay
+     visible in the gaps between the boxed icons. */
+  ul.social-links {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    gap: 10px;
+  }
+  .masthead-brand {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-block: 20px;
+  }
+  .site-branding { padding-block: 10px; text-align: center; width: 100%; }
+  .site-title {
+    font-size: var(--font-size-xl);
+    line-height: 1.1;
+    font-weight: 700;
+    margin: 0;
+  }
+  .site-title a { text-decoration: none; color: var(--ink); }
+  /* The tagline wears the accent box (owner call 2026-09-03): the
+     callout's combination, the same one the press box and the demo
+     launcher wear. Accent line, the accent's legible ink for the text,
+     and the surface tinted 6% with the accent as its ground, in both
+     themes. It replaced bare accent text, which by day was #ffaa3c on
+     white at 1.9:1 (test/a11y.test.ts). Static: no hover, no press. */
+  .site-description {
+    display: inline-block;
+    /* 14 above, 8 below (owner pick 2026-09-03, option B of three):
+       the box sits as its own element between the title and the nav
+       band rather than as a subtitle stuck to the title. */
+    margin: 14px 0 8px;
+    padding: 6px 14px;
+    border: var(--stroke) solid var(--accent-1);
+    color: var(--accent-1-ink);
+    background-color: color-mix(in srgb, var(--accent-1) 6%, var(--surface));
+  }
+
+  /* Bottom band straddles the bottom rule. */
+  .masthead-nav {
+    position: relative;
+    margin-bottom: calc(-30px + (-17px));
+  }
+  .header-nav-search {
+    width: 100%;
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .main-navigation .menu {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    font-size: var(--font-size-sm);
+  }
+  /* Box, ink, and press feedback from .press-box; the nav's own size,
+     case, and hover ring are here. */
+  .main-navigation .menu a {
+    padding: 7px 15px;
+    text-transform: uppercase;
+    font-weight: bold;
+    display: block;
+  }
+  .menu-item { position: relative; }
+  .current-menu-item > a { --tint-opacity: 0.2; }
+  .main-navigation .menu a:hover { outline: var(--stroke) solid var(--rule); }
+
+  .menu-toggle { display: none; }
+  @media (--bp-sidebar) {
+    .menu-toggle {
+      display: block;
+      width: 35px;
+      height: 35px;
+      position: relative;
+      cursor: pointer;
+      padding: 0;
+      margin: 5px;
+      border: var(--stroke) solid var(--rule);
+      background-color: var(--surface);
+    }
+    .menu-toggle span:not(.screen-reader-text) {
+      display: block;
+      position: absolute;
+      height: 3px;
+      width: calc(100% - 10px);
+      background: var(--ink);
+      border-radius: 3px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+    .menu-toggle span:nth-child(1) { top: 7px; }
+    .menu-toggle span:nth-child(2) { top: 14px; }
+    .menu-toggle span:nth-child(3) { top: 21px; }
+    /* The open menu is a pop-out under the hamburger, floating over the
+       page like the search flyout (same z tier), not a block that grows
+       the header (owner request 2026-08-27, after launch). The header
+       keeps its height, so the band keeps its desktop straddle of the
+       bottom rule: hamburger, toggle, and magnifier hang off the rule
+       instead of sitting inside the frame. */
+    .main-navigation { position: relative; }
+    .main-navigation .menu {
+      display: none;
+      flex-direction: column;
+      position: absolute;
+      top: calc(100% + 6px);
+      left: 0;
+      min-width: 220px;
+      padding: 10px;
+      z-index: var(--z-search-flyout);
+      background-color: var(--surface);
+      border: var(--stroke) solid var(--rule);
+      box-shadow: var(--shadow);
+    }
+    .main-navigation .menu.open { display: flex; }
+  }
+  /* Phone-width header simplification (owner call 2026-08-20): the
+     date box competes for pixels a phone already spends on its own
+     clock, and the social tray collided with it. Both retire; the
+     socials' job moves to the Contact page, one hamburger tap away. */
+  @media (--bp-phone) {
+    .masthead-top { display: none; }
+  }
+
+  /* Search flyout: icon on a primary-filled box, form revealed on focus-within
+     (the live theme toggles a .show class with jQuery; focus-within needs no script). */
+  .navigation-search { width: 30px; position: relative; display: inline-block; text-align: center; }
+  .navigation-search-form {
+    position: absolute;
+    right: 0;
+    opacity: 0;
+    visibility: hidden;
+    top: 100%;
+    width: 325px;
+    padding: 14px;
+    z-index: var(--z-search-flyout);
+    background-color: var(--surface);
+    border: var(--stroke) solid var(--rule);
+    transition: var(--transition);
+  }
+  .navigation-search-wrap:focus-within .navigation-search-form {
+    opacity: 1;
+    visibility: visible;
+  }
+  /* Form anatomy comes from the .field-join house pattern (owner request
+     2026-07-30, replacing the live theme's 75/25 split form). Only the
+     label wrapper's sizing is contextual. */
+  .search-form label { flex: 1; }
+  .search-form .search-field { width: 100%; }
+</style>
+
+<script>
+  import { mountSiteHeader } from "../scripts/site-header";
+  mountSiteHeader(document);
+</script>

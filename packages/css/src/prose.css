@@ -1,0 +1,89 @@
+/* Layer: components (content-domain stylesheet for .prose).
+   See docs/css-architecture.md. */
+@layer components {
+/* Prose rhythm for .prose. Lists verified to 3+ depths (7 live posts
+   nest, 3 go 3+ deep). Table treatment: boxed ledger (spec section 5). */
+.prose { margin-top: 0; }
+/* p margin fidelity-corrected to the live 1.5em (handoff 5.5); heading
+   sizes/margins are kept on our fluid type scale rather than reverted to
+   bare browser defaults, recorded as a deliberate deviation in the handoff. */
+.prose p { margin: 0 0 1.5em; }
+.prose h2 { font-size: var(--font-size-md); margin: 1.6em 0 0.6em; }
+.prose h3 { font-size: var(--font-size-base); margin: 1.4em 0 0.5em; }
+.prose h4 { font-size: var(--font-size-sm); text-transform: uppercase; letter-spacing: 0.5px; margin: 1.4em 0 0.5em; }
+
+/* List indentation: outside-positioned markers with enough padding that
+   the marker sits right of the content edge and wrapped lines align under
+   the text. Owner-approved divergence from live (2026-07-28, kept
+   2026-09-02 after the inline-block links it originally worked around
+   were retired): outside-positioned markers with wrapped lines aligned
+   under the text. Disc (not square) at the top level, 15px
+   rhythm. Nested alpha/roman numbering is a kept editorial enhancement
+   (live has no nested-list override at all). */
+.prose ul, .prose ol { margin: 0 0 15px 15px; padding-left: 1.2em; list-style-position: outside; }
+/* Longhand on purpose: the list-style shorthand would also reset
+   list-style-position (owner bug report 2026-07-28; carryovers test pins
+   this). */
+.prose ul { list-style-type: disc; }
+.prose ul ul { list-style-type: circle; }
+.prose ul ul ul { list-style-type: square; }
+.prose ol { list-style-type: decimal; }
+.prose ol ol { list-style-type: lower-alpha; }
+.prose ol ol ol { list-style-type: lower-roman; }
+.prose li { padding: 5px 0; }
+.prose li > ul, .prose li > ol { margin: 4px 0 0 15px; }
+
+/* Blockquote: boxed on the muted gray pattern (owner request 2026-08-14,
+   spec docs/superpowers/specs/2026-08-14-boxed-blockquotes-design.md), a
+   deliberate deviation from live, which ships only the indent (handoff 5.5).
+   Full column width; the box, not indentation, is the signal. Nested quotes
+   get no special treatment: this rule cascades, so an inner quote sits on
+   the same gray ground with only its own hairline marking it. */
+.prose blockquote {
+  background: var(--band);
+  border: 1px solid var(--hairline);
+  padding: 12px 16px;
+  margin: 20px 0;
+}
+/* Paragraphs carry 1.5em bottom margin; without this the box ends in a
+   dead gray band. */
+.prose blockquote > :last-child { margin-bottom: 0; }
+/* The small attribution line (Quote component) sits close under the quote
+   text: whatever element precedes it sheds most of its 1.5em margin. */
+.prose blockquote > :has(+ .quote-attribution) { margin-bottom: 0.5em; }
+
+.prose hr {
+  border: 0;
+  border-top: var(--stroke) solid var(--rule);
+  margin: 30px 0;
+}
+
+/* Boxed ledger table */
+.prose .table-scroll { overflow-x: auto; margin: 20px 0; }
+.prose table {
+  border-collapse: collapse;
+  width: 100%;
+  border: var(--stroke) solid var(--rule);
+  font-size: var(--font-size-sm);
+}
+.prose thead tr {
+  background: var(--band);
+  border-bottom: 3px solid var(--rule);
+}
+.prose th {
+  text-align: left;
+  font-size: var(--font-size-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  padding: 7px 12px;
+}
+.prose td { padding: 7px 12px; }
+.prose tbody tr:not(:last-child) { border-bottom: 1px solid var(--hairline); }
+/* Legacy tolerance: a header faked as a bold first body row still reads fine
+   because rows carry only faint hairlines. */
+/* Every content image carries the signature 2px outline BY DEFAULT
+   (owner ruling 2026-07-26): the standard is baked into rendering, not
+   opted into per component. Framed plates keep the line on the frame
+   and zero it on the inner img (see GalleryImage). */
+.prose img { max-width: 100%; height: auto; border: var(--stroke) solid var(--rule); }
+}

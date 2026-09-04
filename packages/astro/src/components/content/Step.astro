@@ -1,0 +1,126 @@
+---
+import type { ImageMetadata } from "astro";
+import SmartImage from "../SmartImage.astro";
+import LightboxLink from "../LightboxLink.astro";
+
+/* One row of a Walkthrough (spec
+   docs/superpowers/specs/2026-08-15-walkthrough-steps-design.md): photo(s)
+   on the left at a fixed 200px per photo, the author's prose beside at body
+   size. The prose is the step's text, not a caption; alt feeds the lightbox
+   caption. Below 600px the row stacks, photo centered above the prose. */
+interface Photo { src: ImageMetadata; alt?: string }
+/* Exactly one of `src` (with `alt`) or `images`: the union says so to
+   typed callers; the runtime check below says so to MDX. */
+type Props = ({ src: ImageMetadata; images?: never } | { src?: never; images: Photo[] }) & {
+  alt?: string;
+  class?: string;
+};
+const { src, alt = "", images, class: className } = Astro.props;
+
+const hasSingle = src !== undefined;
+const hasMany = images !== undefined && images.length > 0;
+if (hasSingle === hasMany) {
+  throw new Error("Step: pass exactly one of `src` (with `alt`) or a non-empty `images` array");
+}
+const photos: Photo[] = hasMany ? images : [{ src: src as ImageMetadata, alt }];
+---
+<li class:list={["step", className]}>
+  <div class="step-media">
+    {photos.map((p) => {
+      const a = p.alt ?? "";
+      return (
+        <LightboxLink href={p.src.src} w={p.src.width} h={p.src.height} caption={a}>
+          <SmartImage src={p.src} alt={a} widths={[200, Math.min(p.src.width, 400)]} sizes="200px" />
+        </LightboxLink>
+      );
+    })}
+  </div>
+  <div class="step-body"><slot /></div>
+</li>
+
+<style>
+  .step {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 20px;
+    align-items: start;
+    /* prose.css pads every .prose li; rows space themselves via
+       the Walkthrough gap instead. */
+    padding: 0;
+    counter-increment: walkthrough-step;
+  }
+  /* Photos sit in a row, one 200px track each, so a two-photo step's cell
+     is 410px and its prose starts further right (owner pick M3). The row
+     does not wrap, so two photos is the practical cap for the 990px
+     prose column: three still fits, four is 830px, five overflows. */
+  .step-media {
+    position: relative;
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 200px;
+    gap: 10px;
+    line-height: 0;
+  }
+  /* The 2px outline comes from .prose img in prose.css. */
+  .step-media :global(img) { width: 100%; height: auto; }
+  /* The body is 1fr of the layout's column; nothing here narrows it. */
+  .step-body { min-width: 0; }
+  .step-body :global(p:last-child) { margin-bottom: 0; }
+
+  /* Number chip (owner pick B2): a 28px filled square riding the media
+     cell's top-left corner, half outside the frame so it never covers the
+     photo. The 14px margins reserve its overhang on every step of a
+     numbered walkthrough, chip or not, so rows stay aligned. Decorative:
+     the <ol> already carries list position for assistive tech. Whether
+     the chip shows is the parent's call: Walkthrough sets
+     --step-chip-display and --step-media-margin on its numbered variant
+     (step 5 replaced the :global(.walkthrough-numbered) parent-read). */
+  /* stylelint-disable-next-line no-duplicate-selectors -- split from the
+     grid rule above so the contract stays grouped with its own comment. */
+  .step-media { margin: var(--step-media-margin, 0); }
+  .step-media::before {
+    content: counter(walkthrough-step);
+    display: var(--step-chip-display, none);
+    position: absolute;
+    top: -14px;
+    left: -14px;
+    z-index: 1;
+    width: 28px;
+    height: 28px;
+    align-items: center;
+    justify-content: center;
+    background: var(--ink);
+    color: var(--on-ink);
+    font-family: var(--font-body);
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  /* Tablets and phone-landscape (2026-08-16 fix wave): between 600px and
+     about 780px a two-photo cell is still a hard 410px, which leaves the
+     prose a 140-310px ribbon while the row is still two-column. Owner pick
+     M3 keeps the row layout above 800px, so stack the media cell's photos
+     here without touching the row itself; the 600px rules below still take
+     over the row layout and stay unchanged. */
+  @media (max-width: 800px) {
+    .step-media {
+      grid-auto-flow: row;
+      grid-auto-columns: auto;
+      grid-template-columns: 200px;
+    }
+  }
+
+  /* Phones (owner pick P2): stack, photo centered above the prose, photos
+     of a multi-photo step stacking too. Same breakpoint as MediaText. */
+  @media (max-width: 600px) {
+    .step { grid-template-columns: 1fr; gap: 10px; }
+    .step-media {
+      grid-auto-flow: row;
+      grid-auto-columns: auto;
+      grid-template-columns: 200px;
+      justify-self: center;
+      margin: var(--step-media-margin-stacked, 0);
+    }
+  }
+</style>
