@@ -4,7 +4,7 @@
   "description": "Astro components, islands, and pure helpers for the half-built design system.",
   "license": "MIT",
   "type": "module",
-  "files": ["src"],
+  "files": ["src", "ICONS-LICENSE"],
   "exports": {
     "./components/Masthead.astro": "./src/components/SiteHeader.astro",
     "./components/*": "./src/components/*",

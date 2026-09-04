@@ -1,8 +1,8 @@
 /* Sample site identity for the kitchen-sink demo. None of this is real
    copy: it exists only to give Masthead and Footer something typed to
-   render. Kept separate from the content-inventory sample data
-   (data/content.ts) because Base.astro needs this on every page and
-   the content data only on index.astro. */
+   render. Kept separate from the content-inventory sample data, which
+   is defined inline in index.astro, because Base.astro needs this on
+   every page and the content data only on index.astro. */
 import type { NavItem, SocialItem, SitemapGroup, EcosystemEntry } from "@half-built/astro/components/models";
 
 export const SITE_NAME = "Kitchen Sink";

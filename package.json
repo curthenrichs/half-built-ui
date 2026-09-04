@@ -6,7 +6,8 @@
   "scripts": {
     "test": "vitest run --passWithNoTests",
     "build:site": "npm run build --workspace site",
-    "verify-move": "node scripts/verify-move.mjs"
+    "verify-move": "node scripts/verify-move.mjs",
+    "lint": "eslint ."
   },
   "devDependencies": {
     "vitest": "^2.1.9",

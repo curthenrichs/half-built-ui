@@ -27,6 +27,8 @@ import BlogImage from "@half-built/astro/content/BlogImage.astro";
 import MediaText from "@half-built/astro/content/MediaText.astro";
 import CodeBlock from "@half-built/astro/content/CodeBlock.astro";
 import Palette from "@half-built/astro/content/Palette.astro";
+import Group from "@half-built/astro/content/Group.astro";
+import Spacer from "@half-built/astro/content/Spacer.astro";
 import codeTheme from "@half-built/astro/shiki/code-theme";
 import type { PostCardModel, PostRef, LinkListItem } from "@half-built/astro/components/models";
 import placeholderWide from "../assets/placeholder-wide.svg";
@@ -155,6 +157,14 @@ const codeSample = `def read_ir(code):
 
         <h3>Palette</h3>
         <Palette entries={paletteEntries} />
+
+        <h3>Group</h3>
+        <Group><p>A boxed prose container, no label and no tint, the plain sibling of Callout's box.</p></Group>
+
+        <h3>Spacer</h3>
+        <p>A fixed-height spacer sits below this paragraph.</p>
+        <Spacer size={60} />
+        <p>Normal flow resumes here, after the spacer.</p>
       </div>
     </section>
 
