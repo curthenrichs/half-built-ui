@@ -1,0 +1,10 @@
+/* Cascade order for the whole site, declared once and imported first.
+   Later layers win; Astro's scoped component styles are unlayered and
+   therefore always win over every layer (the intended override point).
+   The plate-modal family is three sublayers of components so the shared
+   plate chrome loses to the lightbox and the player by layer order, not
+   by stylesheet import order. site is the blog's own layer (step 11.1):
+   rules that never enter the package (Henry, WP-artifact prose
+   overrides) and must outrank whatever the package layers say. See
+   docs/css-architecture.md. */
+@layer tokens, base, patterns, components, components.plate, components.lightbox, components.player, site;

@@ -1,0 +1,270 @@
+/* Layer: patterns. The theme's visual grammar, each pattern defined exactly
+   once. Components apply the class and add only contextual offsets/margins
+   in their scoped styles. See docs/css-architecture.md for the full grammar
+   description; these classes mirror the live site's look and are pinned by
+   the fidelity tests. */
+@layer patterns {
+  /* Bracket frame: 2px top/bottom rules, 2px edge verticals fading through
+     the middle. The site's signature enclosure (header, latest-posts wrap,
+     articles, pages, 404, search results). */
+  .bracket-frame {
+    position: relative;
+    border: var(--stroke) solid var(--rule);
+    border-width: var(--stroke) 0;
+    padding: var(--frame-pad);
+  }
+  .bracket-frame::before,
+  .bracket-frame::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    width: var(--stroke);
+    height: 100%;
+    background: linear-gradient(
+      to bottom,
+      var(--rule) 0%,
+      rgba(0, 0, 0, 0) 35%,
+      rgba(0, 0, 0, 0) 65%,
+      var(--rule) 100%
+    );
+  }
+  .bracket-frame::before { left: 0; }
+  .bracket-frame::after { right: 0; }
+
+  /* Boxed label: bordered box on the page background, typically straddling
+     a frame rule (date box, Latest Posts title). Padding and straddle
+     offsets are contextual and stay in the component. */
+  .boxed-label {
+    margin: 0;
+    color: var(--ink);
+    border: var(--stroke) solid var(--rule);
+    background-color: var(--surface);
+  }
+
+  /* Icon box: 30x30 bordered interactive square (social icons, magnifier). */
+  .icon-box {
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--ink);
+    border: var(--stroke) solid var(--rule);
+    background-color: var(--surface);
+    text-decoration: none;
+    padding: 0;
+    font: inherit;
+    cursor: pointer;
+    transition: var(--transition);
+  }
+  /* Hover ring in the box's own ink; keyboard focus is the site-wide
+     amber ring (base/reset.css), which is why this is :hover alone (a
+     mouse click must never leave a ring behind, review 2026-08-23, R3). */
+  .icon-box:hover { outline: 2px solid currentColor; }
+
+  /* Pressable box: a bordered light box that inverts to ink while held,
+     the house press language (2026-07-30). Nav links, pagination cells,
+     the fluid CTA, and the player transport share it; hover and focus
+     treatments differ per site and stay local. */
+  .press-box {
+    color: var(--ink);
+    background-color: var(--surface);
+    border: var(--stroke) solid var(--rule);
+    text-decoration: none;
+    font: inherit;
+    cursor: pointer;
+  }
+  .press-box:active { color: var(--on-ink); background-color: var(--ink); }
+
+  /* Accent press box (owner rule 2026-08-26): the callout's combination
+     worn by a button. Accent line, the accent's legible ink for the
+     text, and the same faint tint of the accent as its ground (the
+     callout tints at 6%), in both themes; held, it fills solid in the
+     accent with the on-accent text, the press-box inversion. Knobs pick
+     the accent; the default is the second accent, which the demo
+     launcher wears. */
+  .press-box-accent {
+    --press-accent: var(--accent-2);
+    --press-accent-ink: var(--accent-2-ink);
+    --press-on-accent: var(--on-accent-2);
+
+    color: var(--press-accent-ink);
+    background-color: color-mix(in srgb, var(--press-accent) 6%, var(--surface));
+    border-color: var(--press-accent);
+  }
+  .press-box-accent:hover {
+    background-color: color-mix(in srgb, var(--press-accent) 14%, var(--surface));
+  }
+  .press-box-accent:active {
+    color: var(--press-on-accent);
+    background-color: var(--press-accent);
+  }
+  /* Which accent: the brand amber (--accent-1) or the second, cyan
+     (--accent-2, also the default above). The Button component renders
+     these as its variants. */
+  .press-box-accent-1 {
+    --press-accent: var(--accent-1);
+    --press-accent-ink: var(--accent-1-ink);
+    --press-on-accent: var(--on-accent-1);
+  }
+  .press-box-accent-2 {
+    --press-accent: var(--accent-2);
+    --press-accent-ink: var(--accent-2-ink);
+    --press-on-accent: var(--on-accent-2);
+  }
+  /* Shaded press box (owner request 2026-08-26): the plain box on a
+     ground tinted with ink at the nav's current-item strength (the
+     tint overlay at 0.2), for a second, non-accent button beside a
+     plain one. Held, it inverts like any press box. */
+  .press-box-shaded {
+    background-color: color-mix(in srgb, var(--ink) 20%, var(--surface));
+  }
+
+  /* Button row: a run of buttons side by side with air between them,
+     wrapping onto a second line when the column runs out (the style
+     guide's variant rows). The gap is the row's only spacing; the
+     buttons carry none of their own. */
+  .button-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+  }
+
+  /* Tint overlay: fills the element with ink at low opacity without
+     introducing a second color (current nav item 0.2, footer bar 0.1).
+     Knobs: --tint-opacity, and --tint-color for a caller whose line is
+     not ink (the callout's typed line color). */
+  .tint-overlay { position: relative; }
+  .tint-overlay::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-color: var(--tint-color, var(--ink));
+    opacity: var(--tint-opacity, 0.1);
+  }
+
+  /* Back link: the deterministic return-to-parent nav under posts (to the
+     archive page holding the post) and pages (to parent, or home). One
+     definition; both layouts render <nav class="back-link">. */
+  .back-link { margin-top: 20px; font-size: var(--font-size-sm); }
+  .back-link a { color: var(--ink); }
+
+  /* Chip: filled primary label with white text (reading-time chip,
+     category-card label). */
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 7px;
+    color: var(--on-ink);
+    background-color: var(--ink);
+    font-size: var(--font-size-xs);
+    font-weight: bold;
+    line-height: 1;
+  }
+
+  /* Draft stamp: the amber DRAFT overlay on a post's hero and its
+     archive card. Reaches a page only in SHOW_DRAFTS=1 preview builds
+     (deploy builds exclude drafts entirely). Size and stacking are
+     contextual. */
+  .draft-stamp {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    pointer-events: none;
+    color: var(--accent-1);
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-shadow: 0 2px 10px rgb(0 0 0 / 65%);
+  }
+
+  /* Rule box: the plain bordered prose container at frame padding
+     (Group, and Callout's box under its tint and label). Margins are
+     contextual and stay in the component. */
+  .rule-box {
+    border: var(--stroke) solid var(--rule);
+    padding: var(--frame-pad);
+  }
+
+  /* Caption: the quiet small line under an image, beside media text, or
+     after a quote. Alignment and spacing are contextual. */
+  .caption { font-size: var(--font-size-xs); opacity: 0.75; }
+
+  /* Micro label: the small bold tracked line on plate labels, the
+     lightbox HOME box, the player fallback, and the stasis tag. Case is
+     the caller's. */
+  .micro-label { font-size: var(--font-size-xs); font-weight: 700; letter-spacing: 0.08em; }
+
+  /* Joined field: a text entry and its action button fused in one
+     2px-bordered box (subscribe form, search page form). House rule
+     settled 2026-07-30 after trying inset and side-by-side variants.
+     Anatomy: borderless transparent input, then the submit button,
+     which IS the house button: every .field-join-button also carries
+     .press-box and .press-box-shaded (owner call 2026-08-26: the style
+     guide's shaded Button, ink text on the nav's current-item gray,
+     filling with the ink while held), and this class adds only the
+     fused geometry (no radius, the
+     box's own border replaced by a 2px rule where it meets the input,
+     the button's type and padding). Square focus rings, inset (the UA
+     auto ring is rounded and garbles the box, and an outside ring would
+     cut across the fused box).
+     Color knobs, each defaulting to the theme's own ink and surface:
+     --field-ink (box border and the rule), --field-text (input text),
+     --field-well (the ground behind the input), --field-ring (the
+     input's highlight when clicked into; a keyboard focus always shows
+     the site ring instead, told apart by the root's data-focus stamp,
+     which comes from the packaged focus-mode island's mountFocusMode
+     (step 11.2)). The subscribe panel sets them from its
+     --panel-* roles; the button takes no knob, so it reads the same on
+     the panel as anywhere else. */
+  .field-join {
+    display: flex;
+    flex-wrap: wrap;
+    border: var(--stroke) solid var(--field-ink, var(--rule));
+    /* The well behind the input: the theme's --well (white by day, one
+       step up from the black by night so the field reads as recessed
+       and the button separates from it, owner report 2026-08-26);
+       --field-well overrides it for a panel with its own ground. */
+    background: var(--field-well, var(--well));
+  }
+  .field-join-input {
+    flex: 1;
+    min-width: 0;
+    border: 0;
+    border-radius: 0;
+    padding: 10px 12px;
+    background: transparent;
+    color: var(--field-text, var(--field-ink, var(--ink)));
+    font-family: var(--font-body);
+    font-size: var(--font-size-sm);
+  }
+  /* Inset, not the site-wide outside ring: an outside ring around the
+     input alone would cut across the fused box. */
+  .field-join-input:focus-visible {
+    outline: 2px solid var(--field-ring, var(--focus-ring));
+    outline-offset: -2px;
+  }
+  :root[data-focus="keyboard"] .field-join-input:focus-visible {
+    outline-color: var(--focus-ring);
+  }
+  .field-join-button {
+    border-width: 0 0 0 var(--stroke);
+    border-color: var(--field-ink, var(--rule));
+    border-radius: 0;
+    padding: 10px 18px;
+    font-family: var(--font-body);
+    font-size: var(--font-size-sm);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+    position: relative;
+    z-index: 1;
+  }
+  .field-join-button:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: -4px;
+  }
+}

@@ -1,0 +1,102 @@
+/* Layer: tokens. Primitives: the raw palette and structural scales. No
+   component reads these directly; the roles in theme-light.css and
+   theme-dark.css do. Hex is permitted under tokens/ only
+   (stylelint-enforced). See docs/css-architecture.md. */
+@layer tokens {
+  :root {
+    /* Neutrals (live-resolved Legacy Blog palette, handoff section 5.1) */
+    --white: #ffffff;
+    --gray-075: #ececec;
+    --gray-100: #efefef;
+    --gray-200: #d9d9d9;
+    --gray-300: #cccccc;
+    --gray-600: #555555;
+    --gray-700: #404040;
+    --black-a10: rgba(0, 0, 0, 0.1);
+    --graphite-a55: rgba(48, 48, 48, 0.55);
+
+    /* Warm darks: the parent theme's dark palette, shared with BEADZ
+       (ink-900 is BEADZ --line, ink-800 is BEADZ --monitor-line). */
+    --ink-950: #110d08;
+    --ink-900: #1b140c;
+    --ink-850: #2a2016;
+    --ink-800: #3b2e1e;
+    --ink-700: #5a4630;
+    --parchment: #e8d9c3;
+    --parchment-dim: #b09a7c;
+    --white-a10: rgba(255, 255, 255, 0.1);
+    --black-a60: rgba(0, 0, 0, 0.6);
+
+    /* Neutral darks: the dark theme's ground. black-900 is Henry's amber
+       colorway ground (henry-mascot, the terminal aesthetic), so the
+       page and the mascot share one black. */
+    --black-900: #111111;
+    --black-850: #1a1a1a;
+    --gray-800: #2a2a2a;
+    --gray-750: #3a3a3a;
+    --gray-400: #9a9a9a;
+
+    /* Accents. amber-500 is the shared accent across the ecosystem;
+       amber-700 is its legible kin for text, tuned here for this site
+       the way cyan-700 was: the amber hue at full saturation, taken
+       down until it clears WCAG AA (4.5:1) as body text on the white
+       surface (4.84) and on the accent's 6% tint (4.66). It replaced
+       #b5680c, a value borrowed from BEADZ that sat at 4.24:1 on white
+       (owner call 2026-09-03; BEADZ is not a source of values). */
+    --amber-500: #ffaa3c;
+    --amber-700: #a36300;
+    /* Second accent, the cyan family (owner request 2026-08-26): chosen
+       to sit where the amber sits, cyan-500 matches amber-500's contrast
+       on both grounds (line and fill, not text on white) and cyan-700
+       is its legible kin for text on the light ground. */
+    --cyan-300: #8ee6f2;
+    --cyan-500: #3cc7dd;
+    --cyan-700: #1a7f90;
+    --red-800: #7a1f16;
+    --red-300: #ff8a7a;
+    --ochre-600: #d98a1f;
+    --violet-600: #7a5aa0;
+    --violet-300: #b39ad6;
+
+    /* Strokes, spacing, elevation, motion */
+    --stroke-1: 1px;
+    --stroke-2: 2px;
+    --stroke-3: 3px;
+    --frame-pad: 25px;
+    --column-gap: 30px;
+    /* The shell (step 11.1): --shell-max is the ONLY width authority on
+       the page column (the never-cap-prose rule's positive statement);
+       --shell-pad its gutter; --header-clear the content offset under
+       the header (live theme used 50px; bumped by owner preference). */
+    --shell-max: 1380px;
+    --shell-pad: 15px;
+    --header-clear: 65px;
+    --shadow: 0 3px 12px -1px rgb(7 10 25 / 20%), 0 22px 27px -20px rgb(7 10 25 / 20%);
+    --transition: all 0.1s ease;
+
+    /* z ladder. Skip link above content, scroll-to-top above the
+       header's search flyout would be wrong, so the flyout tops the
+       ladder; loose Henry's rungs sit under the flyout but over
+       everything else, with his teleport hole one step under him, both
+       defined blog-side in henry-loose.css (step 11.1). */
+    --z-raised: 1;
+    --z-skip-link: 10;
+    --z-scroll-top: 17;
+    --z-tooltip: 20;
+    /* 49 and 50 belong to loose Henry, defined blog-side in
+       henry-loose.css (step 11.1). */
+    --z-search-flyout: 99;
+
+    /* Fluid type scale (handoff section 5.2, verbatim) */
+    --font-size-xs: clamp(0.7rem, 0.17vw + 0.76rem, 0.79rem);
+    --font-size-sm: clamp(0.8rem, 0.17vw + 0.76rem, 0.89rem);
+    --font-size-base: clamp(1rem, 0.34vw + 0.91rem, 1.19rem);
+    --font-size-md: clamp(1.25rem, 0.61vw + 1.1rem, 1.58rem);
+    --font-size-lg: clamp(1.56rem, 1vw + 1.31rem, 2.11rem);
+    --font-size-xl: clamp(1.95rem, 1.56vw + 1.56rem, 2.81rem);
+    --font-size-xxl: clamp(2.44rem, 2.38vw + 1.85rem, 3.75rem);
+    --font-size-xxxl: clamp(2.95rem, 3.54vw + 2.17rem, 5rem);
+
+    --font-body: "Roboto Mono", ui-monospace, monospace;
+  }
+}

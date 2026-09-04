@@ -1,0 +1,60 @@
+/* Layer: tokens. Dark roles, applied through data-theme="dark" on <html>
+   (the toggle and the head stamp in Base.astro set it; nothing in CSS
+   reads the media query). The ground is Henry's amber-colorway black
+   (owner call 2026-08-26: the warm ink-900 read too brown as a page
+   ground), with neutral bands and hairlines; the ink stays parchment and
+   the accent amber, so the type reads as the terminal aesthetic the
+   mascot already uses. The code island keeps its warm block, the same
+   one it has by day. Every value is a primitive. */
+@layer tokens {
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --surface: var(--black-900);
+    --ink: var(--parchment);
+    --rule: var(--parchment);
+    --on-ink: var(--black-900);
+    --ink-muted: var(--gray-400);
+    --band: var(--black-850);
+    --hairline: var(--gray-800);
+    --divider-faint: var(--white-a10);
+    --input-border: var(--gray-750);
+    /* One step up from the page so a field reads as a field, not a hole. */
+    --well: var(--black-850);
+
+    /* The bright amber is legible as text on the dark ground, so the
+       accent and its ink form collapse to one value here. */
+    --accent-1: var(--amber-500);
+    --accent-1-ink: var(--amber-500);
+    --accent-2: var(--cyan-500);
+    --accent-2-ink: var(--cyan-300);
+    --on-accent-1: var(--black-900);
+    --on-accent-2: var(--black-900);
+    --error-ink: var(--red-300);
+
+    /* Code island: the same warm block as in the light theme, so a code
+       sample reads identically in both. */
+    --code-bg: var(--ink-900);
+    --code-fg: var(--parchment);
+    --code-line: var(--ink-800);
+
+    --veil: var(--black-a60);
+    --mat-line: var(--gray-800);
+    /* Keyboard ring: the second accent by night, the first by day
+       (owner call 2026-08-26). */
+    --focus-ring: var(--cyan-500);
+
+    --track-x: var(--amber-500);
+    --track-y: var(--cyan-300);
+    --track-z: var(--violet-300);
+
+    /* The subscribe panel inverts by night: a dark panel with an amber
+       double rule and an amber button, so the call to action is the
+       brightest thing in the block in both themes (owner call
+       2026-08-26). */
+    --panel-bg: var(--black-850);
+    --panel-ink: var(--parchment);
+    --panel-rule: var(--amber-500);
+    --panel-error: var(--red-300);
+    --panel-ring: var(--amber-500);
+  }
+}

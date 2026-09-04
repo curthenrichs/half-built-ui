@@ -1,0 +1,10 @@
+/* Layer: base. Entry point Base.astro imports; the rules live under
+   base/ in the order they had in this file (same-layer ties resolve by
+   source order). reset: element defaults and a11y utilities. shell: the
+   page grid. link-tip and scroll-top: site chrome with JS halves,
+   kept in base so the patterns layer outranks them.
+   See docs/css-architecture.md. */
+@import "./base/reset.css";
+@import "./base/shell.css";
+@import "./base/link-tip.css";
+@import "./base/scroll-top.css";

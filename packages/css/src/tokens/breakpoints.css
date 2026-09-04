@@ -1,0 +1,12 @@
+/* The system breakpoints, defined once (step 11.1; the step 1 plan's
+   deferred slice). Three names, per the extraction review: phone is
+   where the top header band retires and footer groups collapse;
+   sidebar is where the two-column row stacks; tablet is the wide-image
+   step. Component-intrinsic queries (a gallery's own 480, a step's own
+   800) stay literal in their components on purpose.
+   The JS mirror is src/scripts/core/breakpoints.ts; a test pins the
+   two files equal. */
+@custom-media --bp-phone (max-width: 768px);
+@custom-media --bp-phone-up (min-width: 769px);
+@custom-media --bp-sidebar (max-width: 991px);
+@custom-media --bp-tablet (max-width: 1024px);

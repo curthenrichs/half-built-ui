@@ -1,0 +1,61 @@
+/* Layer: base. Element defaults and accessibility utilities: the part of
+   the base layer any site keeps. Page containers are in shell.css.
+   See docs/css-architecture.md. */
+@layer base {
+  * { box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    margin: 0;
+    color: var(--ink);
+    background: var(--surface);
+    font-size: 1rem;
+    line-height: 1.5;
+    font-family: var(--font-body);
+
+    /* The layout stops trying to shrink below the narrowest mainstream
+       phone width; under it the viewport scrolls horizontally as one
+       intact unit instead of clipping card heroes and text (owner call
+       2026-08-20, found squeezing devtools toward 222px). An overridable
+       house default, not a system constant (step 11.1). */
+    min-width: 360px;
+  }
+
+  a { color: var(--ink); }
+
+  /* Keyboard focus, one answer for the whole site (owner call
+     2026-08-26): a 2px amber ring held 2px off the element, on
+     :focus-visible only, so a mouse click never leaves a ring behind and
+     focus never looks like hover. Components keep their own hover looks;
+     the only local focus rules left are the joined field's inset rings,
+     which keep its fused box intact, and two offsets where a container's
+     overflow would clip an outside ring. */
+  :focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+
+  .skip-link {
+    position: absolute;
+    left: -9999px;
+    top: 0;
+    background: var(--surface);
+    border: var(--stroke) solid var(--rule);
+    padding: 8px 14px;
+    z-index: var(--z-skip-link);
+  }
+  .skip-link:focus { left: 10px; }
+
+  .screen-reader-text {
+    position: absolute;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition: none !important; }
+  }
+}

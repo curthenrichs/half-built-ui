@@ -1,0 +1,21 @@
+{
+  "files": [
+    { "from": "src/styles/tokens/primitives.css", "to": "packages/css/src/tokens/primitives.css", "adapted": false },
+    { "from": "src/styles/tokens/theme-light.css", "to": "packages/css/src/tokens/theme-light.css", "adapted": false },
+    { "from": "src/styles/tokens/theme-dark.css", "to": "packages/css/src/tokens/theme-dark.css", "adapted": false },
+    { "from": "src/styles/tokens/breakpoints.css", "to": "packages/css/src/tokens/breakpoints.css", "adapted": false },
+    { "from": "src/styles/base/reset.css", "to": "packages/css/src/base/reset.css", "adapted": false },
+    { "from": "src/styles/base/shell.css", "to": "packages/css/src/base/shell.css", "adapted": false },
+    { "from": "src/styles/base/link-tip.css", "to": "packages/css/src/base/link-tip.css", "adapted": false },
+    { "from": "src/styles/base/scroll-top.css", "to": "packages/css/src/base/scroll-top.css", "adapted": false },
+    { "from": "src/styles/patterns.css", "to": "packages/css/src/patterns.css", "adapted": false },
+    { "from": "src/styles/prose.css", "to": "packages/css/src/prose.css", "adapted": false },
+    { "from": "src/styles/code.css", "to": "packages/css/src/code.css", "adapted": false },
+    { "from": "src/styles/lightbox.css", "to": "packages/css/src/lightbox.css", "adapted": false },
+    { "from": "src/styles/plate-modal.css", "to": "packages/css/src/plate-modal.css", "adapted": false },
+    { "from": "src/styles/path-player.css", "to": "packages/css/src/path-player.css", "adapted": false },
+    { "from": "src/styles/layers.css", "to": "packages/css/src/layers.css", "adapted": false },
+    { "from": "src/styles/tokens.css", "to": "packages/css/src/tokens.css", "adapted": false },
+    { "from": "src/styles/global.css", "to": "packages/css/src/global.css", "adapted": true }
+  ]
+}
