@@ -98,6 +98,12 @@
     { "from": "src/components/content/CodeBlock.astro", "to": "packages/astro/src/components/content/CodeBlock.astro", "adapted": false },
     { "from": "src/components/content/Palette.astro", "to": "packages/astro/src/components/content/Palette.astro", "adapted": false },
     { "from": "src/components/content/Group.astro", "to": "packages/astro/src/components/content/Group.astro", "adapted": false },
-    { "from": "src/components/content/Spacer.astro", "to": "packages/astro/src/components/content/Spacer.astro", "adapted": false }
+    { "from": "src/components/content/Spacer.astro", "to": "packages/astro/src/components/content/Spacer.astro", "adapted": false },
+
+    { "from": "eslint.config.mjs", "to": "packages/tooling/src/eslint.config.mjs", "adapted": true },
+    { "from": ".stylelintrc.json", "to": "packages/tooling/src/stylelintrc.json", "adapted": true },
+    { "from": ".htmlvalidate.json", "to": "packages/tooling/src/htmlvalidate.json", "adapted": true },
+    { "from": "test/browser-server.ts", "to": "packages/tooling/src/test-kit/browser-server.ts", "adapted": true },
+    { "from": "test/helpers.ts", "to": "packages/tooling/src/test-kit/helpers.ts", "adapted": true }
   ]
 }
