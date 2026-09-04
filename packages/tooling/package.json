@@ -1,0 +1,15 @@
+{
+  "name": "@half-built/tooling",
+  "version": "0.1.0",
+  "description": "Lint presets and the test kit for half-built sites.",
+  "license": "MIT",
+  "type": "module",
+  "files": ["src"],
+  "exports": {
+    "./eslint": "./src/eslint.config.mjs",
+    "./stylelint": "./src/stylelintrc.json",
+    "./htmlvalidate": "./src/htmlvalidate.json",
+    "./test-kit/*": "./src/test-kit/*"
+  },
+  "publishConfig": { "access": "public" }
+}
