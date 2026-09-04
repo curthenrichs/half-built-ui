@@ -1,0 +1,12 @@
+#!/bin/sh
+# Refuses direct pushes to main: main moves only by deliberate
+# merge from dev (README, Release rules).
+# Activate once per clone:  git config core.hooksPath .githooks
+# Deliberate exception:     ALLOW_MAIN_PUSH=1 git push ...
+while read -r local_ref local_sha remote_ref remote_sha; do
+  if [ "$remote_ref" = "refs/heads/main" ] && [ "${ALLOW_MAIN_PUSH:-0}" != "1" ]; then
+    echo "pre-push: refusing direct push to main. Fold into dev and open a PR." >&2
+    exit 1
+  fi
+done
+exit 0
