@@ -43,6 +43,9 @@
     { "from": "src/lib/drafts.ts", "to": "packages/astro/src/lib/drafts.ts", "adapted": false },
     { "from": "src/lib/reading-time.ts", "to": "packages/astro/src/lib/reading-time.ts", "adapted": false },
     { "from": "src/lib/format-date.ts", "to": "packages/astro/src/lib/format-date.ts", "adapted": false },
+    { "from": "src/lib/header-date.ts", "to": "packages/astro/src/lib/header-date.ts", "adapted": false },
+
+    { "from": "src/scripts/site-header.ts", "to": "packages/astro/src/scripts/site-header.ts", "adapted": false },
 
     { "from": "src/styles/code-theme.mjs", "to": "packages/astro/src/shiki/code-theme.mjs", "adapted": false },
 
@@ -63,6 +66,7 @@
     { "from": "test/theme-toggle-dom.test.ts", "to": "packages/astro/test/theme-toggle-dom.test.ts", "adapted": true },
     { "from": "test/lib.test.ts", "to": "packages/astro/test/lib.test.ts", "adapted": true },
     { "from": "test/breakpoints.test.ts", "to": "packages/astro/test/breakpoints.test.ts", "adapted": true },
-    { "from": "test/helpers.ts", "to": "packages/astro/test/helpers.ts", "adapted": true }
+    { "from": "test/helpers.ts", "to": "packages/astro/test/helpers.ts", "adapted": true },
+    { "from": "test/site-header-dom.test.ts", "to": "packages/astro/test/site-header-dom.test.ts", "adapted": true }
   ]
 }
