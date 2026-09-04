@@ -1,0 +1,7 @@
+---
+interface Props { filename?: string; class?: string }
+const { filename, class: className } = Astro.props;
+---
+<div class:list={["code-block", className]} data-code-filename={filename}>
+  <slot />
+</div>

@@ -67,6 +67,37 @@
     { "from": "test/lib.test.ts", "to": "packages/astro/test/lib.test.ts", "adapted": true },
     { "from": "test/breakpoints.test.ts", "to": "packages/astro/test/breakpoints.test.ts", "adapted": true },
     { "from": "test/helpers.ts", "to": "packages/astro/test/helpers.ts", "adapted": true },
-    { "from": "test/site-header-dom.test.ts", "to": "packages/astro/test/site-header-dom.test.ts", "adapted": true }
+    { "from": "test/site-header-dom.test.ts", "to": "packages/astro/test/site-header-dom.test.ts", "adapted": true },
+
+    { "from": "src/components/Shell.astro", "to": "packages/astro/src/components/Shell.astro", "adapted": false },
+    { "from": "src/components/TwoColumn.astro", "to": "packages/astro/src/components/TwoColumn.astro", "adapted": false },
+    { "from": "src/components/SiteHeader.astro", "to": "packages/astro/src/components/SiteHeader.astro", "adapted": false },
+    { "from": "src/components/Footer.astro", "to": "packages/astro/src/components/Footer.astro", "adapted": false },
+    { "from": "src/components/Pagination.astro", "to": "packages/astro/src/components/Pagination.astro", "adapted": false },
+    { "from": "src/components/PostNavigation.astro", "to": "packages/astro/src/components/PostNavigation.astro", "adapted": false },
+    { "from": "src/components/PostCard.astro", "to": "packages/astro/src/components/PostCard.astro", "adapted": false },
+    { "from": "src/components/CategoryCard.astro", "to": "packages/astro/src/components/CategoryCard.astro", "adapted": false },
+    { "from": "src/components/LinkListWidget.astro", "to": "packages/astro/src/components/LinkListWidget.astro", "adapted": false },
+    { "from": "src/components/Widget.astro", "to": "packages/astro/src/components/Widget.astro", "adapted": false },
+    { "from": "src/components/ThemeToggle.astro", "to": "packages/astro/src/components/ThemeToggle.astro", "adapted": false },
+    { "from": "src/components/Subscribe.astro", "to": "packages/astro/src/components/Subscribe.astro", "adapted": false },
+    { "from": "src/components/SmartImage.astro", "to": "packages/astro/src/components/SmartImage.astro", "adapted": false },
+    { "from": "src/components/LightboxLink.astro", "to": "packages/astro/src/components/LightboxLink.astro", "adapted": false },
+    { "from": "src/components/CornerBadges.astro", "to": "packages/astro/src/components/CornerBadges.astro", "adapted": false },
+    { "from": "src/components/models.ts", "to": "packages/astro/src/components/models.ts", "adapted": false },
+
+    { "from": "src/components/content/Button.astro", "to": "packages/astro/src/components/content/Button.astro", "adapted": false },
+    { "from": "src/components/content/Callout.astro", "to": "packages/astro/src/components/content/Callout.astro", "adapted": false },
+    { "from": "src/components/content/Quote.astro", "to": "packages/astro/src/components/content/Quote.astro", "adapted": false },
+    { "from": "src/components/content/Step.astro", "to": "packages/astro/src/components/content/Step.astro", "adapted": false },
+    { "from": "src/components/content/Walkthrough.astro", "to": "packages/astro/src/components/content/Walkthrough.astro", "adapted": false },
+    { "from": "src/components/content/Gallery.astro", "to": "packages/astro/src/components/content/Gallery.astro", "adapted": false },
+    { "from": "src/components/content/GalleryImage.astro", "to": "packages/astro/src/components/content/GalleryImage.astro", "adapted": false },
+    { "from": "src/components/content/BlogImage.astro", "to": "packages/astro/src/components/content/BlogImage.astro", "adapted": false },
+    { "from": "src/components/content/MediaText.astro", "to": "packages/astro/src/components/content/MediaText.astro", "adapted": false },
+    { "from": "src/components/content/CodeBlock.astro", "to": "packages/astro/src/components/content/CodeBlock.astro", "adapted": false },
+    { "from": "src/components/content/Palette.astro", "to": "packages/astro/src/components/content/Palette.astro", "adapted": false },
+    { "from": "src/components/content/Group.astro", "to": "packages/astro/src/components/content/Group.astro", "adapted": false },
+    { "from": "src/components/content/Spacer.astro", "to": "packages/astro/src/components/content/Spacer.astro", "adapted": false }
   ]
 }

@@ -1,0 +1,52 @@
+---
+/* The document shell (step 8, 2026-08-30): doctype and head skeleton,
+   first-paint theme stamp, skip link, page frame, scroll-to-top
+   floater. Site-specific head content (meta, OG, title) arrives through
+   the head slot, the chrome through the header and footer slots, so a
+   second site reuses the frame without forking it. No scoped CSS on
+   purpose: the shell's layout rules live once in styles/base/shell.css
+   (pinned by test/base.test.ts). */
+interface Props { lang?: string; skipLabel?: string; scrollTopLabel?: string; themeStorageKey: string }
+const { lang = "en", skipLabel = "Skip to content", scrollTopLabel = "Scroll to top", themeStorageKey } = Astro.props;
+---
+<!doctype html>
+<html lang={lang}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    {/* Theme stamp, inline and first so the dark ground paints on the
+        first frame: a stored choice wins (scripts/theme-toggle.ts writes
+        it), otherwise the system preference. Light is the absence of the
+        attribute. Kept tiny and dependency-free on purpose.
+        The storage key rides define:vars from the required themeStorageKey
+        prop (step 11.2), so the shell bakes in no brand of its own; the
+        caller (Base.astro) supplies it from lib/theme-key. */}
+    <script is:inline define:vars={{ themeKey: themeStorageKey }}>
+      (function () {
+        var t = null;
+        try { t = localStorage.getItem(themeKey); } catch (e) { /* no storage */ }
+        if (t === "dark" || (t === null && matchMedia("(prefers-color-scheme: dark)").matches)) {
+          document.documentElement.dataset.theme = "dark";
+        }
+      })();
+    </script>
+    <slot name="head" />
+  </head>
+  <body>
+    <div id="page" class="site">
+      <a class="skip-link screen-reader-text" href="#primary-content">{skipLabel}</a>
+      <slot name="header" />
+      <div id="primary-content" class="primary-site-content">
+        <div class="site-content shell">
+          <slot />
+        </div>
+      </div>
+      <slot name="footer" />
+      <a href="#page" id="scroll-to-top" class="scroll-top" aria-label={scrollTopLabel}>
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="4 15 12 7 20 15" /></svg>
+      </a>
+    </div>
+    {/* Site behavior scripts land here, inside the body, where the pre-step-8 markup carried them. */}
+    <slot name="scripts" />
+  </body>
+</html>

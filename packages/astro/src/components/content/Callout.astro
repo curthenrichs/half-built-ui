@@ -1,0 +1,75 @@
+---
+/* Admonition panel (Confluence-style info/warning/error blocks), owner
+   request 2026-08-21, rendered in the house line system: a 2px box in the
+   type's line color, a low-opacity tint of the same color, and a label
+   straddling the top rule the way the theme's date boxes do. Inks stay in
+   the house families (graphite, amber, cyan, red): note and info read
+   graphite and the type is told by the label text, tip and warning take
+   the first accent, success the second, error the red. */
+interface Props {
+  type?: "note" | "info" | "tip" | "success" | "warning" | "error";
+  title?: string;
+  class?: string;
+}
+const { type = "note", title, class: className } = Astro.props;
+const label = title ?? type;
+---
+{/* role="note", not <aside>: aside is a landmark, and html-validate's
+    unique-landmark rule (rightly) demands unique names, which repeated
+    callouts on one page cannot provide. */}
+<div class:list={["callout", `callout-${type}`, "rule-box", "tint-overlay", className]} role="note">
+  <strong class="callout-label boxed-label">{label}</strong>
+  <div class="callout-body"><slot /></div>
+</div>
+
+<style>
+  /* Box from .rule-box, tint from .tint-overlay; this component only
+     keys both to the type's line color and adds its margin. */
+  .callout {
+    --tint-color: var(--callout-line);
+    --tint-opacity: 0.06;
+
+    border-color: var(--callout-line);
+    margin: 30px 0;
+  }
+  .callout::before { pointer-events: none; }
+  .callout-label {
+    position: absolute;
+    top: 0;
+    left: 20px;
+    /* Center the label on the 2px top rule, not on the padding-box edge. */
+    transform: translateY(calc(-50% - 2px));
+    padding: 4px 10px;
+    font-size: var(--font-size-xs);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    line-height: 1;
+    color: var(--callout-ink);
+    border-color: var(--callout-line);
+  }
+  .callout-body { position: relative; }
+  .callout-body > :global(:last-child) { margin-bottom: 0; }
+
+  .callout-note,
+  .callout-info,
+  .callout-success {
+    --callout-line: var(--rule);
+    --callout-ink: var(--ink);
+  }
+  .callout-tip,
+  .callout-warning {
+    --callout-line: var(--accent-1);
+    --callout-ink: var(--accent-1-ink);
+  }
+  /* Success takes the second accent (owner call 2026-08-26): cyan is the
+     "it worked" temperature, and it keeps the amber for tip and warning. */
+  .callout-success {
+    --callout-line: var(--accent-2);
+    --callout-ink: var(--accent-2-ink);
+  }
+  .callout-error {
+    --callout-line: var(--error-ink);
+    --callout-ink: var(--error-ink);
+  }
+</style>

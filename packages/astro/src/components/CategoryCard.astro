@@ -1,0 +1,31 @@
+---
+import type { ImageMetadata } from "astro";
+
+interface Props { name: string; href: string; image: ImageMetadata; class?: string }
+const { name, href, image, class: className } = Astro.props;
+const bg = `background-image:url('${image.src.replace(/'/g, "%27").replace(/"/g, "%22")}')`;
+---
+<a class:list={["category-single", className]} href={href}>
+  <span class="category-img" style={bg}></span>
+  <span class="category-label chip">{name}</span>
+</a>
+
+<style>
+  .category-single {
+    aspect-ratio: 4 / 2.8;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: flex-end;
+    border: var(--stroke) solid var(--rule);
+    text-decoration: none;
+  }
+  .category-img { position: absolute; inset: 0; background-size: cover; background-position: center; }
+  /* Chip look comes from the .chip pattern; card-specific metrics only. */
+  .category-label {
+    position: relative;
+    line-height: 1.2;
+    padding: 7px 13px;
+    margin: 5px;
+  }
+</style>

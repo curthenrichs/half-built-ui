@@ -1,0 +1,42 @@
+---
+/* Color-chip palette table, the treatment lifted from the BEADZ brand
+   page: bordered swatch, role, hex. Hand-authored-page component (the
+   migrator never emits it). Chip color is per-entry data, so it rides an
+   inline background-color, which the html-validate gate whitelists for
+   exactly this dynamic-value case. */
+interface Entry { role: string; hex: string; note?: string }
+interface Props { entries: Entry[]; class?: string }
+const { entries, class: className } = Astro.props;
+---
+<div class:list={["table-scroll", className]}>
+  <table class="palette">
+    <thead>
+      <tr>
+        <th><span class="screen-reader-text">Swatch</span></th>
+        <th>Role</th>
+        <th>Hex</th>
+        <th>Used for</th>
+      </tr>
+    </thead>
+    <tbody>
+      {entries.map((e) => (
+        <tr>
+          <td><span class="palette-chip" aria-hidden="true" style={`background-color:${e.hex}`}></span></td>
+          <td>{e.role}</td>
+          <td><code>{e.hex}</code></td>
+          <td>{e.note}</td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+</div>
+
+<style>
+  .palette-chip {
+    display: inline-block;
+    width: 18px;
+    height: 18px;
+    border: var(--stroke) solid var(--rule);
+    vertical-align: middle;
+  }
+</style>

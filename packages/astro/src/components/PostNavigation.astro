@@ -1,0 +1,61 @@
+---
+/* Prev/next post links: nav.navigation.post-navigation with
+   nav-previous/nav-next and Previous:/Next: subtitles, in the theme's
+   3px-bordered box. Previous = older post, Next = newer, as WordPress does.
+   Owner divergence from the live markup (2026-07-30): the newer post sits
+   LEFT and the older post RIGHT, matching the newest-first reading order
+   of the archives. Do not restore the WP left/right order for fidelity. */
+import type { PostRef } from "./models";
+interface Props {
+  class?: string;
+  prev?: PostRef;
+  next?: PostRef;
+  labels?: { heading?: string; next?: string; prev?: string; nav?: string };
+}
+const { prev, next, class: className, labels: labelsOverride = {} } = Astro.props;
+const labels = { heading: "Post navigation", next: "Next:", prev: "Previous:", nav: "Posts", ...labelsOverride };
+---
+{(prev || next) && (
+  <nav class:list={["navigation", "post-navigation", className]} aria-label={labels.nav}>
+    <h2 class="screen-reader-text">{labels.heading}</h2>
+    <div class="nav-links">
+      {next && (
+        <div class="nav-next">
+          <a href={next.href} rel="next">
+            <span class="nav-subtitle">{labels.next}</span> <span class="nav-title">{next.title}</span>
+          </a>
+        </div>
+      )}
+      {prev && (
+        <div class="nav-previous">
+          <a href={prev.href} rel="prev">
+            <span class="nav-subtitle">{labels.prev}</span> <span class="nav-title">{prev.title}</span>
+          </a>
+        </div>
+      )}
+    </div>
+  </nav>
+)}
+
+<style>
+  .post-navigation {
+    margin-top: 30px;
+    padding: 20px;
+    /* 3px is this box's design constant (the live theme's weight),
+       deliberately NOT var(--stroke): it does not scale with the theme
+       stroke. */
+    border: var(--stroke-3) solid var(--rule);
+  }
+  .nav-links {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
+    font-size: var(--font-size-sm);
+  }
+  .nav-previous { text-align: right; margin-left: auto; }
+  .nav-links a { text-decoration: none; color: var(--ink); }
+  .nav-links a:hover .nav-title,
+  .nav-links a:focus .nav-title { text-decoration: underline; }
+  .nav-subtitle { font-weight: bold; }
+</style>
