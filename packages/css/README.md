@@ -75,10 +75,12 @@ An override looks like this:
 }
 ```
 
-The defaults meet three thresholds: the 700 stops clear 4.5:1 against
-white, the 300 stop clears 4.5:1 against `#111111`, and the 600 stop
-clears 3:1 against white. Those are the thresholds a derived ramp is
-built to satisfy, not a floor the system enforces on your behalf. If
+A derived ramp is built to three thresholds: the 700 stops clear 4.5:1
+against white, the 300 stop clears 4.5:1 against `#111111`, and the
+600 stop clears 3:1 against white. The shipped defaults clear the two
+text thresholds; the shipped 600 sits at 2.76:1, a hand-tuned chart
+value that predates the threshold. These are targets the derivation
+satisfies, not a floor the system enforces on your behalf. If
 you write your own six values instead of deriving them, you own their
 contrast.
 

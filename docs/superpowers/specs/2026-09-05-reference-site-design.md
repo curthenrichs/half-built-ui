@@ -163,9 +163,13 @@ they match the installed css package's theme files, so they cannot go
 stale silently (a runtime read only sees the active theme's computed
 values, and derivation needs both grounds at once). Derivation is a pure
 function `derivePalette(base1, base2)` returning the six hex values;
-feeding it today's amber and cyan bases must return stops that clear
-the same thresholds today's hand-tuned values clear (regression
-anchor; exact-match with the hand-tuned hexes is not required).
+feeding it today's amber and cyan bases short-circuits to the six
+shipped hexes exactly (final-review ruling 2026-09-05), so the default
+chip reproduces the defaults. The shipped 600 stop sits at 2.76:1 on
+white, under the 3:1 target the derivation holds walked stops to; it
+is a hand-tuned chart value that predates the threshold, recorded as
+an open owner question for a future release rather than changed here
+(the blog renders with it today).
 
 ### The bases are the user's, so they get readouts, not corrections
 
