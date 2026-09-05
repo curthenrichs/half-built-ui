@@ -111,7 +111,10 @@ const npmPackages = [
       <section id="intro">
         <div class="prose no-hero">
           <h2>About</h2>
-          <div class="section-intro" data-section-intro="intro"></div>
+          <div class="section-intro" data-section-intro="intro">
+            <p>This page renders every piece of the half-built design system in one place, so I can look at the whole thing at once. The system was extracted from half-built-robots.com, which still runs on it. The three packages are published on npm under MIT.</p>
+            <p>The palette editor in the bottom corner rewrites the six brand variables live and prints a block you can copy into your own stylesheet. Overriding those six variables is the whole theming surface for anyone else.</p>
+          </div>
           <p><code>npm install @half-built/css @half-built/astro @half-built/tooling</code></p>
           <ul class="demo-npm-links">
             {npmPackages.map((pkg) => <li><a href={pkg.href}><code>{pkg.name}</code></a></li>)}
@@ -122,7 +125,10 @@ const npmPackages = [
       <section id="chrome">
         <div class="prose no-hero">
           <h2>Chrome</h2>
-          <div class="section-intro" data-section-intro="chrome"></div>
+          <div class="section-intro" data-section-intro="chrome">
+            <p>The header and footer around this page come from the package. They take the site name and the rest of the identity as typed props, so nothing in them knows about my blog. The theme toggle flips the page between the light and dark palettes and remembers the choice. Every toggle on a page stays in step with the others, so the standalone one below moves the header's at the same time.</p>
+            <p>&lt; Curt fill in: why the day and night toggle stays in the header while the palette editor lives in the corner &gt;</p>
+          </div>
           <p><code>@half-built/astro/components/Masthead.astro</code>, <code>@half-built/astro/components/Footer.astro</code>, <code>@half-built/astro/components/ThemeToggle.astro</code></p>
         </div>
         <p><ThemeToggle label="Switch theme (standalone demo)" /></p>
@@ -131,7 +137,9 @@ const npmPackages = [
       <section id="cards">
         <div class="prose no-hero">
           <h2>Cards</h2>
-          <div class="section-intro" data-section-intro="cards"></div>
+          <div class="section-intro" data-section-intro="cards">
+            <p>PostCard is the card an archive page is made of. The second one here is flagged as a draft, and that badge exists so an unfinished post can ship where people can see it. The third wears the corner badges, one for an AI-generated image and one for a post carrying an interactive demo. CategoryCard is the smaller tile, an image with the category name chipped over its bottom edge.</p>
+          </div>
           <p><code>@half-built/astro/components/PostCard.astro</code>, <code>@half-built/astro/components/CategoryCard.astro</code></p>
         </div>
 
@@ -149,7 +157,9 @@ const npmPackages = [
       <section id="navigation">
         <div class="prose no-hero">
           <h2>Navigation</h2>
-          <div class="section-intro" data-section-intro="navigation"></div>
+          <div class="section-intro" data-section-intro="navigation">
+            <p>Pagination is the numbered row at the foot of an archive, and it renders nothing at all when there is only one page. PostNavigation is the pair of links at the end of a post. The newer post sits on the left and the older one on the right. That is backwards from what WordPress did, and it matches the newest-first order the archives read in.</p>
+          </div>
           <p><code>@half-built/astro/components/Pagination.astro</code>, <code>@half-built/astro/components/PostNavigation.astro</code></p>
         </div>
 
@@ -163,7 +173,9 @@ const npmPackages = [
       <section id="widgets">
         <div class="prose no-hero">
           <h2>Widgets</h2>
-          <div class="section-intro" data-section-intro="widgets"></div>
+          <div class="section-intro" data-section-intro="widgets">
+            <p>Widget is the plain sidebar block, a heading over whatever you put in its body. LinkListWidget is that same block filled with links and their counts, which is what a recent-posts or category list is made of. Subscribe is the newsletter panel. It is a real form with a method and an action, so it still submits with JavaScript turned off. Its copy sits in named slots, so a site with a different voice overrides the words instead of forking the component.</p>
+          </div>
           <p><code>@half-built/astro/components/Widget.astro</code>, <code>@half-built/astro/components/LinkListWidget.astro</code>, <code>@half-built/astro/components/Subscribe.astro</code></p>
         </div>
 
@@ -184,7 +196,10 @@ const npmPackages = [
       <section id="content">
         <div class="prose no-hero">
           <h2>Content blocks</h2>
-          <div class="section-intro" data-section-intro="content"></div>
+          <div class="section-intro" data-section-intro="content">
+            <p>These are the blocks a post body is made of. Nothing here caps the width of the text, and nothing anywhere in this system does. The layout's column is the only width authority. The images below are generated placeholders rather than anything off the blog.</p>
+            <p>&lt; Curt fill in: why the content blocks live under content/ while the site furniture lives under components/ &gt;</p>
+          </div>
           <p><code>@half-built/astro/content/*</code></p>
 
           <h3>Button</h3>
@@ -247,7 +262,9 @@ const npmPackages = [
       <section id="css">
         <div class="prose no-hero">
           <h2>CSS primitives</h2>
-          <div class="section-intro" data-section-intro="css"></div>
+          <div class="section-intro" data-section-intro="css">
+            <p>The tokens are the variables everything else reads, and every color on this page comes out of them. That is how the palette editor repaints the page by setting six. The light-theme amber ink was once borrowed from a prototype of another project. It sat at 4.24 to 1 against white, which fails WCAG AA, so it was retuned to a value that passes. The prose and pattern sheets carry the rest, the paragraph rhythm and the boxes.</p>
+          </div>
           <p><code>@half-built/css/tokens</code>, <code>@half-built/css/prose.css</code>, <code>@half-built/css/patterns.css</code></p>
         </div>
 
