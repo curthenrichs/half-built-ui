@@ -1,0 +1,34 @@
+/* Layer: site (the last layer in the cascade, so these rules outrank
+   the package's own; see layers.css). Page-level layout for this demo
+   site only: the TOC-beside-content grid and the TOC's sticky
+   behavior. Nothing here caps a prose container's width; --shell-max
+   on .shell (packages/css/src/base/shell.css) stays the only width
+   authority, and the TOC column is sized to its own content, which is
+   navigation, not prose. Imported by Base.astro after the package css
+   so it layers on top. */
+@layer site {
+  .site-layout {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    align-items: start;
+    gap: var(--column-gap);
+  }
+  .site-toc {
+    position: sticky;
+    top: 1rem;
+    align-self: start;
+  }
+
+  /* Below the package's tablet breakpoint the two-column grid collapses:
+     the TOC stops being sticky and reads as a plain in-flow list ahead
+     of the page content. */
+  @media (--bp-tablet) {
+    .site-layout {
+      display: block;
+    }
+    .site-toc {
+      position: static;
+      top: auto;
+    }
+  }
+}

@@ -1,0 +1,39 @@
+---
+/* Sticky scroll-spy table of contents (step 3, Task 4). Markup only:
+   the current-section tracking is toc.ts's mountToc, wired from
+   Base.astro's script block. One anchor per SECTIONS entry, so the
+   list can never drift from the page's actual section ids. */
+import { SECTIONS } from "../data/sections";
+---
+<aside class="site-toc">
+  <nav aria-label="Sections">
+    <ul>
+      {SECTIONS.map((section) => (
+        <li><a href={`#${section.id}`}>{section.title}</a></li>
+      ))}
+    </ul>
+  </nav>
+</aside>
+
+<style>
+  .site-toc nav ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .site-toc nav li { margin-bottom: 6px; }
+  .site-toc nav a {
+    display: block;
+    padding: 4px 8px;
+    color: var(--ink);
+    font-size: var(--font-size-sm);
+    text-decoration: none;
+    border-left: var(--stroke) solid transparent;
+  }
+  .site-toc nav a:hover { text-decoration: underline; }
+  .site-toc nav a[aria-current="true"] {
+    border-left-color: var(--accent-1);
+    color: var(--accent-1-ink);
+    font-weight: 700;
+  }
+</style>

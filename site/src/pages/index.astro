@@ -1,13 +1,15 @@
 ---
-/* Kitchen-sink demo page. Renders the chrome (through Base.astro) plus
-   one instance of every component the brief asks for, fed by sample
-   data defined right here. Nothing on this page is blog content: the
-   copy is plain and invented for the demo, and the images are
-   generated geometric placeholders in ../assets. Every component
-   import below is a package specifier into @half-built/astro; nothing
-   reaches into packages/astro/src by relative path. */
+/* The reference site's one page. Renders the chrome (through
+   Base.astro) plus one instance of every component the brief asks
+   for, fed by sample data defined right here, grouped under the
+   anchored sections in ../data/sections.ts. Nothing on this page is
+   blog content: the copy is plain and invented for the demo, and the
+   images are generated geometric placeholders in ../assets. Every
+   component import below is a package specifier into @half-built/astro;
+   nothing reaches into packages/astro/src by relative path. */
 import { Code } from "astro:components";
 import Base from "../layouts/Base.astro";
+import Toc from "../components/Toc.astro";
 import ThemeToggle from "@half-built/astro/components/ThemeToggle.astro";
 import PostCard from "@half-built/astro/components/PostCard.astro";
 import CategoryCard from "@half-built/astro/components/CategoryCard.astro";
@@ -30,7 +32,7 @@ import Palette from "@half-built/astro/content/Palette.astro";
 import Group from "@half-built/astro/content/Group.astro";
 import Spacer from "@half-built/astro/content/Spacer.astro";
 import codeTheme from "@half-built/astro/shiki/code-theme";
-import type { PostCardModel, PostRef, LinkListItem } from "@half-built/astro/components/models";
+import type { PostCardModel, PostRef, LinkListItem } from "@half-built/astro/components/models.ts";
 import placeholderWide from "../assets/placeholder-wide.svg";
 import placeholderSquare from "../assets/placeholder-square.svg";
 import placeholderTall from "../assets/placeholder-tall.svg";
@@ -93,122 +95,209 @@ const paletteEntries = [
 
 const codeSample = `def read_ir(code):
     return "power" if code == 0x40BF else "unknown"`;
+
+const npmPackages = [
+  { name: "@half-built/css", href: "https://www.npmjs.com/package/@half-built/css" },
+  { name: "@half-built/astro", href: "https://www.npmjs.com/package/@half-built/astro" },
+  { name: "@half-built/tooling", href: "https://www.npmjs.com/package/@half-built/tooling" },
+];
 ---
-<Base title="Kitchen Sink" description="A demo Astro site built only from the @half-built/css and @half-built/astro packages.">
-  <article class="static-page bracket-frame">
-    <h1>Kitchen Sink</h1>
-    <div class="prose no-hero">
-      <p>This page renders one instance of every component the demo is asked to cover, using sample data defined in this repository, not the blog's. The theme toggle in the header switches both light and dark. Every section below should hold up in either.</p>
-    </div>
+<Base title="half-built ui" description="The reference site for the @half-built packages, every component's variants rendered on one page.">
+  <div class="site-layout">
+    <Toc />
+    <article class="static-page bracket-frame">
+      <h1>half-built ui</h1>
 
-    <section id="chrome">
-      <div class="prose no-hero"><h2>Chrome</h2>
-      <p>The header and footer above and below this page come from the package's Masthead and Footer components, fed by sample nav, social, and sitemap data in <code>src/data/site.ts</code>. The theme toggle also renders standalone here.</p></div>
-      <p><ThemeToggle label="Switch theme (standalone demo)" /></p>
-    </section>
+      <section id="intro">
+        <div class="prose no-hero">
+          <h2>About</h2>
+          <div class="section-intro" data-section-intro="intro"></div>
+          <p><code>npm install @half-built/css @half-built/astro @half-built/tooling</code></p>
+          <ul class="demo-npm-links">
+            {npmPackages.map((pkg) => <li><a href={pkg.href}><code>{pkg.name}</code></a></li>)}
+          </ul>
+        </div>
+      </section>
 
-    <section id="content">
-      <div class="prose no-hero">
-        <h2>Content components</h2>
+      <section id="chrome">
+        <div class="prose no-hero">
+          <h2>Chrome</h2>
+          <div class="section-intro" data-section-intro="chrome"></div>
+          <p><code>@half-built/astro/components/Masthead.astro</code>, <code>@half-built/astro/components/Footer.astro</code>, <code>@half-built/astro/components/ThemeToggle.astro</code></p>
+        </div>
+        <p><ThemeToggle label="Switch theme (standalone demo)" /></p>
+      </section>
 
-        <h3>Button</h3>
-        <p>Four variants, two sizes:</p>
+      <section id="cards">
+        <div class="prose no-hero">
+          <h2>Cards</h2>
+          <div class="section-intro" data-section-intro="cards"></div>
+          <p><code>@half-built/astro/components/PostCard.astro</code>, <code>@half-built/astro/components/CategoryCard.astro</code></p>
+        </div>
+
+        <h3>Post cards</h3>
+        <div class="demo-card-grid">
+          {posts.map((post) => <PostCard {...post} />)}
+        </div>
+
+        <h3>Category cards</h3>
+        <div class="demo-card-grid demo-card-grid-narrow">
+          {categoryCards.map((c) => <CategoryCard name={c.name} href={c.href} image={c.image} />)}
+        </div>
+      </section>
+
+      <section id="navigation">
+        <div class="prose no-hero">
+          <h2>Navigation</h2>
+          <div class="section-intro" data-section-intro="navigation"></div>
+          <p><code>@half-built/astro/components/Pagination.astro</code>, <code>@half-built/astro/components/PostNavigation.astro</code></p>
+        </div>
+
+        <h3>Pagination</h3>
+        <Pagination current={2} total={4} base="#" />
+
+        <h3>Post navigation</h3>
+        <PostNavigation prev={prevPost} next={nextPost} />
+      </section>
+
+      <section id="widgets">
+        <div class="prose no-hero">
+          <h2>Widgets</h2>
+          <div class="section-intro" data-section-intro="widgets"></div>
+          <p><code>@half-built/astro/components/Widget.astro</code>, <code>@half-built/astro/components/LinkListWidget.astro</code>, <code>@half-built/astro/components/Subscribe.astro</code></p>
+        </div>
+
+        <h3>Link list widget and Widget</h3>
+        <div class="demo-widget-row">
+          <LinkListWidget title="Sample links" items={linkListItems} />
+          <Widget title="Plain widget">
+            <p>A Widget with arbitrary content in its body, rather than the link-list shape above.</p>
+          </Widget>
+        </div>
+
+        <h3>Subscribe</h3>
+        <Subscribe variant="page" action="https://example.com/subscribe" publicUrl="example.com/subscribe">
+          <Fragment slot="fine-print">Placeholder form. This demo does not send email. The action above is not a real endpoint.</Fragment>
+        </Subscribe>
+      </section>
+
+      <section id="content">
+        <div class="prose no-hero">
+          <h2>Content blocks</h2>
+          <div class="section-intro" data-section-intro="content"></div>
+          <p><code>@half-built/astro/content/*</code></p>
+
+          <h3>Button</h3>
+          <p>Four variants, two sizes:</p>
+          <p class="button-row">
+            <Button variant="plain">Plain</Button>
+            <Button variant="shaded">Shaded</Button>
+            <Button variant="accent-1">Accent 1</Button>
+            <Button variant="accent-2" size="lg">Accent 2, large</Button>
+          </p>
+
+          <h3>Callout</h3>
+          <Callout type="note">A note callout, the default look.</Callout>
+          <Callout type="tip" title="Tip">A tip callout, wearing the first accent.</Callout>
+          <Callout type="success">A success callout, wearing the second accent.</Callout>
+          <Callout type="error">An error callout, in the red family.</Callout>
+
+          <h3>Quote</h3>
+          <Quote by="Demo Author" when="2026">A quoted line, with an attribution footer.</Quote>
+
+          <h3>Walkthrough and Step</h3>
+          <Walkthrough numbered>
+            <Step src={placeholderSquare} alt="Placeholder step photo, one">First step. One placeholder photo beside its text.</Step>
+            <Step src={placeholderSquare} alt="Placeholder step photo, two">Second step. Numbering runs down the media column's corner chip.</Step>
+          </Walkthrough>
+
+          <h3>Gallery</h3>
+          <Gallery columns={3} caption="Three placeholder plates in a bracket frame.">
+            <GalleryImage src={placeholderSquare} alt="Placeholder gallery plate, one" caption="Plate one" />
+            <GalleryImage src={placeholderSquare} alt="Placeholder gallery plate, two" caption="Plate two" />
+            <GalleryImage src={placeholderSquare} alt="Placeholder gallery plate, three" caption="Plate three" />
+          </Gallery>
+
+          <h3>Blog image</h3>
+          <BlogImage src={placeholderWide} alt="Wide placeholder image" caption="A full-width figure with a caption." />
+
+          <h3>Media text</h3>
+          <MediaText src={placeholderTall} alt="Tall placeholder image">
+            <p>Media on one side, prose on the other. This is the caption slot, and it takes a short paragraph rather than a single line.</p>
+          </MediaText>
+
+          <h3>Code block</h3>
+          <CodeBlock filename="example.py">
+            <Code code={codeSample} lang="python" theme={codeTheme} />
+          </CodeBlock>
+
+          <h3>Palette</h3>
+          <Palette entries={paletteEntries} />
+
+          <h3>Group</h3>
+          <Group><p>A boxed prose container, no label and no tint, the plain sibling of Callout's box.</p></Group>
+
+          <h3>Spacer</h3>
+          <p>A fixed-height spacer sits below this paragraph.</p>
+          <Spacer size={60} />
+          <p>Normal flow resumes here, after the spacer.</p>
+        </div>
+      </section>
+
+      <section id="css">
+        <div class="prose no-hero">
+          <h2>CSS primitives</h2>
+          <div class="section-intro" data-section-intro="css"></div>
+          <p><code>@half-built/css/tokens</code>, <code>@half-built/css/prose.css</code>, <code>@half-built/css/patterns.css</code></p>
+        </div>
+
+        <h3>Tokens</h3>
+        <ul class="demo-token-swatches">
+          <li><span class="demo-token-chip" style="background-color:var(--ink)"></span><code>--ink</code></li>
+          <li><span class="demo-token-chip" style="background-color:var(--surface)"></span><code>--surface</code></li>
+          <li><span class="demo-token-chip" style="background-color:var(--rule)"></span><code>--rule</code></li>
+          <li><span class="demo-token-chip" style="background-color:var(--accent-1)"></span><code>--accent-1</code></li>
+          <li><span class="demo-token-chip" style="background-color:var(--accent-1-ink)"></span><code>--accent-1-ink</code></li>
+          <li><span class="demo-token-chip" style="background-color:var(--accent-2)"></span><code>--accent-2</code></li>
+          <li><span class="demo-token-chip" style="background-color:var(--accent-2-ink)"></span><code>--accent-2-ink</code></li>
+        </ul>
+
+        <h3>Prose specimen</h3>
+        <div class="prose">
+          <p>Placeholder body copy, demonstrating paragraph rhythm, inline <code>code</code>, and a <a href="#">placeholder link</a>.</p>
+          <blockquote>A placeholder blockquote, boxed on the gray band.</blockquote>
+          <ul>
+            <li>Placeholder list item one</li>
+            <li>Placeholder list item two</li>
+          </ul>
+        </div>
+
+        <h3>Patterns</h3>
         <p class="button-row">
-          <Button variant="plain">Plain</Button>
-          <Button variant="shaded">Shaded</Button>
-          <Button variant="accent-1">Accent 1</Button>
-          <Button variant="accent-2" size="lg">Accent 2, large</Button>
+          <span class="chip">Chip</span>
+          <span class="boxed-label">Boxed label</span>
+          <button type="button" class="icon-box" aria-label="Placeholder icon button">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9" /></svg>
+          </button>
         </p>
-
-        <h3>Callout</h3>
-        <Callout type="note">A note callout, the default look.</Callout>
-        <Callout type="tip" title="Tip">A tip callout, wearing the first accent.</Callout>
-        <Callout type="success">A success callout, wearing the second accent.</Callout>
-        <Callout type="error">An error callout, in the red family.</Callout>
-
-        <h3>Quote</h3>
-        <Quote by="Demo Author" when="2026">A quoted line, with an attribution footer.</Quote>
-
-        <h3>Walkthrough and Step</h3>
-        <Walkthrough numbered>
-          <Step src={placeholderSquare} alt="Placeholder step photo, one">First step. One placeholder photo beside its text.</Step>
-          <Step src={placeholderSquare} alt="Placeholder step photo, two">Second step. Numbering runs down the media column's corner chip.</Step>
-        </Walkthrough>
-
-        <h3>Gallery</h3>
-        <Gallery columns={3} caption="Three placeholder plates in a bracket frame.">
-          <GalleryImage src={placeholderSquare} alt="Placeholder gallery plate, one" caption="Plate one" />
-          <GalleryImage src={placeholderSquare} alt="Placeholder gallery plate, two" caption="Plate two" />
-          <GalleryImage src={placeholderSquare} alt="Placeholder gallery plate, three" caption="Plate three" />
-        </Gallery>
-
-        <h3>Blog image</h3>
-        <BlogImage src={placeholderWide} alt="Wide placeholder image" caption="A full-width figure with a caption." />
-
-        <h3>Media text</h3>
-        <MediaText src={placeholderTall} alt="Tall placeholder image">
-          <p>Media on one side, prose on the other. This is the caption slot, and it takes a short paragraph rather than a single line.</p>
-        </MediaText>
-
-        <h3>Code block</h3>
-        <CodeBlock filename="example.py">
-          <Code code={codeSample} lang="python" theme={codeTheme} />
-        </CodeBlock>
-
-        <h3>Palette</h3>
-        <Palette entries={paletteEntries} />
-
-        <h3>Group</h3>
-        <Group><p>A boxed prose container, no label and no tint, the plain sibling of Callout's box.</p></Group>
-
-        <h3>Spacer</h3>
-        <p>A fixed-height spacer sits below this paragraph.</p>
-        <Spacer size={60} />
-        <p>Normal flow resumes here, after the spacer.</p>
-      </div>
-    </section>
-
-    <section id="cards">
-      <div class="prose no-hero"><h2>Cards and widgets</h2>
-      <p>Rendered outside the prose column, the way an archive grid or a sidebar would use them, from inline sample view models.</p></div>
-
-      <h3>Post cards</h3>
-      <div class="demo-card-grid">
-        {posts.map((post) => <PostCard {...post} />)}
-      </div>
-
-      <h3>Category cards</h3>
-      <div class="demo-card-grid demo-card-grid-narrow">
-        {categoryCards.map((c) => <CategoryCard name={c.name} href={c.href} image={c.image} />)}
-      </div>
-
-      <h3>Pagination</h3>
-      <Pagination current={2} total={4} base="#" />
-
-      <h3>Post navigation</h3>
-      <PostNavigation prev={prevPost} next={nextPost} />
-
-      <h3>Link list widget and Widget</h3>
-      <div class="demo-widget-row">
-        <LinkListWidget title="Sample links" items={linkListItems} />
-        <Widget title="Plain widget">
-          <p>A Widget with arbitrary content in its body, rather than the link-list shape above.</p>
-        </Widget>
-      </div>
-    </section>
-
-    <section id="subscribe">
-      <div class="prose no-hero"><h2>Subscribe</h2></div>
-      <Subscribe variant="page" action="https://example.com/subscribe" publicUrl="example.com/subscribe">
-        <Fragment slot="fine-print">Placeholder form. This demo does not send email. The action above is not a real endpoint.</Fragment>
-      </Subscribe>
-    </section>
-  </article>
+        <p class="micro-label">Micro label</p>
+        <p class="caption">Caption text, quiet and small.</p>
+      </section>
+    </article>
+  </div>
 </Base>
 
 <style>
   .static-page h1 { font-size: var(--font-size-lg); margin: 0 0 15px; }
   section { margin-top: 40px; }
+  .demo-npm-links {
+    list-style: none;
+    margin: 0 0 1.5em;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+  }
   .demo-card-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
@@ -221,5 +310,24 @@ const codeSample = `def read_ir(code):
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
     gap: 30px;
     margin: 20px 0;
+  }
+  .demo-token-swatches {
+    list-style: none;
+    margin: 20px 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+  }
+  .demo-token-swatches li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .demo-token-chip {
+    display: inline-block;
+    width: 18px;
+    height: 18px;
+    border: var(--stroke) solid var(--rule);
   }
 </style>

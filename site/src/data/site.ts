@@ -1,12 +1,11 @@
-/* Sample site identity for the kitchen-sink demo. None of this is real
-   copy: it exists only to give Masthead and Footer something typed to
-   render. Kept separate from the content-inventory sample data, which
-   is defined inline in index.astro, because Base.astro needs this on
-   every page and the content data only on index.astro. */
-import type { NavItem, SocialItem, SitemapGroup, EcosystemEntry } from "@half-built/astro/components/models";
+/* Site identity for the public reference site. Kept separate from the
+   content-inventory sample data, which is defined inline in
+   index.astro, because Base.astro needs this on every page and the
+   content data only on index.astro. */
+import type { NavItem, SocialItem, SitemapGroup, EcosystemEntry } from "@half-built/astro/components/models.ts";
 
-export const SITE_NAME = "Kitchen Sink";
-export const TAGLINE = "A demo site built only from @half-built packages.";
+export const SITE_NAME = "half-built ui";
+export const TAGLINE = "The reference site for the @half-built packages, kitchen-sink style, every component on one page.";
 
 /* A generic external-link glyph, not a brand mark: the social row just
    needs to show that icon markup renders, not to represent a real
@@ -19,7 +18,7 @@ export const NAV: NavItem[] = [
   { label: "Chrome", href: "#chrome" },
   { label: "Content", href: "#content" },
   { label: "Cards", href: "#cards" },
-  { label: "Subscribe", href: "#subscribe" },
+  { label: "Subscribe", href: "#widgets" },
 ];
 
 export const SOCIALS: SocialItem[] = [
@@ -27,7 +26,7 @@ export const SOCIALS: SocialItem[] = [
   { label: "Placeholder link", href: "https://example.com", icon: ICON_EXTERNAL },
 ];
 
-export const LEGAL_HOLDER = "Kitchen Sink Demo";
+export const LEGAL_HOLDER = SITE_NAME;
 
 export const FOOTER_SITEMAP: SitemapGroup[] = [
   {
@@ -45,7 +44,7 @@ export const FOOTER_SITEMAP: SitemapGroup[] = [
     collapsible: true,
     links: [
       { label: "Cards", href: "#cards" },
-      { label: "Subscribe", href: "#subscribe" },
+      { label: "Subscribe", href: "#widgets" },
     ],
   },
 ];

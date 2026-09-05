@@ -13,6 +13,7 @@ import "@half-built/css/code.css";
 import "@half-built/css/plate-modal.css";
 import "@half-built/css/lightbox.css";
 import "@half-built/css/prose.css";
+import "../styles/site.css";
 import Shell from "@half-built/astro/components/Shell.astro";
 import Masthead from "@half-built/astro/components/Masthead.astro";
 import Footer from "@half-built/astro/components/Footer.astro";
@@ -21,7 +22,7 @@ import { SITE_NAME, TAGLINE, NAV, SOCIALS, LEGAL_HOLDER, FOOTER_SITEMAP, ECOSYST
 import { THEME_STORAGE_KEY } from "../lib/theme-key";
 
 interface Props { title?: string; description?: string }
-const { title = "Kitchen Sink", description = "A demo Astro site built only from the @half-built/css and @half-built/astro packages." } = Astro.props;
+const { title = "half-built ui", description = "The reference site for the @half-built packages, every component's variants rendered on one page." } = Astro.props;
 ---
 <Shell themeStorageKey={THEME_STORAGE_KEY}>
   <Fragment slot="head">
@@ -40,6 +41,7 @@ const { title = "Kitchen Sink", description = "A demo Astro site built only from
       import { mountThemeToggle } from "@half-built/astro/scripts/theme-toggle";
       import { mountFocusMode } from "@half-built/astro/scripts/focus-mode";
       import { mountScrollTop } from "@half-built/astro/scripts/scroll-top";
+      import { mountToc } from "../scripts/toc";
       import { THEME_STORAGE_KEY } from "../lib/theme-key";
       mountFocusMode(document.documentElement);
       /* Internal and external links share one measured tooltip island. */
@@ -48,6 +50,7 @@ const { title = "Kitchen Sink", description = "A demo Astro site built only from
       mountScrollTop(document);
       mountCodeIslands(document);
       mountLightbox(document);
+      mountToc(document);
     </script>
     <slot name="scripts" />
   </Fragment>
