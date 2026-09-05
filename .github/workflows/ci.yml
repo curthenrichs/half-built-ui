@@ -15,6 +15,7 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+        env: { PUPPETEER_SKIP_DOWNLOAD: "1" }
       - run: npm test
       - run: npm run lint
       - run: npm run build:site
@@ -28,6 +29,7 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+        env: { PUPPETEER_SKIP_DOWNLOAD: "1" }
       - run: npm run build:site
       # Chrome is preinstalled at /usr/bin/google-chrome on ubuntu-latest;
       # test-kit/browser-server.ts's candidate list already finds it, so

@@ -61,8 +61,7 @@
     white-space: nowrap;
   }
   .site-toolbar summary::-webkit-details-marker { display: none; }
-  .site-toolbar summary:hover,
-  .site-toolbar summary:focus-visible { outline: var(--stroke) solid var(--rule); }
+  .site-toolbar summary:hover { outline: var(--stroke) solid var(--rule); }
 
   .site-toolbar-body {
     position: absolute;

@@ -100,6 +100,10 @@ describe.skipIf(!enabled)("browser suite", () => {
     const p = await desktopPage(browser);
     page = p;
     await p.goto(`${ORIGIN}/`, { waitUntil: "networkidle0" });
+    /* No test inherits another's persisted palette or theme: each one
+       starts from a clean localStorage, not whatever a prior test in
+       this file left behind. */
+    await p.evaluate(() => { localStorage.clear(); });
     /* Colors must be settled when axe reads them: a theme flip mid
        transition can interpolate a color past its passing endpoint. */
     await p.addStyleTag({ content: "*, *::before, *::after { transition: none !important; animation: none !important; }" });

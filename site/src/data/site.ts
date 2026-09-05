@@ -26,7 +26,7 @@ export const SOCIALS: SocialItem[] = [
   { label: "Placeholder link", href: "https://example.com", icon: ICON_EXTERNAL },
 ];
 
-export const LEGAL_HOLDER = SITE_NAME;
+export const LEGAL_HOLDER = "Curt Henrichs";
 
 export const FOOTER_SITEMAP: SitemapGroup[] = [
   {

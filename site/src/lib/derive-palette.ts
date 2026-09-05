@@ -43,9 +43,28 @@ function normalize(hex: string): string {
   return formatHex(clampChroma(start, "oklch"));
 }
 
+/* The shipped default pair, and the six stops the package ships for it.
+   These were hand-tuned rather than walked, and they already clear
+   every threshold below, so the default pair reproduces them exactly
+   instead of returning a near-miss derivation that would visibly
+   differ from the tokens the package actually ships. */
+const SHIPPED_B1 = "#ffaa3c";
+const SHIPPED_B2 = "#3cc7dd";
+const SHIPPED_DEFAULTS: PaletteOverride = {
+  "--brand-1-500": "#ffaa3c",
+  "--brand-1-600": "#d98a1f",
+  "--brand-1-700": "#a36300",
+  "--brand-2-300": "#8ee6f2",
+  "--brand-2-500": "#3cc7dd",
+  "--brand-2-700": "#1a7f90",
+};
+
 export function derivePalette(base1: string, base2: string): PaletteOverride {
   const b1 = normalize(base1);
   const b2 = normalize(base2);
+  if (b1 === normalize(SHIPPED_B1) && b2 === normalize(SHIPPED_B2)) {
+    return { ...SHIPPED_DEFAULTS };
+  }
   return {
     "--brand-1-500": b1,
     "--brand-1-600": walk(b1, -1, (c) => contrastRatio(c, LIGHT_PAPER) >= 3),

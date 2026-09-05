@@ -184,9 +184,11 @@ export function mountPaletteEditor(root: Document, opts: PaletteEditorOptions): 
 
   editor.querySelectorAll<HTMLButtonElement>("[data-palette-preset]").forEach((btn) => {
     btn.addEventListener("click", () => {
-      /* data-base-1/data-base-2: a hyphen followed by a digit does not
-         reflect into .dataset (the spec's camelCase mapping is
-         ambiguous there), so these are read via getAttribute. */
+      /* data-base-1/data-base-2 do reflect into .dataset, but under the
+         literal key "base-1"/"base-2": the camelCase mapping only
+         triggers on a hyphen followed by a lowercase letter, and a
+         hyphen followed by a digit is left alone. getAttribute is
+         still the right call here. */
       const b1 = btn.getAttribute("data-base-1");
       const b2 = btn.getAttribute("data-base-2");
       if (!b1 || !b2) return;
@@ -209,6 +211,11 @@ export function mountPaletteEditor(root: Document, opts: PaletteEditorOptions): 
     const text = els.pre.textContent;
     void navigator.clipboard.writeText(text).then(() => {
       els.copyBtn.textContent = "Copied";
+      setTimeout(() => {
+        els.copyBtn.textContent = copyLabel;
+      }, 1500);
+    }).catch(() => {
+      els.copyBtn.textContent = "Copy failed";
       setTimeout(() => {
         els.copyBtn.textContent = copyLabel;
       }, 1500);
