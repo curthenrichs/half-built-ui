@@ -38,8 +38,9 @@ Non-goals:
   currently overrides variables named amber) are a recorded wart for a
   future @half-built/css minor, alongside the registered global.css
   naming review. Not here.
-- No usage documentation beyond the import line shown per section. The
-  package READMEs remain the docs.
+- No exhaustive API documentation. Props tables and per-field detail
+  stay in the package READMEs and `models.ts`; the page's prose is
+  usage and rationale, not reference.
 - Henry does not appear. The repo boundary holds.
 
 ## Hosting and branches
@@ -77,11 +78,18 @@ pattern, built from package components where possible):
 7. **CSS**: token swatches read live from the computed styles (so the
    palette editor changes them too), prose specimen, patterns.
 
-Each section heading carries the component's package import line in a
-small code element. Sample data stays invented and neutral, images
-stay the geometric placeholders. The existing index.astro content
-reorganizes into these sections; nothing is rewritten for its own
-sake.
+Each section opens with a short what-and-why passage: what the
+component is for, when to reach for it, and the design reasoning where
+there is a story worth telling (the amber-700 ink retuning, the draft
+badge, why prose width is never capped). This is public reader-facing
+text in Curt's voice, drafted from his existing writing on the blog;
+any rationale only he holds gets a `< Curt fill in: ... >` marker
+rather than an invented explanation. Each section heading also carries
+the component's package import line in a small code element.
+
+Sample data stays invented and neutral, images stay the geometric
+placeholders. The existing index.astro content reorganizes into these
+sections; nothing is rewritten for its own sake.
 
 ## The toolbar
 
