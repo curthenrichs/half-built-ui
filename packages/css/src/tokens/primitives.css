@@ -36,25 +36,30 @@
     --gray-750: #3a3a3a;
     --gray-400: #9a9a9a;
 
-    /* Accents. amber-500 is the shared accent across the ecosystem;
-       amber-700 is its legible kin for text, tuned here for this site
-       the way cyan-700 was: the amber hue at full saturation, taken
-       down until it clears WCAG AA (4.5:1) as body text on the white
-       surface (4.84) and on the accent's 6% tint (4.66). It replaced
-       #b5680c, a value borrowed from BEADZ that sat at 4.24:1 on white
-       (owner call 2026-09-03; BEADZ is not a source of values). */
-    --amber-500: #ffaa3c;
-    --amber-700: #a36300;
-    /* Second accent, the cyan family (owner request 2026-08-26): chosen
-       to sit where the amber sits, cyan-500 matches amber-500's contrast
-       on both grounds (line and fill, not text on white) and cyan-700
-       is its legible kin for text on the light ground. */
-    --cyan-300: #8ee6f2;
-    --cyan-500: #3cc7dd;
-    --cyan-700: #1a7f90;
+    /* Brand ramps, the entire third-party theming surface. Family 1 is
+       the ecosystem amber by default, family 2 its cyan complement; the
+       names are hue-neutral because a consumer may override all six
+       (spec: docs/superpowers/specs/2026-09-05-reference-site-design.md).
+       500 is the base, 700 its AA text ink on the light paper, 600 the
+       chart kin, 300 the light kin legible as text on the dark ground.
+       Brand-1-700 is tuned here for this site the way brand-2-700 was:
+       the amber hue at full saturation, taken down until it clears WCAG
+       AA (4.5:1) as body text on the white surface (4.84) and on the
+       accent's 6% tint (4.66). It replaced #b5680c, a value borrowed
+       from BEADZ that sat at 4.24:1 on white (owner call 2026-09-03;
+       BEADZ is not a source of values). Family 2 (owner request
+       2026-08-26) was chosen to sit where family 1 sits: brand-2-500
+       matches brand-1-500's contrast on both grounds (line and fill,
+       not text on white) and brand-2-700 is its legible kin for text on
+       the light ground. */
+    --brand-1-500: #ffaa3c;
+    --brand-1-600: #d98a1f;
+    --brand-1-700: #a36300;
+    --brand-2-300: #8ee6f2;
+    --brand-2-500: #3cc7dd;
+    --brand-2-700: #1a7f90;
     --red-800: #7a1f16;
     --red-300: #ff8a7a;
-    --ochre-600: #d98a1f;
     --violet-600: #7a5aa0;
     --violet-300: #b39ad6;
 

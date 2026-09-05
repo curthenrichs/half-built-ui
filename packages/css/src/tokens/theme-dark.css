@@ -23,10 +23,10 @@
 
     /* The bright amber is legible as text on the dark ground, so the
        accent and its ink form collapse to one value here. */
-    --accent-1: var(--amber-500);
-    --accent-1-ink: var(--amber-500);
-    --accent-2: var(--cyan-500);
-    --accent-2-ink: var(--cyan-300);
+    --accent-1: var(--brand-1-500);
+    --accent-1-ink: var(--brand-1-500);
+    --accent-2: var(--brand-2-500);
+    --accent-2-ink: var(--brand-2-300);
     --on-accent-1: var(--black-900);
     --on-accent-2: var(--black-900);
     --error-ink: var(--red-300);
@@ -41,10 +41,10 @@
     --mat-line: var(--gray-800);
     /* Keyboard ring: the second accent by night, the first by day
        (owner call 2026-08-26). */
-    --focus-ring: var(--cyan-500);
+    --focus-ring: var(--brand-2-500);
 
-    --track-x: var(--amber-500);
-    --track-y: var(--cyan-300);
+    --track-x: var(--brand-1-500);
+    --track-y: var(--brand-2-300);
     --track-z: var(--violet-300);
 
     /* The subscribe panel inverts by night: a dark panel with an amber
@@ -53,8 +53,8 @@
        2026-08-26). */
     --panel-bg: var(--black-850);
     --panel-ink: var(--parchment);
-    --panel-rule: var(--amber-500);
+    --panel-rule: var(--brand-1-500);
     --panel-error: var(--red-300);
-    --panel-ring: var(--amber-500);
+    --panel-ring: var(--brand-1-500);
   }
 }

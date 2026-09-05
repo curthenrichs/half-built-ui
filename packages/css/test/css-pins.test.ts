@@ -16,7 +16,7 @@ describe("css pins", () => {
   it("primitives define --z-tooltip and the shared amber accent", () => {
     const prims = read("../src/tokens/primitives.css");
     expect(prims).toMatch(/--z-tooltip:/);
-    expect(prims).toMatch(/--amber-500: #ffaa3c;/);
+    expect(prims).toMatch(/--brand-1-500: #ffaa3c;/);
   });
 
   it("breakpoints.css defines the four system breakpoint names", () => {
