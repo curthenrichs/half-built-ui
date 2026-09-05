@@ -168,7 +168,8 @@ anchor; exact-match with the hand-tuned hexes is not required).
 ### The bases are the user's, so they get readouts, not corrections
 
 Dark theme uses both picked bases directly as text
-(`--accent-1-ink: var(--amber-500)`, focus rings, and similar). The
+(`--accent-1-ink: var(--brand-1-500)` after the rename, focus rings,
+and similar). The
 editor never alters a picked base. Instead the panel shows a compact
 readout per base: contrast as dark-theme text and as a line or fill on
 each ground, with a pass mark or a warning ("too dark to read as text
