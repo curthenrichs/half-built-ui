@@ -1,0 +1,37 @@
+---
+/* Fixed bottom-right palette editor (Task 5). Markup only: the live
+   derivation and persistence is palette-editor.ts's mountPaletteEditor,
+   wired from Base.astro's script block. Unlike Toc.astro this renders
+   from Base.astro itself, outside the .site-layout wrapper, so it sits
+   above every page's content rather than beside one page's sections.
+   The day/night toggle stays in the header; this panel is palette
+   only. Styling lives in ../styles/site.css under the shared @layer
+   site, not a component <style>, so it can share tokens with the rest
+   of the site's own layout rules in one place. */
+---
+<aside class="site-toolbar">
+  <details data-palette-editor>
+    <summary>Palette</summary>
+    <div class="site-toolbar-body">
+      <div class="site-toolbar-field">
+        <label for="palette-base-1">Accent 1</label>
+        <input type="color" id="palette-base-1" data-palette-base="1" value="#ffaa3c" />
+      </div>
+      <div class="site-toolbar-field">
+        <label for="palette-base-2">Accent 2</label>
+        <input type="color" id="palette-base-2" data-palette-base="2" value="#3cc7dd" />
+      </div>
+      <div class="site-toolbar-presets">
+        <button type="button" data-palette-preset data-base-1="#ffaa3c" data-base-2="#3cc7dd">Amber and cyan</button>
+        <button type="button" data-palette-preset data-base-1="#1890ff" data-base-2="#13c2c2">Portfolio blues</button>
+        <button type="button" data-palette-preset data-base-1="#2f9e44" data-base-2="#0ca678">Greens</button>
+      </div>
+      <ul data-palette-readouts class="site-toolbar-readouts"></ul>
+      <pre data-palette-css class="site-toolbar-css"></pre>
+      <div class="site-toolbar-actions">
+        <button type="button" data-palette-copy>Copy CSS</button>
+        <button type="button" data-palette-reset>Reset</button>
+      </div>
+    </div>
+  </details>
+</aside>

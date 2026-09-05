@@ -31,4 +31,105 @@
       top: auto;
     }
   }
+
+  /* Fixed palette editor toolbar (Task 5). Renders from Base.astro, so
+     it floats over every page rather than sitting in .site-layout's
+     column. All colors are theme tokens (var(--surface) and kin), so
+     the panel follows day/night like the rest of the chrome; the
+     package's own scroll-top button is the only other bottom-right
+     floater, so this sits one z-index step above it
+     (packages/css/src/tokens/primitives.css's --z-scroll-top) and is
+     pushed left of its 30px-right/40px-wide footprint
+     (packages/css/src/base/scroll-top.css) so an open panel never
+     covers it. */
+  .site-toolbar {
+    position: fixed;
+    right: calc(30px + 40px + 1rem);
+    bottom: 1rem;
+    z-index: calc(var(--z-scroll-top) + 1);
+  }
+  .site-toolbar > details { position: relative; }
+  .site-toolbar summary {
+    cursor: pointer;
+    list-style: none;
+    padding: 8px 14px;
+    background: var(--surface);
+    color: var(--ink);
+    border: var(--stroke) solid var(--rule);
+    box-shadow: var(--shadow);
+    font-size: var(--font-size-sm);
+    white-space: nowrap;
+  }
+  .site-toolbar summary::-webkit-details-marker { display: none; }
+  .site-toolbar summary:hover,
+  .site-toolbar summary:focus-visible { outline: var(--stroke) solid var(--rule); }
+
+  .site-toolbar-body {
+    position: absolute;
+    right: 0;
+    bottom: calc(100% + 8px);
+    width: 260px;
+    max-width: calc(100vw - 2rem);
+    max-height: calc(100vh - 6rem);
+    overflow: auto;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    background: var(--surface);
+    color: var(--ink);
+    border: var(--stroke) solid var(--rule);
+    box-shadow: var(--shadow);
+    font-size: var(--font-size-sm);
+  }
+  .site-toolbar-field {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .site-toolbar-presets {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .site-toolbar-presets button,
+  .site-toolbar-actions button {
+    color: var(--ink);
+    background: var(--surface);
+    border: var(--stroke) solid var(--rule);
+    padding: 4px 8px;
+    font-size: var(--font-size-sm);
+    cursor: pointer;
+  }
+  .site-toolbar-readouts {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .site-toolbar-css {
+    margin: 0;
+    padding: 8px;
+    max-height: 8rem;
+    overflow: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
+    background: var(--surface);
+    color: var(--ink);
+    border: var(--stroke) solid var(--rule);
+  }
+  .site-toolbar-actions {
+    display: flex;
+    gap: 8px;
+  }
+
+  /* The package hides its scroll-top button on phones (owner call
+     2026-08-20), so there is nothing left to clear there; the panel
+     can use the freed corner. */
+  @media (--bp-phone) {
+    .site-toolbar { right: 1rem; }
+  }
 }

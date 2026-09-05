@@ -17,6 +17,7 @@ import "../styles/site.css";
 import Shell from "@half-built/astro/components/Shell.astro";
 import Masthead from "@half-built/astro/components/Masthead.astro";
 import Footer from "@half-built/astro/components/Footer.astro";
+import Toolbar from "../components/Toolbar.astro";
 import { formatHeaderDate } from "@half-built/astro/lib/header-date";
 import { SITE_NAME, TAGLINE, NAV, SOCIALS, LEGAL_HOLDER, FOOTER_SITEMAP, ECOSYSTEM, ECOSYSTEM_SELF } from "../data/site";
 import { THEME_STORAGE_KEY } from "../lib/theme-key";
@@ -32,6 +33,7 @@ const { title = "half-built ui", description = "The reference site for the @half
   </Fragment>
   <Masthead slot="header" siteName={SITE_NAME} tagline={TAGLINE} nav={NAV} socials={SOCIALS} dateStr={formatHeaderDate(new Date())} isHome={true} />
   <slot />
+  <Toolbar />
   <Footer slot="footer" siteName={SITE_NAME} legalHolder={LEGAL_HOLDER} sitemap={FOOTER_SITEMAP} ecosystem={ECOSYSTEM} ecosystemSelf={ECOSYSTEM_SELF} />
   <Fragment slot="scripts">
     <script>
@@ -42,7 +44,9 @@ const { title = "half-built ui", description = "The reference site for the @half
       import { mountFocusMode } from "@half-built/astro/scripts/focus-mode";
       import { mountScrollTop } from "@half-built/astro/scripts/scroll-top";
       import { mountToc } from "../scripts/toc";
+      import { mountPaletteEditor } from "../scripts/palette-editor";
       import { THEME_STORAGE_KEY } from "../lib/theme-key";
+      import { PALETTE_STORAGE_KEY } from "../lib/palette-key";
       mountFocusMode(document.documentElement);
       /* Internal and external links share one measured tooltip island. */
       mountLinkTips(document, { selector: 'a[href^="http"], a[data-tooltip]' });
@@ -51,6 +55,7 @@ const { title = "half-built ui", description = "The reference site for the @half
       mountCodeIslands(document);
       mountLightbox(document);
       mountToc(document);
+      mountPaletteEditor(document, { storageKey: PALETTE_STORAGE_KEY });
     </script>
     <slot name="scripts" />
   </Fragment>
