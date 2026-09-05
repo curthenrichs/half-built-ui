@@ -158,8 +158,10 @@ converting back to hex:
 - `--brand-1-600`: darken until contrast with the light theme's paper
   is at least 3:1 (non-text chart line).
 
-The thresholds compare against the theme files' actual ground values
-read at build time, not hardcoded copies. Derivation is a pure
+The two ground values live in one site module whose unit test asserts
+they match the installed css package's theme files, so they cannot go
+stale silently (a runtime read only sees the active theme's computed
+values, and derivation needs both grounds at once). Derivation is a pure
 function `derivePalette(base1, base2)` returning the six hex values;
 feeding it today's amber and cyan bases must return stops that clear
 the same thresholds today's hand-tuned values clear (regression
