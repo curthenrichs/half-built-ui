@@ -26,7 +26,9 @@ this library. There is no separate design doc.
 
 ## Status
 
-0.1.0 is unpublished. Nothing here has shipped to npm yet.
+0.1.0 published to npm on 2026-09-04. half-built-robots.com consumes
+all three packages from the registry as the reference consumer.
+Releases follow the Release rules below.
 
 ## Release rules
 
