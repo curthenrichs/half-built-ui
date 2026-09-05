@@ -33,11 +33,9 @@ Non-goals:
 - No per-prop playground, no Storybook-style machinery. Variants are
   pre-rendered at build time; the only live controls are the global
   knobs.
-- No package changes in this project. The editor is site-side script.
-  Hue-neutral aliases for the accent primitives (a green theme
-  currently overrides variables named amber) are a recorded wart for a
-  future @half-built/css minor, alongside the registered global.css
-  naming review. Not here.
+- One package change only: the phase 0 primitive rename below. Beyond
+  it the editor is site-side script and the packages do not change in
+  this project.
 - No exhaustive API documentation. Props tables and per-field detail
   stay in the package READMEs and `models.ts`; the page's prose is
   usage and rationale, not reference.
@@ -100,19 +98,43 @@ width the blog's breakpoints define.
 
 ## The palette editor
 
+### Phase 0: the primitive rename (@half-built 0.2.0)
+
+The six accent primitives are named after the hues they happen to be
+(`--amber-500`, `--cyan-700`, `--ochre-600`), so a third-party override
+means writing green values into variables named amber. Before the site
+work, the css package renames them to hue-neutral ramp names, values
+unchanged. Two brand families, numeric lightness stops kept; ochre
+folds into family 1 as its 600 stop, which is what it is:
+
+| New name | Old name | Value | Role |
+|---|---|---|---|
+| `--brand-1-500` | `--amber-500` | `#ffaa3c` | brand 1 base: lines, fills, dark-theme text ink, light-theme focus ring |
+| `--brand-1-600` | `--ochre-600` | `#d98a1f` | brand 1 chart kin (light-theme track-x) |
+| `--brand-1-700` | `--amber-700` | `#a36300` | brand 1 ink on the light paper |
+| `--brand-2-300` | `--cyan-300` | `#8ee6f2` | brand 2 light kin: dark-theme text ink and track-y |
+| `--brand-2-500` | `--cyan-500` | `#3cc7dd` | brand 2 base: lines, fills, dark-theme focus ring |
+| `--brand-2-700` | `--cyan-700` | `#1a7f90` | brand 2 ink on the light paper |
+
+The old names are referenced nowhere outside the package's own two
+theme files (verified 2026-09-05 across the blog's src and this repo),
+so no aliases ship; the rename is a clean cut. The semantic layer
+(`--accent-1`, `--accent-1-ink`, and kin) keeps its names; it is the
+role vocabulary, the primitives are the raw ramps beneath it.
+
+Sequence: rename lands in the css package, all three packages release
+as 0.2.0 under the fixed-version rule (merge to main, tag, push the
+tag), the blog bumps its exact pins with the usual parity check
+(values unchanged, so rendered output must not move), and the site
+work then targets 0.2.0. The other accent primitives (red, violet)
+keep their hue names; they are fixed system colors, not part of the
+theming surface.
+
 ### Override surface
 
-Six primitives are the entire theming surface. Everything else in both
-theme files routes through them or through neutrals that stay fixed:
-
-| Variable | Today | Role |
-|---|---|---|
-| `--amber-500` | `#ffaa3c` | accent 1 base: lines, fills, dark-theme text ink, light-theme focus ring |
-| `--amber-700` | `#a36300` | accent 1 ink on the light paper |
-| `--ochre-600` | `#d98a1f` | accent 1 chart kin (light-theme track-x) |
-| `--cyan-500` | `#3cc7dd` | accent 2 base: lines, fills, dark-theme focus ring |
-| `--cyan-300` | `#8ee6f2` | accent 2 light kin: dark-theme text ink and track-y |
-| `--cyan-700` | `#1a7f90` | accent 2 ink on the light paper |
+The six `--brand-*` primitives are the entire theming surface.
+Everything else in both theme files routes through them or through
+neutrals that stay fixed.
 
 ### Controls
 
@@ -129,12 +151,12 @@ OKLCH by walking lightness (hue and chroma held, chroma reduced only
 if the gamut requires it) until each clears its threshold, then
 converting back to hex:
 
-- `--amber-700` and `--cyan-700`: darken until contrast with the light
-  theme's paper is at least 4.5:1 (text ink).
-- `--cyan-300`: lighten until contrast with the dark theme's ground is
-  at least 4.5:1 (text ink).
-- `--ochre-600`: darken until contrast with the light theme's paper is
-  at least 3:1 (non-text chart line).
+- `--brand-1-700` and `--brand-2-700`: darken until contrast with the
+  light theme's paper is at least 4.5:1 (text ink).
+- `--brand-2-300`: lighten until contrast with the dark theme's ground
+  is at least 4.5:1 (text ink).
+- `--brand-1-600`: darken until contrast with the light theme's paper
+  is at least 3:1 (non-text chart line).
 
 The thresholds compare against the theme files' actual ground values
 read at build time, not hardcoded copies. Derivation is a pure
@@ -163,12 +185,12 @@ button emits a finished block:
 ```css
 /* half-built palette override, generated at ui.half-built-robots.com */
 :root {
-  --amber-500: #2f9e44;
-  --amber-700: #1f7a33;
-  --ochre-600: #23863a;
-  --cyan-500: #0ca678;
-  --cyan-300: #7fd8a0;
-  --cyan-700: #067a5b;
+  --brand-1-500: #2f9e44;
+  --brand-1-600: #23863a;
+  --brand-1-700: #1f7a33;
+  --brand-2-300: #7fd8a0;
+  --brand-2-500: #0ca678;
+  --brand-2-700: #067a5b;
 }
 ```
 
@@ -190,6 +212,10 @@ a reload keeps the palette; reset clears it.
 
 ## Sequencing
 
+Phase 0, the rename release: the primitive rename above lands, 0.2.0
+ships, the blog bumps its pins with a parity check. The site work does
+not start until the blog is green on 0.2.0.
+
 Phase 1, content and knobs on `dev`: restructure the page into
 sections, build the toolbar and editor, land the tests. Create the
 Pages project early against `dev` so every push is reviewable at the
@@ -201,9 +227,6 @@ smoke pass against the production URL.
 
 ## Recorded follow-ups (not this project)
 
-- Hue-neutral primitive aliases in @half-built/css so third parties
-  are not overriding variables named amber; rides the registered
-  naming review at a future minor.
 - The blog's /policies/style page moving or redirecting here was
   raised at step 11.4 and stays an open owner decision once this site
   is live.
