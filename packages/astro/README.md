@@ -36,6 +36,14 @@ own. Pass it beside the theme: the `transformers` prop of
 `astro:components`' `Code`, or `markdown.shikiConfig.transformers` in
 an Astro config.
 
+## Palette token entries
+
+A `content/Palette.astro` entry may carry `token` (a custom property
+name) instead of `hex`: the swatch then paints `var(token)` and
+follows the live cascade with no script, and the hex cell renders
+empty with a `data-token-hex` attribute for a consumer script to fill
+from computed styles. Entries with `hex` render exactly as before.
+
 ## Import notes
 
 Wildcard subpath imports need explicit file extensions under
