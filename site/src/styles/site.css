@@ -51,19 +51,34 @@
     z-index: calc(var(--z-scroll-top) + 1);
   }
   .site-toolbar > details { position: relative; }
+  /* The button wears the accent-box treatment (the tagline's recipe in
+     SiteHeader.astro) so it reads as a deliberate floating control
+     rather than a stray button, and carries two live swatches: they
+     read the brand variables directly, so an applied palette recolors
+     the closed button with no script. */
   .site-toolbar > details > summary {
     cursor: pointer;
     list-style: none;
+    display: flex;
+    align-items: center;
+    gap: 6px;
     padding: 8px 14px;
-    background: var(--surface);
-    color: var(--ink);
-    border: var(--stroke) solid var(--rule);
+    color: var(--accent-1-ink);
+    background: color-mix(in srgb, var(--accent-1) 6%, var(--surface));
+    border: var(--stroke) solid var(--accent-1);
     box-shadow: var(--shadow);
     font-size: var(--font-size-sm);
     white-space: nowrap;
   }
   .site-toolbar summary::-webkit-details-marker { display: none; }
   .site-toolbar > details > summary:hover { outline: var(--stroke) solid var(--rule); }
+  .site-toolbar-swatch {
+    width: 12px;
+    height: 12px;
+    border: 1px solid var(--rule);
+  }
+  .site-toolbar-swatch-1 { background: var(--brand-1-500); }
+  .site-toolbar-swatch-2 { background: var(--brand-2-500); }
 
   .site-toolbar-body {
     position: absolute;
