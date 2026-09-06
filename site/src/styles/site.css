@@ -116,7 +116,9 @@
     flex-wrap: wrap;
     gap: 6px;
   }
+  .site-toolbar-flip { margin-left: auto; }
   .site-toolbar-presets button,
+  .site-toolbar-flip,
   .site-toolbar-actions button {
     color: var(--ink);
     background: var(--surface);

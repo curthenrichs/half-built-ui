@@ -227,6 +227,14 @@ export function mountPaletteEditor(root: Document, opts: PaletteEditorOptions): 
     });
   });
 
+  const flipBtn = editor.querySelector<HTMLButtonElement>("[data-palette-flip]");
+  flipBtn?.addEventListener("click", () => {
+    const b1 = els.input2.value;
+    const b2 = els.input1.value;
+    setInputs(els, b1, b2);
+    apply(b1, b2);
+  });
+
   els.resetBtn.addEventListener("click", () => {
     clearStored(storage, storageKey);
     for (const key of RAMP_KEYS) {

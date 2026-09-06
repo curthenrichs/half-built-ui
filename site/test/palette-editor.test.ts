@@ -33,6 +33,7 @@ function fixture(): void {
         <input type="color" id="palette-base-1" data-palette-base="1" value="${AMBER_B1}" />
         <label for="palette-base-2">Accent 2</label>
         <input type="color" id="palette-base-2" data-palette-base="2" value="${AMBER_B2}" />
+        <button type="button" data-palette-flip>Flip</button>
         <ul data-palette-readouts></ul>
         <details><summary>Show details</summary><ul data-palette-detail></ul></details>
         <button type="button" data-palette-preset data-base-1="${AMBER_B1}" data-base-2="${AMBER_B2}">Amber</button>
@@ -144,6 +145,20 @@ describe("palette editor", () => {
 
     const readouts = document.querySelector("[data-palette-readouts]");
     expect(readouts?.textContent).toBe("Contrast checks pass.");
+  });
+
+  it("flip swaps the two bases through the normal apply path", () => {
+    mountPaletteEditor(document, { storageKey: KEY });
+    fireInput(input("palette-base-1"), "#1890ff");
+    fireInput(input("palette-base-2"), "#13c2c2");
+
+    const flip = document.querySelector<HTMLButtonElement>("[data-palette-flip]");
+    flip?.click();
+
+    expect(document.documentElement.style.getPropertyValue("--brand-1-500")).toBe("#13c2c2");
+    expect(document.documentElement.style.getPropertyValue("--brand-2-500")).toBe("#1890ff");
+    expect(input("palette-base-1").value).toBe("#13c2c2");
+    expect(input("palette-base-2").value).toBe("#1890ff");
   });
 
   it("the details disclosure carries the per-accent ratios", () => {
