@@ -110,7 +110,7 @@ folds into family 1 as its 600 stop, which is what it is:
 | New name | Old name | Value | Role |
 |---|---|---|---|
 | `--brand-1-500` | `--amber-500` | `#ffaa3c` | brand 1 base: lines, fills, dark-theme text ink, light-theme focus ring |
-| `--brand-1-600` | `--ochre-600` | `#d98a1f` | brand 1 chart kin (light-theme track-x) |
+| `--brand-1-600` | `--ochre-600` | `#d98a1f`, retuned to `#d1820f` (see below) | brand 1 chart kin (light-theme track-x) |
 | `--brand-1-700` | `--amber-700` | `#a36300` | brand 1 ink on the light paper |
 | `--brand-2-300` | `--cyan-300` | `#8ee6f2` | brand 2 light kin: dark-theme text ink and track-y |
 | `--brand-2-500` | `--cyan-500` | `#3cc7dd` | brand 2 base: lines, fills, dark-theme focus ring |
@@ -124,9 +124,13 @@ role vocabulary, the primitives are the raw ramps beneath it.
 
 Sequence: rename lands in the css package, all three packages release
 as 0.2.0 under the fixed-version rule (merge to main, tag, push the
-tag), the blog bumps its exact pins with the usual parity check
-(values unchanged, so rendered output must not move), and the site
-work then targets 0.2.0. The other accent primitives (red, violet)
+tag), the blog bumps its exact pins with the usual parity check, and
+the site work then targets 0.2.0. One value rides the release beside
+the rename (owner call, 2026-09-05): the 600 stop was retuned from
+`#d98a1f` (2.76:1 on white, under the 3:1 non-text gate) to `#d1820f`
+(3.04:1), walked down in OKLCH with hue and chroma held. The parity
+check must show exactly one class of rendered change, the light-theme
+chart track color; everything else must not move. The other accent primitives (red, violet)
 keep their hue names; they are fixed system colors, not part of the
 theming surface.
 
@@ -165,11 +169,11 @@ values, and derivation needs both grounds at once). Derivation is a pure
 function `derivePalette(base1, base2)` returning the six hex values;
 feeding it today's amber and cyan bases short-circuits to the six
 shipped hexes exactly (final-review ruling 2026-09-05), so the default
-chip reproduces the defaults. The shipped 600 stop sits at 2.76:1 on
-white, under the 3:1 target the derivation holds walked stops to; it
-is a hand-tuned chart value that predates the threshold, recorded as
-an open owner question for a future release rather than changed here
-(the blog renders with it today).
+chip reproduces the defaults. The 600 stop's old value sat at 2.76:1
+on white, under the 3:1 target the derivation holds walked stops to;
+the owner resolved that gap the same day by retuning it to `#d1820f`
+(the phase 0 section records the walk), so every shipped default now
+clears its gate.
 
 ### The bases are the user's, so they get readouts, not corrections
 

@@ -10,7 +10,7 @@ describe("derivePalette", () => {
     const p = derivePalette("#ffaa3c", "#3cc7dd");
     expect(p).toEqual({
       "--brand-1-500": "#ffaa3c",
-      "--brand-1-600": "#d98a1f",
+      "--brand-1-600": "#d1820f",
       "--brand-1-700": "#a36300",
       "--brand-2-300": "#8ee6f2",
       "--brand-2-500": "#3cc7dd",
@@ -19,15 +19,7 @@ describe("derivePalette", () => {
     expect(contrastRatio(p["--brand-1-700"], LIGHT_PAPER)).toBeGreaterThanOrEqual(4.5);
     expect(contrastRatio(p["--brand-2-700"], LIGHT_PAPER)).toBeGreaterThanOrEqual(4.5);
     expect(contrastRatio(p["--brand-2-300"], DARK_GROUND)).toBeGreaterThanOrEqual(4.5);
-    /* --brand-1-600 is the shipped ochre chart-kin hue (packages/css's
-       primitives.css), hand-tuned as a non-text chart line rather than
-       walked against this formula; measured against LIGHT_PAPER it
-       sits at ~2.76:1, under the 3:1 non-text target the walk()-derived
-       stops elsewhere in this file are held to. That gap is a
-       pre-existing property of the hand-tuned value, unchanged by this
-       shipped-defaults short-circuit, so this anchor records the
-       measured ratio rather than asserting a gate it does not clear. */
-    expect(contrastRatio(p["--brand-1-600"], LIGHT_PAPER)).toBeCloseTo(2.761152391918442, 5);
+    expect(contrastRatio(p["--brand-1-600"], LIGHT_PAPER)).toBeGreaterThanOrEqual(3);
     /* the two 500 stops echo the inputs */
     expect(contrastRatio(p["--brand-1-500"], "#ffaa3c")).toBeCloseTo(1, 5);
     expect(contrastRatio(p["--brand-2-500"], "#3cc7dd")).toBeCloseTo(1, 5);

@@ -51,9 +51,12 @@
        2026-08-26) was chosen to sit where family 1 sits: brand-2-500
        matches brand-1-500's contrast on both grounds (line and fill,
        not text on white) and brand-2-700 is its legible kin for text on
-       the light ground. */
+       the light ground. Brand-1-600 was retuned 2026-09-05 (owner call)
+       from #d98a1f, which sat at 2.76:1 on white: walked down in OKLCH
+       with hue and chroma held until it clears 3:1 as a non-text chart
+       line on the light paper (now 3.04). */
     --brand-1-500: #ffaa3c;
-    --brand-1-600: #d98a1f;
+    --brand-1-600: #d1820f;
     --brand-1-700: #a36300;
     --brand-2-300: #8ee6f2;
     --brand-2-500: #3cc7dd;

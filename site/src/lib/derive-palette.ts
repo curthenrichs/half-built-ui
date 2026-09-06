@@ -52,7 +52,7 @@ const SHIPPED_B1 = "#ffaa3c";
 const SHIPPED_B2 = "#3cc7dd";
 const SHIPPED_DEFAULTS: PaletteOverride = {
   "--brand-1-500": "#ffaa3c",
-  "--brand-1-600": "#d98a1f",
+  "--brand-1-600": "#d1820f",
   "--brand-1-700": "#a36300",
   "--brand-2-300": "#8ee6f2",
   "--brand-2-500": "#3cc7dd",

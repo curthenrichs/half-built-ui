@@ -55,7 +55,7 @@ families, three stops each. Override any or all of them in your
 | Variable | Default | Role |
 |---|---|---|
 | `--brand-1-500` | `#ffaa3c` | Base: lines and fills, dark-theme text ink, light-theme focus ring. |
-| `--brand-1-600` | `#d98a1f` | Chart kin; light-theme track-x. |
+| `--brand-1-600` | `#d1820f` | Chart kin; light-theme track-x. |
 | `--brand-1-700` | `#a36300` | Text ink on the light paper. |
 | `--brand-2-300` | `#8ee6f2` | Light kin: dark-theme text ink and track-y. |
 | `--brand-2-500` | `#3cc7dd` | Base: lines and fills, dark-theme focus ring. |
@@ -77,10 +77,10 @@ An override looks like this:
 
 A derived ramp is built to three thresholds: the 700 stops clear 4.5:1
 against white, the 300 stop clears 4.5:1 against `#111111`, and the
-600 stop clears 3:1 against white. The shipped defaults clear the two
-text thresholds; the shipped 600 sits at 2.76:1, a hand-tuned chart
-value that predates the threshold. These are targets the derivation
-satisfies, not a floor the system enforces on your behalf. If
+600 stop clears 3:1 against white. The shipped defaults clear all
+three (the 600 stop was retuned to `#d1820f` for the 3:1 non-text
+gate in 0.2.0). These are targets the derivation satisfies, not a
+floor the system enforces on your behalf. If
 you write your own six values instead of deriving them, you own their
 contrast.
 
