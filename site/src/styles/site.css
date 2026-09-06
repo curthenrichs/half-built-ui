@@ -39,14 +39,15 @@
      it floats over every page rather than sitting in .site-layout's
      column. All colors are theme tokens (var(--surface) and kin), so
      the panel follows day/night like the rest of the chrome. Top left
-     on desktop and tablet, dropped 4rem so it clears the masthead
-     frame's date box at scroll zero, with the TOC's sticky top pushed
-     below it; bottom left on phones (owner calls 2026-09-06). One
-     z-index step above --z-scroll-top keeps the open panel over every
-     page floater. */
+     on desktop and tablet at an equal 4rem inset from both viewport
+     edges (owner call 2026-09-06: unequal insets read as a mistake);
+     4rem is the smallest equal value that clears the masthead frame's
+     date box at scroll zero, and the TOC's sticky top stays pushed
+     below the button. Bottom left on phones. One z-index step above
+     --z-scroll-top keeps the open panel over every page floater. */
   .site-toolbar {
     position: fixed;
-    left: 1rem;
+    left: 4rem;
     top: 4rem;
     z-index: calc(var(--z-scroll-top) + 1);
   }
@@ -221,9 +222,12 @@
      with it: straddling the bottom border keeps it beside the trigger
      and the thumb, instead of stranded at the top of the screen. */
   @media (--bp-phone) {
+    /* The phone corner keeps its own equal inset pair, 1rem bottom and
+       left; the desktop 4rem would waste a phone's width. */
     .site-toolbar {
       top: auto;
       bottom: 1rem;
+      left: 1rem;
     }
     .site-toolbar-body {
       top: auto;
