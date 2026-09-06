@@ -11,7 +11,8 @@
     "./content/*": "./src/components/content/*",
     "./scripts/*": "./src/scripts/*",
     "./lib/*": "./src/lib/*",
-    "./shiki/code-theme": "./src/shiki/code-theme.mjs"
+    "./shiki/code-theme": "./src/shiki/code-theme.mjs",
+    "./shiki/code-vars": "./src/shiki/code-vars.mjs"
   },
   "peerDependencies": { "astro": "^5.0.0" },
   "publishConfig": { "access": "public" }
