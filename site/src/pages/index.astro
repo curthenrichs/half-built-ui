@@ -112,8 +112,8 @@ const npmPackages = [
         <div class="prose no-hero">
           <h2>About</h2>
           <div class="section-intro" data-section-intro="intro">
-            <p>This page renders every piece of the half-built design system in one place, so I can look at the whole thing at once. The system was extracted from half-built-robots.com, which still runs on it. The three packages are published on npm under MIT.</p>
-            <p>The palette editor in the bottom corner rewrites the six brand variables live and prints a block you can copy into your own stylesheet. Overriding those six variables is the whole theming surface for anyone else.</p>
+            <p>This page renders every piece of the half-built design system in one place, so I can look at the whole thing at once. I pulled the system out of half-built-robots.com, and the blog still runs on it. The three packages are on npm under MIT.</p>
+            <p>The palette editor in the bottom corner rewrites the six brand variables live and prints a block you can copy into your own stylesheet. Those six variables are the entire theming surface.</p>
           </div>
           <p><code>npm install @half-built/css @half-built/astro @half-built/tooling</code></p>
           <ul class="demo-npm-links">
@@ -126,7 +126,7 @@ const npmPackages = [
         <div class="prose no-hero">
           <h2>Chrome</h2>
           <div class="section-intro" data-section-intro="chrome">
-            <p>The header and footer around this page come from the package. They take the site name and the rest of the identity as typed props, so nothing in them knows about my blog. The theme toggle flips the page between the light and dark palettes and remembers the choice. Every toggle on a page stays in step with the others, so the standalone one below moves the header's at the same time.</p>
+            <p>The header and footer around this page come from the package. Nothing in them knows about my blog. The site name and the rest of the identity arrive as typed props. The theme toggle flips the page between the light and dark palettes and remembers the choice. Every toggle on a page stays in step. Flip the standalone one below and the header's moves with it.</p>
             <p>&lt; Curt fill in: why the day and night toggle stays in the header while the palette editor lives in the corner &gt;</p>
           </div>
           <p><code>@half-built/astro/components/Masthead.astro</code>, <code>@half-built/astro/components/Footer.astro</code>, <code>@half-built/astro/components/ThemeToggle.astro</code></p>
@@ -174,7 +174,7 @@ const npmPackages = [
         <div class="prose no-hero">
           <h2>Widgets</h2>
           <div class="section-intro" data-section-intro="widgets">
-            <p>Widget is the plain sidebar block, a heading over whatever you put in its body. LinkListWidget is that same block filled with links and their counts, which is what a recent-posts or category list is made of. Subscribe is the newsletter panel. It is a real form with a method and an action, so it still submits with JavaScript turned off. Its copy sits in named slots, so a site with a different voice overrides the words instead of forking the component.</p>
+            <p>Widget is the plain sidebar block, a heading over whatever you put in its body. LinkListWidget is that same block filled with links and their counts. A recent-posts list and a category list are both just this widget. Subscribe is the newsletter panel. It is a real form with a method and an action, and it submits fine with JavaScript turned off. Its copy sits in named slots, so a site with a different voice overrides the words instead of forking the component.</p>
           </div>
           <p><code>@half-built/astro/components/Widget.astro</code>, <code>@half-built/astro/components/LinkListWidget.astro</code>, <code>@half-built/astro/components/Subscribe.astro</code></p>
         </div>
@@ -197,7 +197,7 @@ const npmPackages = [
         <div class="prose no-hero">
           <h2>Content blocks</h2>
           <div class="section-intro" data-section-intro="content">
-            <p>These are the blocks a post body is made of. Nothing here caps the width of the text, and nothing anywhere in this system does. The layout's column is the only width authority. The images below are generated placeholders rather than anything off the blog.</p>
+            <p>These are the blocks a post body is built from. Nothing here caps the width of the text, and nothing anywhere in this system does. The layout's column is the only width authority. The images below are generated placeholders rather than anything off the blog.</p>
             <p>&lt; Curt fill in: why the content blocks live under content/ while the site furniture lives under components/ &gt;</p>
           </div>
           <p><code>@half-built/astro/content/*</code></p>
@@ -263,7 +263,7 @@ const npmPackages = [
         <div class="prose no-hero">
           <h2>CSS primitives</h2>
           <div class="section-intro" data-section-intro="css">
-            <p>The tokens are the variables everything else reads, and every color on this page comes out of them. That is how the palette editor repaints the page by setting six. The light-theme amber ink was once borrowed from a prototype of another project. It sat at 4.24 to 1 against white, which fails WCAG AA, so it was retuned to a value that passes. The prose and pattern sheets carry the rest, the paragraph rhythm and the boxes.</p>
+            <p>The tokens are the variables everything else reads, and every color on this page comes out of them. The palette editor repaints the whole page by setting six of them. The light-theme amber ink started out borrowed from a prototype of another project. It sat at 4.24 to 1 against white, which fails WCAG AA, so I retuned it until it passed. The prose and pattern sheets carry the rest, the paragraph rhythm and the boxes.</p>
           </div>
           <p><code>@half-built/css/tokens</code>, <code>@half-built/css/prose.css</code>, <code>@half-built/css/patterns.css</code></p>
         </div>
