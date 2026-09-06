@@ -115,20 +115,36 @@ interface EditorElements {
   input1: HTMLInputElement;
   input2: HTMLInputElement;
   readoutsList: HTMLUListElement;
+  detailList: HTMLUListElement;
   pre: HTMLPreElement;
   copyBtn: HTMLButtonElement;
   resetBtn: HTMLButtonElement;
 }
 
+/* The numbers live behind the Show details disclosure (owner call
+   2026-09-06): the status line answers "is it ok", these answer "by
+   how much". */
+function detailLine(label: string, r: BaseReadout): string {
+  return `${label}: text on dark ${r.darkTextRatio.toFixed(2)}:1, fill on light ${r.lightFillRatio.toFixed(2)}:1`;
+}
+
+function fillList(doc: Document, list: HTMLUListElement, lines: string[]): void {
+  list.innerHTML = "";
+  for (const line of lines) {
+    const li = doc.createElement("li");
+    li.textContent = line;
+    list.append(li);
+  }
+}
+
 function render(doc: Document, els: EditorElements, b1: string, b2: string): PaletteOverride {
   const derived = derivePalette(b1, b2);
   const readouts = readBases(b1, b2);
-  els.readoutsList.innerHTML = "";
-  for (const line of statusLines(readouts.base1, readouts.base2)) {
-    const li = doc.createElement("li");
-    li.textContent = line;
-    els.readoutsList.append(li);
-  }
+  fillList(doc, els.readoutsList, statusLines(readouts.base1, readouts.base2));
+  fillList(doc, els.detailList, [
+    detailLine("Accent 1", readouts.base1),
+    detailLine("Accent 2", readouts.base2),
+  ]);
   els.pre.textContent = overrideBlock(derived);
   return derived;
 }
@@ -161,11 +177,12 @@ export function mountPaletteEditor(root: Document, opts: PaletteEditorOptions): 
   const input1 = editor.querySelector<HTMLInputElement>('input[data-palette-base="1"]');
   const input2 = editor.querySelector<HTMLInputElement>('input[data-palette-base="2"]');
   const readoutsList = editor.querySelector<HTMLUListElement>("[data-palette-readouts]");
+  const detailList = editor.querySelector<HTMLUListElement>("[data-palette-detail]");
   const pre = editor.querySelector<HTMLPreElement>("[data-palette-css]");
   const copyBtn = editor.querySelector<HTMLButtonElement>("[data-palette-copy]");
   const resetBtn = editor.querySelector<HTMLButtonElement>("[data-palette-reset]");
-  if (!input1 || !input2 || !readoutsList || !pre || !copyBtn || !resetBtn) return;
-  const els: EditorElements = { input1, input2, readoutsList, pre, copyBtn, resetBtn };
+  if (!input1 || !input2 || !readoutsList || !detailList || !pre || !copyBtn || !resetBtn) return;
+  const els: EditorElements = { input1, input2, readoutsList, detailList, pre, copyBtn, resetBtn };
 
   const storage = safeStorage(root);
   const html = root.documentElement;

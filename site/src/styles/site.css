@@ -117,15 +117,15 @@
     font-size: var(--font-size-sm);
     color: var(--ink-muted);
   }
-  .site-toolbar-css-details summary {
+  .site-toolbar-more summary {
     cursor: pointer;
     list-style: none;
     font-size: var(--font-size-sm);
     text-decoration: underline;
     text-underline-offset: 3px;
   }
-  .site-toolbar-css-details summary::-webkit-details-marker { display: none; }
-  .site-toolbar-css-details[open] summary { margin-bottom: 6px; }
+  .site-toolbar-more summary::-webkit-details-marker { display: none; }
+  .site-toolbar-more[open] summary { margin-bottom: 6px; }
   /* The copy block wears the code island's own tokens (--code-bg and
      kin) so it reads as this system's code surface. It cannot be a
      real CodeBlock: that component is Shiki-highlighted at build time,

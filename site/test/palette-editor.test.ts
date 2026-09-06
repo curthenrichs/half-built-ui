@@ -34,6 +34,7 @@ function fixture(): void {
         <label for="palette-base-2">Accent 2</label>
         <input type="color" id="palette-base-2" data-palette-base="2" value="${AMBER_B2}" />
         <ul data-palette-readouts></ul>
+        <details><summary>Show details</summary><ul data-palette-detail></ul></details>
         <button type="button" data-palette-preset data-base-1="${AMBER_B1}" data-base-2="${AMBER_B2}">Amber</button>
         <button type="button" data-palette-preset data-base-1="#1890ff" data-base-2="#13c2c2">Blues</button>
         <button type="button" data-palette-preset data-base-1="#2f9e44" data-base-2="#0ca678">Greens</button>
@@ -143,6 +144,16 @@ describe("palette editor", () => {
 
     const readouts = document.querySelector("[data-palette-readouts]");
     expect(readouts?.textContent).toBe("Contrast checks pass.");
+  });
+
+  it("the details disclosure carries the per-accent ratios", () => {
+    mountPaletteEditor(document, { storageKey: KEY });
+    fireInput(input("palette-base-1"), "#fafafa");
+    fireInput(input("palette-base-2"), "#3cc7dd");
+
+    const detail = document.querySelector("[data-palette-detail]");
+    expect(detail?.textContent).toMatch(/Accent 1: text on dark \d+\.\d\d:1, fill on light \d+\.\d\d:1/);
+    expect(detail?.textContent).toContain("Accent 2:");
   });
 
   it("a fresh mount with storage populated re-applies the palette", () => {
