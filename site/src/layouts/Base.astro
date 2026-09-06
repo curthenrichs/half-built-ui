@@ -23,7 +23,7 @@ import { SITE_NAME, TAGLINE, NAV, SOCIALS, LEGAL_HOLDER, FOOTER_SITEMAP, ECOSYST
 import { THEME_STORAGE_KEY } from "../lib/theme-key";
 
 interface Props { title?: string; description?: string }
-const { title = "half-built ui", description = "The reference site for the @half-built packages, every component's variants rendered on one page." } = Astro.props;
+const { title = "half-built-ui", description = "The reference site for the @half-built packages, every component's variants rendered on one page." } = Astro.props;
 ---
 <Shell themeStorageKey={THEME_STORAGE_KEY}>
   <Fragment slot="head">

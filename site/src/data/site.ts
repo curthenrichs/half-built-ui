@@ -4,7 +4,7 @@
    content data only on index.astro. */
 import type { NavItem, SocialItem, SitemapGroup, EcosystemEntry } from "@half-built/astro/components/models.ts";
 
-export const SITE_NAME = "half-built ui";
+export const SITE_NAME = "half-built-ui";
 export const TAGLINE = "Every @half-built component on one page.";
 
 /* A generic external-link glyph, not a brand mark: the social row just
