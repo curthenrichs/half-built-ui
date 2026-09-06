@@ -33,6 +33,7 @@ import Palette from "@half-built/astro/content/Palette.astro";
 import Group from "@half-built/astro/content/Group.astro";
 import Spacer from "@half-built/astro/content/Spacer.astro";
 import codeTheme from "@half-built/astro/shiki/code-theme";
+import codeVars from "@half-built/astro/shiki/code-vars";
 import type { PostCardModel, PostRef, LinkListItem } from "@half-built/astro/components/models.ts";
 import placeholderWide from "../assets/placeholder-wide.svg";
 import placeholderSquare from "../assets/placeholder-square.svg";
@@ -114,13 +115,13 @@ const npmPackages = [
           <h2>About</h2>
           <div class="section-intro" data-section-intro="intro">
             <p>This page renders every piece of the half-built design system in one place, so I can look at the whole thing at once. I pulled the system out of half-built-robots.com, and the blog still runs on it. The three packages are on npm under MIT.</p>
-            <p>The palette editor in the corner rewrites the six brand variables live and prints a block you can copy into your own stylesheet. Those six variables are the entire theming surface.</p>
+            <p>The palette editor in the corner rewrites the eight brand variables live and prints a block you can copy into your own stylesheet. Those eight variables are the entire theming surface. Two of them exist for the code viewer, which highlights through them so even syntax colors follow your palette.</p>
           </div>
           <!-- A real CodeBlock, not an inline code span, so the code
                island mounts its COPY button on the install line (owner
                ask 2026-09-06). -->
           <CodeBlock>
-            <Code code="npm install @half-built/css @half-built/astro @half-built/tooling" lang="shellscript" theme={codeTheme} />
+            <Code code="npm install @half-built/css @half-built/astro @half-built/tooling" lang="shellscript" theme={codeTheme} transformers={[codeVars]} />
           </CodeBlock>
           <ul class="demo-npm-links">
             {npmPackages.map((pkg) => <li><a href={pkg.href}><code>{pkg.name}</code></a></li>)}
@@ -253,7 +254,7 @@ const npmPackages = [
 
           <h3>Code block</h3>
           <CodeBlock filename="example.py">
-            <Code code={codeSample} lang="python" theme={codeTheme} />
+            <Code code={codeSample} lang="python" theme={codeTheme} transformers={[codeVars]} />
           </CodeBlock>
 
           <h3>Palette</h3>
@@ -273,7 +274,7 @@ const npmPackages = [
         <div class="prose no-hero">
           <h2>CSS primitives</h2>
           <div class="section-intro" data-section-intro="css">
-            <p>The tokens are the variables everything else reads, and every color on this page comes out of them. The palette editor repaints the whole page by setting six of them. The light-theme amber ink started out borrowed from a prototype of another project. It sat at 4.24 to 1 against white, which fails WCAG AA, so I retuned it until it passed. The prose and pattern sheets carry the rest, the paragraph rhythm and the boxes.</p>
+            <p>The tokens are the variables everything else reads, and every color on this page comes out of them. The palette editor repaints the whole page by setting eight of them. The light-theme amber ink started out borrowed from a prototype of another project. It sat at 4.24 to 1 against white, which fails WCAG AA, so I retuned it until it passed. The prose and pattern sheets carry the rest, the paragraph rhythm and the boxes.</p>
           </div>
           <p><code>@half-built/css/tokens</code>, <code>@half-built/css/prose.css</code>, <code>@half-built/css/patterns.css</code></p>
         </div>
@@ -287,6 +288,8 @@ const npmPackages = [
           <li><span class="demo-token-chip" style="background-color:var(--accent-1-ink)"></span><code>--accent-1-ink</code></li>
           <li><span class="demo-token-chip" style="background-color:var(--accent-2)"></span><code>--accent-2</code></li>
           <li><span class="demo-token-chip" style="background-color:var(--accent-2-ink)"></span><code>--accent-2-ink</code></li>
+          <li><span class="demo-token-chip" style="background-color:var(--code-token-function)"></span><code>--code-token-function</code></li>
+          <li><span class="demo-token-chip" style="background-color:var(--code-token-string)"></span><code>--code-token-string</code></li>
         </ul>
 
         <h3>Prose specimen</h3>

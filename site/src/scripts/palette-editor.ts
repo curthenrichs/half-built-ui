@@ -20,7 +20,9 @@ const AMBER_B1 = "#ffaa3c";
 const AMBER_B2 = "#3cc7dd";
 
 const RAMP_KEYS: (keyof PaletteOverride)[] = [
+  "--brand-1-300",
   "--brand-1-500",
+  "--brand-1-vivid",
   "--brand-1-600",
   "--brand-1-700",
   "--brand-2-300",

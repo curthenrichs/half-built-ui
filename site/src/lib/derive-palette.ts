@@ -1,11 +1,13 @@
 import { converter, clampChroma, formatHex } from "culori";
 import { contrastRatio } from "./contrast";
-import { LIGHT_PAPER, DARK_GROUND } from "./grounds";
+import { LIGHT_PAPER, DARK_GROUND, CODE_GROUND } from "./grounds";
 
 const toOklch = converter("oklch");
 
 export interface PaletteOverride {
+  "--brand-1-300": string;
   "--brand-1-500": string;
+  "--brand-1-vivid": string;
   "--brand-1-600": string;
   "--brand-1-700": string;
   "--brand-2-300": string;
@@ -43,6 +45,18 @@ function normalize(hex: string): string {
   return formatHex(clampChroma(start, "oklch"));
 }
 
+/* Jump lightness by a fixed OKLCH delta with hue and chroma held
+   (chroma clamped into gamut), the seed for the code kin below: the
+   deltas are the shipped amber pair's own spacing (300 sits +0.08 L
+   above the 500, vivid -0.12 below), so an arbitrary base gets kin
+   with the same relative weight before the contrast walk applies. */
+function shiftL(hex: string, dl: number): string {
+  const start = toOklch(hex);
+  if (start === undefined) throw new Error(`unparseable color ${hex}`);
+  const l = Math.min(1, Math.max(0, start.l + dl));
+  return formatHex(clampChroma({ ...start, l }, "oklch"));
+}
+
 /* The shipped default pair, and the six stops the package ships for it.
    These were hand-tuned rather than walked, and they already clear
    every threshold below, so the default pair reproduces them exactly
@@ -51,13 +65,31 @@ function normalize(hex: string): string {
 const SHIPPED_B1 = "#ffaa3c";
 const SHIPPED_B2 = "#3cc7dd";
 const SHIPPED_DEFAULTS: PaletteOverride = {
+  "--brand-1-300": "#ffd18a",
   "--brand-1-500": "#ffaa3c",
+  "--brand-1-vivid": "#e07c14",
   "--brand-1-600": "#d1820f",
   "--brand-1-700": "#a36300",
   "--brand-2-300": "#8ee6f2",
   "--brand-2-500": "#3cc7dd",
   "--brand-2-700": "#1a7f90",
 };
+
+/* The code kin (spec 2026-09-06): 300 is the light kin the code theme
+   uses for functions, vivid the deep saturated kin for strings. Both
+   are code text, so both walk lighter until they read against the
+   code island's own ground; the seed jump keeps them distinct from
+   the base rather than converging on the first passing value. The
+   shipped amber kin shifted hue as well (hand-tuned, +10 and -11
+   degrees), which the hue-holding walk cannot reproduce; the anchor
+   short-circuit above covers them the way it covers the other
+   hand-tuned stops. */
+function deriveCodeKin(b1: string): Pick<PaletteOverride, "--brand-1-300" | "--brand-1-vivid"> {
+  return {
+    "--brand-1-300": walk(shiftL(b1, 0.08), 1, (c) => contrastRatio(c, CODE_GROUND) >= 4.5),
+    "--brand-1-vivid": walk(shiftL(b1, -0.12), 1, (c) => contrastRatio(c, CODE_GROUND) >= 4.5),
+  };
+}
 
 export function derivePalette(base1: string, base2: string): PaletteOverride {
   const b1 = normalize(base1);
@@ -66,6 +98,7 @@ export function derivePalette(base1: string, base2: string): PaletteOverride {
     return { ...SHIPPED_DEFAULTS };
   }
   return {
+    ...deriveCodeKin(b1),
     "--brand-1-500": b1,
     "--brand-1-600": walk(b1, -1, (c) => contrastRatio(c, LIGHT_PAPER) >= 3),
     "--brand-1-700": walk(b1, -1, (c) => contrastRatio(c, LIGHT_PAPER) >= 4.5),
@@ -93,8 +126,12 @@ export function readBases(
   return { base1: readBase(base1), base2: readBase(base2) };
 }
 
+/* Family 1 in lightness order (vivid sits between the 500 and the
+   600), then family 2. */
 const RAMP_ORDER: (keyof PaletteOverride)[] = [
+  "--brand-1-300",
   "--brand-1-500",
+  "--brand-1-vivid",
   "--brand-1-600",
   "--brand-1-700",
   "--brand-2-300",

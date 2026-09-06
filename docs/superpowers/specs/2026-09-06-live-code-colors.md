@@ -1,7 +1,9 @@
 # Live Code Block Colors Under Palette Overrides
 
-Date: 2026-09-06. Status: draft, awaiting owner review. Nothing here
-is implemented.
+Date: 2026-09-06. Status: IMPLEMENTED same day. Owner approved
+option A and resolved the kin question as "derive them" ("I think we
+grow the derivation ... We should be honest about that"). Decisions
+recorded at the bottom; the sections below are the reviewed draft.
 
 ## The problem
 
@@ -92,3 +94,36 @@ pinned to today's hexes for exactly this reason.
 
 The `.site-toolbar-css` copyable block already follows the code
 chrome tokens and contains no highlighted spans; it needs nothing.
+
+## As implemented (2026-09-06)
+
+- Mechanism: a Shiki transformer, `@half-built/astro/shiki/code-vars`,
+  rewrites the theme's baked hexes to var() in the style attributes of
+  pre and span nodes (route 1 was moot: transformers are first-class
+  on Astro's Code component and in markdown.shikiConfig, and a
+  transformer keeps the theme's own scope granularity where the
+  css-variables theme would not).
+- New primitives: `--brand-1-300: #ffd18a` (a true lightness stop,
+  OKLCH L 0.885, the family's light kin the way brand-2-300 is) and
+  `--brand-1-vivid: #e07c14` (deliberately not numbered: L 0.684 sits
+  at the 600's lightness with more chroma, so a ramp number would
+  misstate it). The comment ink became `--umber-500: #8a7a63`, a fixed
+  system color like red and violet, outside the theming surface.
+- New theme roles, identical in both themes: `--code-token-keyword`
+  routes brand-1-500, `-function` routes brand-1-300, `-string`
+  routes brand-1-vivid, `-comment` routes umber-500. Foreground and
+  background map to the existing `--code-fg`/`--code-bg`.
+- The override surface is now EIGHT properties; derivePalette grows
+  the two kin (seed jump of the amber pair's own OKLCH lightness
+  deltas, +0.08 and -0.12, then a lighten walk to 4.5:1 on the code
+  ground #1b140c, a third ground constant with its own staleness
+  assertion). The amber anchor short-circuits to the shipped kin
+  exactly, which also carry the pair's hand-tuned hue shifts the
+  hue-holding walk cannot produce.
+- The About prose now says eight, names the code viewer as the reason,
+  and the token swatch list shows the two code roles live.
+- Blog adoption: at the 0.2.0 pin bump the blog may add the
+  transformer to markdown.shikiConfig.transformers; the variables
+  resolve to the same hexes, so the parity check must still show only
+  the chart-track change. Without the transformer the blog renders
+  byte-identically to today.

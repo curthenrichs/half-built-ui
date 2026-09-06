@@ -13,7 +13,9 @@ import { derivePalette, overrideBlock } from "../src/lib/derive-palette";
 const KEY = "test-palette-key";
 
 const RAMP_KEYS = [
+  "--brand-1-300",
   "--brand-1-500",
+  "--brand-1-vivid",
   "--brand-1-600",
   "--brand-1-700",
   "--brand-2-300",

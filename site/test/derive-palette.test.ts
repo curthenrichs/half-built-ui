@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { contrastRatio } from "../src/lib/contrast";
-import { LIGHT_PAPER, DARK_GROUND } from "../src/lib/grounds";
+import { LIGHT_PAPER, DARK_GROUND, CODE_GROUND } from "../src/lib/grounds";
 import { derivePalette, readBases, overrideBlock, type PaletteOverride } from "../src/lib/derive-palette";
 
 const HEX_RE = /^#[0-9a-f]{6}$/;
@@ -9,7 +9,9 @@ describe("derivePalette", () => {
   it("returns exactly the shipped defaults for the amber/cyan anchor, and they clear the contrast gates", () => {
     const p = derivePalette("#ffaa3c", "#3cc7dd");
     expect(p).toEqual({
+      "--brand-1-300": "#ffd18a",
       "--brand-1-500": "#ffaa3c",
+      "--brand-1-vivid": "#e07c14",
       "--brand-1-600": "#d1820f",
       "--brand-1-700": "#a36300",
       "--brand-2-300": "#8ee6f2",
@@ -20,6 +22,9 @@ describe("derivePalette", () => {
     expect(contrastRatio(p["--brand-2-700"], LIGHT_PAPER)).toBeGreaterThanOrEqual(4.5);
     expect(contrastRatio(p["--brand-2-300"], DARK_GROUND)).toBeGreaterThanOrEqual(4.5);
     expect(contrastRatio(p["--brand-1-600"], LIGHT_PAPER)).toBeGreaterThanOrEqual(3);
+    /* the code kin are text on the code block's own ground */
+    expect(contrastRatio(p["--brand-1-300"], CODE_GROUND)).toBeGreaterThanOrEqual(4.5);
+    expect(contrastRatio(p["--brand-1-vivid"], CODE_GROUND)).toBeGreaterThanOrEqual(4.5);
     /* the two 500 stops echo the inputs */
     expect(contrastRatio(p["--brand-1-500"], "#ffaa3c")).toBeCloseTo(1, 5);
     expect(contrastRatio(p["--brand-2-500"], "#3cc7dd")).toBeCloseTo(1, 5);
@@ -31,6 +36,8 @@ describe("derivePalette", () => {
     expect(contrastRatio(p["--brand-2-700"], LIGHT_PAPER)).toBeGreaterThanOrEqual(4.5);
     expect(contrastRatio(p["--brand-2-300"], DARK_GROUND)).toBeGreaterThanOrEqual(4.5);
     expect(contrastRatio(p["--brand-1-600"], LIGHT_PAPER)).toBeGreaterThanOrEqual(3);
+    expect(contrastRatio(p["--brand-1-300"], CODE_GROUND)).toBeGreaterThanOrEqual(4.5);
+    expect(contrastRatio(p["--brand-1-vivid"], CODE_GROUND)).toBeGreaterThanOrEqual(4.5);
     expect(contrastRatio(p["--brand-1-500"], "#2f9e44")).toBeCloseTo(1, 5);
     expect(contrastRatio(p["--brand-2-500"], "#0ca678")).toBeCloseTo(1, 5);
   });
@@ -48,6 +55,8 @@ describe("derivePalette", () => {
       expect(contrastRatio(p["--brand-2-700"], LIGHT_PAPER)).toBeGreaterThanOrEqual(4.5);
       expect(contrastRatio(p["--brand-2-300"], DARK_GROUND)).toBeGreaterThanOrEqual(4.5);
       expect(contrastRatio(p["--brand-1-600"], LIGHT_PAPER)).toBeGreaterThanOrEqual(3);
+      expect(contrastRatio(p["--brand-1-300"], CODE_GROUND)).toBeGreaterThanOrEqual(4.5);
+      expect(contrastRatio(p["--brand-1-vivid"], CODE_GROUND)).toBeGreaterThanOrEqual(4.5);
       for (const value of Object.values(p)) {
         expect(value).toMatch(HEX_RE);
       }
@@ -79,7 +88,9 @@ describe("overrideBlock", () => {
     const p: PaletteOverride = derivePalette("#ffaa3c", "#3cc7dd");
     const block = overrideBlock(p);
     const order = [
+      "--brand-1-300",
       "--brand-1-500",
+      "--brand-1-vivid",
       "--brand-1-600",
       "--brand-1-700",
       "--brand-2-300",
@@ -97,9 +108,9 @@ describe("overrideBlock", () => {
     const seenOrder = order.filter((name) => block.includes(`${name}:`));
     expect(seenOrder).toEqual(order);
 
-    const propertyLine = /^\s*(--brand-[12]-\d{3}):\s*(#[0-9a-f]{6});$/;
+    const propertyLine = /^\s*(--brand-[12]-(?:\d{3}|vivid)):\s*(#[0-9a-f]{6});$/;
     const lines = block.split("\n").filter((line) => propertyLine.test(line));
-    expect(lines).toHaveLength(6);
+    expect(lines).toHaveLength(8);
     for (const line of lines) {
       const m = propertyLine.exec(line);
       expect(m).not.toBeNull();
