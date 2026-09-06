@@ -166,14 +166,10 @@
      sentence reads as one instead of blending into the muted status
      gray. */
   .site-toolbar-warn { color: var(--error-ink); }
-  /* Label and chips are flex items so a narrow panel wraps between
-     them; the chips are nowrap so a ratio never breaks mid-figure. */
-  .site-toolbar-readouts li {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 2px 6px;
-    align-items: baseline;
-  }
+  /* The detail list is label lines with their ratio chips indented
+     beneath (owner call 2026-09-06); the indent matches the panel's
+     own padding so the hierarchy reads at a glance. */
+  .site-toolbar-readouts .site-toolbar-indent { padding-left: 14px; }
   /* The ratio lines are inline code, the package's own recipe
      (code.css's :not(pre) > code), restated here because the panel is
      not .prose. */

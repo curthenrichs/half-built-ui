@@ -130,9 +130,9 @@ interface EditorElements {
 
 /* The numbers live behind the Show details disclosure (owner call
    2026-09-06): the status line answers "is it ok", these answer "by
-   how much". Each ratio is its own nowrap <code> chip so the panel's
-   narrow column wraps between chips, never through the middle of one
-   (a single long chip broke ragged across two lines). */
+   how much". Each accent is a label line with its two ratios as
+   nowrap <code> chips on their own indented lines beneath it (owner
+   call 2026-09-06), so a figure never wraps through its middle. */
 function fillStatus(doc: Document, list: HTMLUListElement, lines: StatusLine[]): void {
   list.innerHTML = "";
   for (const line of lines) {
@@ -153,14 +153,19 @@ function fillDetail(doc: Document, list: HTMLUListElement, base1: BaseReadout, b
   list.innerHTML = "";
   const rows: [string, BaseReadout][] = [["Accent 1", base1], ["Accent 2", base2]];
   for (const [label, r] of rows) {
-    const li = doc.createElement("li");
-    li.append(
-      `${label} `,
-      ratioChip(doc, `text on dark ${r.darkTextRatio.toFixed(2)}:1`),
-      " ",
-      ratioChip(doc, `fill on light ${r.lightFillRatio.toFixed(2)}:1`),
-    );
-    list.append(li);
+    const labelLi = doc.createElement("li");
+    labelLi.textContent = label;
+    list.append(labelLi);
+    const chips = [
+      `text on dark ${r.darkTextRatio.toFixed(2)}:1`,
+      `fill on light ${r.lightFillRatio.toFixed(2)}:1`,
+    ];
+    for (const text of chips) {
+      const li = doc.createElement("li");
+      li.classList.add("site-toolbar-indent");
+      li.append(ratioChip(doc, text));
+      list.append(li);
+    }
   }
 }
 

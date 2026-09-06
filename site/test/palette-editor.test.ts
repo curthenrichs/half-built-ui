@@ -185,20 +185,24 @@ describe("palette editor", () => {
     expect(input("palette-base-2").value).toBe("#1890ff");
   });
 
-  it("the details disclosure carries the per-accent ratios as separate chips", () => {
+  it("the details disclosure lists each accent as a label line with its ratios indented under it", () => {
     mountPaletteEditor(document, { storageKey: KEY });
     fireInput(input("palette-base-1"), "#fafafa");
     fireInput(input("palette-base-2"), "#3cc7dd");
 
-    const detail = document.querySelector("[data-palette-detail]");
-    expect(detail?.textContent).toMatch(/Accent 1 text on dark \d+\.\d\d:1 fill on light \d+\.\d\d:1/);
-    expect(detail?.textContent).toContain("Accent 2");
-    /* Each ratio is its own <code> chip so a narrow panel wraps between
-       chips, never through the middle of one. */
-    const chips = detail?.querySelectorAll("li code");
-    expect(chips).toHaveLength(4);
-    expect(chips?.[0]?.textContent).toMatch(/^text on dark \d+\.\d\d:1$/);
-    expect(chips?.[1]?.textContent).toMatch(/^fill on light \d+\.\d\d:1$/);
+    const items = [...document.querySelectorAll("[data-palette-detail] li")];
+    expect(items.map((li) => li.classList.contains("site-toolbar-indent"))).toEqual([
+      false, true, true,
+      false, true, true,
+    ]);
+    expect(items[0]?.textContent).toBe("Accent 1");
+    expect(items[3]?.textContent).toBe("Accent 2");
+    /* Each ratio is its own <code> chip on its own indented line, so a
+       figure never wraps through its middle. */
+    expect(items[1]?.querySelector("code")?.textContent).toMatch(/^text on dark \d+\.\d\d:1$/);
+    expect(items[2]?.querySelector("code")?.textContent).toMatch(/^fill on light \d+\.\d\d:1$/);
+    expect(items[4]?.querySelector("code")?.textContent).toMatch(/^text on dark \d+\.\d\d:1$/);
+    expect(items[5]?.querySelector("code")?.textContent).toMatch(/^fill on light \d+\.\d\d:1$/);
   });
 
   it("a failing status line wears the warn class, a passing one does not", () => {
