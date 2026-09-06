@@ -132,16 +132,18 @@ describe("palette editor", () => {
     );
   });
 
-  it("readouts carry a warning sentence when a base fails lightFillPasses", () => {
+  it("light fill is reported as a plain number, never as a warning", () => {
     mountPaletteEditor(document, { storageKey: KEY });
-    /* near-white: passes as dark-ground text, fails as a light-paper fill */
+    /* near-white: passes as dark-ground text, sits under 3:1 as a
+       light-paper fill, exactly like the shipped defaults do. The
+       readout states the number and does not scold (owner-visible
+       polish, 2026-09-06). */
     fireInput(input("palette-base-1"), "#fafafa");
     fireInput(input("palette-base-2"), "#3cc7dd");
 
     const readouts = document.querySelector("[data-palette-readouts]");
-    expect(readouts?.textContent).toContain(
-      "Too faint for lines and fills on the light theme, consider a stronger shade.",
-    );
+    expect(readouts?.textContent).toMatch(/light fill \d+\.\d\d:1/);
+    expect(readouts?.textContent).not.toContain("Too faint");
   });
 
   it("a fresh mount with storage populated re-applies the palette", () => {

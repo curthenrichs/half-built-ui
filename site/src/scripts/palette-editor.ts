@@ -89,14 +89,16 @@ function safeStorage(doc: Document): Storage | null {
   }
 }
 
+/* Only the dark-text check warns: the picked bases become literal text
+   in the dark theme, so that one is a hard gate. The light-fill number
+   is information (the shipped defaults sit under 3:1 there by design),
+   and scolding the default palette taught us not to phrase it as a
+   warning. */
 function readoutLine(label: string, r: BaseReadout): string {
   const darkText = r.darkTextPasses
-    ? `dark text ${r.darkTextRatio.toFixed(2)}:1, pass`
+    ? `dark text ${r.darkTextRatio.toFixed(2)}:1 pass`
     : `dark text ${r.darkTextRatio.toFixed(2)}:1. Too dark to read as text on the dark theme, consider a lighter shade.`;
-  const lightFill = r.lightFillPasses
-    ? `light fill ${r.lightFillRatio.toFixed(2)}:1, pass`
-    : `light fill ${r.lightFillRatio.toFixed(2)}:1. Too faint for lines and fills on the light theme, consider a stronger shade.`;
-  return `${label}: ${darkText}; ${lightFill}`;
+  return `${label}: ${darkText}, light fill ${r.lightFillRatio.toFixed(2)}:1`;
 }
 
 /* The five controls plus the readout/css targets, bundled once the
