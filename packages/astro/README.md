@@ -15,6 +15,15 @@ is the design record for this package.
 Default icon glyphs are derived from Lucide (https://lucide.dev), ISC
 license. See `ICONS-LICENSE`.
 
+## EditorNote
+
+`content/EditorNote.astro` is a reminder block for content that must
+not ship: by default it renders only when the consuming build runs in
+dev mode, and a deploy build emits nothing for it. A consumer with a
+wider preview concept (the blog's SHOW_DRAFTS builds, for example)
+passes its own gate through the `shown` prop; the component reads no
+consumer config itself.
+
 ## Import notes
 
 Wildcard subpath imports need explicit file extensions under
