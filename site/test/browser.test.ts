@@ -170,6 +170,20 @@ describe.skipIf(!enabled)("browser suite", () => {
     expect(names).toHaveLength(6);
   }, 30_000);
 
+  it("only the forced demo editor note reaches the built page", async () => {
+    const p = await open();
+    /* EditorNote defaults to dev-server-only, and the preview server
+       serves a real build: the page's two real notes must be absent,
+       while the Content section's shown={true} demo instance is the
+       one that may (and must) render. The text checks catch a leaked
+       real note and any plain-text marker regression. */
+    const notes = await p.$$eval(".editor-note", (els) => els.length);
+    expect(notes).toBe(1);
+    const html = await p.content();
+    expect(html).not.toContain("Curt has to supply");
+    expect(html).not.toContain("Curt fill in");
+  }, 30_000);
+
   it("the toc renders one link per section and every href target exists", async () => {
     const p = await open();
     const hrefs = await p.$$eval('aside.site-toc nav[aria-label="Sections"] a', (els) =>

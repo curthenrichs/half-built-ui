@@ -10,6 +10,7 @@
 import { Code } from "astro:components";
 import Base from "../layouts/Base.astro";
 import Toc from "../components/Toc.astro";
+import EditorNote from "@half-built/astro/content/EditorNote.astro";
 import ThemeToggle from "@half-built/astro/components/ThemeToggle.astro";
 import PostCard from "@half-built/astro/components/PostCard.astro";
 import CategoryCard from "@half-built/astro/components/CategoryCard.astro";
@@ -115,19 +116,24 @@ const npmPackages = [
             <p>This page renders every piece of the half-built design system in one place, so I can look at the whole thing at once. I pulled the system out of half-built-robots.com, and the blog still runs on it. The three packages are on npm under MIT.</p>
             <p>The palette editor in the corner rewrites the six brand variables live and prints a block you can copy into your own stylesheet. Those six variables are the entire theming surface.</p>
           </div>
-          <p><code>npm install @half-built/css @half-built/astro @half-built/tooling</code></p>
+          <!-- A real CodeBlock, not an inline code span, so the code
+               island mounts its COPY button on the install line (owner
+               ask 2026-09-06). -->
+          <CodeBlock>
+            <Code code="npm install @half-built/css @half-built/astro @half-built/tooling" lang="shellscript" theme={codeTheme} />
+          </CodeBlock>
           <ul class="demo-npm-links">
             {npmPackages.map((pkg) => <li><a href={pkg.href}><code>{pkg.name}</code></a></li>)}
           </ul>
         </div>
       </section>
 
-      <section id="chrome">
+      <section id="frame">
         <div class="prose no-hero">
-          <h2>Chrome</h2>
-          <div class="section-intro" data-section-intro="chrome">
+          <h2>Frame</h2>
+          <div class="section-intro" data-section-intro="frame">
             <p>The header and footer around this page come from the package. Nothing in them knows about my blog. The site name and the rest of the identity arrive as typed props. The theme toggle flips the page between the light and dark palettes and remembers the choice. Every toggle on a page stays in step. Flip the standalone one below and the header's moves with it.</p>
-            <p>&lt; Curt fill in: why the day and night toggle stays in the header while the palette editor lives in the corner &gt;</p>
+            <EditorNote>What Curt has to supply: why the day and night toggle stays in the header while the palette editor lives in the corner.</EditorNote>
           </div>
           <p><code>@half-built/astro/components/Masthead.astro</code>, <code>@half-built/astro/components/Footer.astro</code>, <code>@half-built/astro/components/ThemeToggle.astro</code></p>
         </div>
@@ -198,7 +204,7 @@ const npmPackages = [
           <h2>Content blocks</h2>
           <div class="section-intro" data-section-intro="content">
             <p>These are the blocks a post body is built from. Nothing here caps the width of the text, and nothing anywhere in this system does. The layout's column is the only width authority. The images below are generated placeholders rather than anything off the blog.</p>
-            <p>&lt; Curt fill in: why the content blocks live under content/ while the site furniture lives under components/ &gt;</p>
+            <EditorNote>What Curt has to supply: why the content blocks live under content/ while the site furniture lives under components/.</EditorNote>
           </div>
           <p><code>@half-built/astro/content/*</code></p>
 
@@ -216,6 +222,10 @@ const npmPackages = [
           <Callout type="tip" title="Tip">A tip callout, wearing the first accent.</Callout>
           <Callout type="success">A success callout, wearing the second accent.</Callout>
           <Callout type="error">An error callout, in the red family.</Callout>
+
+          <h3>Editor's note</h3>
+          <p>The reminder that never ships. By default it renders only on a dev server; a deploy build emits nothing for it, so a note can sit in published content as a standing to-do. This one is forced visible with the <code>shown</code> prop so the page can show it.</p>
+          <EditorNote title="Demo" shown={true}>A demo note, forced visible. The dashed rule is the tell; nothing else in the system is dashed.</EditorNote>
 
           <h3>Quote</h3>
           <Quote by="Demo Author" when="2026">A quoted line, with an attribution footer.</Quote>

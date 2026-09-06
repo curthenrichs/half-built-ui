@@ -8,7 +8,7 @@ export interface SectionEntry {
 
 export const SECTIONS: SectionEntry[] = [
   { id: "intro", title: "About" },
-  { id: "chrome", title: "Chrome" },
+  { id: "frame", title: "Frame" },
   { id: "cards", title: "Cards" },
   { id: "navigation", title: "Navigation" },
   { id: "widgets", title: "Widgets" },

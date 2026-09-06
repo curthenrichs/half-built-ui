@@ -13,12 +13,14 @@ export const TAGLINE = "Every @half-built component on one page.";
 const ICON_EXTERNAL =
   '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7" /><path d="M8 7h9v9" /></svg>';
 
+/* "Frame", not "Chrome": the browser wears that word (owner call
+   2026-09-06). No Subscribe item: the widget renders in its own
+   section, and this site has nothing to subscribe to (same call). */
 export const NAV: NavItem[] = [
   { label: "Home", href: "/" },
-  { label: "Chrome", href: "#chrome" },
+  { label: "Frame", href: "#frame" },
   { label: "Content", href: "#content" },
   { label: "Cards", href: "#cards" },
-  { label: "Subscribe", href: "#widgets" },
 ];
 
 export const SOCIALS: SocialItem[] = [
@@ -35,7 +37,7 @@ export const FOOTER_SITEMAP: SitemapGroup[] = [
     phoneOpen: true,
     links: [
       { label: "Home", href: "/" },
-      { label: "Chrome", href: "#chrome" },
+      { label: "Frame", href: "#frame" },
       { label: "Content", href: "#content" },
     ],
   },
