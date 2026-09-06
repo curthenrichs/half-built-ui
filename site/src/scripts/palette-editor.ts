@@ -128,11 +128,17 @@ function detailLine(label: string, r: BaseReadout): string {
   return `${label}: text on dark ${r.darkTextRatio.toFixed(2)}:1, fill on light ${r.lightFillRatio.toFixed(2)}:1`;
 }
 
-function fillList(doc: Document, list: HTMLUListElement, lines: string[]): void {
+function fillList(doc: Document, list: HTMLUListElement, lines: string[], asCode = false): void {
   list.innerHTML = "";
   for (const line of lines) {
     const li = doc.createElement("li");
-    li.textContent = line;
+    if (asCode) {
+      const code = doc.createElement("code");
+      code.textContent = line;
+      li.append(code);
+    } else {
+      li.textContent = line;
+    }
     list.append(li);
   }
 }
@@ -141,10 +147,11 @@ function render(doc: Document, els: EditorElements, b1: string, b2: string): Pal
   const derived = derivePalette(b1, b2);
   const readouts = readBases(b1, b2);
   fillList(doc, els.readoutsList, statusLines(readouts.base1, readouts.base2));
+  /* Ratio lines render as inline code (owner call 2026-09-06). */
   fillList(doc, els.detailList, [
     detailLine("Accent 1", readouts.base1),
     detailLine("Accent 2", readouts.base2),
-  ]);
+  ], true);
   els.pre.textContent = overrideBlock(derived);
   return derived;
 }

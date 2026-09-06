@@ -135,6 +135,15 @@
     font-size: var(--font-size-sm);
     color: var(--ink-muted);
   }
+  /* The ratio lines are inline code, the package's own recipe
+     (code.css's :not(pre) > code), restated here because the panel is
+     not .prose. */
+  .site-toolbar-readouts code {
+    background: var(--band);
+    border: 1px solid var(--hairline);
+    padding: 1px 5px;
+    font-size: 0.9em;
+  }
   .site-toolbar-more summary {
     cursor: pointer;
     list-style: none;
