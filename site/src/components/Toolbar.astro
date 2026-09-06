@@ -13,6 +13,7 @@
    the panel carries the light/dark control too); the island keeps
    every toggle on the page in step. */
 import ThemeToggle from "@half-built/astro/components/ThemeToggle.astro";
+import { ICON_X } from "@half-built/astro/scripts/core/icons.ts";
 ---
 <aside class="site-toolbar">
   <details data-palette-editor>
@@ -22,18 +23,19 @@ import ThemeToggle from "@half-built/astro/components/ThemeToggle.astro";
       Palette
     </summary>
     <div class="site-toolbar-body">
-      <div class="site-toolbar-field">
-        <ThemeToggle label="Switch theme" />
-        <span>Theme</span>
-      </div>
+      <button type="button" data-palette-close class="icon-box site-toolbar-close" aria-label="Close palette">
+        <Fragment set:html={ICON_X} />
+      </button>
+      <div class="site-toolbar-scroll">
       <div class="site-toolbar-field">
         <input type="color" id="palette-base-1" data-palette-base="1" value="#ffaa3c" />
         <label for="palette-base-1">Accent 1</label>
+        <ThemeToggle label="Switch theme" class="site-toolbar-rowend" />
       </div>
       <div class="site-toolbar-field">
         <input type="color" id="palette-base-2" data-palette-base="2" value="#3cc7dd" />
         <label for="palette-base-2">Accent 2</label>
-        <button type="button" data-palette-flip class="site-toolbar-flip" title="Swap accent 1 and accent 2">Flip</button>
+        <button type="button" data-palette-flip class="site-toolbar-flip site-toolbar-rowend" title="Swap accent 1 and accent 2">Flip</button>
       </div>
       <ul data-palette-readouts class="site-toolbar-readouts"></ul>
       <details class="site-toolbar-more">
@@ -54,6 +56,7 @@ import ThemeToggle from "@half-built/astro/components/ThemeToggle.astro";
       <div class="site-toolbar-actions">
         <button type="button" data-palette-copy>Copy CSS</button>
         <button type="button" data-palette-reset>Reset</button>
+      </div>
       </div>
     </div>
   </details>

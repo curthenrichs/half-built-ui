@@ -80,23 +80,35 @@
   .site-toolbar-swatch-1 { background: var(--brand-1-500); }
   .site-toolbar-swatch-2 { background: var(--brand-2-500); }
 
+  /* The body is the frame; .site-toolbar-scroll inside it owns the
+     scrolling, so the corner X can straddle the border without being
+     clipped by an overflow box. */
   .site-toolbar-body {
     position: absolute;
     left: 0;
     top: calc(100% + 8px);
     width: 300px;
     max-width: calc(100vw - 2rem);
-    max-height: calc(100vh - 6rem);
-    overflow: auto;
-    padding: 14px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
     background: var(--surface);
     color: var(--ink);
     border: var(--stroke) solid var(--rule);
     box-shadow: var(--shadow);
     font-size: var(--font-size-sm);
+  }
+  .site-toolbar-scroll {
+    max-height: calc(100vh - 8rem);
+    overflow: auto;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  /* The signature corner X, straddling the panel's top right border
+     the way the plate modal's close box straddles its plate. */
+  .site-toolbar-close {
+    position: absolute;
+    top: -14px;
+    right: -14px;
   }
   /* Swatch first, label beside it, left aligned: the old
      space-between rows read as a weirdly spaced table (owner call
@@ -116,7 +128,9 @@
     flex-wrap: wrap;
     gap: 6px;
   }
-  .site-toolbar-flip { margin-left: auto; }
+  /* Second-column controls: the theme toggle ends the Accent 1 row the
+     way Flip ends the Accent 2 row (owner call 2026-09-06). */
+  .site-toolbar-rowend { margin-left: auto; }
   .site-toolbar-presets button,
   .site-toolbar-flip,
   .site-toolbar-actions button {

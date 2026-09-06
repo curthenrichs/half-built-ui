@@ -227,6 +227,22 @@ export function mountPaletteEditor(root: Document, opts: PaletteEditorOptions): 
     });
   });
 
+  /* Popup manners (owner call 2026-09-06, matching the plate modal's
+     conventions): the corner X, a click outside the panel, or Escape
+     all close it. The details element is the open/closed state. */
+  const closePanel = (): void => {
+    if (editor instanceof HTMLDetailsElement) editor.open = false;
+  };
+  const closeBtn = editor.querySelector<HTMLButtonElement>("[data-palette-close]");
+  closeBtn?.addEventListener("click", closePanel);
+  root.addEventListener("click", (e) => {
+    if (!(editor instanceof HTMLDetailsElement) || !editor.open) return;
+    if (e.target instanceof Node && !editor.contains(e.target)) closePanel();
+  });
+  root.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") closePanel();
+  });
+
   const flipBtn = editor.querySelector<HTMLButtonElement>("[data-palette-flip]");
   flipBtn?.addEventListener("click", () => {
     const b1 = els.input2.value;

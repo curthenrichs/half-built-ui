@@ -29,6 +29,7 @@ function fixture(): void {
     <aside class="site-toolbar">
       <details data-palette-editor>
         <summary>Palette</summary>
+        <button type="button" data-palette-close>X</button>
         <label for="palette-base-1">Accent 1</label>
         <input type="color" id="palette-base-1" data-palette-base="1" value="${AMBER_B1}" />
         <label for="palette-base-2">Accent 2</label>
@@ -145,6 +146,29 @@ describe("palette editor", () => {
 
     const readouts = document.querySelector("[data-palette-readouts]");
     expect(readouts?.textContent).toBe("Contrast checks pass.");
+  });
+
+  it("the corner X, an outside click, and Escape each close the panel", () => {
+    mountPaletteEditor(document, { storageKey: KEY });
+    const details = document.querySelector<HTMLDetailsElement>("[data-palette-editor]");
+    if (!details) throw new Error("no editor details");
+
+    details.open = true;
+    document.querySelector<HTMLButtonElement>("[data-palette-close]")?.click();
+    expect(details.open).toBe(false);
+
+    details.open = true;
+    document.body.click();
+    expect(details.open).toBe(false);
+
+    details.open = true;
+    document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+    expect(details.open).toBe(false);
+
+    /* a click inside stays open */
+    details.open = true;
+    input("palette-base-1").click();
+    expect(details.open).toBe(true);
   });
 
   it("flip swaps the two bases through the normal apply path", () => {
