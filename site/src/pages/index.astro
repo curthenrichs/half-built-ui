@@ -291,7 +291,13 @@ const npmPackages = [
         </div>
 
         <h3>Tokens</h3>
-        <Palette entries={tokenEntries} />
+        {/* Inside prose scope on purpose: the boxed ledger table
+            treatment lives in prose.css as .prose table, which is how
+            every table on the blog wears it. Outside this wrapper the
+            sheet renders as a bare default table. */}
+        <div class="prose">
+          <Palette entries={tokenEntries} />
+        </div>
 
         <h3>Prose specimen</h3>
         <div class="prose">
