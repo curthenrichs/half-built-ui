@@ -108,15 +108,20 @@
     flex-direction: column;
     gap: 4px;
   }
+  /* The copy block wears the code island's own tokens (--code-bg and
+     kin) so it reads as this system's code surface. It cannot be a
+     real CodeBlock: that component is Shiki-highlighted at build time,
+     and this text is rewritten client-side on every input. */
   .site-toolbar-css {
     margin: 0;
-    padding: 8px;
+    padding: 8px 10px;
     overflow: auto;
     white-space: pre-wrap;
     word-break: break-word;
-    background: var(--surface);
-    color: var(--ink);
-    border: var(--stroke) solid var(--rule);
+    background: var(--code-bg);
+    color: var(--code-fg);
+    border: var(--stroke) solid var(--code-line);
+    line-height: 1.7;
   }
   .site-toolbar-actions {
     display: flex;
