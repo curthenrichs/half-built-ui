@@ -5,7 +5,7 @@
 import type { NavItem, SocialItem, SitemapGroup, EcosystemEntry } from "@half-built/astro/components/models.ts";
 
 export const SITE_NAME = "half-built ui";
-export const TAGLINE = "The reference site for the @half-built packages, kitchen-sink style, every component on one page.";
+export const TAGLINE = "Every @half-built component on one page.";
 
 /* A generic external-link glyph, not a brand mark: the social row just
    needs to show that icon markup renders, not to represent a real
