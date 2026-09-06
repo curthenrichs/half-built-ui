@@ -93,16 +93,23 @@ function safeStorage(doc: Document): Storage | null {
    raw ratios read as unstructured noise). Only the dark-text check can
    warn, because the picked bases become literal text in the dark
    theme; every derived stop is contrast-gated by construction, so when
-   both bases pass there is nothing else worth saying. */
-function statusLines(base1: BaseReadout, base2: BaseReadout): string[] {
-  const warnings: string[] = [];
+   both bases pass there is nothing else worth saying. A warning line
+   carries warn: true so the panel can ink it as one (site.css's
+   .site-toolbar-warn, var(--error-ink) in both themes). */
+interface StatusLine {
+  text: string;
+  warn: boolean;
+}
+
+function statusLines(base1: BaseReadout, base2: BaseReadout): StatusLine[] {
+  const warnings: StatusLine[] = [];
   if (!base1.darkTextPasses) {
-    warnings.push("Accent 1 is too dark to read as text on the dark theme, consider a lighter shade.");
+    warnings.push({ text: "Accent 1 is too dark to read as text on the dark theme, consider a lighter shade.", warn: true });
   }
   if (!base2.darkTextPasses) {
-    warnings.push("Accent 2 is too dark to read as text on the dark theme, consider a lighter shade.");
+    warnings.push({ text: "Accent 2 is too dark to read as text on the dark theme, consider a lighter shade.", warn: true });
   }
-  return warnings.length > 0 ? warnings : ["Contrast checks pass."];
+  return warnings.length > 0 ? warnings : [{ text: "Contrast checks pass.", warn: false }];
 }
 
 /* The five controls plus the readout/css targets, bundled once the
@@ -123,22 +130,36 @@ interface EditorElements {
 
 /* The numbers live behind the Show details disclosure (owner call
    2026-09-06): the status line answers "is it ok", these answer "by
-   how much". */
-function detailLine(label: string, r: BaseReadout): string {
-  return `${label}: text on dark ${r.darkTextRatio.toFixed(2)}:1, fill on light ${r.lightFillRatio.toFixed(2)}:1`;
-}
-
-function fillList(doc: Document, list: HTMLUListElement, lines: string[], asCode = false): void {
+   how much". Each ratio is its own nowrap <code> chip so the panel's
+   narrow column wraps between chips, never through the middle of one
+   (a single long chip broke ragged across two lines). */
+function fillStatus(doc: Document, list: HTMLUListElement, lines: StatusLine[]): void {
   list.innerHTML = "";
   for (const line of lines) {
     const li = doc.createElement("li");
-    if (asCode) {
-      const code = doc.createElement("code");
-      code.textContent = line;
-      li.append(code);
-    } else {
-      li.textContent = line;
-    }
+    li.textContent = line.text;
+    if (line.warn) li.classList.add("site-toolbar-warn");
+    list.append(li);
+  }
+}
+
+function ratioChip(doc: Document, text: string): HTMLElement {
+  const code = doc.createElement("code");
+  code.textContent = text;
+  return code;
+}
+
+function fillDetail(doc: Document, list: HTMLUListElement, base1: BaseReadout, base2: BaseReadout): void {
+  list.innerHTML = "";
+  const rows: [string, BaseReadout][] = [["Accent 1", base1], ["Accent 2", base2]];
+  for (const [label, r] of rows) {
+    const li = doc.createElement("li");
+    li.append(
+      `${label} `,
+      ratioChip(doc, `text on dark ${r.darkTextRatio.toFixed(2)}:1`),
+      " ",
+      ratioChip(doc, `fill on light ${r.lightFillRatio.toFixed(2)}:1`),
+    );
     list.append(li);
   }
 }
@@ -146,12 +167,9 @@ function fillList(doc: Document, list: HTMLUListElement, lines: string[], asCode
 function render(doc: Document, els: EditorElements, b1: string, b2: string): PaletteOverride {
   const derived = derivePalette(b1, b2);
   const readouts = readBases(b1, b2);
-  fillList(doc, els.readoutsList, statusLines(readouts.base1, readouts.base2));
+  fillStatus(doc, els.readoutsList, statusLines(readouts.base1, readouts.base2));
   /* Ratio lines render as inline code (owner call 2026-09-06). */
-  fillList(doc, els.detailList, [
-    detailLine("Accent 1", readouts.base1),
-    detailLine("Accent 2", readouts.base2),
-  ], true);
+  fillDetail(doc, els.detailList, readouts.base1, readouts.base2);
   els.pre.textContent = overrideBlock(derived);
   return derived;
 }
@@ -193,8 +211,24 @@ export function mountPaletteEditor(root: Document, opts: PaletteEditorOptions): 
 
   const storage = safeStorage(root);
   const html = root.documentElement;
+
+  /* The chip whose two bases are the live pair reads aria-pressed, so
+     the panel shows which preset (if any) is in effect; a manual pick
+     that matches none clears every chip. Kept in step by every path
+     that changes the pair, including mount and reset. */
+  const presets = [...editor.querySelectorAll<HTMLButtonElement>("[data-palette-preset]")];
+  const syncPresets = (b1: string, b2: string): void => {
+    for (const btn of presets) {
+      const active =
+        btn.getAttribute("data-base-1")?.toLowerCase() === b1.toLowerCase() &&
+        btn.getAttribute("data-base-2")?.toLowerCase() === b2.toLowerCase();
+      btn.setAttribute("aria-pressed", active ? "true" : "false");
+    }
+  };
+
   const apply = (b1: string, b2: string): void => {
     applyPalette(root, els, html, storage, storageKey, b1, b2);
+    syncPresets(b1, b2);
   };
 
   const stored = readStored(storage, storageKey);
@@ -204,6 +238,7 @@ export function mountPaletteEditor(root: Document, opts: PaletteEditorOptions): 
   } else {
     setInputs(els, AMBER_B1, AMBER_B2);
     render(root, els, AMBER_B1, AMBER_B2);
+    syncPresets(AMBER_B1, AMBER_B2);
   }
 
   const onBaseInput = (): void => {
@@ -258,6 +293,7 @@ export function mountPaletteEditor(root: Document, opts: PaletteEditorOptions): 
     }
     setInputs(els, AMBER_B1, AMBER_B2);
     render(root, els, AMBER_B1, AMBER_B2);
+    syncPresets(AMBER_B1, AMBER_B2);
   });
 
   const copyLabel = els.copyBtn.textContent;

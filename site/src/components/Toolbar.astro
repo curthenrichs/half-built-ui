@@ -27,6 +27,7 @@ import { ICON_X } from "@half-built/astro/scripts/core/icons.ts";
         <Fragment set:html={ICON_X} />
       </button>
       <div class="site-toolbar-scroll">
+      <p class="site-toolbar-caption">Accents</p>
       <div class="site-toolbar-field">
         <input type="color" id="palette-base-1" data-palette-base="1" value="#ffaa3c" />
         <label for="palette-base-1">Accent 1</label>
@@ -37,26 +38,29 @@ import { ICON_X } from "@half-built/astro/scripts/core/icons.ts";
         <label for="palette-base-2">Accent 2</label>
         <button type="button" data-palette-flip class="site-toolbar-flip site-toolbar-rowend" title="Swap accent 1 and accent 2">Flip</button>
       </div>
-      <ul data-palette-readouts class="site-toolbar-readouts"></ul>
+      <ul data-palette-readouts class="site-toolbar-readouts" aria-live="polite"></ul>
       <details class="site-toolbar-more">
         <summary>Show details</summary>
         <ul data-palette-detail class="site-toolbar-readouts"></ul>
       </details>
       <p class="site-toolbar-caption" id="palette-presets-label">Presets</p>
       <div class="site-toolbar-presets" role="group" aria-labelledby="palette-presets-label">
-        <button type="button" data-palette-preset data-base-1="#ffaa3c" data-base-2="#3cc7dd">Amber</button>
-        <button type="button" data-palette-preset data-base-1="#1890ff" data-base-2="#13c2c2">Blues</button>
-        <button type="button" data-palette-preset data-base-1="#2f9e44" data-base-2="#0ca678">Greens</button>
-        <button type="button" data-palette-preset data-base-1="#f2545b" data-base-2="#ff9e7a">Reds</button>
+        <button type="button" data-palette-preset aria-pressed="false" data-base-1="#ffaa3c" data-base-2="#3cc7dd">Amber</button>
+        <button type="button" data-palette-preset aria-pressed="false" data-base-1="#1890ff" data-base-2="#13c2c2">Blues</button>
+        <button type="button" data-palette-preset aria-pressed="false" data-base-1="#2f9e44" data-base-2="#0ca678">Greens</button>
+        <button type="button" data-palette-preset aria-pressed="false" data-base-1="#f2545b" data-base-2="#ff9e7a">Reds</button>
       </div>
       <details class="site-toolbar-more">
         <summary>Show CSS</summary>
         <pre data-palette-css class="site-toolbar-css"></pre>
       </details>
+      </div>
+      <!-- Outside the scroll region on purpose: the action row stays a
+           pinned footer, so Copy CSS never scrolls out of reach when the
+           disclosures make the panel taller than the viewport allows. -->
       <div class="site-toolbar-actions">
         <button type="button" data-palette-copy>Copy CSS</button>
         <button type="button" data-palette-reset>Reset</button>
-      </div>
       </div>
     </div>
   </details>

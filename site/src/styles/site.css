@@ -96,13 +96,16 @@
     font-size: var(--font-size-sm);
   }
   .site-toolbar-scroll {
-    max-height: calc(100vh - 8rem);
+    max-height: calc(100vh - 12rem);
     overflow: auto;
     padding: 14px;
     display: flex;
     flex-direction: column;
     gap: 10px;
   }
+  /* The caption's top margin exists to separate it from the section
+     above; the first one in the panel needs none. */
+  .site-toolbar-scroll > .site-toolbar-caption:first-child { margin-top: 0; }
   /* The signature corner X, straddling the panel's top right border
      the way the plate modal's close box straddles its plate. */
   .site-toolbar-close {
@@ -141,6 +144,14 @@
     font-size: var(--font-size-sm);
     cursor: pointer;
   }
+  /* The chip whose bases are live wears the accent-box treatment (the
+     summary's own recipe), so the panel shows which preset is in
+     effect; a manual pick that matches none leaves every chip plain. */
+  .site-toolbar-presets button[aria-pressed="true"] {
+    color: var(--accent-1-ink);
+    background: color-mix(in srgb, var(--accent-1) 6%, var(--surface));
+    border-color: var(--accent-1);
+  }
   .site-toolbar-readouts {
     list-style: none;
     margin: 0;
@@ -151,6 +162,18 @@
     font-size: var(--font-size-sm);
     color: var(--ink-muted);
   }
+  /* A failing base is inked as an error in both themes, so the warning
+     sentence reads as one instead of blending into the muted status
+     gray. */
+  .site-toolbar-warn { color: var(--error-ink); }
+  /* Label and chips are flex items so a narrow panel wraps between
+     them; the chips are nowrap so a ratio never breaks mid-figure. */
+  .site-toolbar-readouts li {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px 6px;
+    align-items: baseline;
+  }
   /* The ratio lines are inline code, the package's own recipe
      (code.css's :not(pre) > code), restated here because the panel is
      not .prose. */
@@ -159,6 +182,7 @@
     border: 1px solid var(--hairline);
     padding: 1px 5px;
     font-size: 0.9em;
+    white-space: nowrap;
   }
   .site-toolbar-more summary {
     cursor: pointer;
@@ -184,13 +208,22 @@
     border: var(--stroke) solid var(--code-line);
     line-height: 1.7;
   }
+  /* A pinned footer below the scroll region (see Toolbar.astro), so
+     Copy CSS and Reset stay reachable however tall the disclosures
+     make the scrolling content. The scroll region's max-height above
+     budgets for this row plus the button and its offsets, on both the
+     top-anchored and bottom-anchored layouts. */
   .site-toolbar-actions {
     display: flex;
     gap: 8px;
+    padding: 10px 14px;
+    border-top: var(--stroke) solid var(--rule);
   }
 
   /* On phones the button drops to the bottom left corner (owner call
-     2026-09-06) and the panel opens upward instead. */
+     2026-09-06) and the panel opens upward instead. The corner X flips
+     with it: straddling the bottom border keeps it beside the trigger
+     and the thumb, instead of stranded at the top of the screen. */
   @media (--bp-phone) {
     .site-toolbar {
       top: auto;
@@ -199,6 +232,10 @@
     .site-toolbar-body {
       top: auto;
       bottom: calc(100% + 8px);
+    }
+    .site-toolbar-close {
+      top: auto;
+      bottom: -14px;
     }
   }
 }

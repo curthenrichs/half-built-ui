@@ -185,14 +185,54 @@ describe("palette editor", () => {
     expect(input("palette-base-2").value).toBe("#1890ff");
   });
 
-  it("the details disclosure carries the per-accent ratios", () => {
+  it("the details disclosure carries the per-accent ratios as separate chips", () => {
     mountPaletteEditor(document, { storageKey: KEY });
     fireInput(input("palette-base-1"), "#fafafa");
     fireInput(input("palette-base-2"), "#3cc7dd");
 
     const detail = document.querySelector("[data-palette-detail]");
-    expect(detail?.textContent).toMatch(/Accent 1: text on dark \d+\.\d\d:1, fill on light \d+\.\d\d:1/);
-    expect(detail?.textContent).toContain("Accent 2:");
+    expect(detail?.textContent).toMatch(/Accent 1 text on dark \d+\.\d\d:1 fill on light \d+\.\d\d:1/);
+    expect(detail?.textContent).toContain("Accent 2");
+    /* Each ratio is its own <code> chip so a narrow panel wraps between
+       chips, never through the middle of one. */
+    const chips = detail?.querySelectorAll("li code");
+    expect(chips).toHaveLength(4);
+    expect(chips?.[0]?.textContent).toMatch(/^text on dark \d+\.\d\d:1$/);
+    expect(chips?.[1]?.textContent).toMatch(/^fill on light \d+\.\d\d:1$/);
+  });
+
+  it("a failing status line wears the warn class, a passing one does not", () => {
+    mountPaletteEditor(document, { storageKey: KEY });
+    fireInput(input("palette-base-1"), "#104020");
+    fireInput(input("palette-base-2"), "#3cc7dd");
+
+    const warnLi = document.querySelector("[data-palette-readouts] li");
+    expect(warnLi?.classList.contains("site-toolbar-warn")).toBe(true);
+
+    fireInput(input("palette-base-1"), "#fafafa");
+    const passLi = document.querySelector("[data-palette-readouts] li");
+    expect(passLi?.textContent).toBe("Contrast checks pass.");
+    expect(passLi?.classList.contains("site-toolbar-warn")).toBe(false);
+  });
+
+  it("the preset matching the current bases reads aria-pressed", () => {
+    mountPaletteEditor(document, { storageKey: KEY });
+    /* the amber defaults are live at mount, so the amber chip is on */
+    const pressed = (): string[] =>
+      [...document.querySelectorAll<HTMLButtonElement>("[data-palette-preset]")]
+        .filter((b) => b.getAttribute("aria-pressed") === "true")
+        .map((b) => b.textContent);
+    expect(pressed()).toEqual(["Amber"]);
+
+    document.querySelector<HTMLButtonElement>('[data-palette-preset][data-base-1="#2f9e44"]')?.click();
+    expect(pressed()).toEqual(["Greens"]);
+
+    /* a manual pick that matches no preset clears every chip */
+    fireInput(input("palette-base-1"), "#123456");
+    expect(pressed()).toEqual([]);
+
+    document.querySelector<HTMLButtonElement>("[data-palette-reset]")?.click();
+    expect(pressed()).toEqual(["Amber"]);
   });
 
   it("a fresh mount with storage populated re-applies the palette", () => {
