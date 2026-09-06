@@ -1,5 +1,6 @@
 ---
-/* Fixed bottom-right palette editor (Task 5). Markup only: the live
+/* Fixed palette editor (Task 5; top right on desktop, bottom right on
+   phones since the 2026-09-06 owner call). Markup only: the live
    derivation and persistence is palette-editor.ts's mountPaletteEditor,
    wired from Base.astro's script block. Unlike Toc.astro this renders
    from Base.astro itself, outside the .site-layout wrapper, so it sits
@@ -14,20 +15,24 @@
     <summary>Palette</summary>
     <div class="site-toolbar-body">
       <div class="site-toolbar-field">
-        <label for="palette-base-1">Accent 1</label>
         <input type="color" id="palette-base-1" data-palette-base="1" value="#ffaa3c" />
+        <label for="palette-base-1">Accent 1</label>
       </div>
       <div class="site-toolbar-field">
-        <label for="palette-base-2">Accent 2</label>
         <input type="color" id="palette-base-2" data-palette-base="2" value="#3cc7dd" />
-      </div>
-      <div class="site-toolbar-presets">
-        <button type="button" data-palette-preset data-base-1="#ffaa3c" data-base-2="#3cc7dd">Amber and cyan</button>
-        <button type="button" data-palette-preset data-base-1="#1890ff" data-base-2="#13c2c2">Portfolio blues</button>
-        <button type="button" data-palette-preset data-base-1="#2f9e44" data-base-2="#0ca678">Greens</button>
+        <label for="palette-base-2">Accent 2</label>
       </div>
       <ul data-palette-readouts class="site-toolbar-readouts"></ul>
-      <pre data-palette-css class="site-toolbar-css"></pre>
+      <p class="site-toolbar-caption" id="palette-presets-label">Presets</p>
+      <div class="site-toolbar-presets" role="group" aria-labelledby="palette-presets-label">
+        <button type="button" data-palette-preset data-base-1="#ffaa3c" data-base-2="#3cc7dd">Amber</button>
+        <button type="button" data-palette-preset data-base-1="#1890ff" data-base-2="#13c2c2">Blues</button>
+        <button type="button" data-palette-preset data-base-1="#2f9e44" data-base-2="#0ca678">Greens</button>
+      </div>
+      <details class="site-toolbar-css-details">
+        <summary>Show CSS</summary>
+        <pre data-palette-css class="site-toolbar-css"></pre>
+      </details>
       <div class="site-toolbar-actions">
         <button type="button" data-palette-copy>Copy CSS</button>
         <button type="button" data-palette-reset>Reset</button>

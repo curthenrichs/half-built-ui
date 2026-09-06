@@ -181,11 +181,14 @@ clears its gate.
 Dark theme uses both picked bases directly as text
 (`--accent-1-ink: var(--brand-1-500)` after the rename, focus rings,
 and similar). The
-editor never alters a picked base. Instead the panel shows a compact
-readout per base: contrast as dark-theme text and as a line or fill on
-each ground, with a pass mark or a warning ("too dark to read as text
-on the dark theme, consider a lighter shade"). Derived stops always
-pass by construction and display their computed values.
+editor never alters a picked base. Instead the panel shows one status
+line: "Contrast checks pass." when both bases clear the dark-text
+gate, or a warning naming the accent ("Accent 1 is too dark to read
+as text on the dark theme, consider a lighter shade"). Raw ratios are
+not displayed (owner call 2026-09-06: no instrument panel), and the
+generated block sits behind a "Show CSS" disclosure so the panel
+stays a small set of controls. Derived stops always pass by
+construction.
 
 ### Apply and copy
 

@@ -48,7 +48,7 @@
     z-index: calc(var(--z-scroll-top) + 1);
   }
   .site-toolbar > details { position: relative; }
-  .site-toolbar summary {
+  .site-toolbar > details > summary {
     cursor: pointer;
     list-style: none;
     padding: 8px 14px;
@@ -60,7 +60,7 @@
     white-space: nowrap;
   }
   .site-toolbar summary::-webkit-details-marker { display: none; }
-  .site-toolbar summary:hover { outline: var(--stroke) solid var(--rule); }
+  .site-toolbar > details > summary:hover { outline: var(--stroke) solid var(--rule); }
 
   .site-toolbar-body {
     position: absolute;
@@ -80,11 +80,18 @@
     box-shadow: var(--shadow);
     font-size: var(--font-size-sm);
   }
+  /* Swatch first, label beside it, left aligned: the old
+     space-between rows read as a weirdly spaced table (owner call
+     2026-09-06). */
   .site-toolbar-field {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 8px;
+    gap: 10px;
+  }
+  .site-toolbar-caption {
+    margin: 4px 0 0;
+    font-size: var(--font-size-sm);
+    color: var(--ink-muted);
   }
   .site-toolbar-presets {
     display: flex;
@@ -107,7 +114,18 @@
     display: flex;
     flex-direction: column;
     gap: 4px;
+    font-size: var(--font-size-sm);
+    color: var(--ink-muted);
   }
+  .site-toolbar-css-details summary {
+    cursor: pointer;
+    list-style: none;
+    font-size: var(--font-size-sm);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .site-toolbar-css-details summary::-webkit-details-marker { display: none; }
+  .site-toolbar-css-details[open] summary { margin-bottom: 6px; }
   /* The copy block wears the code island's own tokens (--code-bg and
      kin) so it reads as this system's code surface. It cannot be a
      real CodeBlock: that component is Shiki-highlighted at build time,

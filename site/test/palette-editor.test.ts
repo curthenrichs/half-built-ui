@@ -33,11 +33,11 @@ function fixture(): void {
         <input type="color" id="palette-base-1" data-palette-base="1" value="${AMBER_B1}" />
         <label for="palette-base-2">Accent 2</label>
         <input type="color" id="palette-base-2" data-palette-base="2" value="${AMBER_B2}" />
-        <button type="button" data-palette-preset data-base-1="${AMBER_B1}" data-base-2="${AMBER_B2}">Amber and cyan</button>
-        <button type="button" data-palette-preset data-base-1="#1890ff" data-base-2="#13c2c2">Portfolio blues</button>
-        <button type="button" data-palette-preset data-base-1="#2f9e44" data-base-2="#0ca678">Greens</button>
         <ul data-palette-readouts></ul>
-        <pre data-palette-css></pre>
+        <button type="button" data-palette-preset data-base-1="${AMBER_B1}" data-base-2="${AMBER_B2}">Amber</button>
+        <button type="button" data-palette-preset data-base-1="#1890ff" data-base-2="#13c2c2">Blues</button>
+        <button type="button" data-palette-preset data-base-1="#2f9e44" data-base-2="#0ca678">Greens</button>
+        <details><summary>Show CSS</summary><pre data-palette-css></pre></details>
         <button type="button" data-palette-copy>Copy CSS</button>
         <button type="button" data-palette-reset>Reset</button>
       </details>
@@ -128,22 +128,21 @@ describe("palette editor", () => {
 
     const readouts = document.querySelector("[data-palette-readouts]");
     expect(readouts?.textContent).toContain(
-      "Too dark to read as text on the dark theme, consider a lighter shade.",
+      "Accent 1 is too dark to read as text on the dark theme, consider a lighter shade.",
     );
   });
 
-  it("light fill is reported as a plain number, never as a warning", () => {
+  it("shows one quiet pass line when both bases clear the gate", () => {
     mountPaletteEditor(document, { storageKey: KEY });
-    /* near-white: passes as dark-ground text, sits under 3:1 as a
-       light-paper fill, exactly like the shipped defaults do. The
-       readout states the number and does not scold (owner-visible
-       polish, 2026-09-06). */
+    /* near-white passes as dark-ground text and sits under 3:1 as a
+       light-paper fill, exactly like the shipped defaults do; neither
+       fact warrants a warning or a raw ratio (owner call 2026-09-06:
+       no instrument panel). */
     fireInput(input("palette-base-1"), "#fafafa");
     fireInput(input("palette-base-2"), "#3cc7dd");
 
     const readouts = document.querySelector("[data-palette-readouts]");
-    expect(readouts?.textContent).toMatch(/light fill \d+\.\d\d:1/);
-    expect(readouts?.textContent).not.toContain("Too faint");
+    expect(readouts?.textContent).toBe("Contrast checks pass.");
   });
 
   it("a fresh mount with storage populated re-applies the palette", () => {

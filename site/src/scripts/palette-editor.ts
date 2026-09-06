@@ -89,16 +89,20 @@ function safeStorage(doc: Document): Storage | null {
   }
 }
 
-/* Only the dark-text check warns: the picked bases become literal text
-   in the dark theme, so that one is a hard gate. The light-fill number
-   is information (the shipped defaults sit under 3:1 there by design),
-   and scolding the default palette taught us not to phrase it as a
-   warning. */
-function readoutLine(label: string, r: BaseReadout): string {
-  const darkText = r.darkTextPasses
-    ? `dark text ${r.darkTextRatio.toFixed(2)}:1 pass`
-    : `dark text ${r.darkTextRatio.toFixed(2)}:1. Too dark to read as text on the dark theme, consider a lighter shade.`;
-  return `${label}: ${darkText}, light fill ${r.lightFillRatio.toFixed(2)}:1`;
+/* One status line, not an instrument panel (owner call 2026-09-06:
+   raw ratios read as unstructured noise). Only the dark-text check can
+   warn, because the picked bases become literal text in the dark
+   theme; every derived stop is contrast-gated by construction, so when
+   both bases pass there is nothing else worth saying. */
+function statusLines(base1: BaseReadout, base2: BaseReadout): string[] {
+  const warnings: string[] = [];
+  if (!base1.darkTextPasses) {
+    warnings.push("Accent 1 is too dark to read as text on the dark theme, consider a lighter shade.");
+  }
+  if (!base2.darkTextPasses) {
+    warnings.push("Accent 2 is too dark to read as text on the dark theme, consider a lighter shade.");
+  }
+  return warnings.length > 0 ? warnings : ["Contrast checks pass."];
 }
 
 /* The five controls plus the readout/css targets, bundled once the
@@ -120,11 +124,11 @@ function render(doc: Document, els: EditorElements, b1: string, b2: string): Pal
   const derived = derivePalette(b1, b2);
   const readouts = readBases(b1, b2);
   els.readoutsList.innerHTML = "";
-  const li1 = doc.createElement("li");
-  li1.textContent = readoutLine("Accent 1", readouts.base1);
-  const li2 = doc.createElement("li");
-  li2.textContent = readoutLine("Accent 2", readouts.base2);
-  els.readoutsList.append(li1, li2);
+  for (const line of statusLines(readouts.base1, readouts.base2)) {
+    const li = doc.createElement("li");
+    li.textContent = line;
+    els.readoutsList.append(li);
+  }
   els.pre.textContent = overrideBlock(derived);
   return derived;
 }
