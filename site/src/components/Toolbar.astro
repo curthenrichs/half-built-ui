@@ -8,7 +8,11 @@
    The day/night toggle stays in the header; this panel is palette
    only. Styling lives in ../styles/site.css under the shared @layer
    site, not a component <style>, so it can share tokens with the rest
-   of the site's own layout rules in one place. */
+   of the site's own layout rules in one place. The theme toggle here
+   is a third instance of the package component (owner call 2026-09-06:
+   the panel carries the light/dark control too); the island keeps
+   every toggle on the page in step. */
+import ThemeToggle from "@half-built/astro/components/ThemeToggle.astro";
 ---
 <aside class="site-toolbar">
   <details data-palette-editor>
@@ -18,6 +22,10 @@
       Palette
     </summary>
     <div class="site-toolbar-body">
+      <div class="site-toolbar-field">
+        <ThemeToggle label="Switch theme" />
+        <span>Theme</span>
+      </div>
       <div class="site-toolbar-field">
         <input type="color" id="palette-base-1" data-palette-base="1" value="#ffaa3c" />
         <label for="palette-base-1">Accent 1</label>
