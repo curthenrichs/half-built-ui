@@ -37,6 +37,14 @@
     --code-bg: var(--ink-900);
     --code-fg: var(--parchment);
     --code-line: var(--ink-800);
+    /* Syntax token roles (spec 2026-09-06): what the Shiki theme bakes
+       as hex, restated as variables so the code-vars transformer can
+       emit tokens that follow a palette override. Identical in both
+       themes because the code surface is always the warm dark block. */
+    --code-token-keyword: var(--brand-1-500);
+    --code-token-function: var(--brand-1-300);
+    --code-token-string: var(--brand-1-vivid);
+    --code-token-comment: var(--umber-500);
 
     /* Plate-modal chrome (spec 2026-07-30): veil over the blurred page,
        and the viewbox mat one step lighter than --hairline. Values
