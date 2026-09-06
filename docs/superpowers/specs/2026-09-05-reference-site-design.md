@@ -91,8 +91,8 @@ sections; nothing is rewritten for its own sake.
 
 ## The toolbar
 
-A fixed toolbar (top-right on desktop and tablet, bottom-right on
-phones, small, collapsible; owner call 2026-09-06) carries the global
+A fixed toolbar (top-left on desktop and tablet, bottom-left on
+phones, small, collapsible; owner calls 2026-09-06) carries the global
 knobs: the ThemeToggle and the palette editor. It is site chrome, not
 a package component, and must not overlap content at any viewport
 width the blog's breakpoints define.

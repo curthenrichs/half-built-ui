@@ -13,9 +13,12 @@
     align-items: start;
     gap: var(--column-gap);
   }
+  /* Sticks below the palette button's fixed top-left spot (4rem plus
+     its height plus a gap), so scrolling never slides the list under
+     the button. */
   .site-toc {
     position: sticky;
-    top: 1rem;
+    top: 7.5rem;
     align-self: start;
   }
 
@@ -35,15 +38,15 @@
   /* Fixed palette editor toolbar (Task 5). Renders from Base.astro, so
      it floats over every page rather than sitting in .site-layout's
      column. All colors are theme tokens (var(--surface) and kin), so
-     the panel follows day/night like the rest of the chrome. Top right
+     the panel follows day/night like the rest of the chrome. Top left
      on desktop and tablet, dropped 4rem so it clears the masthead
-     frame's corner glyphs at scroll zero (owner call 2026-09-06);
-     the phone block below moves it to the bottom corner the package's
-     scroll-top button vacates there. One z-index step above
-     --z-scroll-top keeps the open panel over every page floater. */
+     frame's date box at scroll zero, with the TOC's sticky top pushed
+     below it; bottom left on phones (owner calls 2026-09-06). One
+     z-index step above --z-scroll-top keeps the open panel over every
+     page floater. */
   .site-toolbar {
     position: fixed;
-    right: 1rem;
+    left: 1rem;
     top: 4rem;
     z-index: calc(var(--z-scroll-top) + 1);
   }
@@ -64,7 +67,7 @@
 
   .site-toolbar-body {
     position: absolute;
-    right: 0;
+    left: 0;
     top: calc(100% + 8px);
     width: 300px;
     max-width: calc(100vw - 2rem);
@@ -146,10 +149,8 @@
     gap: 8px;
   }
 
-  /* On phones the button drops to the bottom corner (owner call
-     2026-09-06) and the panel opens upward instead. The package hides
-     its scroll-top button there (owner call 2026-08-20), so the corner
-     is free. */
+  /* On phones the button drops to the bottom left corner (owner call
+     2026-09-06) and the panel opens upward instead. */
   @media (--bp-phone) {
     .site-toolbar {
       top: auto;
