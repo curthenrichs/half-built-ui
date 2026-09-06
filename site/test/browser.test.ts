@@ -27,12 +27,12 @@ const enabled = process.env.BROWSER_TESTS === "1";
 const PORT = 4327;
 const ORIGIN = `http://localhost:${PORT}`;
 
-/* The one demo-token-chip whose inline style paints --accent-1 exactly
-   (index.astro's CSS-primitives section): a real rendered element that
-   the palette editor must actually repaint, not just the custom
-   property it sets. The attribute selector matches the literal string
-   Astro emits for a plain string style attribute, so it is exact. */
-const ACCENT_1_CHIP = '.demo-token-chip[style="background-color:var(--accent-1)"]';
+/* The token sheet's accent-1 chip (the Palette table in index.astro's
+   CSS-primitives section): a real rendered element that the palette
+   editor must actually repaint, not just the custom property it sets.
+   The attribute selector matches the literal string the Palette
+   component emits for a token entry, so it is exact. */
+const ACCENT_1_CHIP = '.palette-chip[style="background-color:var(--accent-1)"]';
 
 /* WCAG 2.1 A and AA, matching the accessibility target the design
    spec names elsewhere in this repo. Best-practice rules are left out
@@ -152,6 +152,11 @@ describe.skipIf(!enabled)("browser suite", () => {
 
     const after = await p.$eval(ACCENT_1_CHIP, (el) => getComputedStyle(el).backgroundColor);
     expect(after, "the accent-1 chip's painted color never changed").not.toBe(before);
+
+    /* the token sheet's hex readout follows the pick (token-hexes.ts
+       refreshes on the html style mutation, an async observer tick) */
+    await p.waitForFunction(() =>
+      document.querySelector('[data-token-hex="--accent-1"]')?.textContent === "#2f9e44");
   }, 30_000);
 
   it("the copyable css block declares exactly the twelve override properties", async () => {

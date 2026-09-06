@@ -89,10 +89,21 @@ const linkListItems: LinkListItem[] = [
   { label: "Item three", href: "#" },
 ];
 
-const paletteEntries = [
-  { role: "Accent 1", hex: "#ffaa3c", note: "Primary accent (amber)" },
-  { role: "Accent 2", hex: "#3cc7dd", note: "Secondary accent (cyan)" },
-  { role: "Ink (light theme)", hex: "#404040", note: "Body text and rules" },
+/* The live token sheet (owner ask 2026-09-06): the old chip list and
+   the old static Palette demo merged into one Palette table. Every
+   entry carries `token`, so the chips follow the cascade and
+   token-hexes.ts fills the hex cells from computed styles; theme
+   flips and palette applies both move the values live. */
+const tokenEntries = [
+  { role: "--ink", token: "--ink", note: "Body text and rules" },
+  { role: "--surface", token: "--surface", note: "The page ground" },
+  { role: "--rule", token: "--rule", note: "Borders and frames" },
+  { role: "--accent-1", token: "--accent-1", note: "Accent 1 lines and fills" },
+  { role: "--accent-1-ink", token: "--accent-1-ink", note: "Accent 1 as readable text" },
+  { role: "--accent-2", token: "--accent-2", note: "Accent 2 lines and fills" },
+  { role: "--accent-2-ink", token: "--accent-2-ink", note: "Accent 2 as readable text" },
+  { role: "--code-token-function", token: "--code-token-function", note: "Function names in code" },
+  { role: "--code-token-string", token: "--code-token-string", note: "Strings and constants in code" },
 ];
 
 const codeSample = `def read_ir(code):
@@ -258,7 +269,7 @@ const npmPackages = [
           </CodeBlock>
 
           <h3>Palette</h3>
-          <Palette entries={paletteEntries} />
+          <p>The color table component. Its real instance on this page is the live token sheet in the CSS primitives section, so it is not repeated here.</p>
 
           <h3>Group</h3>
           <Group><p>A boxed prose container, no label and no tint, the plain sibling of Callout's box.</p></Group>
@@ -280,17 +291,7 @@ const npmPackages = [
         </div>
 
         <h3>Tokens</h3>
-        <ul class="demo-token-swatches">
-          <li><span class="demo-token-chip" style="background-color:var(--ink)"></span><code>--ink</code></li>
-          <li><span class="demo-token-chip" style="background-color:var(--surface)"></span><code>--surface</code></li>
-          <li><span class="demo-token-chip" style="background-color:var(--rule)"></span><code>--rule</code></li>
-          <li><span class="demo-token-chip" style="background-color:var(--accent-1)"></span><code>--accent-1</code></li>
-          <li><span class="demo-token-chip" style="background-color:var(--accent-1-ink)"></span><code>--accent-1-ink</code></li>
-          <li><span class="demo-token-chip" style="background-color:var(--accent-2)"></span><code>--accent-2</code></li>
-          <li><span class="demo-token-chip" style="background-color:var(--accent-2-ink)"></span><code>--accent-2-ink</code></li>
-          <li><span class="demo-token-chip" style="background-color:var(--code-token-function)"></span><code>--code-token-function</code></li>
-          <li><span class="demo-token-chip" style="background-color:var(--code-token-string)"></span><code>--code-token-string</code></li>
-        </ul>
+        <Palette entries={tokenEntries} />
 
         <h3>Prose specimen</h3>
         <div class="prose">
@@ -340,24 +341,5 @@ const npmPackages = [
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
     gap: 30px;
     margin: 20px 0;
-  }
-  .demo-token-swatches {
-    list-style: none;
-    margin: 20px 0;
-    padding: 0;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 15px;
-  }
-  .demo-token-swatches li {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .demo-token-chip {
-    display: inline-block;
-    width: 18px;
-    height: 18px;
-    border: var(--stroke) solid var(--rule);
   }
 </style>

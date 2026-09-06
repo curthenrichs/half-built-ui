@@ -45,6 +45,7 @@ const { title = "half-built-ui", description = "The reference site for the @half
       import { mountScrollTop } from "@half-built/astro/scripts/scroll-top";
       import { mountToc } from "../scripts/toc";
       import { mountPaletteEditor } from "../scripts/palette-editor";
+      import { mountTokenHexes } from "../scripts/token-hexes";
       import { THEME_STORAGE_KEY } from "../lib/theme-key";
       import { PALETTE_STORAGE_KEY } from "../lib/palette-key";
       mountFocusMode(document.documentElement);
@@ -56,6 +57,7 @@ const { title = "half-built-ui", description = "The reference site for the @half
       mountLightbox(document);
       mountToc(document);
       mountPaletteEditor(document, { storageKey: PALETTE_STORAGE_KEY });
+      mountTokenHexes(document);
     </script>
     <slot name="scripts" />
   </Fragment>
