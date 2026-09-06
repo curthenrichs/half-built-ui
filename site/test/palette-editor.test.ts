@@ -21,6 +21,10 @@ const RAMP_KEYS = [
   "--brand-2-300",
   "--brand-2-500",
   "--brand-2-700",
+  "--code-bg",
+  "--code-line",
+  "--code-fg",
+  "--code-token-comment",
 ] as const;
 
 const AMBER_B1 = "#ffaa3c";

@@ -1,9 +1,15 @@
 import { converter, clampChroma, formatHex } from "culori";
 import { contrastRatio } from "./contrast";
-import { LIGHT_PAPER, DARK_GROUND, CODE_GROUND } from "./grounds";
+import { LIGHT_PAPER, DARK_GROUND, CODE_GROUND, CODE_LINE, CODE_FG, CODE_COMMENT } from "./grounds";
 
 const toOklch = converter("oklch");
 
+/* Everything in this module is pure math over the reference constants
+   above: no DOM, no site imports. That shape is deliberate (owner
+   call 2026-09-06): the code island's theming is a package capability
+   (the code-vars transformer and the --code-* roles ship in the
+   packages), and this derivation lifts into @half-built/tooling at
+   the registered 0.3.0 promotion without a rewrite. */
 export interface PaletteOverride {
   "--brand-1-300": string;
   "--brand-1-500": string;
@@ -13,6 +19,10 @@ export interface PaletteOverride {
   "--brand-2-300": string;
   "--brand-2-500": string;
   "--brand-2-700": string;
+  "--code-bg": string;
+  "--code-line": string;
+  "--code-fg": string;
+  "--code-token-comment": string;
 }
 
 export interface BaseReadout {
@@ -73,21 +83,60 @@ const SHIPPED_DEFAULTS: PaletteOverride = {
   "--brand-2-300": "#8ee6f2",
   "--brand-2-500": "#3cc7dd",
   "--brand-2-700": "#1a7f90",
+  "--code-bg": CODE_GROUND,
+  "--code-line": CODE_LINE,
+  "--code-fg": CODE_FG,
+  "--code-token-comment": CODE_COMMENT,
 };
+
+/* Re-hue a reference value to the base's hue, exact OKLCH lightness
+   and chroma held (chroma clamped for the new hue's gamut). An
+   achromatic base has no hue to give, so the reference keeps its
+   own. */
+function hueSwap(ref: string, base: string): string {
+  const r = toOklch(ref);
+  const b = toOklch(base);
+  if (r === undefined || b === undefined) throw new Error(`unparseable color ${ref} or ${base}`);
+  return formatHex(clampChroma({ ...r, h: b.h ?? r.h }, "oklch"));
+}
+
+/* The code island's chrome follows accent 1's hue (owner call
+   2026-09-06): every one of its amber "neutrals" is a low-chroma
+   amber (hue 70 to 78 against the accent's 68.5), so a fixed island
+   under a strong override read as a leftover of the old palette. The
+   two values that are text walk lighter until they read against the
+   derived ground; OKLCH lightness is not WCAG luminance, so holding
+   L alone does not guarantee the ratio survives the hue swap. */
+interface CodeChrome {
+  "--code-bg": string;
+  "--code-line": string;
+  "--code-fg": string;
+  "--code-token-comment": string;
+}
+
+function deriveCodeChrome(b1: string): CodeChrome {
+  const bg = hueSwap(CODE_GROUND, b1);
+  return {
+    "--code-bg": bg,
+    "--code-line": hueSwap(CODE_LINE, b1),
+    "--code-fg": walk(hueSwap(CODE_FG, b1), 1, (c) => contrastRatio(c, bg) >= 4.5),
+    "--code-token-comment": walk(hueSwap(CODE_COMMENT, b1), 1, (c) => contrastRatio(c, bg) >= 4.5),
+  };
+}
 
 /* The code kin (spec 2026-09-06): 300 is the light kin the code theme
    uses for functions, vivid the deep saturated kin for strings. Both
    are code text, so both walk lighter until they read against the
-   code island's own ground; the seed jump keeps them distinct from
-   the base rather than converging on the first passing value. The
+   derived code ground; the seed jump keeps them distinct from the
+   base rather than converging on the first passing value. The
    shipped amber kin shifted hue as well (hand-tuned, +10 and -11
    degrees), which the hue-holding walk cannot reproduce; the anchor
    short-circuit above covers them the way it covers the other
    hand-tuned stops. */
-function deriveCodeKin(b1: string): Pick<PaletteOverride, "--brand-1-300" | "--brand-1-vivid"> {
+function deriveCodeKin(b1: string, codeBg: string): Pick<PaletteOverride, "--brand-1-300" | "--brand-1-vivid"> {
   return {
-    "--brand-1-300": walk(shiftL(b1, 0.08), 1, (c) => contrastRatio(c, CODE_GROUND) >= 4.5),
-    "--brand-1-vivid": walk(shiftL(b1, -0.12), 1, (c) => contrastRatio(c, CODE_GROUND) >= 4.5),
+    "--brand-1-300": walk(shiftL(b1, 0.08), 1, (c) => contrastRatio(c, codeBg) >= 4.5),
+    "--brand-1-vivid": walk(shiftL(b1, -0.12), 1, (c) => contrastRatio(c, codeBg) >= 4.5),
   };
 }
 
@@ -97,8 +146,10 @@ export function derivePalette(base1: string, base2: string): PaletteOverride {
   if (b1 === normalize(SHIPPED_B1) && b2 === normalize(SHIPPED_B2)) {
     return { ...SHIPPED_DEFAULTS };
   }
+  const chrome = deriveCodeChrome(b1);
   return {
-    ...deriveCodeKin(b1),
+    ...chrome,
+    ...deriveCodeKin(b1, chrome["--code-bg"]),
     "--brand-1-500": b1,
     "--brand-1-600": walk(b1, -1, (c) => contrastRatio(c, LIGHT_PAPER) >= 3),
     "--brand-1-700": walk(b1, -1, (c) => contrastRatio(c, LIGHT_PAPER) >= 4.5),
@@ -127,7 +178,7 @@ export function readBases(
 }
 
 /* Family 1 in lightness order (vivid sits between the 500 and the
-   600), then family 2. */
+   600), then family 2, then the code island's chrome roles. */
 const RAMP_ORDER: (keyof PaletteOverride)[] = [
   "--brand-1-300",
   "--brand-1-500",
@@ -137,6 +188,10 @@ const RAMP_ORDER: (keyof PaletteOverride)[] = [
   "--brand-2-300",
   "--brand-2-500",
   "--brand-2-700",
+  "--code-bg",
+  "--code-line",
+  "--code-fg",
+  "--code-token-comment",
 ];
 
 export function overrideBlock(p: PaletteOverride): string {

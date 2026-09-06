@@ -154,11 +154,11 @@ describe.skipIf(!enabled)("browser suite", () => {
     expect(after, "the accent-1 chip's painted color never changed").not.toBe(before);
   }, 30_000);
 
-  it("the copyable css block declares exactly the eight --brand-* custom properties", async () => {
+  it("the copyable css block declares exactly the twelve override properties", async () => {
     const p = await open();
     const text = await p.$eval("[data-palette-css]", (el) => el.textContent);
     expect(text).toMatch(/^:root \{$/m);
-    const names = [...text.matchAll(/^\s*(--brand-[a-z0-9-]+):/gm)].map((m) => m[1]);
+    const names = [...text.matchAll(/^\s*(--[a-z0-9-]+):/gm)].map((m) => m[1]);
     expect(new Set(names)).toEqual(new Set([
       "--brand-1-300",
       "--brand-1-500",
@@ -168,25 +168,33 @@ describe.skipIf(!enabled)("browser suite", () => {
       "--brand-2-300",
       "--brand-2-500",
       "--brand-2-700",
+      "--code-bg",
+      "--code-line",
+      "--code-fg",
+      "--code-token-comment",
     ]));
-    expect(names).toHaveLength(8);
+    expect(names).toHaveLength(12);
   }, 30_000);
 
-  it("applying a preset recolors a highlighted keyword span in the code block", async () => {
+  it("applying a preset recolors a highlighted keyword span and the code block's ground", async () => {
     const p = await open();
     /* The code-vars transformer emits var(--code-token-keyword) on
-       keyword spans at build; the variable routes --brand-1-500, so
-       an applied palette must repaint real syntax, not just the
-       block's chrome. */
+       keyword spans and var(--code-bg) on the pre at build; both
+       variables derive from accent 1, so an applied palette must
+       repaint real syntax and the island's own ground. */
     const KEYWORD_SPAN = '.code-block span[style*="--code-token-keyword"]';
+    const PRE = ".code-block pre";
     await p.waitForSelector(KEYWORD_SPAN);
     const before = await p.$eval(KEYWORD_SPAN, (el) => getComputedStyle(el).color);
+    const beforeBg = await p.$eval(PRE, (el) => getComputedStyle(el).backgroundColor);
 
     await p.click("[data-palette-editor] summary");
     await p.click('[data-palette-preset][data-base-1="#2f9e44"]');
 
     const after = await p.$eval(KEYWORD_SPAN, (el) => getComputedStyle(el).color);
     expect(after, "the keyword span's painted color never changed").not.toBe(before);
+    const afterBg = await p.$eval(PRE, (el) => getComputedStyle(el).backgroundColor);
+    expect(afterBg, "the code ground's painted color never changed").not.toBe(beforeBg);
   }, 30_000);
 
   it("only the forced demo editor note reaches the built page", async () => {

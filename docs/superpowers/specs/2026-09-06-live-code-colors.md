@@ -127,3 +127,35 @@ chrome tokens and contains no highlighted spans; it needs nothing.
   resolve to the same hexes, so the parity check must still show only
   the chart-track change. Without the transformer the blog renders
   byte-identically to today.
+
+## Extension, same day: the island's chrome derives too
+
+Owner observation after the first implementation: the code block
+still "looks derived from amber", because it is. Every one of the
+island's fixed values is a low-chroma amber (OKLCH hue 70 to 78
+against the accent's 68.5): the ground #1b140c, the border #3b2e1e,
+the parchment foreground #e8d9c3, the comment ink #8a7a63. Owner
+call: derive all four from accent 1, by holding each value's exact
+OKLCH lightness and chroma and swapping in the base's hue (an
+achromatic base keeps the reference hue). The two values that are
+text walk lighter to 4.5:1 against the derived ground, because OKLCH
+lightness is not WCAG luminance and the ratio can move under a hue
+swap. The amber anchor short-circuits to today's bytes. The override
+surface is now TWELVE properties: the eight brand stops plus
+--code-bg, --code-line, --code-fg, and --code-token-comment as role
+overrides.
+
+The editor and derivation stay site-side per the registered 0.3.0
+ruling (contrast + derivePalette move to @half-built/tooling then);
+the derivation is pure math over exported reference constants so the
+lift is verbatim. The component-side capability ships already: the
+transformer plus the css roles mean any consumer can retheme the
+island statically today by overriding the four variables.
+
+OPEN owner decision, found by the new gate: the shipped comment ink
+#8a7a63 sits at 4.38:1 on #1b140c, under the 4.5:1 text gate every
+derived palette clears (the amber-700 pattern again). Options: retune
+it upward slightly to clear the gate, riding a release as a
+sanctioned rendered change beside the chart track, or leave the
+shipped bytes and accept the anchor as legacy. The anchor test pins
+4.3 with a comment until the call is made.

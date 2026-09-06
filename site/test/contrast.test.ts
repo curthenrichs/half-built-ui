@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { dirname, join } from "node:path";
 import { contrastRatio } from "../src/lib/contrast";
-import { LIGHT_PAPER, DARK_GROUND, CODE_GROUND } from "../src/lib/grounds";
+import { LIGHT_PAPER, DARK_GROUND, CODE_GROUND, CODE_LINE, CODE_FG, CODE_COMMENT } from "../src/lib/grounds";
 
 describe("contrastRatio", () => {
   it("matches WCAG reference values", () => {
@@ -27,9 +27,12 @@ describe("grounds", () => {
     expect(dark).toMatch(/--surface:\s*var\(--black-900\)/);
     expect(primitives).toContain(`--white: ${LIGHT_PAPER}`);
     expect(primitives).toContain(`--black-900: ${DARK_GROUND}`);
-    /* the code island's ground, same in both themes */
+    /* the code island's chrome, same in both themes */
     expect(light).toMatch(/--code-bg:\s*var\(--ink-900\)/);
     expect(dark).toMatch(/--code-bg:\s*var\(--ink-900\)/);
     expect(primitives).toContain(`--ink-900: ${CODE_GROUND}`);
+    expect(primitives).toContain(`--ink-800: ${CODE_LINE}`);
+    expect(primitives).toContain(`--parchment: ${CODE_FG}`);
+    expect(primitives).toContain(`--umber-500: ${CODE_COMMENT}`);
   });
 });

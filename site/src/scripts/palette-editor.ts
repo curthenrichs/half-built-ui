@@ -28,6 +28,10 @@ const RAMP_KEYS: (keyof PaletteOverride)[] = [
   "--brand-2-300",
   "--brand-2-500",
   "--brand-2-700",
+  "--code-bg",
+  "--code-line",
+  "--code-fg",
+  "--code-token-comment",
 ];
 
 export interface PaletteEditorOptions {
