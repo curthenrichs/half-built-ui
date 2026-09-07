@@ -152,6 +152,19 @@ lift is verbatim. The component-side capability ships already: the
 transformer plus the css roles mean any consumer can retheme the
 island statically today by overriding the four variables.
 
+Follow-ups deferred to the registered 0.3.0 tooling lift (2026-09-06
+review, verified findings, not release blockers):
+
+- The editor derives synchronously on every color-picker input event
+  (60+ per second during a drag) with no per-frame coalescing; the
+  fix is one pending requestAnimationFrame around apply(), moving the
+  localStorage write to the change event, and updating fixed-shape
+  readout nodes by textContent instead of innerHTML rebuilds.
+- src/lib/contrast.ts hand-rolls WCAG luminance math that culori
+  ships as wcagContrast; swap at the lift, when a one-step threshold
+  difference can be parity-checked calmly rather than on release
+  night.
+
 OPEN owner decision, found by the new gate: the shipped comment ink
 #8a7a63 sits at 4.38:1 on #1b140c, under the 4.5:1 text gate every
 derived palette clears (the amber-700 pattern again). Options: retune
