@@ -37,6 +37,23 @@ const { title = "half-built-ui", description = "The reference site for the @half
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff" />
     <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#111111" />
+    {/* Canonical and share tags, kept site-side rather than in the
+        package: every value here is this site's own identity, which is
+        the same call the blog's Seo.astro records. Both URLs resolve
+        against astro.config's `site`. The card is a static PNG, so it
+        carries no accent color, per the rule that anything which cannot
+        follow the palette live stays neutral. */}
+    <link rel="canonical" href={new URL(Astro.url.pathname, Astro.site)} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={new URL(Astro.url.pathname, Astro.site)} />
+    <meta property="og:site_name" content={SITE_NAME} />
+    <meta property="og:image" content={new URL("/og-card.png", Astro.site)} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="The half-built gear mark beside the half-built-ui name" />
+    <meta name="twitter:card" content="summary_large_image" />
     <slot name="head" />
   </Fragment>
   <Masthead slot="header" siteName={SITE_NAME} tagline={TAGLINE} nav={NAV} socials={SOCIALS} dateStr={formatHeaderDate(new Date())} isHome={true} />

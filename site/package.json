@@ -11,6 +11,7 @@
     "test:browser": "vitest run test/browser.test.ts"
   },
   "dependencies": {
+    "@astrojs/sitemap": "^3.7.4",
     "@half-built/astro": "0.3.0",
     "@half-built/css": "0.3.0",
     "astro": "^5.18.2",
