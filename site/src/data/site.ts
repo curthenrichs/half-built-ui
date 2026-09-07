@@ -31,23 +31,29 @@ export const SOCIALS: SocialItem[] = [
 
 export const LEGAL_HOLDER = "Curt Henrichs";
 
+/* Site lists this page's sections, More points off the site (owner
+   call 2026-09-06). Ecosystem is the Footer's own third column and
+   comes from ECOSYSTEM below, pending its own pass. */
 export const FOOTER_SITEMAP: SitemapGroup[] = [
   {
     title: "Site",
     collapsible: true,
     phoneOpen: true,
     links: [
-      { label: "Home", href: "/" },
+      { label: "About", href: "#intro" },
       { label: "Frame", href: "#frame" },
-      { label: "Cards", href: "#cards" },
+      { label: "Components", href: "#components" },
+      { label: "CSS", href: "#css" },
     ],
   },
   {
     title: "More",
     collapsible: true,
     links: [
-      { label: "Components", href: "#components" },
-      { label: "CSS primitives", href: "#css" },
+      { label: "Source on GitHub", href: "https://github.com/curthenrichs/half-built-ui" },
+      { label: "@half-built/css", href: "https://www.npmjs.com/package/@half-built/css" },
+      { label: "@half-built/astro", href: "https://www.npmjs.com/package/@half-built/astro" },
+      { label: "@half-built/tooling", href: "https://www.npmjs.com/package/@half-built/tooling" },
     ],
   },
 ];
