@@ -3,6 +3,11 @@
   "version": "0.2.0",
   "description": "Astro components, islands, and pure helpers for the half-built design system.",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/curthenrichs/half-built-ui.git",
+    "directory": "packages/astro"
+  },
   "type": "module",
   "files": ["src", "ICONS-LICENSE"],
   "exports": {
