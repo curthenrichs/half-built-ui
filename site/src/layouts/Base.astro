@@ -29,6 +29,15 @@ const { title = "half-built-ui", description = "The reference site for the @half
   <Fragment slot="head">
     <title>{title}</title>
     <meta name="description" content={description} />
+    {/* The half-built gear (owner calls 2026-09-06): colorless on
+        purpose, neutral ink that flips with the browser scheme; the
+        raster fallbacks bake the neutral ink tile. No accent in any
+        icon, because the site's whole pitch is live re-theming. */}
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#111111" />
     <slot name="head" />
   </Fragment>
   <Masthead slot="header" siteName={SITE_NAME} tagline={TAGLINE} nav={NAV} socials={SOCIALS} dateStr={formatHeaderDate(new Date())} isHome={true} />

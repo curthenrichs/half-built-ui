@@ -226,6 +226,17 @@ describe.skipIf(!enabled)("browser suite", () => {
     expect(html).not.toContain("Curt fill in");
   }, 30_000);
 
+  it("the icon set is wired in the head and every icon resolves", async () => {
+    const p = await open();
+    const hrefs = await p.$$eval('link[rel="icon"], link[rel="apple-touch-icon"]', (els) =>
+      els.map((el) => el.getAttribute("href") ?? ""));
+    expect(new Set(hrefs)).toEqual(new Set(["/favicon.svg", "/favicon-32.png", "/apple-touch-icon.png"]));
+    for (const href of hrefs) {
+      const status = await p.evaluate(async (h: string) => (await fetch(h)).status, href);
+      expect(status, `${href} did not resolve`).toBe(200);
+    }
+  }, 30_000);
+
   it("the toc renders one link per section and every href target exists", async () => {
     const p = await open();
     const hrefs = await p.$$eval('aside.site-toc nav[aria-label="Sections"] a', (els) =>
