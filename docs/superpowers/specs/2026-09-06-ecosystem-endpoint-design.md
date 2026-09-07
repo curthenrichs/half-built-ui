@@ -150,12 +150,15 @@ props.
 Behavior:
 
 1. Find `[data-ecosystem]`. Return if absent.
-2. Fetch `endpoint` with an AbortController timeout of 4 seconds.
-3. Refuse the payload, leaving the DOM untouched, when the request
-   fails, the JSON does not parse, `version` is not 1, `entries` is
-   not a non-empty array, any entry fails shape validation, or no
-   entry matches `selfKey`. The last rule matters: a site must never
-   render an ecosystem list that omits itself.
+2. Fetch `endpoint`, retrying transient failures per the Retry
+   section below. Each attempt carries its own AbortController
+   timeout of 3 seconds.
+3. Refuse the payload, leaving the DOM untouched, when every attempt
+   fails and no usable cached copy exists, the JSON does not parse,
+   `version` is not 1, `entries` is not a non-empty array, any entry
+   fails shape validation, or no entry matches `selfKey`. The last
+   rule matters: a site must never render an ecosystem list that omits
+   itself.
 4. Sort: entries whose `family` equals the self entry's family first,
    then the rest. Within each group, `priority` ascending, then
    `label` as a stable tiebreak.
@@ -167,10 +170,58 @@ Behavior:
    a null href as `<span class="footer-sitemap-pending">`. The swapped
    list is indistinguishable from the server-rendered one.
 
+## Retry and last known good
+
+Owner question 2026-09-06: a single blip should not cost a visitor the
+live list for a whole page view. Two mechanisms, covering different
+failures.
+
+**Retry, for a transient failure during this page view.** Up to three
+attempts. Backoff of 400ms then 1200ms, each with up to 250ms of
+random jitter so a shared blip does not return as a synchronised
+retry. Worst case is roughly eleven seconds, entirely in the
+background, because nothing on the page waits on this and the footer
+already reads correctly from its baseline.
+
+What retries and what does not is the part worth getting right:
+
+- Retry a network or timeout error, a 429, or any 5xx. These are
+  transport problems and a second attempt can genuinely differ.
+- Do not retry a 404 or any other 4xx. The URL or the deployment is
+  wrong, and retrying only multiplies a request that cannot succeed.
+- Do not retry a successful response carrying an unusable body.
+  Malformed JSON, an unknown `version` or a failed shape check are
+  content problems, and the next attempt returns the same bytes.
+
+**Last known good, for a failure retry cannot fix.** On every
+successful fetch the island writes the validated payload to
+`localStorage` under `half-built-ecosystem`, with the fetch timestamp.
+When every attempt fails, the island reads that copy, and uses it when
+it is younger than 24 hours, which matches the edge's
+stale-while-revalidate window. The cached copy runs through the same
+validation as a fetched one, because storage is untrusted input and a
+stale schema must not reach the DOM. Every read and write is wrapped
+in try and catch, matching the palette editor's handling of a private
+window or blocked site data.
+
+The cache is a fallback only. It is never rendered ahead of the fetch,
+so a visitor sees one list swap rather than two, and a change to the
+document still reaches every visitor on their next page view.
+
 ## Degradation
 
-The props carry a static baseline, and the shape of that baseline is
-hub and spoke (owner call 2026-09-06):
+Four layers, each covering something the others cannot:
+
+1. The edge's stale-while-revalidate keeps serving the last good
+   document for a day when the origin is unhappy.
+2. Retry absorbs a transient client-side blip during a page view.
+3. The cached last known good covers a sustained outage for anyone
+   who loaded a page successfully in the previous day.
+4. The static baseline covers JavaScript being off, a first-ever visit
+   during an outage, and any refusal path above.
+
+The props carry that static baseline, and the shape of it is hub and
+spoke (owner call 2026-09-06):
 
 - A satellite ships itself plus a pointer to the blog. Two entries.
 - The blog ships itself plus ui, portfolio and BEADZ.
@@ -212,6 +263,17 @@ Adding this repo means a sixth row in the workspace CLAUDE.md table.
   path (network failure, unparseable body, wrong version, empty
   entries, missing self key) asserting the pre-existing DOM is
   untouched.
+- **Retry, with a stubbed fetch:** a 5xx followed by a success renders
+  the live list; three failures fall through to the cache or the
+  baseline; a 404 is attempted exactly once; and a 200 carrying a bad
+  body is attempted exactly once. The last two assert the call count,
+  because "does not retry" is the behavior most likely to regress
+  silently.
+- **Last known good:** a successful fetch writes the payload; a later
+  total failure renders from that copy; a copy older than 24 hours is
+  ignored; a copy carrying a stale schema is refused by the same
+  validation as a fetched one; and a throwing `localStorage` degrades
+  to the baseline rather than an exception.
 - **Browser, on the ui site:** the baseline renders with the island
   never mounted, and against a stubbed endpoint the list updates to
   the fetched entries in the expected order.

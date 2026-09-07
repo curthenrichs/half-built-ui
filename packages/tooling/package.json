@@ -3,6 +3,11 @@
   "version": "0.2.0",
   "description": "Lint presets and the test kit for half-built sites.",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/curthenrichs/half-built-ui.git",
+    "directory": "packages/tooling"
+  },
   "type": "module",
   "files": ["src"],
   "exports": {
