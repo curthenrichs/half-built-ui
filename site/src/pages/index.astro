@@ -239,6 +239,9 @@ const npmPackages = [
           <p>The reminder that never ships. By default it renders only on a dev server. A deploy build emits nothing for it, so a note can sit in published content as a standing to-do. This one is forced visible with the <code>shown</code> prop so the page can show it.</p>
           <EditorNote title="Demo" shown={true}>A demo note, forced visible. The dashed rule is the tell. Nothing else in the system is dashed.</EditorNote>
 
+          <h3>Group</h3>
+          <Group><p>A boxed prose container, no label and no tint, the plain sibling of Callout's box.</p></Group>
+
           <h3>Quote</h3>
           <Quote by="Demo Author" when="2026">A quoted line, with an attribution footer.</Quote>
 
@@ -270,9 +273,6 @@ const npmPackages = [
 
           <h3>Palette</h3>
           <p>The color table component. Its real instance on this page is the live token sheet in the CSS primitives section, so it is not repeated here.</p>
-
-          <h3>Group</h3>
-          <Group><p>A boxed prose container, no label and no tint, the plain sibling of Callout's box.</p></Group>
 
           <h3>Spacer</h3>
           <p>A fixed-height spacer sits below this paragraph.</p>
