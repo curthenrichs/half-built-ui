@@ -1,11 +1,10 @@
 # Ecosystem Endpoint ~ One List The Family Reads
 
-Date: 2026-09-06. Status: package and ui site IMPLEMENTED. The data
-repo exists locally at ../half-built-ecosystem-data with an initial
-commit and no remote. Blocked on owner actions: the GitHub remote, the
-Cloudflare Pages project, the `ecosystem` CNAME, flipping
-ECOSYSTEM_ENDPOINT off null, and the blog's adoption at its next pin
-bump.
+Date: 2026-09-06. Status: package and ui site IMPLEMENTED, and the data
+repo is published at github.com/curthenrichs/half-built-ecosystem-data
+on `main` under MIT. Blocked on owner actions: the Cloudflare Pages
+project, the `ecosystem` CNAME, flipping ECOSYSTEM_ENDPOINT off null,
+and the blog's adoption at its next pin bump.
 Owner decisions from the 2026-09-06 brainstorm are recorded inline.
 
 ## What this builds
@@ -323,9 +322,13 @@ Adding this repo means a sixth row in the workspace CLAUDE.md table.
 
 ## As implemented (2026-09-06)
 
-- The data repo is created locally at `../half-built-ecosystem-data`
-  with `ecosystem.json`, `_headers`, a dependency-free `validate.mjs`
-  and a README. It has an initial commit and no remote.
+- The data repo is created at `../half-built-ecosystem-data` with
+  `ecosystem.json`, `_headers`, a dependency-free `validate.mjs`, a
+  README and an MIT license, and is pushed to
+  github.com/curthenrichs/half-built-ecosystem-data on `main`. MIT
+  matches the sibling repos where reuse is invited, and the document
+  is world-readable at the endpoint regardless, since every consumer
+  fetches it cross-origin.
 - `@half-built/astro` gained `scripts/ecosystem` and a `data-ecosystem`
   attribute on the Footer's ecosystem list. The component's props are
   unchanged: no element, no prop and no rendered text moves. But the
@@ -346,6 +349,5 @@ Adding this repo means a sixth row in the workspace CLAUDE.md table.
 - The ui site carries the satellite baseline and a guarded mount.
   `ECOSYSTEM_ENDPOINT` is null, so it currently makes no request.
 
-Not done, and not attemptable without owner credentials: the GitHub
-remote and push, the Pages project, the CNAME, and the blog's pin bump
-and wiring.
+Not done, and not attemptable without owner credentials: the Pages
+project, the CNAME, and the blog's pin bump and wiring.
