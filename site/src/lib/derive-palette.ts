@@ -32,6 +32,16 @@ export interface BaseReadout {
   lightFillPasses: boolean; /* >= 3 */
 }
 
+/* Base 1 is also the code keyword ink (--code-token-keyword routes
+   --brand-1-500), and the derived code ground is always lighter than
+   DARK_GROUND, so a base can clear the dark-text gate and still miss
+   4.5:1 on the code block. The extra readout closes that hole; base 2
+   never renders on the code ground and needs none. */
+export interface Base1Readout extends BaseReadout {
+  codeTextRatio: number; /* base as keyword ink on its derived code ground */
+  codeTextPasses: boolean; /* >= 4.5 */
+}
+
 /* Walk lightness in OKLCH, hue held, chroma clamped into gamut per
    step, until the candidate clears `passes`. Extremes are the
    backstop: pure black or white always clears these thresholds
@@ -67,13 +77,18 @@ function shiftL(hex: string, dl: number): string {
   return formatHex(clampChroma({ ...start, l }, "oklch"));
 }
 
-/* The shipped default pair, and the six stops the package ships for it.
-   These were hand-tuned rather than walked, and they already clear
-   every threshold below, so the default pair reproduces them exactly
-   instead of returning a near-miss derivation that would visibly
-   differ from the tokens the package actually ships. */
-const SHIPPED_B1 = "#ffaa3c";
-const SHIPPED_B2 = "#3cc7dd";
+/* The shipped default pair, and every stop the package ships for it.
+   These were hand-tuned rather than walked, and they clear the
+   thresholds below (one recorded exception: the comment ink sits at
+   4.38:1, an open owner decision in the live-code-colors spec), so
+   the default pair reproduces them exactly instead of returning a
+   near-miss derivation that would visibly differ from the tokens the
+   package actually ships. */
+/* Exported as the one definition of the anchor pair; the editor's
+   reset and the toolbar's initial markup consume these rather than
+   keeping copies that can drift. */
+export const SHIPPED_B1 = "#ffaa3c";
+export const SHIPPED_B2 = "#3cc7dd";
 const SHIPPED_DEFAULTS: PaletteOverride = {
   "--brand-1-300": "#ffd18a",
   "--brand-1-500": "#ffaa3c",
@@ -173,13 +188,27 @@ function readBase(base: string): BaseReadout {
 export function readBases(
   base1: string,
   base2: string,
-): { base1: BaseReadout; base2: BaseReadout } {
-  return { base1: readBase(base1), base2: readBase(base2) };
+): { base1: Base1Readout; base2: BaseReadout } {
+  const b1 = normalize(base1);
+  /* The same anchor-aware path derivePalette takes, so the readout is
+     computed against the ground the page will actually paint. */
+  const codeBg = b1 === normalize(SHIPPED_B1) ? CODE_GROUND : deriveCodeChrome(b1)["--code-bg"];
+  const codeTextRatio = contrastRatio(b1, codeBg);
+  return {
+    base1: {
+      ...readBase(base1),
+      codeTextRatio,
+      codeTextPasses: codeTextRatio >= 4.5,
+    },
+    base2: readBase(base2),
+  };
 }
 
 /* Family 1 in lightness order (vivid sits between the 500 and the
-   600), then family 2, then the code island's chrome roles. */
-const RAMP_ORDER: (keyof PaletteOverride)[] = [
+   600), then family 2, then the code island's chrome roles. Exported
+   as the one definition of the override surface; the editor applies
+   and resets exactly these keys. */
+export const RAMP_ORDER: (keyof PaletteOverride)[] = [
   "--brand-1-300",
   "--brand-1-500",
   "--brand-1-vivid",

@@ -8,7 +8,7 @@ the rules for working here.
 
 The half-built design system, extracted from half-built-robots.com and
 published on npm as `@half-built/css`, `@half-built/astro`, and
-`@half-built/tooling` (0.1.0 since 2026-09-04). An npm-workspaces
+`@half-built/tooling` (first published 2026-09-04). An npm-workspaces
 monorepo; `site/` is a private kitchen-sink demo that consumes only
 the published package specifiers and is the build gate. The blog is
 the reference consumer; BEADZ adopts later. The full design record is

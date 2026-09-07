@@ -46,7 +46,10 @@ export const FOOTER_SITEMAP: SitemapGroup[] = [
     collapsible: true,
     links: [
       { label: "Cards", href: "#cards" },
-      { label: "Subscribe", href: "#widgets" },
+      /* "Widgets", not "Subscribe": the nav dropped its Subscribe item
+         because this site has nothing to subscribe to, and the same
+         reasoning holds down here. */
+      { label: "Widgets", href: "#widgets" },
     ],
   },
 ];

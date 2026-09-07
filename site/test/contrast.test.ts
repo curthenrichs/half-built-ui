@@ -4,6 +4,7 @@ import { createRequire } from "node:module";
 import { dirname, join } from "node:path";
 import { contrastRatio } from "../src/lib/contrast";
 import { LIGHT_PAPER, DARK_GROUND, CODE_GROUND, CODE_LINE, CODE_FG, CODE_COMMENT } from "../src/lib/grounds";
+import { derivePalette, SHIPPED_B1, SHIPPED_B2 } from "../src/lib/derive-palette";
 
 describe("contrastRatio", () => {
   it("matches WCAG reference values", () => {
@@ -34,5 +35,21 @@ describe("grounds", () => {
     expect(primitives).toContain(`--ink-800: ${CODE_LINE}`);
     expect(primitives).toContain(`--parchment: ${CODE_FG}`);
     expect(primitives).toContain(`--umber-500: ${CODE_COMMENT}`);
+  });
+
+  it("the anchor's brand stops match the installed package's primitives", () => {
+    /* SHIPPED_DEFAULTS re-states the package's brand ramp so the amber
+       anchor short-circuits to shipped bytes; without this tripwire a
+       package retune (the open comment-ink decision, for example)
+       would leave the editor's defaults and its copyable block
+       printing stale hexes while every suite stayed green. */
+    const require = createRequire(import.meta.url);
+    const pkgRoot = dirname(require.resolve("@half-built/css/package.json"));
+    const primitives = readFileSync(join(pkgRoot, "src/tokens/primitives.css"), "utf8");
+    const anchor = derivePalette(SHIPPED_B1, SHIPPED_B2);
+    for (const [key, value] of Object.entries(anchor)) {
+      if (!key.startsWith("--brand-")) continue;
+      expect(primitives, `${key} drifted from the installed package`).toContain(`${key}: ${value}`);
+    }
   });
 });

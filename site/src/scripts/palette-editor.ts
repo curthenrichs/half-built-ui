@@ -5,34 +5,26 @@
    Toolbar.astro is the only consumer.
 
    apply() is the "this is a real, user-picked palette" path: it
-   derives the ramp, paints the readouts and the copyable css, sets the
-   six custom properties inline on <html> so the whole page re-themes,
-   and persists the pair. render() is the display-only half of that
-   (readouts + <pre>, no properties, no storage) used for the plain
-   default state and by reset, so the panel still shows correct numbers
-   for the amber anchor without claiming an override is in effect that
-   the package's own default tokens already provide. */
-import { derivePalette, readBases, overrideBlock, type PaletteOverride, type BaseReadout } from "../lib/derive-palette";
+   derives the ramp, paints the readouts and the copyable css, sets
+   every RAMP_ORDER property inline on <html> so the whole page
+   re-themes, and persists the pair. render() is the display-only half
+   of that (readouts + <pre>, no properties, no storage) used for the
+   plain default state and by reset, so the panel still shows correct
+   numbers for the amber anchor without claiming an override is in
+   effect that the package's own default tokens already provide. */
+import {
+  derivePalette,
+  readBases,
+  overrideBlock,
+  RAMP_ORDER,
+  SHIPPED_B1,
+  SHIPPED_B2,
+  type Base1Readout,
+  type BaseReadout,
+  type PaletteOverride,
+} from "../lib/derive-palette";
 
 const HEX_RE = /^#[0-9a-f]{6}$/i;
-
-const AMBER_B1 = "#ffaa3c";
-const AMBER_B2 = "#3cc7dd";
-
-const RAMP_KEYS: (keyof PaletteOverride)[] = [
-  "--brand-1-300",
-  "--brand-1-500",
-  "--brand-1-vivid",
-  "--brand-1-600",
-  "--brand-1-700",
-  "--brand-2-300",
-  "--brand-2-500",
-  "--brand-2-700",
-  "--code-bg",
-  "--code-line",
-  "--code-fg",
-  "--code-token-comment",
-];
 
 export interface PaletteEditorOptions {
   storageKey: string;
@@ -96,21 +88,26 @@ function safeStorage(doc: Document): Storage | null {
 }
 
 /* One status line, not an instrument panel (owner call 2026-09-06:
-   raw ratios read as unstructured noise). Only the dark-text check can
-   warn, because the picked bases become literal text in the dark
-   theme; every derived stop is contrast-gated by construction, so when
-   both bases pass there is nothing else worth saying. A warning line
-   carries warn: true so the panel can ink it as one (site.css's
-   .site-toolbar-warn, var(--error-ink) in both themes). */
+   raw ratios read as unstructured noise). The picked bases become
+   literal text in the dark theme, and base 1 is also the code keyword
+   ink on its derived code ground (a hole the 2026-09-06 review found:
+   the code ground is always lighter than the page's dark ground, so a
+   base can pass one and miss the other); every derived stop is
+   contrast-gated by construction, so when the bases pass there is
+   nothing else worth saying. A warning line carries warn: true so the
+   panel can ink it as one (site.css's .site-toolbar-warn,
+   var(--error-ink) in both themes). */
 interface StatusLine {
   text: string;
   warn: boolean;
 }
 
-function statusLines(base1: BaseReadout, base2: BaseReadout): StatusLine[] {
+function statusLines(base1: Base1Readout, base2: BaseReadout): StatusLine[] {
   const warnings: StatusLine[] = [];
   if (!base1.darkTextPasses) {
     warnings.push({ text: "Accent 1 is too dark to read as text on the dark theme, consider a lighter shade.", warn: true });
+  } else if (!base1.codeTextPasses) {
+    warnings.push({ text: "Accent 1 is too dark to read as code on the code block, consider a lighter shade.", warn: true });
   }
   if (!base2.darkTextPasses) {
     warnings.push({ text: "Accent 2 is too dark to read as text on the dark theme, consider a lighter shade.", warn: true });
@@ -118,7 +115,7 @@ function statusLines(base1: BaseReadout, base2: BaseReadout): StatusLine[] {
   return warnings.length > 0 ? warnings : [{ text: "Contrast checks pass.", warn: false }];
 }
 
-/* The five controls plus the readout/css targets, bundled once the
+/* The controls plus the readout/css targets, bundled once the
    guard below confirms every one exists. A plain nullable local
    narrowed by that guard loses its non-null type the moment a nested
    closure captures it (TypeScript cannot prove the closure runs only
@@ -155,17 +152,24 @@ function ratioChip(doc: Document, text: string): HTMLElement {
   return code;
 }
 
-function fillDetail(doc: Document, list: HTMLUListElement, base1: BaseReadout, base2: BaseReadout): void {
+function fillDetail(doc: Document, list: HTMLUListElement, base1: Base1Readout, base2: BaseReadout): void {
   list.innerHTML = "";
-  const rows: [string, BaseReadout][] = [["Accent 1", base1], ["Accent 2", base2]];
-  for (const [label, r] of rows) {
+  /* Accent 1 carries the extra code-ground ratio; see statusLines. */
+  const rows: [string, string[]][] = [
+    ["Accent 1", [
+      `text on dark ${base1.darkTextRatio.toFixed(2)}:1`,
+      `fill on light ${base1.lightFillRatio.toFixed(2)}:1`,
+      `code text ${base1.codeTextRatio.toFixed(2)}:1`,
+    ]],
+    ["Accent 2", [
+      `text on dark ${base2.darkTextRatio.toFixed(2)}:1`,
+      `fill on light ${base2.lightFillRatio.toFixed(2)}:1`,
+    ]],
+  ];
+  for (const [label, chips] of rows) {
     const labelLi = doc.createElement("li");
     labelLi.textContent = label;
     list.append(labelLi);
-    const chips = [
-      `text on dark ${r.darkTextRatio.toFixed(2)}:1`,
-      `fill on light ${r.lightFillRatio.toFixed(2)}:1`,
-    ];
     for (const text of chips) {
       const li = doc.createElement("li");
       li.classList.add("site-toolbar-indent");
@@ -195,7 +199,7 @@ function applyPalette(
   b2: string,
 ): void {
   const derived = render(doc, els, b1, b2);
-  for (const key of RAMP_KEYS) {
+  for (const key of RAMP_ORDER) {
     html.style.setProperty(key, derived[key]);
   }
   writeStored(storage, storageKey, b1, b2);
@@ -247,9 +251,9 @@ export function mountPaletteEditor(root: Document, opts: PaletteEditorOptions): 
     setInputs(els, stored.b1, stored.b2);
     apply(stored.b1, stored.b2);
   } else {
-    setInputs(els, AMBER_B1, AMBER_B2);
-    render(root, els, AMBER_B1, AMBER_B2);
-    syncPresets(AMBER_B1, AMBER_B2);
+    setInputs(els, SHIPPED_B1, SHIPPED_B2);
+    render(root, els, SHIPPED_B1, SHIPPED_B2);
+    syncPresets(SHIPPED_B1, SHIPPED_B2);
   }
 
   const onBaseInput = (): void => {
@@ -299,17 +303,21 @@ export function mountPaletteEditor(root: Document, opts: PaletteEditorOptions): 
 
   els.resetBtn.addEventListener("click", () => {
     clearStored(storage, storageKey);
-    for (const key of RAMP_KEYS) {
+    for (const key of RAMP_ORDER) {
       html.style.removeProperty(key);
     }
-    setInputs(els, AMBER_B1, AMBER_B2);
-    render(root, els, AMBER_B1, AMBER_B2);
-    syncPresets(AMBER_B1, AMBER_B2);
+    setInputs(els, SHIPPED_B1, SHIPPED_B2);
+    render(root, els, SHIPPED_B1, SHIPPED_B2);
+    syncPresets(SHIPPED_B1, SHIPPED_B2);
   });
 
   const copyLabel = els.copyBtn.textContent;
   els.copyBtn.addEventListener("click", () => {
-    const text = els.pre.textContent;
+    /* textContent is string | null under the strict DOM lib the site
+       tsconfig checks with; the lint preset's looser project sees
+       plain string, so the fallback reads as unnecessary there. */
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    const text = els.pre.textContent ?? "";
     void navigator.clipboard.writeText(text).then(() => {
       els.copyBtn.textContent = "Copied";
       setTimeout(() => {

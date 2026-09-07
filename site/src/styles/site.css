@@ -35,6 +35,19 @@
     }
   }
 
+  /* Section import lines (the specifier chips under each heading):
+     an identifier must never break in the middle, so the chips are
+     nowrap and the line owns its own horizontal scroll on viewports
+     too narrow for the longest specifier. The page body never
+     scrolls sideways. */
+  .demo-imports { overflow-x: auto; }
+  .demo-imports code { white-space: nowrap; }
+
+  /* The token sheet: variable names and hex chips never break
+     mid-identifier; the ledger's .table-scroll wrapper owns any
+     overflow. The note column keeps wrapping. */
+  .palette td:nth-child(-n+3) { white-space: nowrap; }
+
   /* Fixed palette editor toolbar (Task 5). Renders from Base.astro, so
      it floats over every page rather than sitting in .site-layout's
      column. All colors are theme tokens (var(--surface) and kin), so

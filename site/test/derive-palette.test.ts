@@ -95,6 +95,21 @@ describe("readBases", () => {
     const r = readBases("#104020", "#0a2a40");
     expect(r.base1.darkTextPasses).toBe(false);
   });
+
+  it("reports base 1 failing as code keyword ink even when the dark ground passes", () => {
+    /* The derived code ground is always lighter than DARK_GROUND, so
+       this mid-lightness green clears 4.5:1 on the page but not on
+       the code block (the 2026-09-06 review's finding). */
+    const r = readBases("#408c2d", "#3cc7dd");
+    expect(r.base1.darkTextPasses).toBe(true);
+    expect(r.base1.codeTextPasses).toBe(false);
+    expect(r.base1.codeTextRatio).toBeLessThan(4.5);
+  });
+
+  it("reports the anchor passing the code gate against the shipped code ground", () => {
+    const r = readBases("#ffaa3c", "#3cc7dd");
+    expect(r.base1.codeTextPasses).toBe(true);
+  });
 });
 
 describe("overrideBlock", () => {

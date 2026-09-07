@@ -99,11 +99,18 @@ describe.skipIf(!enabled)("browser suite", () => {
     if (!browser) throw new Error("no browser (beforeAll failed)");
     const p = await desktopPage(browser);
     page = p;
+    /* No test inherits another's persisted palette or theme: the clear
+       must run BEFORE the page's scripts, because the editor applies a
+       stored palette at mount; a post-goto clear would leave the prior
+       test's palette painted and only the storage empty. */
+    await p.evaluateOnNewDocument(() => {
+      try {
+        localStorage.clear();
+      } catch {
+        /* storage unavailable; nothing persisted to clear */
+      }
+    });
     await p.goto(`${ORIGIN}/`, { waitUntil: "networkidle0" });
-    /* No test inherits another's persisted palette or theme: each one
-       starts from a clean localStorage, not whatever a prior test in
-       this file left behind. */
-    await p.evaluate(() => { localStorage.clear(); });
     /* Colors must be settled when axe reads them: a theme flip mid
        transition can interpolate a color past its passing endpoint. */
     await p.addStyleTag({ content: "*, *::before, *::after { transition: none !important; animation: none !important; }" });
@@ -161,7 +168,10 @@ describe.skipIf(!enabled)("browser suite", () => {
 
   it("the copyable css block declares exactly the twelve override properties", async () => {
     const p = await open();
-    const text = await p.$eval("[data-palette-css]", (el) => el.textContent);
+    /* Same two-type-worlds note as palette-editor.ts's copy handler:
+       strict DOM sees string | null, the lint project sees string. */
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    const text = await p.$eval("[data-palette-css]", (el) => el.textContent ?? "");
     expect(text).toMatch(/^:root \{$/m);
     const names = [...text.matchAll(/^\s*(--[a-z0-9-]+):/gm)].map((m) => m[1]);
     expect(new Set(names)).toEqual(new Set([

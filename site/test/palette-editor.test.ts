@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 /* The palette-editor island (Task 5): a fixed toolbar panel that lets a
-   visitor pick two accent bases, derives the six ramp stops through
+   visitor pick two accent bases, derives the ramp through
    Task 3's derivePalette, and applies them live as inline custom
    properties on <html> so the whole demo site re-themes without a
    reload. Mirrors the jsdom conventions in
@@ -79,7 +79,7 @@ beforeEach(() => {
 });
 
 describe("palette editor", () => {
-  it("picking a base sets all six properties and persists the pair", () => {
+  it("picking a base sets every override property and persists the pair", () => {
     mountPaletteEditor(document, { storageKey: KEY });
     fireInput(input("palette-base-1"), "#2f9e44");
     fireInput(input("palette-base-2"), "#0ca678");
@@ -105,7 +105,7 @@ describe("palette editor", () => {
     expect(stored).toEqual({ b1: "#1890ff", b2: "#13c2c2" });
   });
 
-  it("reset removes all six properties and the storage key", () => {
+  it("reset removes every override property and the storage key", () => {
     mountPaletteEditor(document, { storageKey: KEY });
     fireInput(input("palette-base-1"), "#2f9e44");
     fireInput(input("palette-base-2"), "#0ca678");
@@ -198,17 +198,34 @@ describe("palette editor", () => {
 
     const items = [...document.querySelectorAll("[data-palette-detail] li")];
     expect(items.map((li) => li.classList.contains("site-toolbar-indent"))).toEqual([
-      false, true, true,
+      false, true, true, true,
       false, true, true,
     ]);
     expect(items[0]?.textContent).toBe("Accent 1");
-    expect(items[3]?.textContent).toBe("Accent 2");
+    expect(items[4]?.textContent).toBe("Accent 2");
     /* Each ratio is its own <code> chip on its own indented line, so a
-       figure never wraps through its middle. */
+       figure never wraps through its middle. Accent 1 carries the
+       extra code-ground ratio because it is the code keyword ink. */
     expect(items[1]?.querySelector("code")?.textContent).toMatch(/^text on dark \d+\.\d\d:1$/);
     expect(items[2]?.querySelector("code")?.textContent).toMatch(/^fill on light \d+\.\d\d:1$/);
-    expect(items[4]?.querySelector("code")?.textContent).toMatch(/^text on dark \d+\.\d\d:1$/);
-    expect(items[5]?.querySelector("code")?.textContent).toMatch(/^fill on light \d+\.\d\d:1$/);
+    expect(items[3]?.querySelector("code")?.textContent).toMatch(/^code text \d+\.\d\d:1$/);
+    expect(items[5]?.querySelector("code")?.textContent).toMatch(/^text on dark \d+\.\d\d:1$/);
+    expect(items[6]?.querySelector("code")?.textContent).toMatch(/^fill on light \d+\.\d\d:1$/);
+  });
+
+  it("warns when base 1 passes the dark ground but fails as code keyword ink", () => {
+    mountPaletteEditor(document, { storageKey: KEY });
+    /* #408c2d reads 4.50:1 on the page's dark ground (no dark-text
+       warning) but under 4.5:1 on its derived code ground, which is
+       always lighter; the 2026-09-06 review found this hole. */
+    fireInput(input("palette-base-1"), "#408c2d");
+    fireInput(input("palette-base-2"), "#3cc7dd");
+
+    const readouts = document.querySelector("[data-palette-readouts]");
+    expect(readouts?.textContent).toContain(
+      "Accent 1 is too dark to read as code on the code block, consider a lighter shade.",
+    );
+    expect(readouts?.textContent).not.toContain("dark theme");
   });
 
   it("a failing status line wears the warn class, a passing one does not", () => {
