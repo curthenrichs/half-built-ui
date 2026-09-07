@@ -1,5 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="480" height="720" viewBox="0 0 480 720">
+  <!-- Colorless on purpose (owner ruling 2026-09-06); see
+       placeholder-wide.svg for the reasoning. -->
   <rect width="480" height="720" fill="#2a2a2a" />
-  <rect x="70" y="90" width="340" height="200" fill="#3cc7dd" />
-  <circle cx="240" cy="520" r="120" fill="#ffaa3c" />
+  <rect x="70" y="90" width="340" height="200" fill="#9a9a9a" />
+  <circle cx="240" cy="520" r="120" fill="#ececec" />
 </svg>
