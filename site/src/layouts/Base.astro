@@ -17,7 +17,6 @@ import "../styles/site.css";
 import Shell from "@half-built/astro/components/Shell.astro";
 import Masthead from "@half-built/astro/components/Masthead.astro";
 import Footer from "@half-built/astro/components/Footer.astro";
-import Toolbar from "../components/Toolbar.astro";
 import { formatHeaderDate } from "@half-built/astro/lib/header-date";
 import { SITE_NAME, TAGLINE, NAV, SOCIALS, LEGAL_HOLDER, FOOTER_SITEMAP, ECOSYSTEM, ECOSYSTEM_SELF } from "../data/site";
 import { THEME_STORAGE_KEY } from "../lib/theme-key";
@@ -41,8 +40,10 @@ const { title = "half-built-ui", description = "The reference site for the @half
     <slot name="head" />
   </Fragment>
   <Masthead slot="header" siteName={SITE_NAME} tagline={TAGLINE} nav={NAV} socials={SOCIALS} dateStr={formatHeaderDate(new Date())} isHome={true} />
+  {/* The palette editor and TOC merged into Rail.astro (owner call
+      2026-09-06), rendered by the page inside .site-layout's column
+      rather than floating from this layout. */}
   <slot />
-  <Toolbar />
   <Footer slot="footer" siteName={SITE_NAME} legalHolder={LEGAL_HOLDER} sitemap={FOOTER_SITEMAP} ecosystem={ECOSYSTEM} ecosystemSelf={ECOSYSTEM_SELF} />
   <Fragment slot="scripts">
     <script>

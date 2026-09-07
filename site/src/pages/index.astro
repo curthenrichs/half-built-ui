@@ -9,7 +9,7 @@
    nothing reaches into packages/astro/src by relative path. */
 import { Code } from "astro:components";
 import Base from "../layouts/Base.astro";
-import Toc from "../components/Toc.astro";
+import Rail from "../components/Rail.astro";
 import EditorNote from "@half-built/astro/content/EditorNote.astro";
 import PostCard from "@half-built/astro/components/PostCard.astro";
 import CategoryCard from "@half-built/astro/components/CategoryCard.astro";
@@ -116,7 +116,7 @@ const npmPackages = [
 ---
 <Base title="half-built-ui" description="The reference site for the @half-built packages, every component's variants rendered on one page.">
   <div class="site-layout">
-    <Toc />
+    <Rail />
     <article class="static-page bracket-frame">
       <h1>half-built-ui</h1>
 

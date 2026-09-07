@@ -239,7 +239,7 @@ describe.skipIf(!enabled)("browser suite", () => {
 
   it("the toc renders one link per section and every href target exists", async () => {
     const p = await open();
-    const hrefs = await p.$$eval('aside.site-toc nav[aria-label="Sections"] a', (els) =>
+    const hrefs = await p.$$eval('.site-rail-toc a', (els) =>
       els.map((el) => el.getAttribute("href") ?? ""));
     expect(hrefs).toEqual(SECTIONS.map((s) => `#${s.id}`));
     const missing = await p.evaluate((ids: string[]) =>

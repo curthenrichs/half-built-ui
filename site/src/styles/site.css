@@ -13,27 +13,24 @@
     align-items: start;
     gap: var(--column-gap);
   }
-  /* Sticks below the palette button's fixed top-left spot (4rem plus
-     its height plus a gap), so scrolling never slides the list under
-     the button. */
-  .site-toc {
-    position: sticky;
-    top: 7.5rem;
-    align-self: start;
-  }
 
-  /* Below the package's tablet breakpoint the two-column grid collapses:
-     the TOC stops being sticky and reads as a plain in-flow list ahead
-     of the page content. */
-  @media (--bp-tablet) {
-    .site-layout {
-      display: block;
-    }
-    .site-toc {
-      position: static;
-      top: auto;
-    }
+  /* The site rail (owner call 2026-09-06): palette knob and section
+     TOC merged into one viewport-tracking stack. Desktop: the sticky
+     left column, one offset for the whole stack (the old TOC needed
+     7.5rem just to duck the separate fixed button). One z step above
+     --z-scroll-top keeps an open panel over every page floater. The
+     tablet-and-down corner cluster lives in the media block below. */
+  .site-rail {
+    position: sticky;
+    top: 2rem;
+    align-self: start;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    z-index: calc(var(--z-scroll-top) + 1);
   }
+  /* The Sections knob exists for the corner cluster only. */
+  .site-rail-sections { display: none; }
 
   /* Section import lines (the specifier chips under each heading):
      an identifier must never break in the middle, so the chips are
@@ -56,29 +53,15 @@
     min-width: 11em;
   }
 
-  /* Fixed palette editor toolbar (Task 5). Renders from Base.astro, so
-     it floats over every page rather than sitting in .site-layout's
-     column. All colors are theme tokens (var(--surface) and kin), so
-     the panel follows day/night like the rest of the chrome. Top left
-     on desktop and tablet at an equal 4rem inset from both viewport
-     edges (owner call 2026-09-06: unequal insets read as a mistake);
-     4rem is the smallest equal value that clears the masthead frame's
-     date box at scroll zero, and the TOC's sticky top stays pushed
-     below the button. Bottom left on phones. One z-index step above
-     --z-scroll-top keeps the open panel over every page floater. */
-  .site-toolbar {
-    position: fixed;
-    left: 4rem;
-    top: 4rem;
-    z-index: calc(var(--z-scroll-top) + 1);
-  }
-  .site-toolbar > details { position: relative; }
-  /* The button wears the accent-box treatment (the tagline's recipe in
-     SiteHeader.astro) so it reads as a deliberate floating control
-     rather than a stray button, and carries two live swatches: they
+  /* The rail's knobs (palette and sections details). All colors are
+     theme tokens (var(--surface) and kin), so they follow day/night
+     like the rest of the chrome. Each knob wears the accent-box
+     treatment (the tagline's recipe in SiteHeader.astro) so it reads
+     as a deliberate control; the palette knob's two live swatches
      read the brand variables directly, so an applied palette recolors
      the closed button with no script. */
-  .site-toolbar > details > summary {
+  .site-knob { position: relative; }
+  .site-knob > summary {
     cursor: pointer;
     list-style: none;
     display: flex;
@@ -91,9 +74,10 @@
     box-shadow: var(--shadow);
     font-size: var(--font-size-sm);
     white-space: nowrap;
+    width: fit-content;
   }
-  .site-toolbar summary::-webkit-details-marker { display: none; }
-  .site-toolbar > details > summary:hover { outline: var(--stroke) solid var(--rule); }
+  .site-knob > summary::-webkit-details-marker { display: none; }
+  .site-knob > summary:hover { outline: var(--stroke) solid var(--rule); }
   .site-toolbar-swatch {
     width: 12px;
     height: 12px;
@@ -238,18 +222,29 @@
     border-top: var(--stroke) solid var(--rule);
   }
 
-  /* On phones the button drops to the bottom left corner (owner call
-     2026-09-06) and the panel opens upward instead. The corner X flips
-     with it: straddling the bottom border keeps it beside the trigger
-     and the thumb, instead of stranded at the top of the screen. */
-  @media (--bp-phone) {
-    /* The phone corner keeps its own equal inset pair, 1rem bottom and
-       left; the desktop 4rem would waste a phone's width. */
-    .site-toolbar {
+  /* At the tablet break and below the layout column collapses and the
+     rail becomes the fixed bottom-left corner cluster (owner call
+     2026-09-06): the Palette knob gains its Sections sibling, panels
+     open upward, and the corner X flips to straddle the bottom border
+     so it stays beside the trigger and the thumb. */
+  @media (--bp-tablet) {
+    .site-layout { display: block; }
+    .site-rail {
+      position: fixed;
       top: auto;
       bottom: 1rem;
       left: 1rem;
+      flex-direction: row;
+      gap: 8px;
     }
+    .site-rail-toc { display: none; }
+    .site-rail-sections { display: block; }
+    /* Panels anchor to the rail, not their own knob: anchored to the
+       second knob the sections panel ran off the right viewport edge.
+       The rail is the fixed element, so static knobs make it the
+       containing block and every panel opens above the whole cluster,
+       aligned to its 1rem inset. */
+    .site-knob { position: static; }
     .site-toolbar-body {
       top: auto;
       bottom: calc(100% + 8px);
