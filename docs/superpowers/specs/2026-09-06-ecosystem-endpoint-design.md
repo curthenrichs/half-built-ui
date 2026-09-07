@@ -140,11 +140,13 @@ runs.
 **An island, `scripts/ecosystem.ts`,** exporting:
 
 ```ts
-mountEcosystem(root: Document, opts: {
+export interface EcosystemOptions {
   endpoint: string;
   selfKey: string;
   limit?: number;
-}): void
+  retryDelaysMs?: number[];
+}
+export async function mountEcosystem(root: Document, opts: EcosystemOptions): Promise<void>
 ```
 
 The package hardcodes no URL. The consuming site passes its endpoint,
