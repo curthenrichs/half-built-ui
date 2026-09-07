@@ -159,6 +159,17 @@ describe("loadDocument", () => {
     expect(doc?.entries).toHaveLength(5);
   });
 
+  it("prefers a fresh fetch over a present, valid cache entry", async () => {
+    const storage = memoryStorage();
+    const staleDoc = { version: 1, entries: [DOC.entries[0]] };
+    storage.setItem("half-built-ecosystem", JSON.stringify({ fetchedAt: 500, document: staleDoc }));
+    const fetchMock = vi.fn().mockResolvedValue(jsonResponse(DOC));
+    vi.stubGlobal("fetch", fetchMock);
+    const doc = await loadDocument("https://e.test/x.json", storage, 1000, NO_DELAY);
+    expect(doc?.entries).toHaveLength(5);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
   it("ignores a cached copy older than a day", async () => {
     const storage = memoryStorage();
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(jsonResponse(DOC)));
