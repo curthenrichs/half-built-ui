@@ -239,6 +239,16 @@ const npmPackages = [
           <h3>Group</h3>
           <Group><p>A boxed prose container, no label and no tint, the plain sibling of Callout's box.</p></Group>
 
+          <h3>Code block</h3>
+          <CodeBlock filename="example.py">
+            <Code code={codeSample} lang="python" theme={codeTheme} transformers={[codeVars]} />
+          </CodeBlock>
+
+          <h3>Spacer</h3>
+          <p>A fixed-height spacer sits below this paragraph.</p>
+          <Spacer size={60} />
+          <p>Normal flow resumes here, after the spacer.</p>
+
           <h3>Quote</h3>
           <Quote by="Demo Author" when="2026">A quoted line, with an attribution footer.</Quote>
 
@@ -263,15 +273,6 @@ const npmPackages = [
             <p>Media on one side, prose on the other. This is the caption slot, and it takes a short paragraph rather than a single line.</p>
           </MediaText>
 
-          <h3>Code block</h3>
-          <CodeBlock filename="example.py">
-            <Code code={codeSample} lang="python" theme={codeTheme} transformers={[codeVars]} />
-          </CodeBlock>
-
-          <h3>Spacer</h3>
-          <p>A fixed-height spacer sits below this paragraph.</p>
-          <Spacer size={60} />
-          <p>Normal flow resumes here, after the spacer.</p>
         </div>
       </section>
 
