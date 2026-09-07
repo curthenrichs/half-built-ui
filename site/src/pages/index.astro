@@ -156,7 +156,7 @@ const npmPackages = [
       <h1>half-built-ui</h1>
 
       <section id="intro">
-        <div class="prose no-hero">
+        <div class="prose">
           <h2>About</h2>
           <div class="section-intro" data-section-intro="intro">
             <p>This page renders every component in the half-built design system, one instance of each. The system was extracted from <a href="https://half-built-robots.com">half-built-robots.com</a>, which still runs on it. All three packages are published on npm under MIT.</p>
@@ -175,7 +175,7 @@ const npmPackages = [
       </section>
 
       <section id="frame">
-        <div class="prose no-hero">
+        <div class="prose">
           <h2>Frame</h2>
           <div class="section-intro" data-section-intro="frame">
             <p>The header and footer come from the package and know nothing about the site around them. The site name and the rest of the identity arrive as typed props. The theme toggle sits in the header, and the palette panel carries a second instance beside the color pickers. Every toggle on a page stays in step, so flipping either one moves the other.</p>
@@ -185,7 +185,7 @@ const npmPackages = [
       </section>
 
       <section id="cards">
-        <div class="prose no-hero">
+        <div class="prose">
           <h2>Cards</h2>
           <div class="section-intro" data-section-intro="cards">
             <p>PostCard is the card an archive page is made of. The second one here is flagged as a draft, and that badge exists so an unfinished post can ship where people can see it. The third wears the corner badges, one for an AI-generated image and one for a post carrying an interactive demo. CategoryCard is the smaller tile, an image with the category name chipped over its bottom edge.</p>
@@ -205,7 +205,7 @@ const npmPackages = [
       </section>
 
       <section id="components">
-        <div class="prose no-hero">
+        <div class="prose">
           <h2>Components</h2>
           <div class="section-intro" data-section-intro="components">
             <p>The rest of the package, from the navigation rows to the blocks a post body is built from. Imports split between <code>components/</code> and <code>content/</code>, which is a packaging detail rather than a distinction worth reading into. Nothing here caps the width of the text, and nothing anywhere in this system does. The layout's column is the only width authority. Every image below is a generated placeholder.</p>
@@ -213,19 +213,19 @@ const npmPackages = [
           <Imports code={componentImports} />
         </div>
 
-        <div class="prose no-hero">
+        <div class="prose">
           <h3>Pagination</h3>
           <p>The numbered row at the foot of an archive. It renders nothing when there is only one page.</p>
         </div>
         <Pagination current={2} total={4} base="#" />
 
-        <div class="prose no-hero">
+        <div class="prose">
           <h3>Post navigation</h3>
           <p>The pair of links at the end of a post. The newer post sits on the left and the older one on the right, matching the newest-first order the archives read in.</p>
         </div>
         <PostNavigation prev={prevPost} next={nextPost} />
 
-        <div class="prose no-hero">
+        <div class="prose">
           <h3>Link list widget and Widget</h3>
           <p>Widget is a heading over whatever sits in its body. LinkListWidget is that same block filled with links and their counts.</p>
         </div>
@@ -236,7 +236,7 @@ const npmPackages = [
           </Widget>
         </div>
 
-        <div class="prose no-hero">
+        <div class="prose">
           <h3>Subscribe</h3>
           <p>A real form with a method and an action, which submits with JavaScript turned off. Its copy sits in named slots, so the words can be overridden without forking the component.</p>
         </div>
@@ -244,7 +244,7 @@ const npmPackages = [
           <Fragment slot="fine-print">Placeholder form. This demo does not send email. The action is not a real endpoint.</Fragment>
         </Subscribe>
 
-        <div class="prose no-hero">
+        <div class="prose">
           <h3>Button</h3>
           <p>Four variants, two sizes.</p>
           <p class="button-row">
@@ -305,7 +305,7 @@ const npmPackages = [
       </section>
 
       <section id="css">
-        <div class="prose no-hero">
+        <div class="prose">
           <h2>CSS primitives</h2>
           <div class="section-intro" data-section-intro="css">
             <p>The tokens are the variables everything else reads, and every color on this page resolves through them. The palette editor repaints the page by setting twelve. Each value is tuned to clear WCAG AA against the ground it sits on. The prose and pattern sheets carry the rest, the paragraph rhythm and the boxes.</p>
