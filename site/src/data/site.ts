@@ -21,6 +21,7 @@ export const NAV: NavItem[] = [
   { label: "Frame", href: "#frame" },
   { label: "Cards", href: "#cards" },
   { label: "Components", href: "#components" },
+  { label: "CSS", href: "#css" },
 ];
 
 export const SOCIALS: SocialItem[] = [

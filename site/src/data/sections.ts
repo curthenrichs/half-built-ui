@@ -16,5 +16,5 @@ export const SECTIONS: SectionEntry[] = [
   { id: "frame", title: "Frame" },
   { id: "cards", title: "Cards" },
   { id: "components", title: "Components" },
-  { id: "css", title: "CSS primitives" },
+  { id: "css", title: "CSS" },
 ];
