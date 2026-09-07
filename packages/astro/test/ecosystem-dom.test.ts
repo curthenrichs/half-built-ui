@@ -2,7 +2,7 @@
 /* The ecosystem island: validation, sorting, fetch with retry, the
    last-known-good cache, and the render. Mirrors the jsdom conventions
    in theme-toggle-dom.test.ts, with global fetch stubbed per test. */
-import { describe, it, expect, afterEach, vi } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { validateDocument, sortEntries, loadDocument, mountEcosystem } from "../src/scripts/ecosystem";
 
 const DOC = {
@@ -216,14 +216,18 @@ function mountFixture(): HTMLElement {
 }
 
 describe("mountEcosystem", () => {
-  afterEach(() => {
-    vi.unstubAllGlobals();
+  beforeEach(() => {
     /* mountEcosystem reads the real jsdom localStorage (there is no
        storage parameter on its public signature), and jsdom's window
-       is shared across every test in this file. Without this, a
-       success here would leave a cached document behind for the next
-       test to read back through loadDocument's fallback path. */
+       is shared across every test in this file. Without this, a test
+       could start behind a document cached by whatever ran before it
+       and read it back through loadDocument's fallback path, so this
+       guarantees a clean starting state regardless of test order. */
     localStorage.clear();
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
   });
 
   it("replaces the baseline with the fetched list in sorted order", async () => {
