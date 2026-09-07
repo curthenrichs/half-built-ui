@@ -48,6 +48,14 @@
      overflow. The note column keeps wrapping. */
   .palette td:nth-child(-n+3) { white-space: nowrap; }
 
+  /* The patterns ledger: same rule for its class-name column, plus
+     room to breathe (owner call 2026-09-06: more width). */
+  .demo-pattern-table td:nth-child(2),
+  .demo-pattern-table th:nth-child(2) {
+    white-space: nowrap;
+    min-width: 11em;
+  }
+
   /* Fixed palette editor toolbar (Task 5). Renders from Base.astro, so
      it floats over every page rather than sitting in .site-layout's
      column. All colors are theme tokens (var(--surface) and kin), so

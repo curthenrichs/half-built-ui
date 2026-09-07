@@ -268,9 +268,6 @@ const npmPackages = [
             <Code code={codeSample} lang="python" theme={codeTheme} transformers={[codeVars]} />
           </CodeBlock>
 
-          <h3>Palette</h3>
-          <p>The color table component. Its real instance on this page is the live token sheet in the CSS primitives section, so it is not repeated here.</p>
-
           <h3>Spacer</h3>
           <p>A fixed-height spacer sits below this paragraph.</p>
           <Spacer size={60} />
@@ -307,15 +304,51 @@ const npmPackages = [
         </div>
 
         <h3>Patterns</h3>
-        <p class="button-row">
-          <span class="chip">Chip</span>
-          <span class="boxed-label">Boxed label</span>
-          <button type="button" class="icon-box" aria-label="Placeholder icon button">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9" /></svg>
-          </button>
-        </p>
-        <p class="micro-label">Micro label</p>
-        <p class="caption">Caption text, quiet and small.</p>
+        {/* The same boxed ledger the token sheet wears (prose-scoped,
+            the table lesson of 2026-09-06): live specimens, so the
+            patterns follow theme flips and palette applies. The Used
+            for column restates each class's documented purpose from
+            patterns.css, not invented roles. */}
+        <div class="prose">
+          <div class="table-scroll">
+            <table class="demo-pattern-table">
+              <thead>
+                <tr><th>Specimen</th><th>Class</th><th>Used for</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><span class="chip">Chip</span></td>
+                  <td><code>.chip</code></td>
+                  <td>Filled label. The read-time chip and the category card's name.</td>
+                </tr>
+                <tr>
+                  <td><span class="boxed-label">Boxed label</span></td>
+                  <td><code>.boxed-label</code></td>
+                  <td>Bordered box, typically straddling a frame rule. The header's date box and widget titles.</td>
+                </tr>
+                <tr>
+                  <td>
+                    <button type="button" class="icon-box" aria-label="Placeholder icon button">
+                      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9" /></svg>
+                    </button>
+                  </td>
+                  <td><code>.icon-box</code></td>
+                  <td>Bordered interactive square. Social icons, the search magnifier, the palette panel's close box.</td>
+                </tr>
+                <tr>
+                  <td><span class="micro-label">Micro label</span></td>
+                  <td><code>.micro-label</code></td>
+                  <td>Small bold tracked line. Plate labels and the lightbox's HOME box.</td>
+                </tr>
+                <tr>
+                  <td><span class="caption">Caption text, quiet and small.</span></td>
+                  <td><code>.caption</code></td>
+                  <td>The quiet line under an image, beside media text, or after a quote.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
       </section>
     </article>
   </div>
