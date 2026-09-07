@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- The half-built gear (owner calls 2026-09-06): right half machined
+       solid, left half a dashed layout arc where the teeth are not cut
+       yet. Deliberately colorless: the site's pitch is live re-theming,
+       so the mark bakes no accent, only neutral ink that flips with the
+       browser's own scheme. The tiled PNG fallbacks bake the neutral
+       ink ground instead, because raster icons cannot adapt. -->
+  <style>
+    .built { fill: #111111; }
+    .unbuilt { stroke: #111111; }
+    @media (prefers-color-scheme: dark) {
+      .built { fill: #ececec; }
+      .unbuilt { stroke: #ececec; }
+    }
+  </style>
+  <defs>
+    <clipPath id="right"><rect x="16" y="0" width="16" height="32"/></clipPath>
+  </defs>
+  <path class="built" fill-rule="evenodd" clip-path="url(#right)"
+    d="M16.00 6.50 L 17.73 6.66 L 19.33 2.61 L 23.12 4.18 L 21.38 8.17 L 22.72 9.28 L 23.83 10.62 L 27.82 8.88 L 29.39 12.67 L 25.34 14.27 L 25.50 16.00 L 25.34 17.73 L 29.39 19.33 L 27.82 23.12 L 23.83 21.38 L 22.72 22.72 L 21.38 23.83 L 23.12 27.82 L 19.33 29.39 L 17.73 25.34 L 16.00 25.50 L 14.27 25.34 L 12.67 29.39 L 8.88 27.82 L 10.62 23.83 L 9.28 22.72 L 8.17 21.38 L 4.18 23.12 L 2.61 19.33 L 6.66 17.73 L 6.50 16.00 L 6.66 14.27 L 2.61 12.67 L 4.18 8.88 L 8.17 10.62 L 9.28 9.28 L 10.62 8.17 L 8.88 4.18 L 12.67 2.61 L 14.27 6.66 Z M20.4 16 a4.4 4.4 0 1 1 -8.8 0 a4.4 4.4 0 1 1 8.8 0 Z"/>
+  <path class="unbuilt" fill="none" stroke-width="2" stroke-dasharray="3.1 3" stroke-linecap="round"
+    d="M16 6.5 A9.5 9.5 0 0 0 16 25.5"/>
+  <path class="unbuilt" fill="none" stroke-width="2" stroke-dasharray="2.6 2.6" stroke-linecap="round"
+    d="M16 11.6 A4.4 4.4 0 0 0 16 20.4"/>
+</svg>

@@ -1,5 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="800" height="500" viewBox="0 0 800 500">
+  <!-- Colorless on purpose (owner ruling 2026-09-06, same as the
+       favicon): an img-loaded SVG cannot follow the page's palette
+       variables, so baked accents would sit frozen while the palette
+       editor re-themes everything around them. Neutral grays from the
+       system's own ramp instead: gray-075 figure, gray-400 second. -->
   <rect width="800" height="500" fill="#2a2a2a" />
-  <rect x="60" y="60" width="420" height="260" fill="#ffaa3c" />
-  <circle cx="620" cy="360" r="90" fill="#3cc7dd" />
+  <rect x="60" y="60" width="420" height="260" fill="#ececec" />
+  <circle cx="620" cy="360" r="90" fill="#9a9a9a" />
 </svg>

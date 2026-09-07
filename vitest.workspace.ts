@@ -1,1 +1,1 @@
-export default ["packages/css", "packages/astro"];
+export default ["packages/css", "packages/astro", "site"];

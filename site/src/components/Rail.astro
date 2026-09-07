@@ -1,0 +1,146 @@
+---
+/* The site rail (owner call 2026-09-06): the palette editor and the
+   section TOC merged into one viewport-tracking component, replacing
+   the separate Toolbar.astro and Toc.astro. Desktop renders it as the
+   sticky left column, palette knob on top of the scroll-spy list, one
+   sticky offset for the whole stack. At the tablet break and below it
+   becomes the fixed bottom-left corner cluster: the Palette knob and
+   a Sections knob side by side, each opening its panel upward, so a
+   phone reader keeps section access anywhere on the page (the old
+   in-flow list scrolled away). The section list renders twice, once
+   as the desktop list and once inside the phone panel, both driven by
+   SECTIONS so neither can drift; toc.ts marks aria-current in both
+   and carries the sections panel's close manners.
+   Panel layout classes stay the site-toolbar-* family in site.css;
+   palette behavior is palette-editor.ts, mounted from Base.astro. */
+import ThemeToggle from "@half-built/astro/components/ThemeToggle.astro";
+import { ICON_X } from "@half-built/astro/scripts/core/icons.ts";
+import { SHIPPED_B1, SHIPPED_B2 } from "../lib/derive-palette";
+import { SECTIONS } from "../data/sections";
+---
+<aside class="site-rail">
+  <details data-palette-editor class="site-knob">
+    <summary>
+      <span class="site-toolbar-swatch site-toolbar-swatch-1" aria-hidden="true"></span>
+      <span class="site-toolbar-swatch site-toolbar-swatch-2" aria-hidden="true"></span>
+      Palette
+    </summary>
+    <div class="site-toolbar-body">
+      <button type="button" data-palette-close class="icon-box site-toolbar-close" aria-label="Close palette">
+        <Fragment set:html={ICON_X} />
+      </button>
+      <div class="site-toolbar-scroll">
+      <p class="site-toolbar-caption">UI Accent Colors</p>
+      <div class="site-toolbar-field">
+        <input type="color" id="palette-base-1" data-palette-base="1" value={SHIPPED_B1} />
+        <label for="palette-base-1">Accent 1</label>
+        <ThemeToggle label="Switch theme" class="site-toolbar-rowend" />
+      </div>
+      <div class="site-toolbar-field">
+        <input type="color" id="palette-base-2" data-palette-base="2" value={SHIPPED_B2} />
+        <label for="palette-base-2">Accent 2</label>
+        <button type="button" data-palette-flip class="site-toolbar-flip site-toolbar-rowend" title="Swap accent 1 and accent 2">Flip</button>
+      </div>
+      <ul data-palette-readouts class="site-toolbar-readouts" aria-live="polite"></ul>
+      <details class="site-toolbar-more">
+        <summary>Show details</summary>
+        <ul data-palette-detail class="site-toolbar-readouts"></ul>
+      </details>
+      <p class="site-toolbar-caption" id="palette-presets-label">Presets</p>
+      <div class="site-toolbar-presets" role="group" aria-labelledby="palette-presets-label">
+        <button type="button" data-palette-preset aria-pressed="false" data-base-1={SHIPPED_B1} data-base-2={SHIPPED_B2}>Amber</button>
+        <button type="button" data-palette-preset aria-pressed="false" data-base-1="#1890ff" data-base-2="#13c2c2">Blues</button>
+        <button type="button" data-palette-preset aria-pressed="false" data-base-1="#2f9e44" data-base-2="#0ca678">Greens</button>
+        <button type="button" data-palette-preset aria-pressed="false" data-base-1="#f2545b" data-base-2="#ff9e7a">Reds</button>
+      </div>
+      <details class="site-toolbar-more">
+        <summary>Show CSS</summary>
+        <pre data-palette-css class="site-toolbar-css"></pre>
+      </details>
+      </div>
+      <!-- Outside the scroll region on purpose: the action row stays a
+           pinned footer, so Copy CSS never scrolls out of reach when the
+           disclosures make the panel taller than the viewport allows. -->
+      <div class="site-toolbar-actions">
+        <button type="button" data-palette-copy>Copy CSS</button>
+        <button type="button" data-palette-reset>Reset</button>
+      </div>
+    </div>
+  </details>
+
+  <details data-rail-sections class="site-knob site-rail-sections">
+    <summary>Sections</summary>
+    <div class="site-toolbar-body">
+      <button type="button" data-sections-close class="icon-box site-toolbar-close" aria-label="Close sections">
+        <Fragment set:html={ICON_X} />
+      </button>
+      <nav aria-label="Sections">
+        <ul class="site-rail-links">
+          {SECTIONS.map((section) => (
+            <li><a href={`#${section.id}`}>{section.title}</a></li>
+          ))}
+        </ul>
+      </nav>
+    </div>
+  </details>
+
+  <nav class="site-rail-toc" aria-label="Sections">
+    {/* Decorative duplicate of the nav's accessible name, so it is
+        hidden from the tree; it is the small offset panel above the
+        list (owner call 2026-09-06). */}
+    <p class="site-rail-toc-label boxed-label" aria-hidden="true">Sections</p>
+    <ul class="site-rail-links">
+      {SECTIONS.map((section) => (
+        <li><a href={`#${section.id}`}>{section.title}</a></li>
+      ))}
+    </ul>
+  </nav>
+</aside>
+
+<style>
+  /* The list sits in the Group treatment's rule box, with the
+     Sections label straddling its top rule the way Callout and
+     EditorNote place theirs (owner calls 2026-09-06). The box is the
+     only thing added; the list inside keeps its own shape. */
+  .site-rail-toc {
+    position: relative;
+    border: var(--stroke) solid var(--rule);
+    background: var(--surface);
+    padding: 18px 8px 10px;
+  }
+  .site-rail-toc-label {
+    position: absolute;
+    top: 0;
+    left: 10px;
+    /* Center the label on the 2px top rule, not the padding edge. */
+    transform: translateY(calc(-50% - 1px));
+    padding: 3px 8px;
+    font-size: var(--font-size-xs);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    line-height: 1;
+  }
+  .site-rail-links {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .site-rail-links li { margin-bottom: 6px; }
+  .site-rail-links a {
+    display: block;
+    padding: 4px 8px;
+    color: var(--ink);
+    font-size: var(--font-size-sm);
+    text-decoration: none;
+    border-left: var(--stroke) solid transparent;
+  }
+  .site-rail-links a:hover { text-decoration: underline; }
+  .site-rail-links a[aria-current="true"] {
+    border-left-color: var(--accent-1);
+    color: var(--accent-1-ink);
+    font-weight: 700;
+  }
+  /* The phone panel's list breathes inside the panel padding. */
+  .site-rail-sections nav { padding: 14px; }
+</style>

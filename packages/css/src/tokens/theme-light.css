@@ -21,13 +21,13 @@
     /* Amber survives inside the code island and as a line or fill
        color; --accent-1-ink is its legible kin for any text on the
        surface (the tagline's box, Callout tip and warning types). */
-    --accent-1: var(--amber-500);
-    --accent-1-ink: var(--amber-700);
+    --accent-1: var(--brand-1-500);
+    --accent-1-ink: var(--brand-1-700);
     /* Second accent (cyan), the amber's complement. Same split: the
        bright value is a line or fill, the dark one is text. No component
        reads it yet; its jobs are an owner decision (2026-08-26). */
-    --accent-2: var(--cyan-500);
-    --accent-2-ink: var(--cyan-700);
+    --accent-2: var(--brand-2-500);
+    --accent-2-ink: var(--brand-2-700);
     /* Text on an accent fill (a hovered or pressed accent button). */
     --on-accent-1: var(--ink-900);
     --on-accent-2: var(--ink-900);
@@ -37,6 +37,14 @@
     --code-bg: var(--ink-900);
     --code-fg: var(--parchment);
     --code-line: var(--ink-800);
+    /* Syntax token roles (spec 2026-09-06): what the Shiki theme bakes
+       as hex, restated as variables so the code-vars transformer can
+       emit tokens that follow a palette override. Identical in both
+       themes because the code surface is always the warm dark block. */
+    --code-token-keyword: var(--brand-1-500);
+    --code-token-function: var(--brand-1-300);
+    --code-token-string: var(--brand-1-vivid);
+    --code-token-comment: var(--umber-500);
 
     /* Plate-modal chrome (spec 2026-07-30): veil over the blurred page,
        and the viewbox mat one step lighter than --hairline. Values
@@ -45,16 +53,16 @@
     --mat-line: var(--gray-075);
 
     /* Path-player timeline series (spec 2026-08-22, owner question 1). */
-    --track-x: var(--ochre-600);
+    --track-x: var(--brand-1-600);
     /* The second data track is the second accent (owner call 2026-08-26). */
-    --track-y: var(--cyan-500);
+    --track-y: var(--brand-2-500);
     --track-z: var(--violet-600);
 
     /* The subscribe panel, the amber block that bridges every property
        back to the blog. By day: amber ground, warm-dark ink and rule, a
        dark button with white text. By night the panel inverts (see
        theme-dark.css) so the button stays the brightest thing in it. */
-    --panel-bg: var(--amber-500);
+    --panel-bg: var(--brand-1-500);
     --panel-ink: var(--ink-900);
     --panel-rule: var(--ink-900);
     --panel-error: var(--red-800);
@@ -66,7 +74,7 @@
        so it reads on both grounds and never means the same as hover. */
     /* Keyboard ring: the first accent by day, the second by night
        (owner call 2026-08-26). */
-    --focus-ring: var(--amber-500);
+    --focus-ring: var(--brand-1-500);
 
     /* The signature stroke: 2px here, 3px on BEADZ. */
     --stroke: var(--stroke-2);

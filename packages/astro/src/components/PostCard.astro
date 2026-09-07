@@ -90,12 +90,18 @@ const heroStyle = heroPosition ? `object-position: ${heroPosition}` : undefined;
     z-index: 2;
     font-size: var(--font-size-xl);
   }
-  /* Chip look comes from the .chip pattern; only placement is contextual. */
+  /* Chip look comes from the .chip pattern; only placement is
+     contextual. display: flex, not a plain block: a block wrapper
+     gives the inline-flex chip a text line box whose descender gap
+     floats it off the true bottom, so this chip and the corner badges
+     (already a flex container) sat at different offsets (owner catch
+     2026-09-06). */
   .read-time-comment {
     position: absolute;
     bottom: 10px;
     left: 10px;
     z-index: 1;
+    display: flex;
   }
   .post-item-content { padding: 15px 0 0; padding-top: 10px; }
   .entry-cat .post-categories {
