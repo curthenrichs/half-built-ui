@@ -3,7 +3,7 @@
    last-known-good cache, and the render. Mirrors the jsdom conventions
    in theme-toggle-dom.test.ts, with global fetch stubbed per test. */
 import { describe, it, expect, afterEach, vi } from "vitest";
-import { validateDocument, sortEntries, loadDocument } from "../src/scripts/ecosystem";
+import { validateDocument, sortEntries, loadDocument, mountEcosystem } from "../src/scripts/ecosystem";
 
 const DOC = {
   version: 1,
@@ -199,5 +199,81 @@ describe("loadDocument", () => {
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(jsonResponse(DOC)));
     const doc = await loadDocument("https://e.test/x.json", hostile, 1000, NO_DELAY);
     expect(doc?.entries).toHaveLength(5);
+  });
+});
+
+const BASELINE = `
+  <ul data-ecosystem>
+    <li><span class="footer-sitemap-self">half-built-ui</span></li>
+    <li><a href="https://half-built-robots.com/">Half-Built Robots</a></li>
+  </ul>`;
+
+function mountFixture(): HTMLElement {
+  document.body.innerHTML = BASELINE;
+  const list = document.querySelector<HTMLElement>("[data-ecosystem]");
+  if (!list) throw new Error("no fixture list");
+  return list;
+}
+
+describe("mountEcosystem", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    /* mountEcosystem reads the real jsdom localStorage (there is no
+       storage parameter on its public signature), and jsdom's window
+       is shared across every test in this file. Without this, a
+       success here would leave a cached document behind for the next
+       test to read back through loadDocument's fallback path. */
+    localStorage.clear();
+  });
+
+  it("replaces the baseline with the fetched list in sorted order", async () => {
+    const list = mountFixture();
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(jsonResponse(DOC)));
+    await mountEcosystem(document, { endpoint: "https://e.test/x.json", selfKey: "ui", retryDelaysMs: NO_DELAY });
+    expect([...list.querySelectorAll("li")].map((li) => li.textContent)).toEqual([
+      "Half-Built Robots", "The Bead Reserve", "half-built-ui", "Portfolio", "Okos Polip",
+    ]);
+  });
+
+  it("renders the three states the component renders", async () => {
+    const list = mountFixture();
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(jsonResponse(DOC)));
+    await mountEcosystem(document, { endpoint: "https://e.test/x.json", selfKey: "ui", retryDelaysMs: NO_DELAY });
+    expect(list.querySelector(".footer-sitemap-self")?.textContent).toBe("half-built-ui");
+    expect(list.querySelector('a[href="https://half-built-robots.com/"]')).not.toBeNull();
+    /* Two undeployed properties, both visible and unlinked. */
+    expect(list.querySelectorAll(".footer-sitemap-pending")).toHaveLength(2);
+  });
+
+  it("honours the limit", async () => {
+    const list = mountFixture();
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(jsonResponse(DOC)));
+    await mountEcosystem(document, { endpoint: "https://e.test/x.json", selfKey: "ui", limit: 2, retryDelaysMs: NO_DELAY });
+    expect(list.querySelectorAll("li")).toHaveLength(2);
+  });
+
+  it("leaves the baseline alone when the fetch fails outright", async () => {
+    const list = mountFixture();
+    const before = list.innerHTML;
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("offline")));
+    await mountEcosystem(document, { endpoint: "https://e.test/x.json", selfKey: "ui", retryDelaysMs: NO_DELAY });
+    expect(list.innerHTML).toBe(before);
+  });
+
+  it("leaves the baseline alone when the document omits this site", async () => {
+    const list = mountFixture();
+    const before = list.innerHTML;
+    const without = { ...DOC, entries: DOC.entries.filter((e) => e.key !== "ui") };
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(jsonResponse(without)));
+    await mountEcosystem(document, { endpoint: "https://e.test/x.json", selfKey: "ui", retryDelaysMs: NO_DELAY });
+    expect(list.innerHTML).toBe(before);
+  });
+
+  it("does nothing at all when the page has no ecosystem list", async () => {
+    document.body.innerHTML = "<p>no footer here</p>";
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+    await mountEcosystem(document, { endpoint: "https://e.test/x.json", selfKey: "ui", retryDelaysMs: NO_DELAY });
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 });

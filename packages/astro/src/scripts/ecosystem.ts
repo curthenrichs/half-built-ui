@@ -182,3 +182,65 @@ export async function loadDocument(
   }
   return readCache(storage, now);
 }
+
+const DEFAULT_LIMIT = 6;
+
+export interface EcosystemOptions {
+  /* The document's URL. This package ships no default: a consumer
+     passes its own, so the package reads no consumer configuration. */
+  endpoint: string;
+  /* The entry this site renders as itself, unlinked and bold. */
+  selfKey: string;
+  limit?: number;
+  retryDelaysMs?: number[];
+}
+
+function entryNode(doc: Document, entry: EcosystemDocEntry, selfKey: string): HTMLElement {
+  if (entry.key === selfKey) {
+    const self = doc.createElement("span");
+    self.className = "footer-sitemap-self";
+    self.textContent = entry.label;
+    return self;
+  }
+  if (entry.href !== null) {
+    const link = doc.createElement("a");
+    link.href = entry.href;
+    link.textContent = entry.label;
+    return link;
+  }
+  const pending = doc.createElement("span");
+  pending.className = "footer-sitemap-pending";
+  pending.textContent = entry.label;
+  return pending;
+}
+
+function safeStorage(view: Window | null): Storage | null {
+  try {
+    return view?.localStorage ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/** Replace the footer's ecosystem list with the shared document's, or
+    leave the server-rendered baseline exactly as it is. */
+export async function mountEcosystem(root: Document, opts: EcosystemOptions): Promise<void> {
+  const { endpoint, selfKey, limit = DEFAULT_LIMIT, retryDelaysMs } = opts;
+  const list = root.querySelector<HTMLElement>("[data-ecosystem]");
+  if (!list) return;
+
+  const storage = safeStorage(root.defaultView);
+  const document_ = await loadDocument(endpoint, storage, Date.now(), retryDelaysMs);
+  if (!document_) return;
+
+  const entries = sortEntries(document_.entries, selfKey, limit);
+  if (!entries || entries.length === 0) return;
+
+  const fragment = root.createDocumentFragment();
+  for (const entry of entries) {
+    const item = root.createElement("li");
+    item.append(entryNode(root, entry, selfKey));
+    fragment.append(item);
+  }
+  list.replaceChildren(fragment);
+}
