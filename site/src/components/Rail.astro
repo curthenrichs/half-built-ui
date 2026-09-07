@@ -86,8 +86,8 @@ import { SECTIONS } from "../data/sections";
 
   <nav class="site-rail-toc" aria-label="Sections">
     {/* Decorative duplicate of the nav's accessible name, so it is
-        hidden from the tree; it exists to straddle the box's top rule
-        the way the header date box and callout labels do. */}
+        hidden from the tree; it is the small offset panel above the
+        list (owner call 2026-09-06). */}
     <p class="site-rail-toc-label boxed-label" aria-hidden="true">Sections</p>
     <ul class="site-rail-links">
       {SECTIONS.map((section) => (
@@ -98,22 +98,11 @@ import { SECTIONS } from "../data/sections";
 </aside>
 
 <style>
-  /* The desktop list wears the house line art (owner call 2026-09-06:
-     the bare padded links read modern against everything else): a 2px
-     rule box with the SECTIONS label straddling its top rule, rows
-     separated by hairlines like the ledger tables, and the current
-     row tinted the way the header marks its current nav item. */
-  .site-rail-toc {
-    position: relative;
-    border: var(--stroke) solid var(--rule);
-    background: var(--surface);
-    padding-top: 10px;
-  }
+  /* The section header: the boxed-label pattern as a small panel
+     above the list, inset to sit over the links' 8px text edge. */
   .site-rail-toc-label {
-    position: absolute;
-    top: 0;
-    left: 10px;
-    transform: translateY(calc(-50% - 1px));
+    display: inline-block;
+    margin: 0 0 10px 8px;
     padding: 3px 8px;
     font-size: var(--font-size-xs);
     font-weight: 700;
@@ -126,10 +115,10 @@ import { SECTIONS } from "../data/sections";
     margin: 0;
     padding: 0;
   }
-  .site-rail-links li:not(:last-child) { border-bottom: 1px solid var(--hairline); }
+  .site-rail-links li { margin-bottom: 6px; }
   .site-rail-links a {
     display: block;
-    padding: 7px 12px;
+    padding: 4px 8px;
     color: var(--ink);
     font-size: var(--font-size-sm);
     text-decoration: none;
@@ -140,9 +129,7 @@ import { SECTIONS } from "../data/sections";
     border-left-color: var(--accent-1);
     color: var(--accent-1-ink);
     font-weight: 700;
-    background: color-mix(in srgb, var(--accent-1) 6%, var(--surface));
   }
-  /* The phone panel's list sits inside the panel's own box, so it
-     keeps the rows and skips the second frame. */
-  .site-rail-sections nav { padding: 10px 14px; }
+  /* The phone panel's list breathes inside the panel padding. */
+  .site-rail-sections nav { padding: 14px; }
 </style>
