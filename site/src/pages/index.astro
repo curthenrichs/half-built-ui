@@ -10,6 +10,7 @@
 import { Code } from "astro:components";
 import Base from "../layouts/Base.astro";
 import Rail from "../components/Rail.astro";
+import Imports from "../components/Imports.astro";
 import EditorNote from "@half-built/astro/content/EditorNote.astro";
 import PostCard from "@half-built/astro/components/PostCard.astro";
 import CategoryCard from "@half-built/astro/components/CategoryCard.astro";
@@ -108,6 +109,40 @@ const tokenEntries = [
 const codeSample = `def read_ir(code):
     return "power" if code == 0x40BF else "unknown"`;
 
+/* Paste-ready import lines per section (owner call 2026-09-06,
+   replacing the raw path lists). Written out rather than generated,
+   so what a reader copies is exactly what this page imports. */
+const frameImports = `import Masthead from "@half-built/astro/components/Masthead.astro";
+import Footer from "@half-built/astro/components/Footer.astro";
+import ThemeToggle from "@half-built/astro/components/ThemeToggle.astro";`;
+
+const cardImports = `import PostCard from "@half-built/astro/components/PostCard.astro";
+import CategoryCard from "@half-built/astro/components/CategoryCard.astro";`;
+
+const componentImports = `import Pagination from "@half-built/astro/components/Pagination.astro";
+import PostNavigation from "@half-built/astro/components/PostNavigation.astro";
+import Widget from "@half-built/astro/components/Widget.astro";
+import LinkListWidget from "@half-built/astro/components/LinkListWidget.astro";
+import Subscribe from "@half-built/astro/components/Subscribe.astro";
+import Button from "@half-built/astro/content/Button.astro";
+import Callout from "@half-built/astro/content/Callout.astro";
+import EditorNote from "@half-built/astro/content/EditorNote.astro";
+import Group from "@half-built/astro/content/Group.astro";
+import CodeBlock from "@half-built/astro/content/CodeBlock.astro";
+import Spacer from "@half-built/astro/content/Spacer.astro";
+import Quote from "@half-built/astro/content/Quote.astro";
+import Walkthrough from "@half-built/astro/content/Walkthrough.astro";
+import Step from "@half-built/astro/content/Step.astro";
+import Gallery from "@half-built/astro/content/Gallery.astro";
+import GalleryImage from "@half-built/astro/content/GalleryImage.astro";
+import BlogImage from "@half-built/astro/content/BlogImage.astro";
+import MediaText from "@half-built/astro/content/MediaText.astro";`;
+
+const cssImports = `import "@half-built/css/tokens";
+import "@half-built/css/prose.css";
+import "@half-built/css/patterns.css";
+import Palette from "@half-built/astro/content/Palette.astro";`;
+
 const npmPackages = [
   { name: "@half-built/css", href: "https://www.npmjs.com/package/@half-built/css" },
   { name: "@half-built/astro", href: "https://www.npmjs.com/package/@half-built/astro" },
@@ -124,8 +159,8 @@ const npmPackages = [
         <div class="prose no-hero">
           <h2>About</h2>
           <div class="section-intro" data-section-intro="intro">
-            <p>This page renders every piece of the half-built design system in one place, so I can look at the whole thing at once. I pulled the system out of half-built-robots.com, and the blog still runs on it. The three packages are on npm under MIT.</p>
-            <p>The palette editor in the corner rewrites the theming variables live and prints a block you can copy into your own stylesheet. That block is the entire theming surface, eight brand stops and the four values behind the code viewer. The viewer highlights through variables, so syntax colors and the warm block they sit on follow your palette too.</p>
+            <p>This page renders every component in the half-built design system, one instance of each. The system was extracted from half-built-robots.com, which still runs on it. All three packages are published on npm under MIT.</p>
+            <p>The palette editor in the corner rewrites the theming variables live and prints a block ready to paste into a stylesheet. That block is the entire theming surface, eight brand stops plus the four values behind the code viewer. The viewer highlights through those variables, so syntax colors and the block they sit on follow the palette as well.</p>
           </div>
           <!-- A real CodeBlock, not an inline code span, so the code
                island mounts its COPY button on the install line (owner
@@ -143,9 +178,9 @@ const npmPackages = [
         <div class="prose no-hero">
           <h2>Frame</h2>
           <div class="section-intro" data-section-intro="frame">
-            <p>The header and footer around this page come from the package. Nothing in them knows about my blog. The site name and the rest of the identity arrive as typed props. The theme toggle lives in the header, where a reader looks for it, and the palette panel carries a second instance beside the color pickers. Every toggle on a page stays in step. Flip either one and the other moves with it.</p>
+            <p>The header and footer come from the package and know nothing about the site around them. The site name and the rest of the identity arrive as typed props. The theme toggle sits in the header, and the palette panel carries a second instance beside the color pickers. Every toggle on a page stays in step, so flipping either one moves the other.</p>
           </div>
-          <p class="demo-imports"><code>@half-built/astro/components/Masthead.astro</code>, <code>@half-built/astro/components/Footer.astro</code>, <code>@half-built/astro/components/ThemeToggle.astro</code></p>
+          <Imports code={frameImports} />
         </div>
       </section>
 
@@ -155,7 +190,7 @@ const npmPackages = [
           <div class="section-intro" data-section-intro="cards">
             <p>PostCard is the card an archive page is made of. The second one here is flagged as a draft, and that badge exists so an unfinished post can ship where people can see it. The third wears the corner badges, one for an AI-generated image and one for a post carrying an interactive demo. CategoryCard is the smaller tile, an image with the category name chipped over its bottom edge.</p>
           </div>
-          <p class="demo-imports"><code>@half-built/astro/components/PostCard.astro</code>, <code>@half-built/astro/components/CategoryCard.astro</code></p>
+          <Imports code={cardImports} />
         </div>
 
         <h3>Post cards</h3>
@@ -169,32 +204,31 @@ const npmPackages = [
         </div>
       </section>
 
-      <section id="navigation">
+      <section id="components">
         <div class="prose no-hero">
-          <h2>Navigation</h2>
-          <div class="section-intro" data-section-intro="navigation">
-            <p>Pagination is the numbered row at the foot of an archive, and it renders nothing at all when there is only one page. PostNavigation is the pair of links at the end of a post. The newer post sits on the left and the older one on the right. That is backwards from what WordPress did, and it matches the newest-first order the archives read in.</p>
+          <h2>Components</h2>
+          <div class="section-intro" data-section-intro="components">
+            <p>The rest of the package, from the navigation rows to the blocks a post body is built from. Imports split between <code>components/</code> and <code>content/</code>, which is a packaging detail rather than a distinction worth reading into. Nothing here caps the width of the text, and nothing anywhere in this system does. The layout's column is the only width authority. Every image below is a generated placeholder.</p>
           </div>
-          <p class="demo-imports"><code>@half-built/astro/components/Pagination.astro</code>, <code>@half-built/astro/components/PostNavigation.astro</code></p>
+          <Imports code={componentImports} />
         </div>
 
-        <h3>Pagination</h3>
+        <div class="prose no-hero">
+          <h3>Pagination</h3>
+          <p>The numbered row at the foot of an archive. It renders nothing when there is only one page.</p>
+        </div>
         <Pagination current={2} total={4} base="#" />
 
-        <h3>Post navigation</h3>
-        <PostNavigation prev={prevPost} next={nextPost} />
-      </section>
-
-      <section id="widgets">
         <div class="prose no-hero">
-          <h2>Widgets</h2>
-          <div class="section-intro" data-section-intro="widgets">
-            <p>Widget is the plain sidebar block, a heading over whatever you put in its body. LinkListWidget is that same block filled with links and their counts. A recent-posts list and a category list are both just this widget. Subscribe is the newsletter panel. It is a real form with a method and an action, and it submits fine with JavaScript turned off. Its copy sits in named slots, so a site with a different voice overrides the words instead of forking the component.</p>
-          </div>
-          <p class="demo-imports"><code>@half-built/astro/components/Widget.astro</code>, <code>@half-built/astro/components/LinkListWidget.astro</code>, <code>@half-built/astro/components/Subscribe.astro</code></p>
+          <h3>Post navigation</h3>
+          <p>The pair of links at the end of a post. The newer post sits on the left and the older one on the right, matching the newest-first order the archives read in.</p>
         </div>
+        <PostNavigation prev={prevPost} next={nextPost} />
 
-        <h3>Link list widget and Widget</h3>
+        <div class="prose no-hero">
+          <h3>Link list widget and Widget</h3>
+          <p>Widget is a heading over whatever sits in its body. LinkListWidget is that same block filled with links and their counts.</p>
+        </div>
         <div class="demo-widget-row">
           <LinkListWidget title="Sample links" items={linkListItems} />
           <Widget title="Plain widget">
@@ -202,21 +236,15 @@ const npmPackages = [
           </Widget>
         </div>
 
-        <h3>Subscribe</h3>
+        <div class="prose no-hero">
+          <h3>Subscribe</h3>
+          <p>A real form with a method and an action, which submits with JavaScript turned off. Its copy sits in named slots, so the words can be overridden without forking the component.</p>
+        </div>
         <Subscribe variant="page" action="https://example.com/subscribe" publicUrl="example.com/subscribe">
           <Fragment slot="fine-print">Placeholder form. This demo does not send email. The action is not a real endpoint.</Fragment>
         </Subscribe>
-      </section>
 
-      <section id="content">
         <div class="prose no-hero">
-          <h2>Content blocks</h2>
-          <div class="section-intro" data-section-intro="content">
-            <p>These are the blocks a post body is built from. Nothing here caps the width of the text, and nothing anywhere in this system does. The layout's column is the only width authority. The images below are generated placeholders rather than anything off the blog.</p>
-            <EditorNote>What Curt has to supply: why the content blocks live under content/ while the site furniture lives under components/.</EditorNote>
-          </div>
-          <p class="demo-imports"><code>@half-built/astro/content/*</code></p>
-
           <h3>Button</h3>
           <p>Four variants, two sizes.</p>
           <p class="button-row">
@@ -280,9 +308,9 @@ const npmPackages = [
         <div class="prose no-hero">
           <h2>CSS primitives</h2>
           <div class="section-intro" data-section-intro="css">
-            <p>The tokens are the variables everything else reads, and every color on this page comes out of them. The palette editor repaints the whole page by setting twelve of them. The light-theme amber ink started out borrowed from a prototype of another project. It sat at 4.24 to 1 against white, which fails WCAG AA, so I retuned it until it passed. The prose and pattern sheets carry the rest, the paragraph rhythm and the boxes.</p>
+            <p>The tokens are the variables everything else reads, and every color on this page resolves through them. The palette editor repaints the page by setting twelve. Each value is tuned to clear WCAG AA against the ground it sits on. The prose and pattern sheets carry the rest, the paragraph rhythm and the boxes.</p>
           </div>
-          <p class="demo-imports"><code>@half-built/css/tokens</code>, <code>@half-built/css/prose.css</code>, <code>@half-built/css/patterns.css</code></p>
+          <Imports code={cssImports} />
         </div>
 
         <h3>Tokens</h3>

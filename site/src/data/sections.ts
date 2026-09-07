@@ -6,12 +6,15 @@ export interface SectionEntry {
   title: string;
 }
 
+/* Five sections since 2026-09-06 (owner call): Navigation, Widgets and
+   Content blocks merged into one Components section, because the
+   components/ and content/ import split is a packaging detail and not
+   a distinction a reader should have to carry. The nav mirrors the
+   top four. */
 export const SECTIONS: SectionEntry[] = [
   { id: "intro", title: "About" },
   { id: "frame", title: "Frame" },
   { id: "cards", title: "Cards" },
-  { id: "navigation", title: "Navigation" },
-  { id: "widgets", title: "Widgets" },
-  { id: "content", title: "Content blocks" },
+  { id: "components", title: "Components" },
   { id: "css", title: "CSS primitives" },
 ];

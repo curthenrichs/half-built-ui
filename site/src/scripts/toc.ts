@@ -28,8 +28,17 @@ export function mountToc(root: Document): void {
     });
   };
 
+  /* An anchor jump lands the target's top at the viewport top, above
+     the band below, so a section shorter than that offset handed the
+     highlight to the next one down (owner catch 2026-09-06: clicking
+     Frame reported Cards). A jump marks its own target and holds the
+     observer quiet until the scroll settles, which leaves ordinary
+     scrolling behavior alone. */
+  let quietUntil = 0;
+
   const observer = new IntersectionObserver(
     (entries) => {
+      if (Date.now() < quietUntil) return;
       const intersecting = entries.filter((entry) => entry.isIntersecting);
       if (intersecting.length === 0) return;
       const last = intersecting[intersecting.length - 1];
@@ -58,6 +67,16 @@ export function mountToc(root: Document): void {
     }
   }
   setCurrent(openingId);
+
+  const view = root.defaultView;
+  const markHash = (): void => {
+    const id = view?.location.hash.slice(1) ?? "";
+    if (id === "" || !links.has(id)) return;
+    quietUntil = Date.now() + 900;
+    setCurrent(id);
+  };
+  view?.addEventListener("hashchange", markHash);
+  markHash();
 
   const panel = root.querySelector<HTMLElement>("[data-rail-sections]");
   if (!(panel instanceof HTMLDetailsElement)) return;

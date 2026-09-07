@@ -237,6 +237,25 @@ describe.skipIf(!enabled)("browser suite", () => {
     }
   }, 30_000);
 
+  it("jumping to a section marks that same section in the toc", async () => {
+    const p = await open();
+    /* The anchor puts the target's top at the viewport top, above the
+       scroll-spy band, so before the 2026-09-06 fix a short section
+       (Frame) handed the highlight to the next one down. */
+    for (const section of SECTIONS) {
+      await p.evaluate((id: string) => {
+        location.hash = "";
+        location.hash = id;
+      }, section.id);
+      await p.waitForFunction(
+        (title: string) =>
+          document.querySelector('.site-rail-toc a[aria-current="true"]')?.textContent === title,
+        { timeout: 5000 },
+        section.title,
+      );
+    }
+  }, 60_000);
+
   it("the toc renders one link per section and every href target exists", async () => {
     const p = await open();
     const hrefs = await p.$$eval('.site-rail-toc a', (els) =>

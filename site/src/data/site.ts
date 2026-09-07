@@ -19,8 +19,8 @@ const ICON_EXTERNAL =
 export const NAV: NavItem[] = [
   { label: "Home", href: "/" },
   { label: "Frame", href: "#frame" },
-  { label: "Content", href: "#content" },
   { label: "Cards", href: "#cards" },
+  { label: "Components", href: "#components" },
 ];
 
 export const SOCIALS: SocialItem[] = [
@@ -38,18 +38,15 @@ export const FOOTER_SITEMAP: SitemapGroup[] = [
     links: [
       { label: "Home", href: "/" },
       { label: "Frame", href: "#frame" },
-      { label: "Content", href: "#content" },
+      { label: "Cards", href: "#cards" },
     ],
   },
   {
     title: "More",
     collapsible: true,
     links: [
-      { label: "Cards", href: "#cards" },
-      /* "Widgets", not "Subscribe": the nav dropped its Subscribe item
-         because this site has nothing to subscribe to, and the same
-         reasoning holds down here. */
-      { label: "Widgets", href: "#widgets" },
+      { label: "Components", href: "#components" },
+      { label: "CSS primitives", href: "#css" },
     ],
   },
 ];
