@@ -3,6 +3,7 @@
    index.astro, because Base.astro needs this on every page and the
    content data only on index.astro. */
 import type { NavItem, SocialItem, SitemapGroup, EcosystemEntry } from "@half-built/astro/components/models.ts";
+import { ECOSYSTEM_SELF_KEY } from "../lib/ecosystem-config";
 
 export const SITE_NAME = "half-built-ui";
 export const TAGLINE = "Every @half-built component on one page.";
@@ -59,9 +60,16 @@ export const FOOTER_SITEMAP: SitemapGroup[] = [
   },
 ];
 
+/* The satellite baseline (design record 2026-09-06-ecosystem-endpoint):
+   this site plus a pointer home to the blog. The island replaces the
+   list with the shared document at runtime; this is what renders with
+   JavaScript off, during an outage, or before the endpoint exists.
+   Two entries, so it cannot drift far from the truth. */
 export const ECOSYSTEM: EcosystemEntry[] = [
-  { key: "site", label: SITE_NAME, href: "/" },
-  { key: "package", label: "half-built-ui (package source)", href: "https://github.com/curthenrichs/half-built-ui" },
+  { key: "ui", label: SITE_NAME, href: "/" },
+  { key: "blog", label: "Half-Built Robots", href: "https://half-built-robots.com/" },
 ];
 
-export const ECOSYSTEM_SELF = "site";
+/* One definition, in lib/ecosystem-config.ts, which the client script
+   also reads. */
+export const ECOSYSTEM_SELF = ECOSYSTEM_SELF_KEY;

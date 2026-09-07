@@ -53,11 +53,13 @@ const { title = "half-built-ui", description = "The reference site for the @half
       import { mountThemeToggle } from "@half-built/astro/scripts/theme-toggle";
       import { mountFocusMode } from "@half-built/astro/scripts/focus-mode";
       import { mountScrollTop } from "@half-built/astro/scripts/scroll-top";
+      import { mountEcosystem } from "@half-built/astro/scripts/ecosystem";
       import { mountToc } from "../scripts/toc";
       import { mountPaletteEditor } from "../scripts/palette-editor";
       import { mountTokenHexes } from "../scripts/token-hexes";
       import { THEME_STORAGE_KEY } from "../lib/theme-key";
       import { PALETTE_STORAGE_KEY } from "../lib/palette-key";
+      import { ECOSYSTEM_SELF_KEY, ECOSYSTEM_ENDPOINT } from "../lib/ecosystem-config";
       mountFocusMode(document.documentElement);
       /* Internal and external links share one measured tooltip island. */
       mountLinkTips(document, { selector: 'a[href^="http"], a[data-tooltip]' });
@@ -68,6 +70,12 @@ const { title = "half-built-ui", description = "The reference site for the @half
       mountToc(document);
       mountPaletteEditor(document, { storageKey: PALETTE_STORAGE_KEY });
       mountTokenHexes(document);
+      /* Guarded, so a site with no endpoint configured makes no
+         request at all. Bundlers drop the island entirely while the
+         constant is null. */
+      if (ECOSYSTEM_ENDPOINT !== null) {
+        void mountEcosystem(document, { endpoint: ECOSYSTEM_ENDPOINT, selfKey: ECOSYSTEM_SELF_KEY });
+      }
     </script>
     <slot name="scripts" />
   </Fragment>

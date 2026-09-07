@@ -256,6 +256,25 @@ describe.skipIf(!enabled)("browser suite", () => {
     }
   }, 60_000);
 
+  it("the footer's ecosystem list carries the island's hook and the baseline", async () => {
+    const p = await open();
+    /* The hook is what mountEcosystem finds. The baseline is what
+       renders until the endpoint exists, and with JavaScript off
+       forever: this site plus a pointer home to the blog. */
+    const list = await p.$("footer [data-ecosystem]");
+    expect(list, "the footer has no data-ecosystem hook").not.toBeNull();
+    /* Same two-type-worlds note as palette-editor.ts's copy handler:
+       strict DOM sees string | null, the lint project sees string. */
+    const items = await p.$$eval("footer [data-ecosystem] li", (els) =>
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+      els.map((el) => el.textContent?.trim() ?? ""));
+    expect(items).toEqual(["half-built-ui", "Half-Built Robots"]);
+    const self = await p.$$eval("footer [data-ecosystem] .footer-sitemap-self", (els) =>
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+      els.map((el) => el.textContent?.trim() ?? ""));
+    expect(self).toEqual(["half-built-ui"]);
+  }, 30_000);
+
   it("the toc renders one link per section and every href target exists", async () => {
     const p = await open();
     const hrefs = await p.$$eval('.site-rail-toc a', (els) =>
