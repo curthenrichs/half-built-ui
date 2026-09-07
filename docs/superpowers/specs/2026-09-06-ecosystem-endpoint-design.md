@@ -1,6 +1,11 @@
 # Ecosystem Endpoint ~ One List The Family Reads
 
-Date: 2026-09-06. Status: approved direction, pre-implementation.
+Date: 2026-09-06. Status: package and ui site IMPLEMENTED. The data
+repo exists locally at ../half-built-ecosystem-data with an initial
+commit and no remote. Blocked on owner actions: the GitHub remote, the
+Cloudflare Pages project, the `ecosystem` CNAME, flipping
+ECOSYSTEM_ENDPOINT off null, and the blog's adoption at its next pin
+bump.
 Owner decisions from the 2026-09-06 brainstorm are recorded inline.
 
 ## What this builds
@@ -296,3 +301,28 @@ Adding this repo means a sixth row in the workspace CLAUDE.md table.
 - The portfolio's conversion to the shared list.
 - Any write path more convenient than editing the file in git.
 - Per-entry artwork or descriptions.
+
+## As implemented (2026-09-06)
+
+- The data repo is created locally at `../half-built-ecosystem-data`
+  with `ecosystem.json`, `_headers`, a dependency-free `validate.mjs`
+  and a README. It has an initial commit and no remote.
+- `@half-built/astro` gained `scripts/ecosystem` and a `data-ecosystem`
+  attribute on the Footer's ecosystem list. The component's props are
+  unchanged, so the attribute is additive and the blog's parity check
+  should show no movement from it.
+- The retry rule is implemented as specified: a network error, a
+  timeout, a 429 and a 5xx retry across three attempts with jittered
+  backoff; a 404 and any unusable body are attempted once. The tests
+  assert the call count on both no-retry paths.
+- The last-known-good cache lives under `half-built-ecosystem` in
+  `localStorage`, is used only when a load fails outright, and is
+  revalidated on read.
+- A test pins that a successful fetch is always preferred over a
+  present, valid cache, so the cache can never shadow fresh data.
+- The ui site carries the satellite baseline and a guarded mount.
+  `ECOSYSTEM_ENDPOINT` is null, so it currently makes no request.
+
+Not done, and not attemptable without owner credentials: the GitHub
+remote and push, the Pages project, the CNAME, and the blog's pin bump
+and wiring.
