@@ -74,7 +74,11 @@ const { title = "half-built-ui", description = "The reference site for the @half
          request at all. Bundlers drop the island entirely while the
          constant is null. */
       if (ECOSYSTEM_ENDPOINT !== null) {
-        void mountEcosystem(document, { endpoint: ECOSYSTEM_ENDPOINT, selfKey: ECOSYSTEM_SELF_KEY });
+        /* Every known throw site inside mountEcosystem is already
+           guarded, so this catch is belt and braces against an
+           unexpected rejection surfacing as an unhandled console
+           error. Either way the server-rendered baseline stands. */
+        void mountEcosystem(document, { endpoint: ECOSYSTEM_ENDPOINT, selfKey: ECOSYSTEM_SELF_KEY }).catch(() => {});
       }
     </script>
     <slot name="scripts" />

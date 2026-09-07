@@ -160,12 +160,15 @@ Behavior:
 2. Fetch `endpoint`, retrying transient failures per the Retry
    section below. Each attempt carries its own AbortController
    timeout of 3 seconds.
-3. Refuse the payload, leaving the DOM untouched, when every attempt
-   fails and no usable cached copy exists, the JSON does not parse,
-   `version` is not 1, `entries` is not a non-empty array, any entry
-   fails shape validation, or no entry matches `selfKey`. The last
-   rule matters: a site must never render an ecosystem list that omits
-   itself.
+3. A live response whose JSON does not parse, whose `version` is not 1,
+   whose `entries` is not a non-empty array, or whose entries fail
+   shape validation is refused as a content failure; the cache is then
+   consulted, exactly as it is after a transport failure. Whichever
+   document is resolved, live or cached, is then checked for an entry
+   matching `selfKey`; missing that is also a refusal, because a site
+   must never render an ecosystem list that omits itself. The DOM is
+   left untouched only when no usable document is resolved at all, or
+   the resolved one fails that self-key check.
 4. Sort: entries whose `family` equals the self entry's family first,
    then the rest. Within each group, `priority` ascending, then
    `label` as a stable tiebreak.
@@ -203,13 +206,23 @@ What retries and what does not is the part worth getting right:
 **Last known good, for a failure retry cannot fix.** On every
 successful fetch the island writes the validated payload to
 `localStorage` under `half-built-ecosystem`, with the fetch timestamp.
-When every attempt fails, the island reads that copy, and uses it when
-it is younger than 24 hours, which matches the edge's
-stale-while-revalidate window. The cached copy runs through the same
-validation as a fetched one, because storage is untrusted input and a
-stale schema must not reach the DOM. Every read and write is wrapped
-in try and catch, matching the palette editor's handling of a private
-window or blocked site data.
+The island reads that copy whenever the live attempt does not yield a
+usable document, whether every attempt failed outright or a live
+response was refused as a content failure, and uses it when it is
+younger than 24 hours, which matches the edge's stale-while-revalidate
+window. The cached copy runs through the same validation as a fetched
+one, because storage is untrusted input and a stale schema must not
+reach the DOM. Every read and write is wrapped in try and catch,
+matching the palette editor's handling of a private window or blocked
+site data.
+
+One consequence worth flagging for the owner: because a content
+failure falls through to the cache rather than to a hard refusal, a
+bad commit to `ecosystem.json` stays invisible to anyone who loaded a
+page in the previous 24 hours. That is the intended trade, a visitor
+sees a stale-but-valid list rather than a broken one, but it matters
+during an incident, since fixing the file will not visibly fix the
+site for those visitors until their cache ages out.
 
 The cache is a fallback only. It is never rendered ahead of the fetch,
 so a visitor sees one list swap rather than two, and a change to the
@@ -284,9 +297,13 @@ Adding this repo means a sixth row in the workspace CLAUDE.md table.
 - **Browser, on the ui site:** the baseline renders with the island
   never mounted, and against a stubbed endpoint the list updates to
   the fetched entries in the expected order.
-- **Schema:** a shared check that every site's committed baseline and
-  the live document validate against the same shape, so a baseline
-  cannot drift into an invalid form.
+- **Schema, not yet implemented:** the site's static `EcosystemEntry`
+  baseline (`key`, `label`, `href`, no `priority` or `family`) and the
+  document's `EcosystemDocEntry` are different shapes by design, so a
+  shared shape check is not achievable as such. What is checkable and
+  worth having is narrower: a check that every `key` in a site's
+  committed baseline exists in the shipped document, so a baseline
+  cannot silently point at a property that no longer exists.
 
 ## Open owner decisions
 
@@ -311,15 +328,19 @@ Adding this repo means a sixth row in the workspace CLAUDE.md table.
   and a README. It has an initial commit and no remote.
 - `@half-built/astro` gained `scripts/ecosystem` and a `data-ecosystem`
   attribute on the Footer's ecosystem list. The component's props are
-  unchanged, so the attribute is additive and the blog's parity check
-  should show no movement from it.
+  unchanged: no element, no prop and no rendered text moves. But the
+  blog's parity gate is byte-level, and the attribute is a one-token
+  delta on every page that renders the Footer, which is every page. The
+  gate will flag it, and that is expected at the pin bump rather than a
+  sign of a real difference.
 - The retry rule is implemented as specified: a network error, a
   timeout, a 429 and a 5xx retry across three attempts with jittered
   backoff; a 404 and any unusable body are attempted once. The tests
   assert the call count on both no-retry paths.
 - The last-known-good cache lives under `half-built-ecosystem` in
-  `localStorage`, is used only when a load fails outright, and is
-  revalidated on read.
+  `localStorage`, is used whenever the live attempt does not yield a
+  usable document, whether it failed outright or was refused as a
+  content failure, and is revalidated on read.
 - A test pins that a successful fetch is always preferred over a
   present, valid cache, so the cache can never shadow fresh data.
 - The ui site carries the satellite baseline and a guarded mount.

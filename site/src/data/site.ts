@@ -34,7 +34,7 @@ export const LEGAL_HOLDER = "Curt Henrichs";
 
 /* Site lists this page's sections, More points off the site (owner
    call 2026-09-06). Ecosystem is the Footer's own third column and
-   comes from ECOSYSTEM below, pending its own pass. */
+   comes from ECOSYSTEM below. */
 export const FOOTER_SITEMAP: SitemapGroup[] = [
   {
     title: "Site",

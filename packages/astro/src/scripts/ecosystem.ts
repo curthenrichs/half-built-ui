@@ -1,7 +1,8 @@
 /* The ecosystem island: the footer's Ecosystem column, fetched at
    runtime from a shared document so adding a property to the family
    never means rebuilding every site (design record
-   2026-09-06-ecosystem-endpoint-design.md in this repo's docs).
+   docs/superpowers/specs/2026-09-06-ecosystem-endpoint-design.md in
+   this repo).
 
    The component keeps rendering its typed props, which are the static
    baseline. This island replaces that list only on a validated,
@@ -35,7 +36,12 @@ function isEntry(value: unknown): value is EcosystemDocEntry {
   return (
     typeof entry.key === "string" && entry.key !== "" &&
     typeof entry.label === "string" && entry.label !== "" &&
-    (entry.href === null || typeof entry.href === "string") &&
+    /* href is checked by scheme, not just type, because it is assigned
+       straight to link.href below. The document and the cached copy
+       are both untrusted input, and a javascript: or data: URL there
+       would run on the consumer's origin when clicked. */
+    (entry.href === null ||
+      (typeof entry.href === "string" && /^https?:\/\//i.test(entry.href))) &&
     typeof entry.priority === "number" && Number.isFinite(entry.priority) &&
     typeof entry.family === "string" && entry.family !== ""
   );
@@ -105,33 +111,40 @@ function sleep(ms: number): Promise<void> {
 async function attemptFetch(endpoint: string): Promise<Attempt> {
   const controller = new AbortController();
   const timer = setTimeout(() => { controller.abort(); }, ATTEMPT_TIMEOUT_MS);
-  let response: Response;
+  /* The timer is cleared once in this single finally, which covers the
+     header fetch and the body read alike: the 3 second budget bounds
+     the whole attempt, not just the response headers, so a stalled
+     body read still aborts instead of leaving the promise pending
+     forever. */
   try {
-    response = await fetch(endpoint, { signal: controller.signal, credentials: "omit" });
-  } catch {
-    return { kind: "transport", status: null };
+    let response: Response;
+    try {
+      response = await fetch(endpoint, { signal: controller.signal, credentials: "omit" });
+    } catch {
+      return { kind: "transport", status: null };
+    }
+    if (!response.ok) return { kind: "transport", status: response.status };
+    let text: string;
+    try {
+      text = await response.text();
+    } catch {
+      return { kind: "transport", status: null };
+    }
+    try {
+      return { kind: "body", body: JSON.parse(text) as unknown };
+    } catch {
+      /* Parsed nothing usable. The same bytes come back next time. */
+      return { kind: "content" };
+    }
   } finally {
     clearTimeout(timer);
   }
-  if (!response.ok) return { kind: "transport", status: response.status };
-  let text: string;
-  try {
-    text = await response.text();
-  } catch {
-    return { kind: "transport", status: null };
-  }
-  try {
-    return { kind: "body", body: JSON.parse(text) as unknown };
-  } catch {
-    /* Parsed nothing usable. The same bytes come back next time. */
-    return { kind: "content" };
-  }
 }
 
-function readCache(storage: Storage | null, now: number): EcosystemDocument | null {
+function readCache(storage: Storage | null, cacheKey: string, now: number): EcosystemDocument | null {
   if (!storage) return null;
   try {
-    const raw = storage.getItem(CACHE_KEY);
+    const raw = storage.getItem(cacheKey);
     if (raw === null) return null;
     const parsed: unknown = JSON.parse(raw);
     if (typeof parsed !== "object" || parsed === null) return null;
@@ -145,10 +158,10 @@ function readCache(storage: Storage | null, now: number): EcosystemDocument | nu
   }
 }
 
-function writeCache(storage: Storage | null, now: number, document: EcosystemDocument): void {
+function writeCache(storage: Storage | null, cacheKey: string, now: number, document: EcosystemDocument): void {
   if (!storage) return;
   try {
-    storage.setItem(CACHE_KEY, JSON.stringify({ fetchedAt: now, document }));
+    storage.setItem(cacheKey, JSON.stringify({ fetchedAt: now, document }));
   } catch {
     /* A private window or blocked site data. The fetch still stands. */
   }
@@ -161,6 +174,7 @@ export async function loadDocument(
   storage: Storage | null,
   now: number,
   retryDelaysMs: number[] = RETRY_DELAYS_MS,
+  cacheKey: string = CACHE_KEY,
 ): Promise<EcosystemDocument | null> {
   /* One attempt up front, then one per configured delay. Iterating the
      delays rather than indexing them keeps this free of the array
@@ -172,7 +186,7 @@ export async function loadDocument(
     if (result.kind === "body") {
       const document = validateDocument(result.body);
       if (document) {
-        writeCache(storage, now, document);
+        writeCache(storage, cacheKey, now, document);
         return document;
       }
       break;
@@ -180,7 +194,7 @@ export async function loadDocument(
     if (result.kind === "content") break;
     if (!retryable(result.status)) break;
   }
-  return readCache(storage, now);
+  return readCache(storage, cacheKey, now);
 }
 
 const DEFAULT_LIMIT = 6;
@@ -193,6 +207,12 @@ export interface EcosystemOptions {
   selfKey: string;
   limit?: number;
   retryDelaysMs?: number[];
+  /* The storage key is a mount option, not a package literal (same
+     convention as theme-toggle.ts's storageKey), so a consumer can
+     namespace the cache. Defaults to the current literal, which keeps
+     behavior identical and lets two sites on one origin share the
+     cached document, which is reasonable since it is not site-specific. */
+  cacheKey?: string;
 }
 
 function entryNode(doc: Document, entry: EcosystemDocEntry, selfKey: string): HTMLElement {
@@ -223,14 +243,21 @@ function safeStorage(view: Window | null): Storage | null {
 }
 
 /** Replace the footer's ecosystem list with the shared document's, or
-    leave the server-rendered baseline exactly as it is. */
+    leave the server-rendered baseline exactly as it is.
+
+    This deliberately does not follow the package's Island<O> contract
+    from core/island.ts: it is async and returns no destroy handle,
+    because there is nothing here to tear down. One consequence is that
+    it has no claim() guard, so a caller that mounts it twice on the
+    same document runs the fetch and the swap twice; every known
+    caller mounts it once. */
 export async function mountEcosystem(root: Document, opts: EcosystemOptions): Promise<void> {
-  const { endpoint, selfKey, limit = DEFAULT_LIMIT, retryDelaysMs } = opts;
+  const { endpoint, selfKey, limit = DEFAULT_LIMIT, retryDelaysMs, cacheKey = CACHE_KEY } = opts;
   const list = root.querySelector<HTMLElement>("[data-ecosystem]");
   if (!list) return;
 
   const storage = safeStorage(root.defaultView);
-  const document_ = await loadDocument(endpoint, storage, Date.now(), retryDelaysMs);
+  const document_ = await loadDocument(endpoint, storage, Date.now(), retryDelaysMs, cacheKey);
   if (!document_) return;
 
   const entries = sortEntries(document_.entries, selfKey, limit);

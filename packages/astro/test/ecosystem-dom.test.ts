@@ -47,6 +47,11 @@ describe("validateDocument", () => {
     const one = { ...DOC, entries: [DOC.entries[1]] };
     expect(validateDocument(one)?.entries[0].href).toBeNull();
   });
+
+  it("refuses an entry whose href is not an absolute http(s) URL", () => {
+    const bad = { ...DOC, entries: [{ ...DOC.entries[0], href: "javascript:alert(1)" }] };
+    expect(validateDocument(bad)).toBeNull();
+  });
 });
 
 describe("sortEntries", () => {
