@@ -259,8 +259,22 @@ describe.skipIf(!enabled)("browser suite", () => {
   it("the footer's ecosystem list carries the island's hook and the baseline", async () => {
     const p = await open();
     /* The hook is what mountEcosystem finds. The baseline is what
-       renders until the endpoint exists, and with JavaScript off
-       forever: this site plus a pointer home to the blog. */
+       renders with JavaScript off forever, and what stands whenever
+       the endpoint cannot be reached: this site plus a pointer home
+       to the blog.
+
+       The endpoint is blocked rather than fetched. Since it went live
+       the island would otherwise replace this list with the real
+       document, making the assertion depend on a third-party host
+       being up and on the contents of a file in another repo. Blocking
+       it tests the fallback path, which is the load-bearing promise,
+       and keeps the suite hermetic. The fetch-and-replace path is
+       covered against fixtures in ecosystem-dom.test.ts. */
+    await p.setRequestInterception(true);
+    p.on("request", (req) => {
+      void (req.url().includes("ecosystem.json") ? req.abort() : req.continue());
+    });
+    await p.reload({ waitUntil: "networkidle0" });
     const list = await p.$("footer [data-ecosystem]");
     expect(list, "the footer has no data-ecosystem hook").not.toBeNull();
     /* Same two-type-worlds note as palette-editor.ts's copy handler:

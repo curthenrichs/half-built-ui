@@ -6,7 +6,10 @@
 /* Matches the shared document's key for this site. */
 export const ECOSYSTEM_SELF_KEY = "ui";
 
-/* Null until the Pages project and the CNAME exist, which are owner
-   actions. While it is null the island never mounts and the site makes
-   no request, so going live is this one line. */
-export const ECOSYSTEM_ENDPOINT: string | null = null;
+/* Live since 2026-09-07: the half-built-ecosystem-data Pages project
+   serves this with Access-Control-Allow-Origin *. Setting it back to
+   null is the kill switch, and a clean one: the island never mounts,
+   the site makes no request, and the server-rendered baseline in
+   data/site.ts is what ships. The same baseline stands whenever the
+   fetch fails, so a bad day at the endpoint costs the site nothing. */
+export const ECOSYSTEM_ENDPOINT: string | null = "https://ecosystem.half-built-robots.com/ecosystem.json";
