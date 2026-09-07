@@ -26,7 +26,9 @@
     align-self: start;
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    /* Clears the Sections label, which straddles the box's top rule
+       and so reaches about 10px up into this gap. */
+    gap: 28px;
     z-index: calc(var(--z-scroll-top) + 1);
   }
   /* The Sections knob exists for the corner cluster only. */
@@ -60,7 +62,13 @@
      as a deliberate control; the palette knob's two live swatches
      read the brand variables directly, so an applied palette recolors
      the closed button with no script. */
-  .site-knob { position: relative; }
+  /* Above the TOC box: that box is positioned too (its label straddles
+     the top rule) and comes later in the rail, so without this step
+     the open palette panel paints underneath it. */
+  .site-knob {
+    position: relative;
+    z-index: 1;
+  }
   .site-knob > summary {
     cursor: pointer;
     list-style: none;

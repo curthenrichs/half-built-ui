@@ -41,6 +41,24 @@ export function mountToc(root: Document): void {
     observer.observe(section);
   });
 
+  /* The observer only speaks when a section crosses its middle band,
+     so a reader who has not scrolled yet saw no current section at
+     all: the rail opened with nothing marked (owner catch
+     2026-09-06). Mark the section the page opens on, and let the
+     observer take it from there. */
+  const viewportH = root.defaultView?.innerHeight ?? 0;
+  let openingId = "";
+  for (const section of sections) {
+    /* The first section seeds the value, then every section already
+       past the band overwrites it, so this ends on the last one the
+       page opens against. No index access, which keeps the check
+       honest under both the strict and the lint type projects. */
+    if (openingId === "" || section.getBoundingClientRect().top <= viewportH * 0.45) {
+      openingId = section.id;
+    }
+  }
+  setCurrent(openingId);
+
   const panel = root.querySelector<HTMLElement>("[data-rail-sections]");
   if (!(panel instanceof HTMLDetailsElement)) return;
   const closePanel = (): void => {

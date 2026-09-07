@@ -98,11 +98,22 @@ import { SECTIONS } from "../data/sections";
 </aside>
 
 <style>
-  /* The section header: the boxed-label pattern as a small panel
-     above the list, inset to sit over the links' 8px text edge. */
+  /* The list sits in the Group treatment's rule box, with the
+     Sections label straddling its top rule the way Callout and
+     EditorNote place theirs (owner calls 2026-09-06). The box is the
+     only thing added; the list inside keeps its own shape. */
+  .site-rail-toc {
+    position: relative;
+    border: var(--stroke) solid var(--rule);
+    background: var(--surface);
+    padding: 18px 8px 10px;
+  }
   .site-rail-toc-label {
-    display: inline-block;
-    margin: 0 0 10px 8px;
+    position: absolute;
+    top: 0;
+    left: 10px;
+    /* Center the label on the 2px top rule, not the padding edge. */
+    transform: translateY(calc(-50% - 1px));
     padding: 3px 8px;
     font-size: var(--font-size-xs);
     font-weight: 700;
