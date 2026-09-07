@@ -77,3 +77,108 @@ export function sortEntries(
     })
     .slice(0, limit);
 }
+
+const CACHE_KEY = "half-built-ecosystem";
+const CACHE_TTL_MS = 24 * 60 * 60 * 1000;
+const ATTEMPT_TIMEOUT_MS = 3000;
+const RETRY_DELAYS_MS = [400, 1200];
+const JITTER_MS = 250;
+
+/* A transport failure can differ on a second attempt. A content
+   failure cannot, so it is reported separately and never retried. */
+type Attempt =
+  | { kind: "body"; body: unknown }
+  | { kind: "transport"; status: number | null }
+  | { kind: "content" };
+
+function retryable(status: number | null): boolean {
+  if (status === null) return true;
+  if (status === 429) return true;
+  return status >= 500 && status <= 599;
+}
+
+function sleep(ms: number): Promise<void> {
+  const jitter = ms === 0 ? 0 : Math.random() * JITTER_MS;
+  return new Promise((resolve) => setTimeout(resolve, ms + jitter));
+}
+
+async function attemptFetch(endpoint: string): Promise<Attempt> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => { controller.abort(); }, ATTEMPT_TIMEOUT_MS);
+  let response: Response;
+  try {
+    response = await fetch(endpoint, { signal: controller.signal, credentials: "omit" });
+  } catch {
+    return { kind: "transport", status: null };
+  } finally {
+    clearTimeout(timer);
+  }
+  if (!response.ok) return { kind: "transport", status: response.status };
+  let text: string;
+  try {
+    text = await response.text();
+  } catch {
+    return { kind: "transport", status: null };
+  }
+  try {
+    return { kind: "body", body: JSON.parse(text) as unknown };
+  } catch {
+    /* Parsed nothing usable. The same bytes come back next time. */
+    return { kind: "content" };
+  }
+}
+
+function readCache(storage: Storage | null, now: number): EcosystemDocument | null {
+  if (!storage) return null;
+  try {
+    const raw = storage.getItem(CACHE_KEY);
+    if (raw === null) return null;
+    const parsed: unknown = JSON.parse(raw);
+    if (typeof parsed !== "object" || parsed === null) return null;
+    const record = parsed as Record<string, unknown>;
+    if (typeof record.fetchedAt !== "number") return null;
+    if (now - record.fetchedAt > CACHE_TTL_MS) return null;
+    /* Storage is untrusted input, so it runs the same gate as a fetch. */
+    return validateDocument(record.document);
+  } catch {
+    return null;
+  }
+}
+
+function writeCache(storage: Storage | null, now: number, document: EcosystemDocument): void {
+  if (!storage) return;
+  try {
+    storage.setItem(CACHE_KEY, JSON.stringify({ fetchedAt: now, document }));
+  } catch {
+    /* A private window or blocked site data. The fetch still stands. */
+  }
+}
+
+/** Fetch with retry, falling back to the last known good copy. Null
+    when neither yields a usable document. */
+export async function loadDocument(
+  endpoint: string,
+  storage: Storage | null,
+  now: number,
+  retryDelaysMs: number[] = RETRY_DELAYS_MS,
+): Promise<EcosystemDocument | null> {
+  /* One attempt up front, then one per configured delay. Iterating the
+     delays rather than indexing them keeps this free of the array
+     index access that reads as possibly undefined under the strict
+     project and as definitely defined under the lint project. */
+  for (const delay of [0, ...retryDelaysMs]) {
+    await sleep(delay);
+    const result = await attemptFetch(endpoint);
+    if (result.kind === "body") {
+      const document = validateDocument(result.body);
+      if (document) {
+        writeCache(storage, now, document);
+        return document;
+      }
+      break;
+    }
+    if (result.kind === "content") break;
+    if (!retryable(result.status)) break;
+  }
+  return readCache(storage, now);
+}
