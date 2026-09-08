@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://ui.half-built-robots.com/sitemap-index.xml

@@ -256,6 +256,39 @@ describe.skipIf(!enabled)("browser suite", () => {
     }
   }, 60_000);
 
+  it("the footer's ecosystem list carries the island's hook and the baseline", async () => {
+    const p = await open();
+    /* The hook is what mountEcosystem finds. The baseline is what
+       renders with JavaScript off forever, and what stands whenever
+       the endpoint cannot be reached: this site plus a pointer home
+       to the blog.
+
+       The endpoint is blocked rather than fetched. Since it went live
+       the island would otherwise replace this list with the real
+       document, making the assertion depend on a third-party host
+       being up and on the contents of a file in another repo. Blocking
+       it tests the fallback path, which is the load-bearing promise,
+       and keeps the suite hermetic. The fetch-and-replace path is
+       covered against fixtures in ecosystem-dom.test.ts. */
+    await p.setRequestInterception(true);
+    p.on("request", (req) => {
+      void (req.url().includes("ecosystem.json") ? req.abort() : req.continue());
+    });
+    await p.reload({ waitUntil: "networkidle0" });
+    const list = await p.$("footer [data-ecosystem]");
+    expect(list, "the footer has no data-ecosystem hook").not.toBeNull();
+    /* Same two-type-worlds note as palette-editor.ts's copy handler:
+       strict DOM sees string | null, the lint project sees string. */
+    const items = await p.$$eval("footer [data-ecosystem] li", (els) =>
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+      els.map((el) => el.textContent?.trim() ?? ""));
+    expect(items).toEqual(["half-built-ui", "Half-Built Robots"]);
+    const self = await p.$$eval("footer [data-ecosystem] .footer-sitemap-self", (els) =>
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+      els.map((el) => el.textContent?.trim() ?? ""));
+    expect(self).toEqual(["half-built-ui"]);
+  }, 30_000);
+
   it("the toc renders one link per section and every href target exists", async () => {
     const p = await open();
     const hrefs = await p.$$eval('.site-rail-toc a', (els) =>

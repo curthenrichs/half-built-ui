@@ -62,7 +62,7 @@ const year = new Date().getFullYear();
         )}
         <details class="footer-sitemap-group footer-sitemap-collapsible" open>
           <summary><h2>{ecosystemTitle}</h2></summary>
-          <ul>
+          <ul data-ecosystem>
             {ecosystem.map((entry) => (
               <li>
                 {entry.key === ecosystemSelf ? (

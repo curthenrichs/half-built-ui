@@ -11,14 +11,15 @@
     "test:browser": "vitest run test/browser.test.ts"
   },
   "dependencies": {
-    "@half-built/astro": "0.2.0",
-    "@half-built/css": "0.2.0",
+    "@astrojs/sitemap": "^3.7.4",
+    "@half-built/astro": "0.3.0",
+    "@half-built/css": "0.3.0",
     "astro": "^5.18.2",
     "culori": "^4"
   },
   "devDependencies": {
     "@csstools/postcss-global-data": "^4.0.0",
-    "@half-built/tooling": "0.2.0",
+    "@half-built/tooling": "0.3.0",
     "postcss-custom-media": "^12.0.1",
     "vitest": "^2.1.9"
   }
