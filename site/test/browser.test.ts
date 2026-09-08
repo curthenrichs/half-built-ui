@@ -289,6 +289,62 @@ describe.skipIf(!enabled)("browser suite", () => {
     expect(self).toEqual(["half-built-ui"]);
   }, 30_000);
 
+  it("the swapped ecosystem list keeps the footer's own styling", async () => {
+    /* The complement to the test above. That one blocks the endpoint
+       and checks the baseline; this one answers with a fixture and
+       checks what the island builds, so neither touches the network.
+
+       Computed styles, not classes: 0.3.0 shipped an island whose
+       markup and classes were correct and whose rendering was not,
+       because Astro scopes Footer.astro's rules to a data-astro-cid
+       attribute that createElement nodes never carried. Asserting the
+       class would have passed straight through the bug. */
+    const doc = JSON.stringify({
+      version: 1,
+      updated: "2026-09-07",
+      entries: [
+        { key: "blog", label: "Half-Built Robots", href: "https://half-built-robots.com/", priority: 0, family: "half-built" },
+        { key: "beadz", label: "The Bead Reserve", href: null, priority: 1, family: "half-built" },
+        { key: "ui", label: "half-built-ui", href: null, priority: 3, family: "half-built" },
+      ],
+    });
+    const p = await open();
+    await p.setRequestInterception(true);
+    p.on("request", (req) => {
+      void (req.url().includes("ecosystem.json")
+        ? req.respond({
+            status: 200,
+            contentType: "application/json",
+            /* The stub is cross-origin exactly as the real endpoint is,
+               so it needs the same CORS header. Without it the fetch
+               fails and the island falls back to the baseline, which
+               made this test look like a swap bug rather than a stub
+               missing a header. */
+            headers: { "Access-Control-Allow-Origin": "*" },
+            body: doc,
+          })
+        : req.continue());
+    });
+    await p.reload({ waitUntil: "networkidle0" });
+    const rendered = await p.$$eval("footer [data-ecosystem] li > *", (els) =>
+      els.map((el) => {
+        const cs = getComputedStyle(el);
+        /* Same two-type-worlds note as the baseline test above: strict
+           DOM sees string | null, the lint project sees string. */
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+        return { text: el.textContent?.trim() ?? "", weight: cs.fontWeight,
+          opacity: cs.opacity, deco: cs.textDecorationLine };
+      }));
+    expect(rendered.map((r) => r.text)).toEqual(["Half-Built Robots", "The Bead Reserve", "half-built-ui"]);
+    /* The link keeps the footer's underline-on-hover treatment rather
+       than falling back to the browser's default underline. */
+    expect(rendered[0].deco).toBe("none");
+    /* Undeployed, so dimmed. */
+    expect(Number(rendered[1].opacity)).toBeLessThan(1);
+    /* You are here, so bold. */
+    expect(rendered[2].weight).toBe("700");
+  }, 30_000);
+
   it("the toc renders one link per section and every href target exists", async () => {
     const p = await open();
     const hrefs = await p.$$eval('.site-rail-toc a', (els) =>

@@ -254,6 +254,43 @@ describe("mountEcosystem", () => {
     expect(list.querySelectorAll(".footer-sitemap-pending")).toHaveLength(2);
   });
 
+  /* The bug these two cover shipped in 0.3.0 and neither suite saw it.
+     The list swapped correctly and carried the right classes, so every
+     assertion passed while the rendered footer lost its bold, its
+     dimming, and its link styling. Astro's scoped rules only match
+     elements carrying the component's data-astro-cid attribute, and
+     nothing built with createElement carries it. Assert the attribute
+     here; the browser suite asserts the computed styles it buys. */
+  it("stamps the component's scope attribute onto everything it builds", async () => {
+    document.body.innerHTML = `
+      <ul data-ecosystem data-astro-cid-abc123>
+        <li data-astro-cid-abc123><span class="footer-sitemap-self" data-astro-cid-abc123>half-built-ui</span></li>
+      </ul>`;
+    const list = document.querySelector<HTMLElement>("[data-ecosystem]");
+    if (!list) throw new Error("no fixture list");
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(jsonResponse(DOC)));
+    await mountEcosystem(document, { endpoint: "https://e.test/x.json", selfKey: "ui", retryDelaysMs: NO_DELAY });
+    const built = [...list.querySelectorAll("li, li > *")];
+    expect(built.length).toBe(10);
+    expect(built.every((el) => el.hasAttribute("data-astro-cid-abc123"))).toBe(true);
+  });
+
+  it("builds an unscoped list when the consumer's footer is unscoped", async () => {
+    const list = mountFixture();
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(jsonResponse(DOC)));
+    await mountEcosystem(document, { endpoint: "https://e.test/x.json", selfKey: "ui", retryDelaysMs: NO_DELAY });
+    const attrs = [...list.querySelectorAll("li, li > *")].flatMap((el) => [...el.attributes].map((a) => a.name));
+    expect(attrs.filter((n) => n.startsWith("data-astro-cid-"))).toEqual([]);
+  });
+
+  it("marks the self entry for a screen reader, which cannot see the bold", async () => {
+    const list = mountFixture();
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(jsonResponse(DOC)));
+    await mountEcosystem(document, { endpoint: "https://e.test/x.json", selfKey: "ui", retryDelaysMs: NO_DELAY });
+    expect(list.querySelector(".footer-sitemap-self")?.getAttribute("aria-current")).toBe("page");
+    expect(list.querySelectorAll('[aria-current="page"]')).toHaveLength(1);
+  });
+
   it("honours the limit", async () => {
     const list = mountFixture();
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(jsonResponse(DOC)));

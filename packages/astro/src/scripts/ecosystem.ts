@@ -215,10 +215,31 @@ export interface EcosystemOptions {
   cacheKey?: string;
 }
 
+/* Astro compiles a component's scoped rules to `.cls[data-astro-cid-x]`,
+   and it stamps that attribute at build time on markup it renders. An
+   element built here with createElement never gets stamped, so it
+   matches none of Footer.astro's scoped rules: the self entry loses its
+   bold, a pending entry loses its dimming, and every link falls back to
+   the browser's default underline. The server-rendered list is stamped,
+   so the fix is to read the attribute off it and carry it onto whatever
+   we create. Read rather than hardcoded, because the hash changes
+   whenever the component's styles change. Consumers who render the
+   footer unscoped simply have nothing to copy, and the loop is a no-op. */
+function scopeOf(list: Element): string | null {
+  for (const { name } of list.attributes) {
+    if (name.startsWith("data-astro-cid-")) return name;
+  }
+  return null;
+}
+
 function entryNode(doc: Document, entry: EcosystemDocEntry, selfKey: string): HTMLElement {
   if (entry.key === selfKey) {
     const self = doc.createElement("span");
     self.className = "footer-sitemap-self";
+    /* The bold is the visual "you are here"; this is the same statement
+       for a screen reader, which cannot see weight. Without it the self
+       entry is announced exactly like an undeployed one. */
+    self.setAttribute("aria-current", "page");
     self.textContent = entry.label;
     return self;
   }
@@ -263,10 +284,16 @@ export async function mountEcosystem(root: Document, opts: EcosystemOptions): Pr
   const entries = sortEntries(document_.entries, selfKey, limit);
   if (!entries || entries.length === 0) return;
 
+  const scope = scopeOf(list);
   const fragment = root.createDocumentFragment();
   for (const entry of entries) {
     const item = root.createElement("li");
-    item.append(entryNode(root, entry, selfKey));
+    const node = entryNode(root, entry, selfKey);
+    if (scope !== null) {
+      item.setAttribute(scope, "");
+      node.setAttribute(scope, "");
+    }
+    item.append(node);
     fragment.append(item);
   }
   list.replaceChildren(fragment);
