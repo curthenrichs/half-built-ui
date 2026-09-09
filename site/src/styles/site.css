@@ -228,14 +228,28 @@
      so it stays beside the trigger and the thumb. */
   @media (--bp-tablet) {
     .site-layout { display: block; }
+    /* The cluster's inset from the viewport corner, shared with the
+       footer's reserve below so the two cannot drift apart. */
+    :root { --site-rail-inset: 1rem; }
     .site-rail {
       position: fixed;
       top: auto;
-      bottom: 1rem;
-      left: 1rem;
+      bottom: var(--site-rail-inset);
+      left: var(--site-rail-inset);
       flex-direction: row;
       gap: 8px;
     }
+    /* A fixed cluster takes no room in flow, so the footer's last
+       links ended under it (owner report 2026-09-09): Portfolio and
+       Okos Polip at phone widths, and the Site column's Components and
+       CSS at tablet widths, where the sitemap's leftmost column starts
+       inside the cluster's span. The footer's shell reserves the
+       cluster's room itself, so the tinted band simply runs on below
+       the last link: the inset, the knob (font-size-sm plus 8px of
+       padding and the stroke each side, 40px), and a line of air. The
+       shell rather than .bottom-footer because Footer.astro's scoped
+       padding shorthand is unlayered and would beat this layer. */
+    .site-footer .shell { padding-bottom: calc(var(--site-rail-inset) + 40px + 1rem); }
     .site-rail-toc { display: none; }
     .site-rail-sections { display: block; }
     /* Panels anchor to the rail, not their own knob: anchored to the
