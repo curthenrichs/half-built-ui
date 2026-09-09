@@ -275,6 +275,17 @@ describe.skipIf(!enabled)("browser suite", () => {
       void (req.url().includes("ecosystem.json") ? req.abort() : req.continue());
     });
     await p.reload({ waitUntil: "networkidle0" });
+    /* The island keeps its last good document in localStorage for a
+       day and falls back to it once its retries (400ms, then 1200ms,
+       plus jitter) are spent. open()'s evaluateOnNewDocument clear
+       runs again on this reload, so the copy the first load cached is
+       gone before the island mounts; that is what makes the blocked
+       fetch land on the baseline rather than the cached document (the
+       blog's copy of this test learned that in CI on 2026-09-09).
+       networkidle0 fires between the retries, so wait the chain out
+       before asserting: "stands" means after the fallback ran, not
+       before it. */
+    await new Promise((r) => setTimeout(r, 2500));
     const list = await p.$("footer [data-ecosystem]");
     expect(list, "the footer has no data-ecosystem hook").not.toBeNull();
     /* Same two-type-worlds note as palette-editor.ts's copy handler:
