@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { readingTime } from "../src/lib/reading-time";
-import { visiblePosts } from "../src/lib/drafts";
+import { visiblePosts, forwardLinkVisible, resolvePostHref } from "../src/lib/drafts";
 import { slugifyCategory, pagePath, assertPageRoutable, categoryPath, internalHrefKey } from "../src/lib/slug";
 import { groupByMonth, countByCategory } from "../src/lib/archive";
 import { formatPostDate } from "../src/lib/format-date";
@@ -142,6 +142,33 @@ describe("visiblePosts", () => {
   });
   it("treats a missing draft field as published", () => {
     expect(visiblePosts([post("a")], false)).toEqual([post("a")]);
+  });
+});
+
+describe("forwardLinkVisible", () => {
+  const posts = [
+    { data: { slug: "live", draft: false } },
+    { data: { slug: "soon", draft: true } },
+  ];
+  it("shows a passage whose target is published", () => {
+    expect(forwardLinkVisible("live", posts, false)).toBe(true);
+  });
+  it("hides a passage whose target is a draft, unless drafts are shown", () => {
+    expect(forwardLinkVisible("soon", posts, false)).toBe(false);
+    expect(forwardLinkVisible("soon", posts, true)).toBe(true);
+  });
+  it("throws on a slug no post has, so a typo cannot pass as a draft", () => {
+    expect(() => forwardLinkVisible("typo", posts, false)).toThrow(/no post has slug "typo"/);
+  });
+});
+
+describe("resolvePostHref", () => {
+  const posts = [{ data: { slug: "live", date: new Date("2026-09-01T00:00:00Z") } }];
+  it("resolves a slug to the dated permalink", () => {
+    expect(resolvePostHref("live", posts)).toBe("/2026/09/01/live/");
+  });
+  it("throws on an unknown slug", () => {
+    expect(() => resolvePostHref("typo", posts)).toThrow(/no post has slug "typo"/);
   });
 });
 
