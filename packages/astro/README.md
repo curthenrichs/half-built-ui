@@ -43,6 +43,9 @@ name) instead of `hex`: the swatch then paints `var(token)` and
 follows the live cascade with no script, and the hex cell renders
 empty with a `data-token-hex` attribute for a consumer script to fill
 from computed styles. Entries with `hex` render exactly as before.
+The table's scroll box is a keyboard tab stop named by the `label`
+prop (default "Palette"), since the table scrolls sideways below the
+column's width.
 
 ## Ecosystem island
 
