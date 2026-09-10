@@ -355,11 +355,12 @@ const npmPackages = [
             wear the same treatment. */}
         <div class="prose">
           <p>The boxed ledger every table in the system wears. Wide tables scroll inside their own box, so the page never scrolls sideways.</p>
-          {/* Scroll boxes are tab stops with names: a region that
-              scrolls sideways and a keyboard cannot reach fails WCAG
-              2.1.1 (axe scrollable-region-focusable), and the wide
-              ramps table below scrolls at every width. */}
-          <div class="table-scroll" tabindex="0" role="region" aria-label="Breakpoints">
+          {/* Scroll boxes are named sections, so tab stops with a
+              landmark name: a region that scrolls sideways and a
+              keyboard cannot reach fails WCAG 2.1.1 (axe
+              scrollable-region-focusable), and the wide ramps table
+              below scrolls at every width. */}
+          <section class="table-scroll" tabindex="0" aria-label="Breakpoints">
             <table>
               <thead>
                 <tr><th>Breakpoint</th><th>Query</th><th>What changes</th></tr>
@@ -370,9 +371,9 @@ const npmPackages = [
                 <tr><td><code>--bp-tablet</code></td><td><code>max-width: 1024px</code></td><td>The wide-image step.</td></tr>
               </tbody>
             </table>
-          </div>
+          </section>
           <p>A wide one, scrolling in its own box. Every color primitive in the sheet, one row per family and one column per stop.</p>
-          <div class="table-scroll" tabindex="0" role="region" aria-label="Color primitives">
+          <section class="table-scroll" tabindex="0" aria-label="Color primitives">
             <table>
               <thead>
                 <tr><th>Family</th>{rampStops.map((stop) => <th>{stop}</th>)}</tr>
@@ -383,7 +384,7 @@ const npmPackages = [
                 ))}
               </tbody>
             </table>
-          </div>
+          </section>
         </div>
 
         <h3>Tokens</h3>
@@ -409,7 +410,7 @@ const npmPackages = [
             for column restates each class's documented purpose from
             patterns.css, not invented roles. */}
         <div class="prose">
-          <div class="table-scroll" tabindex="0" role="region" aria-label="Patterns">
+          <section class="table-scroll" tabindex="0" aria-label="Patterns">
             <table class="demo-pattern-table">
               <thead>
                 <tr><th>Specimen</th><th>Class</th><th>Used for</th></tr>
@@ -446,7 +447,7 @@ const npmPackages = [
                 </tr>
               </tbody>
             </table>
-          </div>
+          </section>
         </div>
       </section>
     </article>
