@@ -317,12 +317,13 @@ const npmPackages = [
           <Imports code={cssImports} />
         </div>
 
-        <h3>Tokens &amp; Table</h3>
+        <h3>Tokens</h3>
         {/* Inside prose scope on purpose: the boxed ledger table
             treatment lives in prose.css as .prose table, which is how
             every table on the blog wears it. Outside this wrapper the
             sheet renders as a bare default table. */}
         <div class="prose">
+          <p>Every table in the system wears this boxed ledger from the prose sheet. This one is the token sheet.</p>
           <Palette entries={tokenEntries} />
         </div>
 
