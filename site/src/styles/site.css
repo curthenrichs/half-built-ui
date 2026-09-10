@@ -76,7 +76,12 @@
     white-space: nowrap;
   }
   .site-knob > summary::-webkit-details-marker { display: none; }
-  .site-knob > summary:hover { outline: var(--stroke) solid var(--rule); }
+  /* Hover is the accent press box's tint step (patterns.css), not an
+     outline: an outline in the rule ink sat as a dark rim outside the
+     accent border, and touch browsers keep :hover applied after a tap,
+     so the rim stayed on the knob just tapped (owner report
+     2026-09-09). */
+  .site-knob > summary:hover { background: color-mix(in srgb, var(--accent-1) 14%, var(--surface)); }
   .site-toolbar-swatch {
     width: 12px;
     height: 12px;
