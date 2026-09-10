@@ -107,6 +107,34 @@ const tokenEntries = [
   { role: "--code-token-string", token: "--code-token-string", note: "Strings and constants in code" },
 ];
 
+/* The Table subsection's wide specimen: every color primitive in the
+   css package's sheet, by family and stop, read from the file itself
+   so the cells cannot drift from it. A stop is the name's last
+   segment when it is a number, an alpha (a10), or one of the named
+   steps; a name with no stop (--white, --parchment) sits in the
+   "plain" column. Color values only: the sheet's strokes, spacing,
+   and z ladder are not ramps. */
+import primitivesSheet from "@half-built/css/tokens/primitives.css?raw";
+const STOP = /^(\d+|a\d+|vivid|dim)$/;
+const stopOrder = (stop: string): number => {
+  if (stop === "plain") return -1;
+  if (/^\d+$/.test(stop)) return Number(stop);
+  return 1000 + ["vivid", "dim"].indexOf(stop) + (stop.startsWith("a") ? 100 + Number(stop.slice(1)) : 0);
+};
+const ramps = new Map<string, Map<string, string>>();
+for (const m of primitivesSheet.matchAll(/--([a-z0-9-]+):\s*((?:#|rgba?\()[^;]+);/g)) {
+  const [, name, value] = m;
+  const parts = name.split("-");
+  const last = parts[parts.length - 1];
+  const stop = STOP.test(last) ? last : "plain";
+  const family = stop === "plain" ? name : parts.slice(0, -1).join("-");
+  const row = ramps.get(family) ?? new Map<string, string>();
+  row.set(stop, value.trim());
+  ramps.set(family, row);
+}
+const rampStops = [...new Set([...ramps.values()].flatMap((row) => [...row.keys()]))].sort((a, b) => stopOrder(a) - stopOrder(b));
+const rampRows = [...ramps.entries()].map(([family, row]) => ({ family, cells: rampStops.map((stop) => row.get(stop) ?? "") }));
+
 const codeSample = `def read_ir(code):
     return "power" if code == 0x40BF else "unknown"`;
 
@@ -327,7 +355,11 @@ const npmPackages = [
             wear the same treatment. */}
         <div class="prose">
           <p>The boxed ledger every table in the system wears. Wide tables scroll inside their own box, so the page never scrolls sideways.</p>
-          <div class="table-scroll">
+          {/* Scroll boxes are tab stops with names: a region that
+              scrolls sideways and a keyboard cannot reach fails WCAG
+              2.1.1 (axe scrollable-region-focusable), and the wide
+              ramps table below scrolls at every width. */}
+          <div class="table-scroll" tabindex="0" role="region" aria-label="Breakpoints">
             <table>
               <thead>
                 <tr><th>Breakpoint</th><th>Query</th><th>What changes</th></tr>
@@ -339,21 +371,16 @@ const npmPackages = [
               </tbody>
             </table>
           </div>
-          <p>A wide one, scrolling in its own box. These are the neutral ramps from the primitives sheet, one column per stop.</p>
-          {/* Every neutral primitive in tokens/primitives.css, by family
-              and stop. Thirteen columns of hex is wider than any column
-              this page lays out, which is the point: the scroll box has
-              to be seen doing its job. Keep the cells in step with the
-              file. */}
-          <div class="table-scroll">
+          <p>A wide one, scrolling in its own box. Every color primitive in the sheet, one row per family and one column per stop.</p>
+          <div class="table-scroll" tabindex="0" role="region" aria-label="Color primitives">
             <table>
               <thead>
-                <tr><th>Family</th><th>075</th><th>100</th><th>200</th><th>300</th><th>400</th><th>600</th><th>700</th><th>750</th><th>800</th><th>850</th><th>900</th><th>950</th></tr>
+                <tr><th>Family</th>{rampStops.map((stop) => <th>{stop}</th>)}</tr>
               </thead>
               <tbody>
-                <tr><td>Gray</td><td><code>#ececec</code></td><td><code>#efefef</code></td><td><code>#d9d9d9</code></td><td><code>#cccccc</code></td><td><code>#9a9a9a</code></td><td><code>#555555</code></td><td><code>#404040</code></td><td><code>#3a3a3a</code></td><td><code>#2a2a2a</code></td><td></td><td></td><td></td></tr>
-                <tr><td>Ink</td><td></td><td></td><td></td><td></td><td></td><td></td><td><code>#5a4630</code></td><td></td><td><code>#3b2e1e</code></td><td><code>#2a2016</code></td><td><code>#1b140c</code></td><td><code>#110d08</code></td></tr>
-                <tr><td>Black</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td><code>#1a1a1a</code></td><td><code>#111111</code></td><td></td></tr>
+                {rampRows.map((row) => (
+                  <tr><td>{row.family}</td>{row.cells.map((cell) => <td>{cell ? <code>{cell}</code> : ""}</td>)}</tr>
+                ))}
               </tbody>
             </table>
           </div>
@@ -362,7 +389,7 @@ const npmPackages = [
         <h3>Tokens</h3>
         <div class="prose">
           <p>The roles components read, with the value each resolves to in the current theme and palette.</p>
-          <Palette entries={tokenEntries} />
+          <Palette entries={tokenEntries} label="Tokens" />
         </div>
 
         <h3>Prose specimen</h3>
@@ -382,7 +409,7 @@ const npmPackages = [
             for column restates each class's documented purpose from
             patterns.css, not invented roles. */}
         <div class="prose">
-          <div class="table-scroll">
+          <div class="table-scroll" tabindex="0" role="region" aria-label="Patterns">
             <table class="demo-pattern-table">
               <thead>
                 <tr><th>Specimen</th><th>Class</th><th>Used for</th></tr>

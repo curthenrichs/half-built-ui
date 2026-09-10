@@ -13,6 +13,12 @@
     align-items: start;
     gap: var(--column-gap);
   }
+  /* The content track may shrink below its content's intrinsic width
+     (shell.css gives .site-main the same min-width: 0). A grid item's
+     automatic minimum is its min-content, so without this a table
+     wider than the column widened the article and the page scrolled
+     sideways instead of the table's own scroll box. */
+  .site-layout > * { min-width: 0; }
 
   /* The site rail (owner call 2026-09-06): palette knob and section
      TOC merged into one viewport-tracking stack. Desktop: the sticky
