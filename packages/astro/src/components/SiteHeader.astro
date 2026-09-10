@@ -112,9 +112,11 @@ const isCurrent = (href: string) =>
                 <div class="navigation-search-wrap">
                   {/* A control that reveals UI is a button, not a link: a
                       bare-hash anchor navigates (scroll jump + history
-                      entry), audit finding A3. focus-within still opens the
-                      flyout when the button takes focus. */}
-                  <button type="button" title="Search" class="navigation-search-icon icon-box">
+                      entry), audit finding A3. With the island mounted it
+                      is the flyout's toggle (site-header.ts); without
+                      JavaScript, focus-within still opens the flyout when
+                      the button takes focus. */}
+                  <button type="button" title="Search" class="navigation-search-icon icon-box" aria-expanded="false">
                     <svg viewBox="0 0 512 512" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M505 442.7L405.3 343c28.4-34.9 45.7-79 45.7-127C451 96.5 354.5 0 235.5 0S20 96.5 20 215.5 116.5 431 235.5 431c48 0 92.1-17.3 127-45.7L462.3 485c5.9 5.9 15.4 5.9 21.3 0l21.4-21.4c5.9-5.9 5.9-15.4 0-20.9zM235.5 371c-85.9 0-155.5-69.6-155.5-155.5S149.6 60 235.5 60 391 129.6 391 215.5 321.4 371 235.5 371z"/></svg>
                     <span class="screen-reader-text">Search</span>
                   </button>
@@ -293,8 +295,13 @@ const isCurrent = (href: string) =>
     .masthead-top { display: none; }
   }
 
-  /* Search flyout: icon on a primary-filled box, form revealed on focus-within
-     (the live theme toggles a .show class with jQuery; focus-within needs no script). */
+  /* Search flyout: icon on a primary-filled box. The island
+     (site-header.ts) marks the wrap data-search-js and drives the
+     .search-open class, so the magnifier can close what it opened
+     (owner report 2026-09-09: focus-within alone could never close on
+     the button's own click, since the click leaves focus on the
+     button). Without the island the focus-within rule stands, so the
+     flyout still opens with no script. */
   .navigation-search { width: 30px; position: relative; display: inline-block; text-align: center; }
   .navigation-search-form {
     position: absolute;
@@ -307,11 +314,17 @@ const isCurrent = (href: string) =>
     z-index: var(--z-search-flyout);
     background-color: var(--surface);
     border: var(--stroke) solid var(--rule);
-    transition: var(--transition);
+    /* Opacity fades both ways; visibility flips at once on open and
+       waits out the fade on close. Under the house all-transition the
+       visibility interpolation read hidden at the instant the open
+       class landed, so the island's focus() on the field was refused. */
+    transition: opacity 0.1s ease, visibility 0s linear 0.1s;
   }
-  .navigation-search-wrap:focus-within .navigation-search-form {
+  .navigation-search-wrap:not([data-search-js]):focus-within .navigation-search-form,
+  .navigation-search-wrap.search-open .navigation-search-form {
     opacity: 1;
     visibility: visible;
+    transition-delay: 0s;
   }
   /* Form anatomy comes from the .field-join house pattern (owner request
      2026-07-30, replacing the live theme's 75/25 split form). Only the
