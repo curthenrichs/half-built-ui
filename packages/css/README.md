@@ -46,6 +46,15 @@ const breakpoints = fileURLToPath(
 Sites add their own `site` cascade layer after these imports for local
 overrides. The layer order in `layers.css` already declares it.
 
+## Bottom-docked controls
+
+`--dock-bottom` (in `tokens/primitives.css`, default `0px`) is the
+room a viewport-fixed bottom component occupies. A site that pins a
+control cluster to the bottom corner sets it to the cluster's height
+plus its inset and a line of air, in the same media block that pins
+the cluster; the astro package's `Footer` reserves that much below its
+last link so the page scrolls on far enough to clear the cluster.
+
 ## Theming
 
 The entire third-party theming surface is six primitives: two brand

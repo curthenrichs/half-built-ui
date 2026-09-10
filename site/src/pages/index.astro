@@ -102,9 +102,38 @@ const tokenEntries = [
   { role: "--accent-1-ink", token: "--accent-1-ink", note: "Accent 1 as readable text" },
   { role: "--accent-2", token: "--accent-2", note: "Accent 2 lines and fills" },
   { role: "--accent-2-ink", token: "--accent-2-ink", note: "Accent 2 as readable text" },
+  { role: "--error-ink", token: "--error-ink", note: "The error callout's line and label" },
   { role: "--code-token-function", token: "--code-token-function", note: "Function names in code" },
   { role: "--code-token-string", token: "--code-token-string", note: "Strings and constants in code" },
 ];
+
+/* The Table subsection's wide specimen: every color primitive in the
+   css package's sheet, by family and stop, read from the file itself
+   so the cells cannot drift from it. A stop is the name's last
+   segment when it is a number, an alpha (a10), or one of the named
+   steps; a name with no stop (--white, --parchment) sits in the
+   "plain" column. Color values only: the sheet's strokes, spacing,
+   and z ladder are not ramps. */
+import primitivesSheet from "@half-built/css/tokens/primitives.css?raw";
+const STOP = /^(\d+|a\d+|vivid|dim)$/;
+const stopOrder = (stop: string): number => {
+  if (stop === "plain") return -1;
+  if (/^\d+$/.test(stop)) return Number(stop);
+  return 1000 + ["vivid", "dim"].indexOf(stop) + (stop.startsWith("a") ? 100 + Number(stop.slice(1)) : 0);
+};
+const ramps = new Map<string, Map<string, string>>();
+for (const m of primitivesSheet.matchAll(/--([a-z0-9-]+):\s*((?:#|rgba?\()[^;]+);/g)) {
+  const [, name, value] = m;
+  const parts = name.split("-");
+  const last = parts[parts.length - 1];
+  const stop = STOP.test(last) ? last : "plain";
+  const family = stop === "plain" ? name : parts.slice(0, -1).join("-");
+  const row = ramps.get(family) ?? new Map<string, string>();
+  row.set(stop, value.trim());
+  ramps.set(family, row);
+}
+const rampStops = [...new Set([...ramps.values()].flatMap((row) => [...row.keys()]))].sort((a, b) => stopOrder(a) - stopOrder(b));
+const rampRows = [...ramps.entries()].map(([family, row]) => ({ family, cells: rampStops.map((stop) => row.get(stop) ?? "") }));
 
 const codeSample = `def read_ir(code):
     return "power" if code == 0x40BF else "unknown"`;
@@ -159,7 +188,7 @@ const npmPackages = [
         <div class="prose">
           <h2>About</h2>
           <div class="section-intro" data-section-intro="intro">
-            <p>This page renders every component in the half-built design system, one instance of each. The system was extracted from <a href="https://half-built-robots.com">half-built-robots.com</a>, which still runs on it. All three packages are published on npm under MIT.</p>
+            <p>This page renders every component in the half-built design system. The system was extracted from <a href="https://half-built-robots.com">half-built-robots.com</a>, which now references these packages. All three packages are published on npm under MIT.</p>
             <p>The palette editor in the corner rewrites the theming variables live and prints a block ready to paste into a stylesheet. That block is the entire theming surface, eight brand stops plus the four values behind the code viewer. The viewer highlights through those variables, so syntax colors and the block they sit on follow the palette as well.</p>
           </div>
           <!-- A real CodeBlock, not an inline code span, so the code
@@ -208,7 +237,7 @@ const npmPackages = [
         <div class="prose">
           <h2>Components</h2>
           <div class="section-intro" data-section-intro="components">
-            <p>The rest of the package, from the navigation rows to the blocks a post body is built from. Imports split between <code>components/</code> and <code>content/</code>, which is a packaging detail rather than a distinction worth reading into. Nothing here caps the width of the text, and nothing anywhere in this system does. The layout's column is the only width authority. Every image below is a generated placeholder.</p>
+            <p>The rest of the package, from the navigation rows to the blocks a post body is built from. Imports split between <code>components/</code> for page chrome and <code>content/</code> for post bodies. The split is only where the files live. Nothing in this system caps the width of text. The layout's column is the only width authority.</p>
           </div>
           <Imports code={componentImports} />
         </div>
@@ -255,13 +284,16 @@ const npmPackages = [
           </p>
 
           <h3>Callout</h3>
+          <p>An aside set apart from the body, for a caveat, a warning, or a result the reader should not skim past. The type sets the label and the line color.</p>
           <Callout type="note">A note callout, the default look.</Callout>
+          <Callout type="info">An info callout, graphite like the note. The label tells them apart.</Callout>
           <Callout type="tip" title="Tip">A tip callout, wearing the first accent.</Callout>
+          <Callout type="warning">A warning callout, the first accent again.</Callout>
           <Callout type="success">A success callout, wearing the second accent.</Callout>
           <Callout type="error">An error callout, in the red family.</Callout>
 
           <h3>Editor's note</h3>
-          <p>The reminder that never ships. By default it renders only on a dev server. A deploy build emits nothing for it, so a note can sit in published content as a standing to-do. This one is forced visible with the <code>shown</code> prop so the page can show it.</p>
+          <p>A note to the author that renders only on a dev server. A deploy build emits nothing for it, so it can sit in published content as a standing to-do. This one is forced visible with the <code>shown</code> prop.</p>
           <EditorNote title="Demo" shown={true}>A demo note, forced visible. The dashed rule is the tell. Nothing else in the system is dashed.</EditorNote>
 
           <h3>Group</h3>
@@ -298,7 +330,7 @@ const npmPackages = [
 
           <h3>Media text</h3>
           <MediaText src={placeholderTall} alt="Tall placeholder image">
-            <p>Media on one side, prose on the other. This is the caption slot, and it takes a short paragraph rather than a single line.</p>
+            <p>Media on one side, prose on the other. This is the caption slot, and it takes a short paragraph rather than a single line. On a phone the two stack, image first, and the prose centers under it like a figure caption.</p>
           </MediaText>
 
         </div>
@@ -313,13 +345,51 @@ const npmPackages = [
           <Imports code={cssImports} />
         </div>
 
-        <h3>Tokens</h3>
+        <h3>Table</h3>
         {/* Inside prose scope on purpose: the boxed ledger table
             treatment lives in prose.css as .prose table, which is how
-            every table on the blog wears it. Outside this wrapper the
-            sheet renders as a bare default table. */}
+            every table on the blog wears it. Outside this wrapper a
+            table renders bare. The specimen's rows are the system's
+            own breakpoints (tokens/breakpoints.css), real data rather
+            than filler; the token sheet and the Patterns ledger below
+            wear the same treatment. */}
         <div class="prose">
-          <Palette entries={tokenEntries} />
+          <p>The boxed ledger every table in the system wears. Wide tables scroll inside their own box, so the page never scrolls sideways.</p>
+          {/* Scroll boxes are tab stops with names: a region that
+              scrolls sideways and a keyboard cannot reach fails WCAG
+              2.1.1 (axe scrollable-region-focusable), and the wide
+              ramps table below scrolls at every width. */}
+          <div class="table-scroll" tabindex="0" role="region" aria-label="Breakpoints">
+            <table>
+              <thead>
+                <tr><th>Breakpoint</th><th>Query</th><th>What changes</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><code>--bp-phone</code></td><td><code>max-width: 768px</code></td><td>The header's top band retires and the footer groups collapse.</td></tr>
+                <tr><td><code>--bp-sidebar</code></td><td><code>max-width: 991px</code></td><td>The two-column row stacks.</td></tr>
+                <tr><td><code>--bp-tablet</code></td><td><code>max-width: 1024px</code></td><td>The wide-image step.</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p>A wide one, scrolling in its own box. Every color primitive in the sheet, one row per family and one column per stop.</p>
+          <div class="table-scroll" tabindex="0" role="region" aria-label="Color primitives">
+            <table>
+              <thead>
+                <tr><th>Family</th>{rampStops.map((stop) => <th>{stop}</th>)}</tr>
+              </thead>
+              <tbody>
+                {rampRows.map((row) => (
+                  <tr><td>{row.family}</td>{row.cells.map((cell) => <td>{cell ? <code>{cell}</code> : ""}</td>)}</tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <h3>Tokens</h3>
+        <div class="prose">
+          <p>The roles components read, with the value each resolves to in the current theme and palette.</p>
+          <Palette entries={tokenEntries} label="Tokens" />
         </div>
 
         <h3>Prose specimen</h3>
@@ -339,7 +409,7 @@ const npmPackages = [
             for column restates each class's documented purpose from
             patterns.css, not invented roles. */}
         <div class="prose">
-          <div class="table-scroll">
+          <div class="table-scroll" tabindex="0" role="region" aria-label="Patterns">
             <table class="demo-pattern-table">
               <thead>
                 <tr><th>Specimen</th><th>Class</th><th>Used for</th></tr>

@@ -12,9 +12,9 @@ dependent ramp stops and the code island's chrome), and prints a
 ready-to-paste override (the shape is documented in
 `packages/css/README.md`).
 
-Once deployed, this becomes the reference site at
-`ui.half-built-robots.com`. It is not live yet; no Cloudflare Pages
-project exists for it.
+It is the reference site at `ui.half-built-robots.com`, live on
+Cloudflare Pages since 2026-09-07. `main` deploys to production and
+`dev` builds the preview.
 
 ## Development
 
@@ -40,8 +40,7 @@ That root script is `npm run build --workspace site`.
   resolves the sibling packages only exists at the repo root)
 - Build command: `npm run build --workspace site`
 - Output directory: `site/dist`
-- Production branch: `main` (auto-deploys once the Pages project
-  exists)
+- Production branch: `main` (auto-deploys)
 - Preview branch: `dev`
 - Ordering: the exact `@half-built/*` pins in `site/package.json`
   resolve on the registry only after the matching version tag

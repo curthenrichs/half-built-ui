@@ -19,7 +19,7 @@ import type { ChildProcess } from "node:child_process";
 import type { Browser, Page } from "puppeteer-core";
 import { AxePuppeteer } from "@axe-core/puppeteer";
 import type { RunOptions } from "axe-core";
-import { startPreview, stopPreview, launchChrome, desktopPage } from "@half-built/tooling/test-kit/browser-server.ts";
+import { startPreview, stopPreview, launchChrome, desktopPage, phonePage } from "@half-built/tooling/test-kit/browser-server.ts";
 import { SECTIONS } from "../src/data/sections";
 
 const enabled = process.env.BROWSER_TESTS === "1";
@@ -275,6 +275,17 @@ describe.skipIf(!enabled)("browser suite", () => {
       void (req.url().includes("ecosystem.json") ? req.abort() : req.continue());
     });
     await p.reload({ waitUntil: "networkidle0" });
+    /* The island keeps its last good document in localStorage for a
+       day and falls back to it once its retries (400ms, then 1200ms,
+       plus jitter) are spent. open()'s evaluateOnNewDocument clear
+       runs again on this reload, so the copy the first load cached is
+       gone before the island mounts; that is what makes the blocked
+       fetch land on the baseline rather than the cached document (the
+       blog's copy of this test learned that in CI on 2026-09-09).
+       networkidle0 fires between the retries, so wait the chain out
+       before asserting: "stands" means after the fallback ran, not
+       before it. */
+    await new Promise((r) => setTimeout(r, 2500));
     const list = await p.$("footer [data-ecosystem]");
     expect(list, "the footer has no data-ecosystem hook").not.toBeNull();
     /* Same two-type-worlds note as palette-editor.ts's copy handler:
@@ -353,5 +364,51 @@ describe.skipIf(!enabled)("browser suite", () => {
     const missing = await p.evaluate((ids: string[]) =>
       ids.filter((id) => document.getElementById(id) === null), SECTIONS.map((s) => s.id));
     expect(missing, `toc targets missing from the page: ${missing.join(", ")}`).toEqual([]);
+  }, 30_000);
+
+  it("the fixed corner cluster never covers the footer's links", async () => {
+    /* At the tablet break and below the rail is a fixed corner cluster
+       (site.css), so nothing in flow makes room for it. Before the
+       2026-09-09 fix the footer's last links sat under it: Portfolio
+       and Okos Polip at phone widths, the Site group's Components and
+       CSS at tablet widths, where the sitemap's leftmost column starts
+       inside the cluster's span. Every collapsible group is opened
+       first so the longest possible footer is what has to clear, and
+       the cluster's own panels stay closed: an open panel covering the
+       page is the design, the closed knobs covering it is the bug. */
+    if (!browser) throw new Error("no browser (beforeAll failed)");
+    const b = browser;
+    const viewports: { name: string; open: () => Promise<Page> }[] = [
+      { name: "phone", open: () => phonePage(b) },
+      { name: "tablet", open: () => desktopPage(b, 900, 800) },
+    ];
+    for (const viewport of viewports) {
+      const p = await viewport.open();
+      page = p;
+      await p.goto(`${ORIGIN}/`, { waitUntil: "networkidle0" });
+      const covered = await p.evaluate(() => {
+        document.querySelectorAll(".footer-sitemap-collapsible").forEach((d) => { d.setAttribute("open", ""); });
+        /* Instant, not the reset's smooth scroll: a smooth scrollTo
+           animates, and the rects read next would still describe the
+           page top. */
+        window.scrollTo({ top: document.documentElement.scrollHeight, behavior: "instant" });
+        const rail = document.querySelector(".site-rail");
+        if (!rail || getComputedStyle(rail).position !== "fixed") return ["(no fixed rail at this width)"];
+        const r = rail.getBoundingClientRect();
+        return [...document.querySelectorAll(".footer-sitemap a, .footer-sitemap span, .footer-sitemap h2")]
+          .filter((el) => {
+            const b = el.getBoundingClientRect();
+            return b.width > 0 && b.left < r.right && b.right > r.left && b.top < r.bottom && b.bottom > r.top;
+          })
+          /* Same two-type-worlds note as palette-editor.ts's copy
+             handler: strict DOM sees string | null, the lint project
+             sees string. */
+          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+          .map((el) => el.textContent?.trim() ?? "");
+      });
+      expect(covered, `${viewport.name}: footer text under the corner cluster`).toEqual([]);
+      await p.close();
+      page = undefined;
+    }
   }, 30_000);
 });

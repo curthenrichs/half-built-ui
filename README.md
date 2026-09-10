@@ -29,10 +29,10 @@ this library. There is no separate design doc.
 First published to npm on 2026-09-04; the version tags carry the
 release history. half-built-robots.com consumes
 all three packages from the registry as the reference consumer.
-Releases follow the Release rules below. A reference site with a live
-palette editor lives in `site/` (see `site/README.md`); it deploys
-from `main` once its Cloudflare Pages project exists, which it does
-not yet.
+Releases follow the Release rules below. The reference site with a
+live palette editor lives in `site/` (see `site/README.md`) and is
+live at ui.half-built-robots.com, deployed from `main` by Cloudflare
+Pages since 2026-09-07.
 
 ## Release rules
 

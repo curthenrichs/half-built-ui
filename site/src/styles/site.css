@@ -13,6 +13,12 @@
     align-items: start;
     gap: var(--column-gap);
   }
+  /* The content track may shrink below its content's intrinsic width
+     (shell.css gives .site-main the same min-width: 0). A grid item's
+     automatic minimum is its min-content, so without this a table
+     wider than the column widened the article and the page scrolled
+     sideways instead of the table's own scroll box. */
+  .site-layout > * { min-width: 0; }
 
   /* The site rail (owner call 2026-09-06): palette knob and section
      TOC merged into one viewport-tracking stack. Desktop: the sticky
@@ -76,7 +82,12 @@
     white-space: nowrap;
   }
   .site-knob > summary::-webkit-details-marker { display: none; }
-  .site-knob > summary:hover { outline: var(--stroke) solid var(--rule); }
+  /* Hover is the accent press box's tint step (patterns.css), not an
+     outline: an outline in the rule ink sat as a dark rim outside the
+     accent border, and touch browsers keep :hover applied after a tap,
+     so the rim stayed on the knob just tapped (owner report
+     2026-09-09). */
+  .site-knob > summary:hover { background: color-mix(in srgb, var(--accent-1) 14%, var(--surface)); }
   .site-toolbar-swatch {
     width: 12px;
     height: 12px;
@@ -228,14 +239,28 @@
      so it stays beside the trigger and the thumb. */
   @media (--bp-tablet) {
     .site-layout { display: block; }
+    /* The cluster's inset from the viewport corner, shared with the
+       footer's reserve below so the two cannot drift apart. */
+    :root { --site-rail-inset: 1rem; }
     .site-rail {
       position: fixed;
       top: auto;
-      bottom: 1rem;
-      left: 1rem;
+      bottom: var(--site-rail-inset);
+      left: var(--site-rail-inset);
       flex-direction: row;
       gap: 8px;
     }
+    /* A fixed cluster takes no room in flow, so the footer's last
+       links ended under it (owner report 2026-09-09): Portfolio and
+       Okos Polip at phone widths, and the Site column's Components and
+       CSS at tablet widths, where the sitemap's leftmost column starts
+       inside the cluster's span. The package's --dock-bottom token is
+       the general rule for a viewport-bound bottom component: the
+       Footer reserves that much below its last link. This site sets
+       it to the cluster's room: the inset, the knob (font-size-sm plus
+       8px of padding and the stroke each side, 40px), and a line of
+       air. */
+    :root { --dock-bottom: calc(var(--site-rail-inset) + 40px + 1rem); }
     .site-rail-toc { display: none; }
     .site-rail-sections { display: block; }
     /* Panels anchor to the rail, not their own knob: anchored to the

@@ -43,6 +43,9 @@ name) instead of `hex`: the swatch then paints `var(token)` and
 follows the live cascade with no script, and the hex cell renders
 empty with a `data-token-hex` attribute for a consumer script to fill
 from computed styles. Entries with `hex` render exactly as before.
+The table's scroll box is a keyboard tab stop named by the `label`
+prop (default "Palette"), since the table scrolls sideways below the
+column's width.
 
 ## Ecosystem island
 
@@ -69,6 +72,26 @@ The document is `{ version: 1, entries: [...] }` where each entry has
 `key`, `label`, `href` (null renders unlinked), `priority` (ascending,
 0 highest) and `family`. Entries are sorted with the self entry's own
 family first, then by priority, and capped at `limit`, default 6.
+
+## Footer reserve for bottom-docked controls
+
+A control cluster fixed to the viewport's bottom corner takes no room
+in flow, so the page's last lines end underneath it. Set the css
+package's `--dock-bottom` token to the room the cluster occupies
+(its height, inset, and air) and `Footer` pads its band by that much
+below the last link, so the page scrolls far enough to clear the
+cluster. The token is `0px` by default and can be set inside the same
+media block that pins the cluster.
+
+## Search flyout
+
+`scripts/site-header` drives the masthead's search flyout as a
+disclosure: the magnifier toggles it open and closed, opening moves
+focus to the field, Escape closes and returns focus to the magnifier,
+and a press or keyboard focus leaving the flyout closes it. The island
+marks the wrap `data-search-js`; without it, the stylesheet's
+focus-within rule opens the flyout on focus alone, so it still works
+with no script.
 
 ## Import notes
 

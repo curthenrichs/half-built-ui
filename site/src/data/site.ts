@@ -30,7 +30,8 @@ export const SOCIALS: SocialItem[] = [
   { label: "Placeholder link", href: "https://example.com", icon: ICON_EXTERNAL },
 ];
 
-export const LEGAL_HOLDER = "Curt Henrichs";
+/* The same holder the blog's footer names; the two lines must match. */
+export const LEGAL_HOLDER = "Curt Henrichs LLC";
 
 /* Site lists this page's sections, More points off the site (owner
    call 2026-09-06). Ecosystem is the Footer's own third column and
