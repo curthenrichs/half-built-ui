@@ -339,6 +339,24 @@ const npmPackages = [
               </tbody>
             </table>
           </div>
+          <p>A wide one, scrolling in its own box. These are the neutral ramps from the primitives sheet, one column per stop.</p>
+          {/* Every neutral primitive in tokens/primitives.css, by family
+              and stop. Thirteen columns of hex is wider than any column
+              this page lays out, which is the point: the scroll box has
+              to be seen doing its job. Keep the cells in step with the
+              file. */}
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr><th>Family</th><th>075</th><th>100</th><th>200</th><th>300</th><th>400</th><th>600</th><th>700</th><th>750</th><th>800</th><th>850</th><th>900</th><th>950</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Gray</td><td><code>#ececec</code></td><td><code>#efefef</code></td><td><code>#d9d9d9</code></td><td><code>#cccccc</code></td><td><code>#9a9a9a</code></td><td><code>#555555</code></td><td><code>#404040</code></td><td><code>#3a3a3a</code></td><td><code>#2a2a2a</code></td><td></td><td></td><td></td></tr>
+                <tr><td>Ink</td><td></td><td></td><td></td><td></td><td></td><td></td><td><code>#5a4630</code></td><td></td><td><code>#3b2e1e</code></td><td><code>#2a2016</code></td><td><code>#1b140c</code></td><td><code>#110d08</code></td></tr>
+                <tr><td>Black</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td><code>#1a1a1a</code></td><td><code>#111111</code></td><td></td></tr>
+              </tbody>
+            </table>
+          </div>
         </div>
 
         <h3>Tokens</h3>
