@@ -243,13 +243,13 @@
        links ended under it (owner report 2026-09-09): Portfolio and
        Okos Polip at phone widths, and the Site column's Components and
        CSS at tablet widths, where the sitemap's leftmost column starts
-       inside the cluster's span. The footer's shell reserves the
-       cluster's room itself, so the tinted band simply runs on below
-       the last link: the inset, the knob (font-size-sm plus 8px of
-       padding and the stroke each side, 40px), and a line of air. The
-       shell rather than .bottom-footer because Footer.astro's scoped
-       padding shorthand is unlayered and would beat this layer. */
-    .site-footer .shell { padding-bottom: calc(var(--site-rail-inset) + 40px + 1rem); }
+       inside the cluster's span. The package's --dock-bottom token is
+       the general rule for a viewport-bound bottom component: the
+       Footer reserves that much below its last link. This site sets
+       it to the cluster's room: the inset, the knob (font-size-sm plus
+       8px of padding and the stroke each side, 40px), and a line of
+       air. */
+    :root { --dock-bottom: calc(var(--site-rail-inset) + 40px + 1rem); }
     .site-rail-toc { display: none; }
     .site-rail-sections { display: block; }
     /* Panels anchor to the rail, not their own knob: anchored to the

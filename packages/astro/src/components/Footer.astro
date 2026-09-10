@@ -97,8 +97,12 @@ const year = new Date().getFullYear();
 
 <style>
   .site-footer { margin-top: 50px; }
-  /* Tint comes from the .tint-overlay pattern (default 0.1 opacity). */
-  .bottom-footer { padding: 15px 0 20px; z-index: 1; }
+  /* Tint comes from the .tint-overlay pattern (default 0.1 opacity).
+     The bottom padding adds --dock-bottom (tokens/primitives.css): a
+     site with a viewport-fixed bottom cluster sets it to the room
+     that cluster occupies, and the tinted band runs on below the last
+     link by that much, so the page scrolls far enough to clear it. */
+  .bottom-footer { padding: 15px 0 calc(20px + var(--dock-bottom, 0px)); z-index: 1; }
   .bottom-footer-info {
     display: flex;
     flex-wrap: wrap;

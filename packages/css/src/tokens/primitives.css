@@ -93,6 +93,14 @@
     --shell-max: 1380px;
     --shell-pad: 15px;
     --header-clear: 65px;
+    /* Room for a viewport-bound bottom component (owner rule
+       2026-09-09): a fixed control cluster in the bottom corner takes
+       no room in flow, so the page's last lines end underneath it. A
+       site that pins one sets this to the height it occupies, inset
+       and air included, and the Footer reserves that much below its
+       last line so the page scrolls on far enough to clear it. Zero
+       when nothing is pinned. */
+    --dock-bottom: 0px;
     --shadow: 0 3px 12px -1px rgb(7 10 25 / 20%), 0 22px 27px -20px rgb(7 10 25 / 20%);
     --transition: all 0.1s ease;
 
