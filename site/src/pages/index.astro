@@ -317,13 +317,32 @@ const npmPackages = [
           <Imports code={cssImports} />
         </div>
 
-        <h3>Tokens</h3>
+        <h3>Table</h3>
         {/* Inside prose scope on purpose: the boxed ledger table
             treatment lives in prose.css as .prose table, which is how
-            every table on the blog wears it. Outside this wrapper the
-            sheet renders as a bare default table. */}
+            every table on the blog wears it. Outside this wrapper a
+            table renders bare. The specimen's rows are the system's
+            own breakpoints (tokens/breakpoints.css), real data rather
+            than filler; the token sheet and the Patterns ledger below
+            wear the same treatment. */}
         <div class="prose">
-          <p>Every table in the system wears this boxed ledger from the prose sheet. This one is the token sheet.</p>
+          <p>The boxed ledger every table in the system wears. Wide tables scroll inside their own box, so the page never scrolls sideways.</p>
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr><th>Breakpoint</th><th>Query</th><th>What changes</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><code>--bp-phone</code></td><td><code>max-width: 768px</code></td><td>The header's top band retires and the footer groups collapse.</td></tr>
+                <tr><td><code>--bp-sidebar</code></td><td><code>max-width: 991px</code></td><td>The two-column row stacks.</td></tr>
+                <tr><td><code>--bp-tablet</code></td><td><code>max-width: 1024px</code></td><td>The wide-image step.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <h3>Tokens</h3>
+        <div class="prose">
           <Palette entries={tokenEntries} />
         </div>
 
