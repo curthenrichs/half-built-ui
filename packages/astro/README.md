@@ -24,6 +24,23 @@ wider preview concept (the blog's SHOW_DRAFTS builds, for example)
 passes its own gate through the `shown` prop; the component reads no
 consumer config itself.
 
+## WhenPublished and PostLink
+
+`content/WhenPublished.astro` renders its children only when the post
+at `slug` is visible, so a published post can tease one still in
+draft and the passage appears on its own when the target ships.
+`content/PostLink.astro` links to a post by slug and resolves the
+href at build time through `postPath`, so a re-dated post does not
+strand the links pointing at it. Both take the consumer's collection
+as the `posts` prop (the full collection, drafts included, so an
+unknown slug can throw instead of hiding as "still a draft");
+`WhenPublished` also takes the consumer's draft gate as `showDrafts`,
+and `PostLink` accepts an optional `tip` carried as `data-tooltip` for
+the link-tip island. A consumer wraps each in a one-line site
+component that injects `getCollection` and its own gate, the way the
+blog does. The resolvers live in `lib/drafts.ts` for consumers that
+want the logic without the components.
+
 ## Live code colors
 
 `shiki/code-theme` bakes its amber values into every highlighted span

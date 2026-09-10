@@ -12,6 +12,8 @@ import Base from "../layouts/Base.astro";
 import Rail from "../components/Rail.astro";
 import Imports from "../components/Imports.astro";
 import EditorNote from "@half-built/astro/content/EditorNote.astro";
+import WhenPublished from "@half-built/astro/content/WhenPublished.astro";
+import PostLink from "@half-built/astro/content/PostLink.astro";
 import PostCard from "@half-built/astro/components/PostCard.astro";
 import CategoryCard from "@half-built/astro/components/CategoryCard.astro";
 import Pagination from "@half-built/astro/components/Pagination.astro";
@@ -135,6 +137,13 @@ for (const m of primitivesSheet.matchAll(/--([a-z0-9-]+):\s*((?:#|rgba?\()[^;]+)
 const rampStops = [...new Set([...ramps.values()].flatMap((row) => [...row.keys()]))].sort((a, b) => stopOrder(a) - stopOrder(b));
 const rampRows = [...ramps.entries()].map(([family, row]) => ({ family, cells: rampStops.map((stop) => row.get(stop) ?? "") }));
 
+/* Sample collection for the forward-link components: one published
+   post and one draft, the two states the gate tells apart. */
+const samplePosts = [
+  { data: { slug: "sample-published", date: new Date("2026-09-01T00:00:00Z"), draft: false } },
+  { data: { slug: "sample-draft", date: new Date("2026-09-08T00:00:00Z"), draft: true } },
+];
+
 const codeSample = `def read_ir(code):
     return "power" if code == 0x40BF else "unknown"`;
 
@@ -156,6 +165,8 @@ import Subscribe from "@half-built/astro/components/Subscribe.astro";
 import Button from "@half-built/astro/content/Button.astro";
 import Callout from "@half-built/astro/content/Callout.astro";
 import EditorNote from "@half-built/astro/content/EditorNote.astro";
+import WhenPublished from "@half-built/astro/content/WhenPublished.astro";
+import PostLink from "@half-built/astro/content/PostLink.astro";
 import Group from "@half-built/astro/content/Group.astro";
 import CodeBlock from "@half-built/astro/content/CodeBlock.astro";
 import Spacer from "@half-built/astro/content/Spacer.astro";
@@ -299,6 +310,15 @@ const npmPackages = [
           <h3>Editor's note</h3>
           <p>A note to the author that renders only on a dev server. A deploy build emits nothing for it, so it can sit in published content as a standing to-do. This one is forced visible with the <code>shown</code> prop.</p>
           <EditorNote title="Demo" shown={true}>A demo note, forced visible. The dashed rule is the tell. Nothing else in the system is dashed.</EditorNote>
+
+          <h3>When published and Post link</h3>
+          <p>Both take the consumer's post collection as a prop and read no content of their own. <code>PostLink</code> resolves a slug to the post's dated URL at build time. <code>WhenPublished</code> renders its passage only once the post it names is visible, so a draft can be teased before it ships. The sample collection here has one published post and one draft. The first passage shows, the second is absent from this page.</p>
+          <WhenPublished slug="sample-published" posts={samplePosts}>
+            <p>This passage is visible because its post is published. It links to <PostLink slug="sample-published" posts={samplePosts} tip="Sample post (September 1, 2026)">the sample post</PostLink>, whose URL was resolved from the slug.</p>
+          </WhenPublished>
+          <WhenPublished slug="sample-draft" posts={samplePosts}>
+            <p class="sample-draft-passage">This passage never renders, because its post is a draft.</p>
+          </WhenPublished>
 
           <h3>Group</h3>
           <Group><p>A boxed prose container, no label and no tint, the plain sibling of Callout's box.</p></Group>
