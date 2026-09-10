@@ -9,6 +9,12 @@
    bare browser defaults, recorded as a deliberate deviation in the handoff. */
 .prose p { margin: 0 0 1.5em; }
 .prose h2 { font-size: var(--font-size-md); margin: 1.6em 0 0.6em; }
+/* Footnotes (Markdown [^1]) get no rules of their own: the reference
+   is a superscript link and the notes an ordered list under an h2,
+   all on the rhythm above. remark-gfm classes that h2 "sr-only",
+   expecting the sheet to hide it; this system defines no .sr-only on
+   purpose, so the Footnotes heading shows (owner call 2026-09-09).
+   Do not add an .sr-only rule or alias it to .screen-reader-text. */
 .prose h3 { font-size: var(--font-size-base); margin: 1.4em 0 0.5em; }
 .prose h4 { font-size: var(--font-size-sm); text-transform: uppercase; letter-spacing: 0.5px; margin: 1.4em 0 0.5em; }
 

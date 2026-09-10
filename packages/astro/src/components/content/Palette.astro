@@ -15,8 +15,11 @@ const { entries, class: className, label = "Palette" } = Astro.props;
 ---
 {/* The scroll box is a tab stop with a name: below the column's width
     the table scrolls sideways, and a scrolling region a keyboard cannot
-    reach fails WCAG 2.1.1 (axe scrollable-region-focusable). */}
-<div class:list={["table-scroll", className]} tabindex="0" role="region" aria-label={label}>
+    reach fails WCAG 2.1.1 (axe scrollable-region-focusable). A named
+    <section> is the region landmark natively; a div with role=region
+    fails html-validate's prefer-native-element (the blog's gate caught
+    it at the 0.4.0 pin bump). */}
+<section class:list={["table-scroll", className]} tabindex="0" aria-label={label}>
   <table class="palette">
     <thead>
       <tr>
@@ -37,7 +40,7 @@ const { entries, class: className, label = "Palette" } = Astro.props;
       ))}
     </tbody>
   </table>
-</div>
+</section>
 
 <style>
   .palette-chip {
