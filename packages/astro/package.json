@@ -1,6 +1,6 @@
 {
   "name": "@half-built/astro",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "description": "Astro components, islands, and pure helpers for the half-built design system.",
   "license": "MIT",
   "repository": {

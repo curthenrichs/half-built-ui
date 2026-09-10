@@ -130,6 +130,12 @@
     align-items: center;
     gap: 10px;
   }
+  /* Centered row: a lone call to action in a prose column sits in the
+     middle rather than hard against the left edge (the blog's demo
+     launcher and its link-out buttons). Same row, one modifier. */
+  .button-row-center {
+    justify-content: center;
+  }
 
   /* Tint overlay: fills the element with ink at low opacity without
      introducing a second color (current nav item 0.2, footer bar 0.1).
