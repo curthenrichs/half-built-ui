@@ -9,6 +9,7 @@ import PostLink from "@half-built/astro/content/PostLink.astro";
 import PostCard from "@half-built/astro/components/PostCard.astro";
 import CategoryCard from "@half-built/astro/components/CategoryCard.astro";
 import Pagination from "@half-built/astro/components/Pagination.astro";
+import Icon from "@half-built/astro/components/Icon.astro";
 import PostNavigation from "@half-built/astro/components/PostNavigation.astro";
 import LinkListWidget from "@half-built/astro/components/LinkListWidget.astro";
 import Widget from "@half-built/astro/components/Widget.astro";
@@ -745,19 +746,7 @@ const npmPackages = [
                       class="icon-box"
                       aria-label="Placeholder icon button"
                     >
-                      <svg
-                        viewBox="0 0 24 24"
-                        width="16"
-                        height="16"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        aria-hidden="true"
-                      >
-                        <circle cx="12" cy="12" r="9" />
-                      </svg>
+                      <Icon name="circle" size={16} strokeWidth={2} />
                     </button>
                   </td>
                   <td><code>.icon-box</code></td>
