@@ -1,7 +1,4 @@
 ---
-/* The caption is a string prop for the common case; a named `caption`
-   slot takes over when the caption needs markup (a link in an edit
-   aside, owner request 2026-08-27). */
 interface Props {
   columns?: number;
   caption?: string;
@@ -22,9 +19,7 @@ const hasCaptionSlot = Astro.slots.has("caption");
     <slot />
   </div>
   {hasCaptionSlot ? (
-    <figcaption class="caption">
-      <slot name="caption" />
-    </figcaption>
+    <figcaption class="caption"><slot name="caption" /></figcaption>
   ) : (
     caption && <figcaption class="caption">{caption}</figcaption>
   )}
@@ -33,9 +28,7 @@ const hasCaptionSlot = Astro.slots.has("caption");
 <style>
   /* The figure wrapper exists so a gallery-level caption reads as part of
      the gallery (owner request 2026-07-30); outer spacing lives here. */
-  .gallery-figure {
-    margin: 20px 0;
-  }
+  .gallery-figure { margin: 20px 0; }
 
   .gallery-plates {
     display: grid;
@@ -43,24 +36,13 @@ const hasCaptionSlot = Astro.slots.has("caption");
     gap: 12px;
   }
 
-  @media (--bp-phone) {
-    .gallery-plates {
-      grid-template-columns: repeat(2, 1fr);
-    }
-  }
+  @media (--bp-phone) { .gallery-plates { grid-template-columns: repeat(2, 1fr); } }
 
-  @media (max-width: 480px) {
-    .gallery-plates {
-      grid-template-columns: 1fr;
-    }
-  }
+  @media (max-width: 480px) { .gallery-plates { grid-template-columns: 1fr; } }
 
   /* Type from the .caption pattern; centered under the plates like
      BlogImage's. */
-  figcaption {
-    margin-top: 5px;
-    text-align: center;
-  }
+  figcaption { margin-top: 5px; text-align: center; }
 
   /* Orphan rule (owner request 2026-07-29): a lone plate on the last row
      centers instead of hugging the left column. The :global() escape is
@@ -68,9 +50,7 @@ const hasCaptionSlot = Astro.slots.has("caption");
      component's style scope. Keyed on the column count, since the nth
      math differs per count; columns other than 2 and 3 get no rule. */
   @media (--bp-phone-up) {
-    .gallery-cols-3 > :global(:nth-child(3n + 1):last-child) {
-      grid-column: 2;
-    }
+    .gallery-cols-3 > :global(:nth-child(3n + 1):last-child) { grid-column: 2; }
 
     .gallery-cols-2 > :global(:nth-child(odd):last-child) {
       grid-column: 1 / -1;

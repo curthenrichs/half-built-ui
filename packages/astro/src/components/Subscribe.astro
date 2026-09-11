@@ -1,31 +1,9 @@
 ---
-/* Newsletter CTA, lifted from the BEADZ Subscribe island: the shared amber
-   block that bridges every project back to this blog, meant to read the
-   same everywhere it appears. Rebuilt as a no-React Astro component with
-   the copy in the blog's own voice (the deadpan BEADZ register stays on
-   BEADZ). Three variants: "sidebar" sits above Recent Posts, "post" sits
-   between a post's end and the prev/next navigation, "page" is the block
-   on /newsletter/ itself (the sidebar heading with the post blurb, no
-   outer margins; the page's own prose introduces it).
-
-   The form posts straight to Buttondown's keyless embed-subscribe
-   endpoint. It is a real form (method + action) so it works with no
-   JavaScript: Buttondown redirects that path to /newsletter/subscribed/.
-   With JavaScript, src/scripts/subscribe.ts takes over the submit and
-   writes the outcome into the status line. Spec:
-   docs/superpowers/specs/2026-08-16-mailing-list-wiring-design.md
-
-   Copy is overridable (step 9.5): title, blurb, and fine print are named
-   slots whose fallbacks are the blog's register; placeholder and button
-   label are props. Another register (BEADZ) overrides without forking. */
 interface Props {
   variant?: "sidebar" | "post" | "page";
   headingLevel?: 2 | 3 | 4;
   class?: string;
-  /* The provider's form-post endpoint; the blog passes config NEWSLETTER.
-     Required so a caller can never render a form that posts nowhere. */
   action: string;
-  /* Human sign-up page, named in the failure message (data-public-url). */
   publicUrl?: string;
   placeholder?: string;
   buttonLabel?: string;
@@ -41,29 +19,27 @@ const {
   buttonLabel = "Subscribe",
 } = Astro.props;
 
-/* Annotated, not cast: an `as` cast in the frontmatter can make the Astro
-   compiler drop the Props type (see PostCard.astro). */
 const Heading: "h2" | "h3" | "h4" = `h${headingLevel}`;
 ---
 
 <section class:list={["subscribe", `subscribe-${variant}`, className]}>
-  <Heading class="subscribe-title">
-    <slot name="title">
-      {variant === "post"
+  <Heading class="subscribe-title"
+    ><slot name="title"
+      >{variant === "post"
         ? "Plenty more where this came from"
-        : "Join the Mailing List"}
-    </slot>
-  </Heading>
+        : "Join the Mailing List"}</slot
+    ></Heading
+  >
   {variant === "sidebar" ? (
     <p class="subscribe-blurb">
       <slot name="blurb">An email when something new goes up.</slot>
     </p>
   ) : (
     <p class="subscribe-blurb">
-      <slot name="blurb">
-        If you want to hear when a new post or project goes up, leave an email
-        and I'll send a note. No schedule, no spam.
-      </slot>
+      <slot name="blurb"
+        >If you want to hear when a new post or project goes up, leave an email
+        and I'll send a note. No schedule, no spam.</slot
+      >
     </p>
   )}
   <form
@@ -90,10 +66,10 @@ const Heading: "h2" | "h3" | "h4" = `h${headingLevel}`;
     </button>
   </form>
   <p class="subscribe-fine">
-    <slot name="fine-print">
-      Double opt-in. Every email has an{" "}
-      <a href="/policies/mailing-list/">unsubscribe link</a>.
-    </slot>
+    <slot name="fine-print"
+      >Double opt-in. Every email has an
+      <a href="/policies/mailing-list/">unsubscribe link</a>.</slot
+    >
   </p>
   <p class="subscribe-status" role="status"></p>
 </section>
@@ -117,20 +93,9 @@ const Heading: "h2" | "h3" | "h4" = `h${headingLevel}`;
     outline: var(--stroke) solid var(--panel-rule);
     outline-offset: -10px;
   }
-
-  .subscribe-post {
-    padding: 30px;
-    margin-top: 30px;
-  }
-
-  .subscribe-sidebar {
-    padding: 24px 22px;
-    margin-bottom: 40px;
-  }
-
-  .subscribe-page {
-    padding: 30px;
-  }
+  .subscribe-post { padding: 30px; margin-top: 30px; }
+  .subscribe-sidebar { padding: 24px 22px; margin-bottom: 40px; }
+  .subscribe-page { padding: 30px; }
 
   .subscribe-title {
     margin: 0 0 8px;
@@ -139,18 +104,9 @@ const Heading: "h2" | "h3" | "h4" = `h${headingLevel}`;
   }
 
   .subscribe-post .subscribe-title,
-  .subscribe-page .subscribe-title {
-    font-size: var(--font-size-md);
-  }
-
-  .subscribe-sidebar .subscribe-title {
-    font-size: var(--font-size-base);
-  }
-
-  .subscribe-blurb {
-    margin: 0 0 16px;
-    font-size: var(--font-size-sm);
-  }
+  .subscribe-page .subscribe-title { font-size: var(--font-size-md); }
+  .subscribe-sidebar .subscribe-title { font-size: var(--font-size-base); }
+  .subscribe-blurb { margin: 0 0 16px; font-size: var(--font-size-sm); }
 
   /* Form anatomy, focus rings, and press feedback all come from the
      .field-join pattern (patterns.css, house rule 2026-07-30, settled
@@ -172,34 +128,15 @@ const Heading: "h2" | "h3" | "h4" = `h${headingLevel}`;
   }
 
   .subscribe-post .subscribe-form,
-  .subscribe-page .subscribe-form {
-    max-width: 520px;
-  }
+  .subscribe-page .subscribe-form { max-width: 520px; }
 
   /* Fine print sits between form and status so an error line never
      shoves it around; the link inherits the block's ink. Owner wanted it
      smaller than the status line (2026-08-16); xs is the scale's floor,
      so this steps below it off the token rather than hardcoding a size. */
-  .subscribe-fine {
-    margin: 10px 0 0;
-    font-size: calc(var(--font-size-xs) * 0.88);
-  }
-
-  .subscribe-fine a {
-    color: inherit;
-  }
-
-  .subscribe-status {
-    margin: 10px 0 0;
-    font-size: var(--font-size-xs);
-    font-weight: 700;
-  }
-
-  .subscribe-status:empty {
-    display: none;
-  }
-
-  .subscribe-status-err {
-    color: var(--panel-error);
-  }
+  .subscribe-fine { margin: 10px 0 0; font-size: calc(var(--font-size-xs) * 0.88); }
+  .subscribe-fine a { color: inherit; }
+  .subscribe-status { margin: 10px 0 0; font-size: var(--font-size-xs); font-weight: 700; }
+  .subscribe-status:empty { display: none; }
+  .subscribe-status-err { color: var(--panel-error); }
 </style>

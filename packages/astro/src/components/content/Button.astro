@@ -1,16 +1,4 @@
 ---
-/* The house button (owner request 2026-08-26): one component over the
-   press-box patterns so every button on the site, and later every site
-   on the library, draws the same three looks.
-
-   variant: "plain" is the ink press box (nav links, pagination); "shaded"
-   is the same box on the nav's current-item shade; "accent-1"
-   wears the brand amber and "accent-2" the cyan, both in the callout
-   combination (accent line and ink on a faint tint, filling solid while
-   held). size: "md" is the nav-box size, "lg" the call-to-action size.
-   With href it renders an anchor, otherwise a button (type "button"
-   unless told otherwise). Put an icon first in the slot and it gets the
-   gap; the text is the slot. */
 interface Props {
   variant?: "plain" | "shaded" | "accent-1" | "accent-2";
   size?: "md" | "lg";
@@ -39,13 +27,9 @@ const classes = [
 ---
 
 {href ? (
-  <a class:list={[...classes, className]} href={href}>
-    <slot />
-  </a>
+  <a class:list={[...classes, className]} href={href}><slot /></a>
 ) : (
-  <button class:list={[...classes, className]} type={type}>
-    <slot />
-  </button>
+  <button class:list={[...classes, className]} type={type}><slot /></button>
 )}
 
 <style>
@@ -69,8 +53,5 @@ const classes = [
 
   /* A leading icon sits on the text's baseline with a gap; the svg comes
      through the slot, hence :global. */
-  .button :global(svg:first-child) {
-    vertical-align: -0.15em;
-    margin-right: 8px;
-  }
+  .button :global(svg:first-child) { vertical-align: -0.15em; margin-right: 8px; }
 </style>

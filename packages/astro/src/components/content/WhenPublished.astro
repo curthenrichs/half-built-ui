@@ -1,18 +1,4 @@
 ---
-/* Forward-link gate: renders its children only when the post at `slug`
-   is visible in this build. A published post can tease a post that is
-   still a draft, and the passage appears on its own once the target
-   ships, with nothing to revise. Moved up from the blog's
-   content/WhenPublished.astro (owner call 2026-09-10); the logic was
-   already here in lib/drafts. The consumer passes its own collection
-   and its own draft gate, because a package component reads no
-   consumer content or config (the EditorNote precedent). Pass the
-   full collection, drafts included: the lookup has to tell "draft"
-   apart from "no such post", and the latter throws so a typo cannot
-   pass as "still a draft". Astro renders slot children eagerly, so a
-   PostLink inside a hidden passage still resolves; a consumer's guard
-   against a draft link leaking into a deploy build is a test on the
-   built pages, not this gate. */
 import { forwardLinkVisible, type ForwardLinkable } from "../../lib/drafts";
 
 interface Props {

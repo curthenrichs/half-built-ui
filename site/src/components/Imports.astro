@@ -1,9 +1,4 @@
 ---
-/* A section's paste-ready import lines, behind a disclosure (owner
-   call 2026-09-06, replacing the raw comma-separated path lists that
-   sat in the reading line and could not be pasted). A real CodeBlock,
-   so the code island mounts its COPY button and the code-vars
-   transformer keeps the syntax colors on the live palette. */
 import { Code } from "astro:components";
 import CodeBlock from "@half-built/astro/content/CodeBlock.astro";
 import codeTheme from "@half-built/astro/shiki/code-theme";
@@ -27,9 +22,7 @@ const { code } = Astro.props;
   /* The summary borrows the panel disclosures' quiet underline rather
      than a marker triangle, so it reads as a control and not a list
      item. The block below it is the code island's own furniture. */
-  .demo-imports {
-    margin: 0 0 1.5em;
-  }
+  .demo-imports { margin: 0 0 1.5em; }
 
   .demo-imports > summary {
     cursor: pointer;
@@ -39,12 +32,6 @@ const { code } = Astro.props;
     text-decoration: underline;
     text-underline-offset: 3px;
   }
-
-  .demo-imports > summary::-webkit-details-marker {
-    display: none;
-  }
-
-  .demo-imports[open] > summary {
-    margin-bottom: 10px;
-  }
+  .demo-imports > summary::-webkit-details-marker { display: none; }
+  .demo-imports[open] > summary { margin-bottom: 10px; }
 </style>

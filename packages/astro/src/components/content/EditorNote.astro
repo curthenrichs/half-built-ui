@@ -1,18 +1,4 @@
 ---
-/* Editor note: a reminder in content that renders on the dev server
-   and stays out of deploy builds. Moved up from the blog's
-   content/EditorNote.astro (owner call 2026-09-06: it is generic and
-   should have crossed in the 11.3 extraction; the blog swaps onto this
-   copy at its next pin bump). The blog's gate read its own SHOW_DRAFTS
-   config, which a package component must not do, so visibility is the
-   `shown` prop instead: the default is the consumer build's dev mode,
-   and a consumer with a preview concept passes its own wider gate.
-   Anatomy follows Callout (box, label straddling the top rule), but the
-   rule is dashed and amber: nothing else in the system is dashed, so a
-   note cannot be mistaken for content or for a callout. */
-
-/* The label always reads "Editor's Note", with the title after a colon
-   when one is given (owner call 2026-08-27). */
 interface Props {
   title?: string;
   shown?: boolean;
@@ -28,14 +14,10 @@ const {
 const label = title ? `Editor's Note: ${title}` : "Editor's Note";
 ---
 
-{shown && (
-  <div class:list={["editor-note", "rule-box", className]} role="note">
-    <strong class="editor-note-label boxed-label">{label}</strong>
-    <div class="editor-note-body">
-      <slot />
-    </div>
-  </div>
-)}
+{shown && <div class:list={["editor-note", "rule-box", className]} role="note">
+  <strong class="editor-note-label boxed-label">{label}</strong>
+  <div class="editor-note-body"><slot /></div>
+</div>}
 
 <style>
   /* Box from .rule-box; the dashed amber stroke and the margin are here. */
@@ -69,8 +51,5 @@ const label = title ? `Editor's Note: ${title}` : "Editor's Note";
     font-size: var(--font-size-sm);
     color: var(--accent-1-ink);
   }
-
-  .editor-note-body > :global(:last-child) {
-    margin-bottom: 0;
-  }
+  .editor-note-body > :global(:last-child) { margin-bottom: 0; }
 </style>

@@ -1,10 +1,4 @@
 ---
-/* The real half-built-robots.com header, matching the live DOM structure:
-   site-header-wrapper (bracket frame) containing three bands.
-   - masthead-top: date box + social icons, pulled UP to straddle the top rule
-   - masthead-brand: centered site branding (h1 on home, p elsewhere)
-   - masthead-nav: nav boxes + search flyout, pulled DOWN to straddle the bottom rule
-   No logo image in the header: the live site renders text branding only. */
 import ThemeToggle from "./ThemeToggle.astro";
 import type { NavItem, SocialItem } from "./models";
 
@@ -13,10 +7,6 @@ interface Props {
   tagline: string;
   nav: NavItem[];
   socials: SocialItem[];
-  /* Preformatted date for the top band's box; the caller owns the format
-     (the blog passes lib/header-date's live-theme format). The client
-     refresh takes a formatDate option (step 11.2) defaulting to lib/header-date;
-     only its package-time home remains a step 11.3 decision. */
   dateStr: string;
   isHome?: boolean;
   searchAction?: string;
@@ -38,21 +28,12 @@ const {
 
 const {
   prompt: searchPrompt = "Search for:",
-  /* The static markup this replaces wrote the placeholder as the HTML
-     entity `Search &hellip;`, which the compiler decodes to this same
-     character at build time for static text. Written here as the
-     decoded character (not the entity spelling) because a prop value
-     goes through Astro's dynamic attribute path, which escapes a
-     literal "&" instead of decoding it, and would otherwise double
-     encode the entity into `&#38;hellip;` in the built output. */
   placeholder: searchPlaceholder = "Search …",
   submit: searchSubmit = "Search",
 } = searchLabels;
 
 const current = Astro.url.pathname;
 
-/* Home stays the current item on paginated index pages, like WordPress,
-   the component's own documented opinion (not a prop). */
 const isCurrent = (href: string) =>
   href === "/"
     ? current === "/" || current.startsWith("/page/")
@@ -63,11 +44,9 @@ const isCurrent = (href: string) =>
   <div class="shell">
     <div class="site-header-wrapper bracket-frame">
       <div class="masthead-top">
-        <slot name="band-top">
-          <div class="header-tools">
-            <div class="date boxed-label" id="header-date">
-              {dateStr}
-            </div>
+        <slot name="band-top"
+          ><div class="header-tools">
+            <div class="date boxed-label" id="header-date">{dateStr}</div>
             <ThemeToggle />
           </div>
           <div class="social-icons">
@@ -77,43 +56,35 @@ const isCurrent = (href: string) =>
               data-tip-place="below"
               data-tip-align="end"
             >
-              {socials.map((s) => (
-                <li>
-                  <a class="icon-box" href={s.href}>
-                    <span class="screen-reader-text">{s.label}</span>
-                    <Fragment set:html={s.icon} />
-                  </a>
-                </li>
-              ))}
+              {socials.map((s) => <li>
+                <a class="icon-box" href={s.href}>
+                  <span class="screen-reader-text">{s.label}</span>
+                  <Fragment set:html={s.icon} />
+                </a>
+              </li>)}
             </ul>
-          </div>
-        </slot>
+          </div></slot
+        >
       </div>
       <div class="masthead-brand">
-        <slot name="band-brand">
-          <div class="site-branding">
+        <slot name="band-brand"
+          ><div class="site-branding">
             <div class="site-identity">
               {isHome ? (
                 <h1 class="site-title">
-                  <a href="/" rel="home">
-                    {siteName}
-                  </a>
+                  <a href="/" rel="home">{siteName}</a>
                 </h1>
               ) : (
-                <p class="site-title">
-                  <a href="/" rel="home">
-                    {siteName}
-                  </a>
-                </p>
+                <p class="site-title"><a href="/" rel="home">{siteName}</a></p>
               )}
               <p class="site-description">{tagline}</p>
             </div>
-          </div>
-        </slot>
+          </div></slot
+        >
       </div>
       <div class="masthead-nav">
-        <slot name="band-nav">
-          <div class="masthead-nav-inner">
+        <slot name="band-nav"
+          ><div class="masthead-nav-inner">
             <div class="header-nav-search">
               <div class="header-navigation">
                 <nav
@@ -127,31 +98,26 @@ const isCurrent = (href: string) =>
                     aria-controls="primary-menu"
                     aria-expanded="false"
                   >
-                    <span></span>
-                    <span></span>
-                    <span></span>
+                    <span></span><span></span><span></span>
                     <span class="screen-reader-text">Menu</span>
                   </button>
                   <div class="menu-container">
                     <ul id="primary-menu" class="menu">
-                      {nav.map((item) => (
-                        <li
-                          class={`menu-item${isCurrent(item.href) ? " current-menu-item" : ""}`}
+                      {nav.map((item) => <li
+                        class={`menu-item${isCurrent(item.href) ? " current-menu-item" : ""}`}
+                      >
+                        <a
+                          class:list={[
+                            "press-box",
+                            isCurrent(item.href) && "tint-overlay",
+                          ]}
+                          href={item.href}
+                          aria-current={
+                            isCurrent(item.href) ? "page" : undefined
+                          }
+                          >{item.label}</a
                         >
-                          <a
-                            class:list={[
-                              "press-box",
-                              isCurrent(item.href) && "tint-overlay",
-                            ]}
-                            href={item.href}
-                            aria-current={
-                              isCurrent(item.href) ? "page" : undefined
-                            }
-                          >
-                            {item.label}
-                          </a>
-                        </li>
-                      ))}
+                      </li>)}
                     </ul>
                   </div>
                 </nav>
@@ -181,7 +147,9 @@ const isCurrent = (href: string) =>
                         fill="currentColor"
                         aria-hidden="true"
                       >
-                        <path d="M505 442.7L405.3 343c28.4-34.9 45.7-79 45.7-127C451 96.5 354.5 0 235.5 0S20 96.5 20 215.5 116.5 431 235.5 431c48 0 92.1-17.3 127-45.7L462.3 485c5.9 5.9 15.4 5.9 21.3 0l21.4-21.4c5.9-5.9 5.9-15.4 0-20.9zM235.5 371c-85.9 0-155.5-69.6-155.5-155.5S149.6 60 235.5 60 391 129.6 391 215.5 321.4 371 235.5 371z" />
+                        <path
+                          d="M505 442.7L405.3 343c28.4-34.9 45.7-79 45.7-127C451 96.5 354.5 0 235.5 0S20 96.5 20 215.5 116.5 431 235.5 431c48 0 92.1-17.3 127-45.7L462.3 485c5.9 5.9 15.4 5.9 21.3 0l21.4-21.4c5.9-5.9 5.9-15.4 0-20.9zM235.5 371c-85.9 0-155.5-69.6-155.5-155.5S149.6 60 235.5 60 391 129.6 391 215.5 321.4 371 235.5 371z"
+                        />
                       </svg>
                       <span class="screen-reader-text">Search</span>
                     </button>
@@ -212,23 +180,19 @@ const isCurrent = (href: string) =>
                 </div>
               </div>
             </div>
-          </div>
-        </slot>
+          </div></slot
+        >
       </div>
     </div>
   </div>
 </header>
 
 <style>
-  .site-header {
-    margin-block: 30px 10px;
-  }
+  .site-header { margin-block: 30px 10px; }
 
   /* Frame comes from the .bracket-frame pattern; only the stacking context
      is contextual here. */
-  .site-header-wrapper {
-    z-index: 1;
-  }
+  .site-header-wrapper { z-index: 1; }
 
   /* Top band straddles the top rule via the negative margin. */
   .masthead-top {
@@ -247,19 +211,11 @@ const isCurrent = (href: string) =>
 
   /* Date box and the day/night toggle sit together on the left of the
      top band, spaced like the social icons on the right. */
-  .header-tools {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
+  .header-tools { display: flex; align-items: center; gap: 10px; }
 
   /* Bottom band's right end: the phone toggle (hidden on desktop) beside
      the search icon, spaced like the top band's tools. */
-  .header-end {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
+  .header-end { display: flex; align-items: center; gap: 10px; }
 
   /* No background on the list itself: the header's top rule must stay
      visible in the gaps between the boxed icons. */
@@ -277,12 +233,7 @@ const isCurrent = (href: string) =>
     justify-content: center;
     padding-block: 20px;
   }
-
-  .site-branding {
-    padding-block: 10px;
-    text-align: center;
-    width: 100%;
-  }
+  .site-branding { padding-block: 10px; text-align: center; width: 100%; }
 
   .site-title {
     font-size: var(--font-size-xl);
@@ -290,11 +241,7 @@ const isCurrent = (href: string) =>
     font-weight: 700;
     margin: 0;
   }
-
-  .site-title a {
-    text-decoration: none;
-    color: var(--ink);
-  }
+  .site-title a { text-decoration: none; color: var(--ink); }
 
   /* The tagline wears the accent box (owner call 2026-09-03): the
      callout's combination, the same one the press box and the demo
@@ -347,22 +294,11 @@ const isCurrent = (href: string) =>
     font-weight: bold;
     display: block;
   }
+  .menu-item { position: relative; }
+  .current-menu-item > a { --tint-opacity: 0.2; }
+  .main-navigation .menu a:hover { outline: var(--stroke) solid var(--rule); }
 
-  .menu-item {
-    position: relative;
-  }
-
-  .current-menu-item > a {
-    --tint-opacity: 0.2;
-  }
-
-  .main-navigation .menu a:hover {
-    outline: var(--stroke) solid var(--rule);
-  }
-
-  .menu-toggle {
-    display: none;
-  }
+  .menu-toggle { display: none; }
 
   @media (--bp-sidebar) {
     .menu-toggle {
@@ -387,18 +323,9 @@ const isCurrent = (href: string) =>
       left: 50%;
       transform: translateX(-50%);
     }
-
-    .menu-toggle span:nth-child(1) {
-      top: 7px;
-    }
-
-    .menu-toggle span:nth-child(2) {
-      top: 14px;
-    }
-
-    .menu-toggle span:nth-child(3) {
-      top: 21px;
-    }
+    .menu-toggle span:nth-child(1) { top: 7px; }
+    .menu-toggle span:nth-child(2) { top: 14px; }
+    .menu-toggle span:nth-child(3) { top: 21px; }
 
     /* The open menu is a pop-out under the hamburger, floating over the
        page like the search flyout (same z tier), not a block that grows
@@ -406,9 +333,7 @@ const isCurrent = (href: string) =>
        keeps its height, so the band keeps its desktop straddle of the
        bottom rule: hamburger, toggle, and magnifier hang off the rule
        instead of sitting inside the frame. */
-    .main-navigation {
-      position: relative;
-    }
+    .main-navigation { position: relative; }
 
     .main-navigation .menu {
       display: none;
@@ -423,10 +348,7 @@ const isCurrent = (href: string) =>
       border: var(--stroke) solid var(--rule);
       box-shadow: var(--shadow);
     }
-
-    .main-navigation .menu.open {
-      display: flex;
-    }
+    .main-navigation .menu.open { display: flex; }
   }
 
   /* Phone-width header simplification (owner call 2026-08-20): the
@@ -434,9 +356,7 @@ const isCurrent = (href: string) =>
      clock, and the social tray collided with it. Both retire; the
      socials' job moves to the Contact page, one hamburger tap away. */
   @media (--bp-phone) {
-    .masthead-top {
-      display: none;
-    }
+    .masthead-top { display: none; }
   }
 
   /* Search flyout: icon on a primary-filled box. The island
@@ -446,12 +366,7 @@ const isCurrent = (href: string) =>
      the button's own click, since the click leaves focus on the
      button). Without the island the focus-within rule stands, so the
      flyout still opens with no script. */
-  .navigation-search {
-    width: 30px;
-    position: relative;
-    display: inline-block;
-    text-align: center;
-  }
+  .navigation-search { width: 30px; position: relative; display: inline-block; text-align: center; }
 
   .navigation-search-form {
     position: absolute;
@@ -469,13 +384,10 @@ const isCurrent = (href: string) =>
        waits out the fade on close. Under the house all-transition the
        visibility interpolation read hidden at the instant the open
        class landed, so the island's focus() on the field was refused. */
-    transition:
-      opacity 0.1s ease,
-      visibility 0s linear 0.1s;
+    transition: opacity 0.1s ease, visibility 0s linear 0.1s;
   }
 
-  .navigation-search-wrap:not([data-search-js]):focus-within
-    .navigation-search-form,
+  .navigation-search-wrap:not([data-search-js]):focus-within .navigation-search-form,
   .navigation-search-wrap.search-open .navigation-search-form {
     opacity: 1;
     visibility: visible;
@@ -485,13 +397,8 @@ const isCurrent = (href: string) =>
   /* Form anatomy comes from the .field-join house pattern (owner request
      2026-07-30, replacing the live theme's 75/25 split form). Only the
      label wrapper's sizing is contextual. */
-  .search-form label {
-    flex: 1;
-  }
-
-  .search-form .search-field {
-    width: 100%;
-  }
+  .search-form label { flex: 1; }
+  .search-form .search-field { width: 100%; }
 </style>
 
 <script>

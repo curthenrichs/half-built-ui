@@ -1,11 +1,4 @@
 ---
-/* The document shell (step 8, 2026-08-30): doctype and head skeleton,
-   first-paint theme stamp, skip link, page frame, scroll-to-top
-   floater. Site-specific head content (meta, OG, title) arrives through
-   the head slot, the chrome through the header and footer slots, so a
-   second site reuses the frame without forking it. No scoped CSS on
-   purpose: the shell's layout rules live once in styles/base/shell.css
-   (pinned by test/base.test.ts). */
 interface Props {
   lang?: string;
   skipLabel?: string;
@@ -36,15 +29,8 @@ const {
     <script is:inline define:vars={{ themeKey: themeStorageKey }}>
       (function () {
         var t = null;
-        try {
-          t = localStorage.getItem(themeKey);
-        } catch (e) {
-          /* no storage */
-        }
-        if (
-          t === "dark" ||
-          (t === null && matchMedia("(prefers-color-scheme: dark)").matches)
-        ) {
+        try { t = localStorage.getItem(themeKey); } catch (e) { /* no storage */ }
+        if (t === "dark" || (t === null && matchMedia("(prefers-color-scheme: dark)").matches)) {
           document.documentElement.dataset.theme = "dark";
         }
       })();
@@ -53,9 +39,9 @@ const {
   </head>
   <body>
     <div id="page" class="site">
-      <a class="skip-link screen-reader-text" href="#primary-content">
-        {skipLabel}
-      </a>
+      <a class="skip-link screen-reader-text" href="#primary-content"
+        >{skipLabel}</a
+      >
       <slot name="header" />
       <div id="primary-content" class="primary-site-content">
         <div class="site-content shell">

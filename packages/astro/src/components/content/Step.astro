@@ -3,18 +3,11 @@ import type { ImageMetadata } from "astro";
 import SmartImage from "../SmartImage.astro";
 import LightboxLink from "../LightboxLink.astro";
 
-/* One row of a Walkthrough (spec
-   docs/superpowers/specs/2026-08-15-walkthrough-steps-design.md): photo(s)
-   on the left at a fixed 200px per photo, the author's prose beside at body
-   size. The prose is the step's text, not a caption; alt feeds the lightbox
-   caption. Below 600px the row stacks, photo centered above the prose. */
 interface Photo {
   src: ImageMetadata;
   alt?: string;
 }
 
-/* Exactly one of `src` (with `alt`) or `images`: the union says so to
-   typed callers; the runtime check below says so to MDX. */
 type Props = (
   { src: ImageMetadata; images?: never } | { src?: never; images: Photo[] }
 ) & {
@@ -40,26 +33,22 @@ const photos: Photo[] = hasMany ? images : [{ src: src as ImageMetadata, alt }];
   <div class="step-media">
     {photos.map((p) => {
       const a = p.alt ?? "";
-      return (
-        <LightboxLink
-          href={p.src.src}
-          w={p.src.width}
-          h={p.src.height}
-          caption={a}
-        >
-          <SmartImage
-            src={p.src}
-            alt={a}
-            widths={[200, Math.min(p.src.width, 400)]}
-            sizes="200px"
-          />
-        </LightboxLink>
-      );
+      return <LightboxLink
+        href={p.src.src}
+        w={p.src.width}
+        h={p.src.height}
+        caption={a}
+      >
+        <SmartImage
+          src={p.src}
+          alt={a}
+          widths={[200, Math.min(p.src.width, 400)]}
+          sizes="200px"
+        />
+      </LightboxLink>;
     })}
   </div>
-  <div class="step-body">
-    <slot />
-  </div>
+  <div class="step-body"><slot /></div>
 </li>
 
 <style>
@@ -89,19 +78,11 @@ const photos: Photo[] = hasMany ? images : [{ src: src as ImageMetadata, alt }];
   }
 
   /* The 2px outline comes from .prose img in prose.css. */
-  .step-media :global(img) {
-    width: 100%;
-    height: auto;
-  }
+  .step-media :global(img) { width: 100%; height: auto; }
 
   /* The body is 1fr of the layout's column; nothing here narrows it. */
-  .step-body {
-    min-width: 0;
-  }
-
-  .step-body :global(p:last-child) {
-    margin-bottom: 0;
-  }
+  .step-body { min-width: 0; }
+  .step-body :global(p:last-child) { margin-bottom: 0; }
 
   /* Number chip (owner pick B2): a 28px filled square riding the media
      cell's top-left corner, half outside the frame so it never covers the
@@ -113,9 +94,7 @@ const photos: Photo[] = hasMany ? images : [{ src: src as ImageMetadata, alt }];
      (step 5 replaced the :global(.walkthrough-numbered) parent-read). */
   /* stylelint-disable-next-line no-duplicate-selectors -- split from the
      grid rule above so the contract stays grouped with its own comment. */
-  .step-media {
-    margin: var(--step-media-margin, 0);
-  }
+  .step-media { margin: var(--step-media-margin, 0); }
 
   .step-media::before {
     content: counter(walkthrough-step);
@@ -153,10 +132,7 @@ const photos: Photo[] = hasMany ? images : [{ src: src as ImageMetadata, alt }];
   /* Phones (owner pick P2): stack, photo centered above the prose, photos
      of a multi-photo step stacking too. Same breakpoint as MediaText. */
   @media (max-width: 600px) {
-    .step {
-      grid-template-columns: 1fr;
-      gap: 10px;
-    }
+    .step { grid-template-columns: 1fr; gap: 10px; }
 
     .step-media {
       grid-auto-flow: row;

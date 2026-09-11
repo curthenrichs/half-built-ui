@@ -1,10 +1,4 @@
 ---
-/* The demo site's one layout, wired the same way the blog's Base.astro
-   wires the package it now consumes: Shell for the document frame,
-   Masthead and Footer for the chrome, and the standard island set
-   mounted in the body-end script. Every import here is a package
-   specifier (@half-built/...); nothing reaches into a package's own
-   src directory by relative path. */
 import "@half-built/css/layers";
 import "@half-built/css/tokens";
 import "@half-built/css";
@@ -119,10 +113,7 @@ const {
       import { mountTokenHexes } from "../scripts/token-hexes";
       import { THEME_STORAGE_KEY } from "../lib/theme-key";
       import { PALETTE_STORAGE_KEY } from "../lib/palette-key";
-      import {
-        ECOSYSTEM_SELF_KEY,
-        ECOSYSTEM_ENDPOINT,
-      } from "../lib/ecosystem-config";
+      import { ECOSYSTEM_SELF_KEY, ECOSYSTEM_ENDPOINT } from "../lib/ecosystem-config";
       mountFocusMode(document.documentElement);
       /* Internal and external links share one measured tooltip island. */
       mountLinkTips(document, { selector: 'a[href^="http"], a[data-tooltip]' });
@@ -141,10 +132,7 @@ const {
            guarded, so this catch is belt and braces against an
            unexpected rejection surfacing as an unhandled console
            error. Either way the server-rendered baseline stands. */
-        void mountEcosystem(document, {
-          endpoint: ECOSYSTEM_ENDPOINT,
-          selfKey: ECOSYSTEM_SELF_KEY,
-        }).catch(() => {});
+        void mountEcosystem(document, { endpoint: ECOSYSTEM_ENDPOINT, selfKey: ECOSYSTEM_SELF_KEY }).catch(() => {});
       }
     </script>
     <slot name="scripts" />

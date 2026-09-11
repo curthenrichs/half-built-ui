@@ -4,13 +4,6 @@ import CornerBadges from "../CornerBadges.astro";
 import SmartImage from "../SmartImage.astro";
 import LightboxLink from "../LightboxLink.astro";
 
-/* `frameless` is the sanctioned exception to the site-wide 2px image
-   outline (prose.css): the mascot on the brand page floats free (owner
-   ruling 2026-07-26). Everything else takes the default. */
-/* `narrow` caps the image at the half-column responsive step (495px),
-   centered; for shots that read fine small (close-ups, tall crops). */
-/* `genai` marks an AI-generated image with the AI Art corner badge
-   (CornerBadges.astro). */
 interface Props {
   src: ImageMetadata;
   alt?: string;
@@ -63,39 +56,18 @@ const {
 </figure>
 
 <style>
-  .blog-image {
-    margin: 20px 0;
-  }
-
-  .blog-image-frameless :global(img) {
-    border: 0;
-  }
+  .blog-image { margin: 20px 0; }
+  .blog-image-frameless :global(img) { border: 0; }
 
   /* Images narrower than the column center, matching the centered
      captions (full-width images are unaffected). The link hugs the image
      (fit-content, centered) rather than spanning the column, so a corner
      badge lands on the image's corner and not the column's. */
-  .blog-image :global(.lightbox-link) {
-    width: fit-content;
-    max-width: 100%;
-    margin-inline: auto;
-  }
-
-  .blog-image :global(img) {
-    max-width: 100%;
-    height: auto;
-    display: block;
-    margin-inline: auto;
-  }
-
-  .blog-image-narrow :global(.lightbox-link) {
-    max-width: min(495px, 100%);
-  }
+  .blog-image :global(.lightbox-link) { width: fit-content; max-width: 100%; margin-inline: auto; }
+  .blog-image :global(img) { max-width: 100%; height: auto; display: block; margin-inline: auto; }
+  .blog-image-narrow :global(.lightbox-link) { max-width: min(495px, 100%); }
 
   /* Type from the .caption pattern. Fidelity pass (handoff 5.5): live
      figcaptions are centered. */
-  figcaption {
-    margin-top: 5px;
-    text-align: center;
-  }
+  figcaption { margin-top: 5px; text-align: center; }
 </style>

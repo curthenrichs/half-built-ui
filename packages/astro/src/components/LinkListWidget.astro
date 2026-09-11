@@ -1,9 +1,4 @@
 ---
-/* One list widget for the sidebar's three lists (step 6, 2026-08-30):
-   a Widget holding a link list, counts rendered when present. Replaces
-   RecentPosts, CategoriesWidget, and ArchivesWidget; the sidebar builds
-   the items via src/lib/view-models.ts. The class prop rides down to
-   Widget's root, so this file has no class:list of its own. */
 import Widget from "./Widget.astro";
 import type { LinkListItem } from "./models";
 
@@ -19,11 +14,8 @@ const { title, items, headingLevel = 2, class: className } = Astro.props;
 
 <Widget title={title} headingLevel={headingLevel} class={className}>
   <ul>
-    {items.map((i) => (
-      <li>
-        <a href={i.href}>{i.label}</a>
-        {i.count !== undefined && ` (${i.count})`}
-      </li>
-    ))}
+    {items.map((i) => <li>
+      <a href={i.href}>{i.label}</a>{i.count !== undefined && ` (${i.count})`}
+    </li>)}
   </ul>
 </Widget>

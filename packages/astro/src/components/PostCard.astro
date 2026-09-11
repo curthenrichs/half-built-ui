@@ -1,9 +1,4 @@
 ---
-/* Archive/grid post card matching the live markup exactly:
-   article > .post-item.post-grid > .post-item-image (thumbnail link + reading
-   chip) + .post-item-content (categories, underlined title, meta, excerpt).
-   Comments are permanently dropped, so the chip carries read time only.
-   Fed by postCardModel() in src/lib/view-models.ts. */
 import SmartImage from "./SmartImage.astro";
 import CornerBadges from "./CornerBadges.astro";
 import type { PostCardModel } from "./models";
@@ -32,12 +27,7 @@ const {
   minReadLabel = "min read",
 } = Astro.props;
 
-/* Annotated, not cast: an `as` cast in the frontmatter makes the Astro
-   compiler drop the Props type (found 2026-08-25, bisected with
-   convertToTSX). */
 const Heading: "h2" | "h3" | "h4" = `h${headingLevel}`;
-/* Optional per-post crop focus for the cover-fit thumbnail; see the
-   heroPosition comment in content.config.ts. */
 const heroStyle = heroPosition ? `object-position: ${heroPosition}` : undefined;
 ---
 
@@ -66,10 +56,11 @@ const heroStyle = heroPosition ? `object-position: ${heroPosition}` : undefined;
             fill="currentColor"
             aria-hidden="true"
           >
-            <path d="M256 8C119 8 8 119 8 256s111 248 248 248 248-111 248-248S393 8 256 8zm0 448c-110.5 0-200-89.5-200-200S145.5 56 256 56s200 89.5 200 200-89.5 200-200 200zm61.8-104.4l-84.9-61.7c-3.1-2.3-4.9-5.9-4.9-9.7V116c0-6.6 5.4-12 12-12h32c6.6 0 12 5.4 12 12v141.7l66.8 48.6c5.4 3.9 6.5 11.4 2.6 16.8L334.6 349c-3.9 5.3-11.4 6.5-16.8 2.6z" />
+            <path
+              d="M256 8C119 8 8 119 8 256s111 248 248 248 248-111 248-248S393 8 256 8zm0 448c-110.5 0-200-89.5-200-200S145.5 56 256 56s200 89.5 200 200-89.5 200-200 200zm61.8-104.4l-84.9-61.7c-3.1-2.3-4.9-5.9-4.9-9.7V116c0-6.6 5.4-12 12-12h32c6.6 0 12 5.4 12 12v141.7l66.8 48.6c5.4 3.9 6.5 11.4 2.6 16.8L334.6 349c-3.9 5.3-11.4 6.5-16.8 2.6z"
+            />
           </svg>
-          {`${minutes} ${minReadLabel}`}
-        </span>
+          {`${minutes} ${minReadLabel}`}</span>
       </div>
       <CornerBadges genai={genai} demo={demo} />
     </div>
@@ -79,21 +70,16 @@ const heroStyle = heroPosition ? `object-position: ${heroPosition}` : undefined;
             category list onto extra rows; ours comma-joins on one line and
             lets the browser ellipsize overflow. Do not restore the flex ul. */}
         <span class="post-categories">
-          {categories.map((c, idx) => (
-            <Fragment>
-              {idx > 0 && ", "}
-              <a href={c.href} rel="category tag">
-                {c.name}
-              </a>
-            </Fragment>
-          ))}
+          {categories.map((c, idx) => <Fragment
+            >{idx > 0 && ", "}<a href={c.href} rel="category tag"
+              >{c.name}</a
+            ></Fragment
+          >)}
         </span>
       </div>
-      <Heading class="entry-title">
-        <a href={href} rel="bookmark">
-          {title}
-        </a>
-      </Heading>
+      <Heading class="entry-title"
+        ><a href={href} rel="bookmark">{title}</a></Heading
+      >
       <ul class="entry-meta">
         <li class="post-author">
           <svg
@@ -103,7 +89,9 @@ const heroStyle = heroPosition ? `object-position: ${heroPosition}` : undefined;
             fill="currentColor"
             aria-hidden="true"
           >
-            <path d="M224 256c70.7 0 128-57.3 128-128S294.7 0 224 0 96 57.3 96 128s57.3 128 128 128zm89.6 32h-16.7c-22.2 10.2-46.9 16-72.9 16s-50.6-5.8-72.9-16h-16.7C60.2 288 0 348.2 0 422.4V464c0 26.5 21.5 48 48 48h352c26.5 0 48-21.5 48-48v-41.6c0-74.2-60.2-134.4-134.4-134.4z" />
+            <path
+              d="M224 256c70.7 0 128-57.3 128-128S294.7 0 224 0 96 57.3 96 128s57.3 128 128 128zm89.6 32h-16.7c-22.2 10.2-46.9 16-72.9 16s-50.6-5.8-72.9-16h-16.7C60.2 288 0 348.2 0 422.4V464c0 26.5 21.5 48 48 48h352c26.5 0 48-21.5 48-48v-41.6c0-74.2-60.2-134.4-134.4-134.4z"
+            />
           </svg>
           {author}
         </li>
@@ -115,7 +103,9 @@ const heroStyle = heroPosition ? `object-position: ${heroPosition}` : undefined;
             fill="currentColor"
             aria-hidden="true"
           >
-            <path d="M148 288h-40c-6.6 0-12-5.4-12-12v-40c0-6.6 5.4-12 12-12h40c6.6 0 12 5.4 12 12v40c0 6.6-5.4 12-12 12zm108-12v-40c0-6.6-5.4-12-12-12h-40c-6.6 0-12 5.4-12 12v40c0 6.6 5.4 12 12 12h40c6.6 0 12-5.4 12-12zm96 0v-40c0-6.6-5.4-12-12-12h-40c-6.6 0-12 5.4-12 12v40c0 6.6 5.4 12 12 12h40c6.6 0 12-5.4 12-12zm-96 96v-40c0-6.6-5.4-12-12-12h-40c-6.6 0-12 5.4-12 12v40c0 6.6 5.4 12 12 12h40c6.6 0 12-5.4 12-12zm-96 0v-40c0-6.6-5.4-12-12-12h-40c-6.6 0-12 5.4-12 12v40c0 6.6 5.4 12 12 12h40c6.6 0 12-5.4 12-12zm192 0v-40c0-6.6-5.4-12-12-12h-40c-6.6 0-12 5.4-12 12v40c0 6.6 5.4 12 12 12h40c6.6 0 12-5.4 12-12zm96-260v352c0 26.5-21.5 48-48 48H48c-26.5 0-48-21.5-48-48V112c0-26.5 21.5-48 48-48h48V12c0-6.6 5.4-12 12-12h40c6.6 0 12 5.4 12 12v52h128V12c0-6.6 5.4-12 12-12h40c6.6 0 12 5.4 12 12v52h48c26.5 0 48 21.5 48 48z" />
+            <path
+              d="M148 288h-40c-6.6 0-12-5.4-12-12v-40c0-6.6 5.4-12 12-12h40c6.6 0 12 5.4 12 12v40c0 6.6-5.4 12-12 12zm108-12v-40c0-6.6-5.4-12-12-12h-40c-6.6 0-12 5.4-12 12v40c0 6.6 5.4 12 12 12h40c6.6 0 12-5.4 12-12zm96 0v-40c0-6.6-5.4-12-12-12h-40c-6.6 0-12 5.4-12 12v40c0 6.6 5.4 12 12 12h40c6.6 0 12-5.4 12-12zm-96 96v-40c0-6.6-5.4-12-12-12h-40c-6.6 0-12 5.4-12 12v40c0 6.6 5.4 12 12 12h40c6.6 0 12-5.4 12-12zm-96 0v-40c0-6.6-5.4-12-12-12h-40c-6.6 0-12 5.4-12 12v40c0 6.6 5.4 12 12 12h40c6.6 0 12-5.4 12-12zm192 0v-40c0-6.6-5.4-12-12-12h-40c-6.6 0-12 5.4-12 12v40c0 6.6 5.4 12 12 12h40c6.6 0 12-5.4 12-12zm96-260v352c0 26.5-21.5 48-48 48H48c-26.5 0-48-21.5-48-48V112c0-26.5 21.5-48 48-48h48V12c0-6.6 5.4-12 12-12h40c6.6 0 12 5.4 12 12v52h128V12c0-6.6 5.4-12 12-12h40c6.6 0 12 5.4 12 12v52h48c26.5 0 48 21.5 48 48z"
+            />
           </svg>
           {dateStr}
         </li>
@@ -128,29 +118,15 @@ const heroStyle = heroPosition ? `object-position: ${heroPosition}` : undefined;
 </article>
 
 <style>
-  .post-item {
-    transition: all 0.5s ease-in-out;
-  }
+  .post-item { transition: all 0.5s ease-in-out; }
 
   /* Same outline as MediaText media and gallery plates (owner request);
      on the container so the hover zoom stays clipped inside it. */
-  .post-item-image {
-    position: relative;
-    overflow: hidden;
-    border: var(--stroke) solid var(--rule);
-  }
-
-  .post-item-image a {
-    display: block;
-    height: 100%;
-    width: 100%;
-    line-height: 0;
-  }
+  .post-item-image { position: relative; overflow: hidden; border: var(--stroke) solid var(--rule); }
+  .post-item-image a { display: block; height: 100%; width: 100%; line-height: 0; }
 
   /* The image box clips overflow, so the site-wide ring sits inside. */
-  .post-item-image a:focus-visible {
-    outline-offset: -3px;
-  }
+  .post-item-image a:focus-visible { outline-offset: -3px; }
 
   .post-item-image a :global(img) {
     width: 100%;
@@ -159,10 +135,7 @@ const heroStyle = heroPosition ? `object-position: ${heroPosition}` : undefined;
     object-fit: cover;
     transition: all 0.5s ease-in-out;
   }
-
-  .post-item:hover .post-item-image :global(img) {
-    transform: scale(1.07);
-  }
+  .post-item:hover .post-item-image :global(img) { transform: scale(1.07); }
 
   /* Stamp from the .draft-stamp pattern; the card's size and stacking
      (above the hover-zoomed image) are here. */
@@ -184,11 +157,7 @@ const heroStyle = heroPosition ? `object-position: ${heroPosition}` : undefined;
     z-index: 1;
     display: flex;
   }
-
-  .post-item-content {
-    padding: 15px 0 0;
-    padding-top: 10px;
-  }
+  .post-item-content { padding: 15px 0 0; padding-top: 10px; }
 
   .entry-cat .post-categories {
     display: block;
@@ -221,10 +190,7 @@ const heroStyle = heroPosition ? `object-position: ${heroPosition}` : undefined;
     outline: 2px solid currentColor;
     outline-offset: -2px; /* Draws outline inside link to avoid clipping by container overflow */
   }
-
-  .entry-cat .post-categories a:focus-visible {
-    outline-offset: -2px;
-  }
+  .entry-cat .post-categories a:focus-visible { outline-offset: -2px; }
 
   /* Owner-approved divergence from live (2026-07-26): the live theme
      word-breaks titles mid-word (word-break: break-all); ours wraps at
@@ -242,10 +208,7 @@ const heroStyle = heroPosition ? `object-position: ${heroPosition}` : undefined;
     text-decoration-line: underline;
     transition: var(--transition);
   }
-
-  .entry-title a:hover {
-    outline: 2px solid currentColor;
-  }
+  .entry-title a:hover { outline: 2px solid currentColor; }
 
   .entry-meta {
     margin: 0 0 10px;
@@ -267,8 +230,5 @@ const heroStyle = heroPosition ? `object-position: ${heroPosition}` : undefined;
     align-items: center;
     gap: 5px;
   }
-
-  .post-content {
-    font-size: var(--font-size-sm);
-  }
+  .post-content { font-size: var(--font-size-sm); }
 </style>

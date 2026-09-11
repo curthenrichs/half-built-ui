@@ -1,11 +1,4 @@
 ---
-/* Admonition panel (Confluence-style info/warning/error blocks), owner
-   request 2026-08-21, rendered in the house line system: a 2px box in the
-   type's line color, a low-opacity tint of the same color, and a label
-   straddling the top rule the way the theme's date boxes do. Inks stay in
-   the house families (graphite, amber, cyan, red): note and info read
-   graphite and the type is told by the label text, tip and warning take
-   the first accent, success the second, error the red. */
 interface Props {
   type?: "note" | "info" | "tip" | "success" | "warning" | "error";
   title?: string;
@@ -30,9 +23,7 @@ const label = title ?? type;
   role="note"
 >
   <strong class="callout-label boxed-label">{label}</strong>
-  <div class="callout-body">
-    <slot />
-  </div>
+  <div class="callout-body"><slot /></div>
 </div>
 
 <style>
@@ -45,10 +36,7 @@ const label = title ?? type;
     border-color: var(--callout-line);
     margin: 30px 0;
   }
-
-  .callout::before {
-    pointer-events: none;
-  }
+  .callout::before { pointer-events: none; }
 
   .callout-label {
     position: absolute;
@@ -66,14 +54,8 @@ const label = title ?? type;
     color: var(--callout-ink);
     border-color: var(--callout-line);
   }
-
-  .callout-body {
-    position: relative;
-  }
-
-  .callout-body > :global(:last-child) {
-    margin-bottom: 0;
-  }
+  .callout-body { position: relative; }
+  .callout-body > :global(:last-child) { margin-bottom: 0; }
 
   .callout-note,
   .callout-info,

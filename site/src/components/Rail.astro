@@ -1,18 +1,4 @@
 ---
-/* The site rail (owner call 2026-09-06): the palette editor and the
-   section TOC merged into one viewport-tracking component, replacing
-   the separate Toolbar.astro and Toc.astro. Desktop renders it as the
-   sticky left column, palette knob on top of the scroll-spy list, one
-   sticky offset for the whole stack. At the tablet break and below it
-   becomes the fixed bottom-left corner cluster: the Palette knob and
-   a Sections knob side by side, each opening its panel upward, so a
-   phone reader keeps section access anywhere on the page (the old
-   in-flow list scrolled away). The section list renders twice, once
-   as the desktop list and once inside the phone panel, both driven by
-   SECTIONS so neither can drift; toc.ts marks aria-current in both
-   and carries the sections panel's close manners.
-   Panel layout classes stay the site-toolbar-* family in site.css;
-   palette behavior is palette-editor.ts, mounted from Base.astro. */
 import ThemeToggle from "@half-built/astro/components/ThemeToggle.astro";
 import { ICON_X } from "@half-built/astro/scripts/core/icons.ts";
 import { SHIPPED_B1, SHIPPED_B2 } from "../lib/derive-palette";
@@ -79,9 +65,7 @@ import { SECTIONS } from "../data/sections";
           <summary>Show details</summary>
           <ul data-palette-detail class="site-toolbar-readouts"></ul>
         </details>
-        <p class="site-toolbar-caption" id="palette-presets-label">
-          Presets
-        </p>
+        <p class="site-toolbar-caption" id="palette-presets-label">Presets</p>
         <div
           class="site-toolbar-presets"
           role="group"
@@ -133,12 +117,8 @@ import { SECTIONS } from "../data/sections";
            pinned footer, so Copy CSS never scrolls out of reach when the
            disclosures make the panel taller than the viewport allows. -->
       <div class="site-toolbar-actions">
-        <button type="button" data-palette-copy>
-          Copy CSS
-        </button>
-        <button type="button" data-palette-reset>
-          Reset
-        </button>
+        <button type="button" data-palette-copy>Copy CSS</button>
+        <button type="button" data-palette-reset>Reset</button>
       </div>
     </div>
   </details>
@@ -156,11 +136,9 @@ import { SECTIONS } from "../data/sections";
       </button>
       <nav aria-label="Sections">
         <ul class="site-rail-links">
-          {SECTIONS.map((section) => (
-            <li>
-              <a href={`#${section.id}`}>{section.title}</a>
-            </li>
-          ))}
+          {SECTIONS.map((section) => <li>
+            <a href={`#${section.id}`}>{section.title}</a>
+          </li>)}
         </ul>
       </nav>
     </div>
@@ -170,15 +148,11 @@ import { SECTIONS } from "../data/sections";
     {/* Decorative duplicate of the nav's accessible name, so it is
         hidden from the tree; it is the small offset panel above the
         list (owner call 2026-09-06). */}
-    <p class="site-rail-toc-label boxed-label" aria-hidden="true">
-      Sections
-    </p>
+    <p class="site-rail-toc-label boxed-label" aria-hidden="true">Sections</p>
     <ul class="site-rail-links">
-      {SECTIONS.map((section) => (
-        <li>
-          <a href={`#${section.id}`}>{section.title}</a>
-        </li>
-      ))}
+      {SECTIONS.map((section) => <li>
+        <a href={`#${section.id}`}>{section.title}</a>
+      </li>)}
     </ul>
   </nav>
 </aside>
@@ -215,10 +189,7 @@ import { SECTIONS } from "../data/sections";
     margin: 0;
     padding: 0;
   }
-
-  .site-rail-links li {
-    margin-bottom: 6px;
-  }
+  .site-rail-links li { margin-bottom: 6px; }
 
   .site-rail-links a {
     display: block;
@@ -228,10 +199,7 @@ import { SECTIONS } from "../data/sections";
     text-decoration: none;
     border-left: var(--stroke) solid transparent;
   }
-
-  .site-rail-links a:hover {
-    text-decoration: underline;
-  }
+  .site-rail-links a:hover { text-decoration: underline; }
 
   .site-rail-links a[aria-current="true"] {
     border-left-color: var(--accent-1);
@@ -240,7 +208,5 @@ import { SECTIONS } from "../data/sections";
   }
 
   /* The phone panel's list breathes inside the panel padding. */
-  .site-rail-sections nav {
-    padding: 14px;
-  }
+  .site-rail-sections nav { padding: 14px; }
 </style>

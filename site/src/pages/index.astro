@@ -1,12 +1,4 @@
 ---
-/* The reference site's one page. Renders the chrome (through
-   Base.astro) plus one instance of every component the brief asks
-   for, fed by sample data defined right here, grouped under the
-   anchored sections in ../data/sections.ts. Nothing on this page is
-   blog content: the copy is plain and invented for the demo, and the
-   images are generated geometric placeholders in ../assets. Every
-   component import below is a package specifier into @half-built/astro;
-   nothing reaches into packages/astro/src by relative path. */
 import { Code } from "astro:components";
 import Base from "../layouts/Base.astro";
 import Rail from "../components/Rail.astro";
@@ -99,11 +91,6 @@ const linkListItems: LinkListItem[] = [
   { label: "Item three", href: "#" },
 ];
 
-/* The live token sheet (owner ask 2026-09-06): the old chip list and
-   the old static Palette demo merged into one Palette table. Every
-   entry carries `token`, so the chips follow the cascade and
-   token-hexes.ts fills the hex cells from computed styles; theme
-   flips and palette applies both move the values live. */
 const tokenEntries = [
   { role: "--ink", token: "--ink", note: "Body text and rules" },
   { role: "--surface", token: "--surface", note: "The page ground" },
@@ -137,13 +124,6 @@ const tokenEntries = [
   },
 ];
 
-/* The Table subsection's wide specimen: every color primitive in the
-   css package's sheet, by family and stop, read from the file itself
-   so the cells cannot drift from it. A stop is the name's last
-   segment when it is a number, an alpha (a10), or one of the named
-   steps; a name with no stop (--white, --parchment) sits in the
-   "plain" column. Color values only: the sheet's strokes, spacing,
-   and z ladder are not ramps. */
 import primitivesSheet from "@half-built/css/tokens/primitives.css?raw";
 
 const STOP = /^(\d+|a\d+|vivid|dim)$/;
@@ -182,8 +162,6 @@ const rampRows = [...ramps.entries()].map(([family, row]) => ({
   cells: rampStops.map((stop) => row.get(stop) ?? ""),
 }));
 
-/* Sample collection for the forward-link components: one published
-   post and one draft, the two states the gate tells apart. */
 const samplePosts = [
   {
     data: {
@@ -204,9 +182,6 @@ const samplePosts = [
 const codeSample = `def read_ir(code):
     return "power" if code == 0x40BF else "unknown"`;
 
-/* Paste-ready import lines per section (owner call 2026-09-06,
-   replacing the raw path lists). Written out rather than generated,
-   so what a reader copies is exactly what this page imports. */
 const frameImports = `import Masthead from "@half-built/astro/components/Masthead.astro";
 import Footer from "@half-built/astro/components/Footer.astro";
 import ThemeToggle from "@half-built/astro/components/ThemeToggle.astro";`;
@@ -271,7 +246,7 @@ const npmPackages = [
           <div class="section-intro" data-section-intro="intro">
             <p>
               This page renders every component in the half-built design system.
-              The system was extracted from{" "}
+              The system was extracted from
               <a href="https://half-built-robots.com">half-built-robots.com</a>,
               which now references these packages. All three packages are
               published on npm under MIT.
@@ -297,13 +272,9 @@ const npmPackages = [
             />
           </CodeBlock>
           <ul class="demo-npm-links">
-            {npmPackages.map((pkg) => (
-              <li>
-                <a href={pkg.href}>
-                  <code>{pkg.name}</code>
-                </a>
-              </li>
-            ))}
+            {npmPackages.map((pkg) => <li>
+              <a href={pkg.href}><code>{pkg.name}</code></a>
+            </li>)}
           </ul>
         </div>
       </section>
@@ -362,8 +333,8 @@ const npmPackages = [
           <div class="section-intro" data-section-intro="components">
             <p>
               The rest of the package, from the navigation rows to the blocks a
-              post body is built from. Imports split between{" "}
-              <code>components/</code> for page chrome and <code>content/</code>{" "}
+              post body is built from. Imports split between
+              <code>components/</code> for page chrome and <code>content/</code>
               for post bodies. The split is only where the files live. Nothing
               in this system caps the width of text. The layout's column is the
               only width authority.
@@ -421,10 +392,10 @@ const npmPackages = [
           action="https://example.com/subscribe"
           publicUrl="example.com/subscribe"
         >
-          <Fragment slot="fine-print">
-            Placeholder form. This demo does not send email. The action is not a
-            real endpoint.
-          </Fragment>
+          <Fragment slot="fine-print"
+            >Placeholder form. This demo does not send email. The action is not
+            a real endpoint.</Fragment
+          >
         </Subscribe>
 
         <div class="prose">
@@ -434,15 +405,11 @@ const npmPackages = [
             <Button variant="plain">Plain</Button>
             <Button variant="shaded">Shaded</Button>
             <Button variant="accent-1">Accent 1</Button>
-            <Button variant="accent-2" size="lg">
-              Accent 2, large
-            </Button>
+            <Button variant="accent-2" size="lg">Accent 2, large</Button>
           </p>
           <p>A lone call to action takes the centered row.</p>
           <p class="button-row button-row-center">
-            <Button variant="accent-2" href="#">
-              Centered call to action
-            </Button>
+            <Button variant="accent-2" href="#">Centered call to action</Button>
           </p>
 
           <h3>Callout</h3>
@@ -452,31 +419,32 @@ const npmPackages = [
             the line color.
           </p>
           <Callout type="note">A note callout, the default look.</Callout>
-          <Callout type="info">
-            An info callout, graphite like the note. The label tells them apart.
-          </Callout>
-          <Callout type="tip" title="Tip">
-            A tip callout, wearing the first accent.
-          </Callout>
-          <Callout type="warning">
-            A warning callout, the first accent again.
-          </Callout>
-          <Callout type="success">
-            A success callout, wearing the second accent.
-          </Callout>
+          <Callout type="info"
+            >An info callout, graphite like the note. The label tells them
+            apart.</Callout
+          >
+          <Callout type="tip" title="Tip"
+            >A tip callout, wearing the first accent.</Callout
+          >
+          <Callout type="warning"
+            >A warning callout, the first accent again.</Callout
+          >
+          <Callout type="success"
+            >A success callout, wearing the second accent.</Callout
+          >
           <Callout type="error">An error callout, in the red family.</Callout>
 
           <h3>Editor's note</h3>
           <p>
             A note to the author that renders only on a dev server. A deploy
             build emits nothing for it, so it can sit in published content as a
-            standing to-do. This one is forced visible with the{" "}
+            standing to-do. This one is forced visible with the
             <code>shown</code> prop.
           </p>
-          <EditorNote title="Demo" shown={true}>
-            A demo note, forced visible. The dashed rule is the tell. Nothing
-            else in the system is dashed.
-          </EditorNote>
+          <EditorNote title="Demo" shown={true}
+            >A demo note, forced visible. The dashed rule is the tell. Nothing
+            else in the system is dashed.</EditorNote
+          >
 
           <h3>When published and Post link</h3>
           <p>
@@ -490,15 +458,13 @@ const npmPackages = [
           </p>
           <WhenPublished slug="sample-published" posts={samplePosts}>
             <p>
-              This passage is visible because its post is published. It links to{" "}
+              This passage is visible because its post is published. It links to
               <PostLink
                 slug="sample-published"
                 posts={samplePosts}
                 tip="Sample post (September 1, 2026)"
-              >
-                the sample post
-              </PostLink>
-              , whose URL was resolved from the slug.
+                >the sample post</PostLink
+              >, whose URL was resolved from the slug.
             </p>
           </WhenPublished>
           <WhenPublished slug="sample-draft" posts={samplePosts}>
@@ -508,12 +474,12 @@ const npmPackages = [
           </WhenPublished>
 
           <h3>Group</h3>
-          <Group>
-            <p>
+          <Group
+            ><p>
               A boxed prose container, no label and no tint, the plain sibling
               of Callout's box.
-            </p>
-          </Group>
+            </p></Group
+          >
 
           <h3>Code block</h3>
           <CodeBlock filename="example.py">
@@ -531,18 +497,19 @@ const npmPackages = [
           <p>Normal flow resumes here, after the spacer.</p>
 
           <h3>Quote</h3>
-          <Quote by="Demo Author" when="2026">
-            A quoted line, with an attribution footer.
-          </Quote>
+          <Quote by="Demo Author" when="2026"
+            >A quoted line, with an attribution footer.</Quote
+          >
 
           <h3>Walkthrough and Step</h3>
           <Walkthrough numbered>
-            <Step src={placeholderSquare} alt="Placeholder step photo, one">
-              First step. One placeholder photo beside its text.
-            </Step>
-            <Step src={placeholderSquare} alt="Placeholder step photo, two">
-              Second step. Numbering runs down the media column's corner chip.
-            </Step>
+            <Step src={placeholderSquare} alt="Placeholder step photo, one"
+              >First step. One placeholder photo beside its text.</Step
+            >
+            <Step src={placeholderSquare} alt="Placeholder step photo, two"
+              >Second step. Numbering runs down the media column's corner
+              chip.</Step
+            >
           </Walkthrough>
 
           <h3>Gallery</h3>
@@ -630,33 +597,21 @@ const npmPackages = [
               </thead>
               <tbody>
                 <tr>
-                  <td>
-                    <code>--bp-phone</code>
-                  </td>
-                  <td>
-                    <code>max-width: 768px</code>
-                  </td>
+                  <td><code>--bp-phone</code></td>
+                  <td><code>max-width: 768px</code></td>
                   <td>
                     The header's top band retires and the footer groups
                     collapse.
                   </td>
                 </tr>
                 <tr>
-                  <td>
-                    <code>--bp-sidebar</code>
-                  </td>
-                  <td>
-                    <code>max-width: 991px</code>
-                  </td>
+                  <td><code>--bp-sidebar</code></td>
+                  <td><code>max-width: 991px</code></td>
                   <td>The two-column row stacks.</td>
                 </tr>
                 <tr>
-                  <td>
-                    <code>--bp-tablet</code>
-                  </td>
-                  <td>
-                    <code>max-width: 1024px</code>
-                  </td>
+                  <td><code>--bp-tablet</code></td>
+                  <td><code>max-width: 1024px</code></td>
                   <td>The wide-image step.</td>
                 </tr>
               </tbody>
@@ -675,20 +630,16 @@ const npmPackages = [
               <thead>
                 <tr>
                   <th>Family</th>
-                  {rampStops.map((stop) => (
-                    <th>{stop}</th>
-                  ))}
+                  {rampStops.map((stop) => <th>{stop}</th>)}
                 </tr>
               </thead>
               <tbody>
-                {rampRows.map((row) => (
-                  <tr>
-                    <td>{row.family}</td>
-                    {row.cells.map((cell) => (
-                      <td>{cell ? <code>{cell}</code> : ""}</td>
-                    ))}
-                  </tr>
-                ))}
+                {rampRows.map((row) => <tr>
+                  <td>{row.family}</td>
+                  {row.cells.map((cell) => <td>
+                    {cell ? <code>{cell}</code> : ""}
+                  </td>)}
+                </tr>)}
               </tbody>
             </table>
           </section>
@@ -706,7 +657,7 @@ const npmPackages = [
         <h3>Prose specimen</h3>
         <div class="prose">
           <p>
-            Placeholder body copy, demonstrating paragraph rhythm, inline{" "}
+            Placeholder body copy, demonstrating paragraph rhythm, inline
             <code>code</code>, and a <a href="#">placeholder link</a>.
           </p>
           <blockquote>
@@ -723,35 +674,31 @@ const npmPackages = [
               a return link. The heading shows on purpose: the system
               defines no .sr-only (prose.css, owner call 2026-09-09). */}
           <p>
-            A sentence with a footnote reference.
-            <sup>
-              <a
+            A sentence with a footnote
+            reference.<sup
+              ><a
                 href="#user-content-fn-1"
                 id="user-content-fnref-1"
                 data-footnote-ref
                 aria-describedby="footnote-label"
-              >
-                1
-              </a>
-            </sup>
+                >1</a
+              ></sup
+            >
           </p>
           <section data-footnotes class="footnotes">
-            <h2 class="sr-only" id="footnote-label">
-              Footnotes
-            </h2>
+            <h2 class="sr-only" id="footnote-label">Footnotes</h2>
             <ol>
               <li id="user-content-fn-1">
                 <p>
                   A placeholder footnote, with the return link that Markdown
-                  footnotes get.{" "}
+                  footnotes get.
                   <a
                     href="#user-content-fnref-1"
                     data-footnote-backref
                     aria-label="Back to reference 1"
                     class="data-footnote-backref"
+                    >↩</a
                   >
-                    ↩
-                  </a>
                 </p>
               </li>
             </ol>
@@ -776,24 +723,16 @@ const npmPackages = [
               </thead>
               <tbody>
                 <tr>
-                  <td>
-                    <span class="chip">Chip</span>
-                  </td>
-                  <td>
-                    <code>.chip</code>
-                  </td>
+                  <td><span class="chip">Chip</span></td>
+                  <td><code>.chip</code></td>
                   <td>
                     Filled label. The read-time chip and the category card's
                     name.
                   </td>
                 </tr>
                 <tr>
-                  <td>
-                    <span class="boxed-label">Boxed label</span>
-                  </td>
-                  <td>
-                    <code>.boxed-label</code>
-                  </td>
+                  <td><span class="boxed-label">Boxed label</span></td>
+                  <td><code>.boxed-label</code></td>
                   <td>
                     Bordered box, typically straddling a frame rule. The
                     header's date box and widget titles.
@@ -821,21 +760,15 @@ const npmPackages = [
                       </svg>
                     </button>
                   </td>
-                  <td>
-                    <code>.icon-box</code>
-                  </td>
+                  <td><code>.icon-box</code></td>
                   <td>
                     Bordered interactive square. Social icons, the search
                     magnifier, the palette panel's close box.
                   </td>
                 </tr>
                 <tr>
-                  <td>
-                    <span class="micro-label">Micro label</span>
-                  </td>
-                  <td>
-                    <code>.micro-label</code>
-                  </td>
+                  <td><span class="micro-label">Micro label</span></td>
+                  <td><code>.micro-label</code></td>
                   <td>
                     Small bold tracked line. Plate labels and the lightbox's
                     HOME box.
@@ -845,9 +778,7 @@ const npmPackages = [
                   <td>
                     <span class="caption">Caption text, quiet and small.</span>
                   </td>
-                  <td>
-                    <code>.caption</code>
-                  </td>
+                  <td><code>.caption</code></td>
                   <td>
                     The quiet line under an image, beside media text, or after a
                     quote.
@@ -863,14 +794,8 @@ const npmPackages = [
 </Base>
 
 <style>
-  .static-page h1 {
-    font-size: var(--font-size-lg);
-    margin: 0 0 15px;
-  }
-
-  section {
-    margin-top: 40px;
-  }
+  .static-page h1 { font-size: var(--font-size-lg); margin: 0 0 15px; }
+  section { margin-top: 40px; }
 
   .demo-npm-links {
     list-style: none;
@@ -887,10 +812,7 @@ const npmPackages = [
     gap: 20px;
     margin: 20px 0;
   }
-
-  .demo-card-grid-narrow {
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  }
+  .demo-card-grid-narrow { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
 
   .demo-widget-row {
     display: grid;

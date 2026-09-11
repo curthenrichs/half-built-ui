@@ -1,16 +1,4 @@
 ---
-/* Corner badges (owner request 2026-08-27, after launch): the chip
-   family the archive cards' read-time chip belongs to, pinned to the
-   lower-right corner of the image they sit on.
-   - AI Art marks an AI-generated image: heroes through the heroGenAI
-     frontmatter flag, content images through the genai prop on
-     BlogImage, GalleryImage, and MediaText. Images that only went
-     through ordinary editing carry nothing.
-   - Demo marks a post that carries an interactive demo (the demo
-     frontmatter flag), on the card and the post hero.
-   Renders nothing when neither applies. The container is absolutely
-   positioned, so the parent supplies position: relative. pointer-events
-   off: a badge inside a lightbox link must not swallow the tap. */
 import { ICON_PLAY, ICON_SPARKLES } from "../scripts/core/icons";
 
 interface Props {
@@ -30,20 +18,14 @@ const {
 } = Astro.props;
 ---
 
-{(genai || demo) && (
-  <span class:list={["corner-badges", className]}>
-    {genai && (
-      <span class="chip badge-genai">
-        <Fragment set:html={ICON_SPARKLES} /> {genaiLabel}
-      </span>
-    )}
-    {demo && (
-      <span class="chip badge-demo">
-        <Fragment set:html={ICON_PLAY} /> {demoLabel}
-      </span>
-    )}
-  </span>
-)}
+{(genai || demo) && <span class:list={["corner-badges", className]}>
+  {genai && <span class="chip badge-genai"
+    ><Fragment set:html={ICON_SPARKLES} /> {genaiLabel}</span
+  >}
+  {demo && <span class="chip badge-demo"
+    ><Fragment set:html={ICON_PLAY} /> {demoLabel}</span
+  >}
+</span>}
 
 <style>
   /* Chip look comes from the .chip pattern; the read-time chip sits

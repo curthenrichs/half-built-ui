@@ -1,14 +1,4 @@
 ---
-/* Internal link to a post, addressed by slug rather than by URL, so the
-   href follows the target if its date changes. Pairs with WhenPublished
-   for forward links: put the PostLink inside the wrapper and the
-   passage carries only the slug, twice, with nothing to keep in sync.
-   Moved up from the blog's content/PostLink.astro (owner call
-   2026-09-10); the resolver was already here in lib/drafts. The
-   consumer passes its collection, and may pass `tip`, the hover text
-   the link-tip island reads from data-tooltip. Resolves drafts as well
-   (it has to, see resolvePostHref); the deploy-build guard against a
-   bare link to a draft is a consumer test on the built pages. */
 import { resolvePostHref, type Linkable } from "../../lib/drafts";
 
 interface Props {
@@ -22,6 +12,4 @@ const { slug, posts, tip, class: className } = Astro.props;
 const href = resolvePostHref(slug, posts);
 ---
 
-<a href={href} data-tooltip={tip} class={className}>
-  <slot />
-</a>
+<a href={href} data-tooltip={tip} class={className}><slot /></a>
