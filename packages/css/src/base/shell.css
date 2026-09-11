@@ -13,19 +13,48 @@
     min-height: 100vh;
     min-height: 100dvh;
   }
-  .primary-site-content { flex: 1 0 auto; }
-  .shell { max-width: var(--shell-max); margin-inline: auto; padding-inline: var(--shell-pad); }
-  .two-column { display: flex; flex-wrap: wrap; align-items: flex-start; gap: var(--column-gap); }
+
+  .primary-site-content {
+    flex: 1 0 auto;
+  }
+
+  .shell {
+    max-width: var(--shell-max);
+    margin-inline: auto;
+    padding-inline: var(--shell-pad);
+  }
+
+  .two-column {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: var(--column-gap);
+  }
+
   /* The content column beside the sidebar: takes the remaining width and
      may shrink below its content's intrinsic width (long code lines). */
-  .site-main { flex: 1; min-width: 0; }
+  .site-main {
+    flex: 1;
+    min-width: 0;
+  }
 
   /* Content sits below the header: live theme used 50px; bumped by owner preference. */
-  .site-content { margin-top: var(--header-clear); }
+  .site-content {
+    margin-top: var(--header-clear);
+  }
 
   /* Sidebar: not sticky (owner ruling 2026-07-26), it sits in normal flow
      and scrolls away with the page like the main column does. Width is
      30% less half the column gap; below 991px it stacks full width. */
-  .sidebar { width: calc(30% - var(--column-gap) / 2); flex-shrink: 0; }
-  @media (--bp-sidebar) { .sidebar { width: 100%; position: static; } }
+  .sidebar {
+    width: calc(30% - var(--column-gap) / 2);
+    flex-shrink: 0;
+  }
+
+  @media (--bp-sidebar) {
+    .sidebar {
+      width: 100%;
+      position: static;
+    }
+  }
 }

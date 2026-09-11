@@ -34,16 +34,20 @@ function isEntry(value: unknown): value is EcosystemDocEntry {
   if (typeof value !== "object" || value === null) return false;
   const entry = value as Record<string, unknown>;
   return (
-    typeof entry.key === "string" && entry.key !== "" &&
-    typeof entry.label === "string" && entry.label !== "" &&
+    typeof entry.key === "string" &&
+    entry.key !== "" &&
+    typeof entry.label === "string" &&
+    entry.label !== "" &&
     /* href is checked by scheme, not just type, because it is assigned
        straight to link.href below. The document and the cached copy
        are both untrusted input, and a javascript: or data: URL there
        would run on the consumer's origin when clicked. */
     (entry.href === null ||
       (typeof entry.href === "string" && /^https?:\/\//i.test(entry.href))) &&
-    typeof entry.priority === "number" && Number.isFinite(entry.priority) &&
-    typeof entry.family === "string" && entry.family !== ""
+    typeof entry.priority === "number" &&
+    Number.isFinite(entry.priority) &&
+    typeof entry.family === "string" &&
+    entry.family !== ""
   );
 }
 
@@ -110,7 +114,11 @@ function sleep(ms: number): Promise<void> {
 
 async function attemptFetch(endpoint: string): Promise<Attempt> {
   const controller = new AbortController();
-  const timer = setTimeout(() => { controller.abort(); }, ATTEMPT_TIMEOUT_MS);
+
+  const timer = setTimeout(() => {
+    controller.abort();
+  }, ATTEMPT_TIMEOUT_MS);
+
   /* The timer is cleared once in this single finally, which covers the
      header fetch and the body read alike: the 3 second budget bounds
      the whole attempt, not just the response headers, so a stalled
@@ -118,18 +126,25 @@ async function attemptFetch(endpoint: string): Promise<Attempt> {
      forever. */
   try {
     let response: Response;
+
     try {
-      response = await fetch(endpoint, { signal: controller.signal, credentials: "omit" });
+      response = await fetch(endpoint, {
+        signal: controller.signal,
+        credentials: "omit",
+      });
     } catch {
       return { kind: "transport", status: null };
     }
+
     if (!response.ok) return { kind: "transport", status: response.status };
     let text: string;
+
     try {
       text = await response.text();
     } catch {
       return { kind: "transport", status: null };
     }
+
     try {
       return { kind: "body", body: JSON.parse(text) as unknown };
     } catch {
@@ -141,8 +156,13 @@ async function attemptFetch(endpoint: string): Promise<Attempt> {
   }
 }
 
-function readCache(storage: Storage | null, cacheKey: string, now: number): EcosystemDocument | null {
+function readCache(
+  storage: Storage | null,
+  cacheKey: string,
+  now: number,
+): EcosystemDocument | null {
   if (!storage) return null;
+
   try {
     const raw = storage.getItem(cacheKey);
     if (raw === null) return null;
@@ -158,8 +178,14 @@ function readCache(storage: Storage | null, cacheKey: string, now: number): Ecos
   }
 }
 
-function writeCache(storage: Storage | null, cacheKey: string, now: number, document: EcosystemDocument): void {
+function writeCache(
+  storage: Storage | null,
+  cacheKey: string,
+  now: number,
+  document: EcosystemDocument,
+): void {
   if (!storage) return;
+
   try {
     storage.setItem(cacheKey, JSON.stringify({ fetchedAt: now, document }));
   } catch {
@@ -183,17 +209,22 @@ export async function loadDocument(
   for (const delay of [0, ...retryDelaysMs]) {
     await sleep(delay);
     const result = await attemptFetch(endpoint);
+
     if (result.kind === "body") {
       const document = validateDocument(result.body);
+
       if (document) {
         writeCache(storage, cacheKey, now, document);
         return document;
       }
+
       break;
     }
+
     if (result.kind === "content") break;
     if (!retryable(result.status)) break;
   }
+
   return readCache(storage, cacheKey, now);
 }
 
@@ -229,10 +260,15 @@ function scopeOf(list: Element): string | null {
   for (const { name } of list.attributes) {
     if (name.startsWith("data-astro-cid-")) return name;
   }
+
   return null;
 }
 
-function entryNode(doc: Document, entry: EcosystemDocEntry, selfKey: string): HTMLElement {
+function entryNode(
+  doc: Document,
+  entry: EcosystemDocEntry,
+  selfKey: string,
+): HTMLElement {
   if (entry.key === selfKey) {
     const self = doc.createElement("span");
     self.className = "footer-sitemap-self";
@@ -243,12 +279,14 @@ function entryNode(doc: Document, entry: EcosystemDocEntry, selfKey: string): HT
     self.textContent = entry.label;
     return self;
   }
+
   if (entry.href !== null) {
     const link = doc.createElement("a");
     link.href = entry.href;
     link.textContent = entry.label;
     return link;
   }
+
   const pending = doc.createElement("span");
   pending.className = "footer-sitemap-pending";
   pending.textContent = entry.label;
@@ -272,13 +310,31 @@ function safeStorage(view: Window | null): Storage | null {
     it has no claim() guard, so a caller that mounts it twice on the
     same document runs the fetch and the swap twice; every known
     caller mounts it once. */
-export async function mountEcosystem(root: Document, opts: EcosystemOptions): Promise<void> {
-  const { endpoint, selfKey, limit = DEFAULT_LIMIT, retryDelaysMs, cacheKey = CACHE_KEY } = opts;
+export async function mountEcosystem(
+  root: Document,
+  opts: EcosystemOptions,
+): Promise<void> {
+  const {
+    endpoint,
+    selfKey,
+    limit = DEFAULT_LIMIT,
+    retryDelaysMs,
+    cacheKey = CACHE_KEY,
+  } = opts;
+
   const list = root.querySelector<HTMLElement>("[data-ecosystem]");
   if (!list) return;
 
   const storage = safeStorage(root.defaultView);
-  const document_ = await loadDocument(endpoint, storage, Date.now(), retryDelaysMs, cacheKey);
+
+  const document_ = await loadDocument(
+    endpoint,
+    storage,
+    Date.now(),
+    retryDelaysMs,
+    cacheKey,
+  );
+
   if (!document_) return;
 
   const entries = sortEntries(document_.entries, selfKey, limit);
@@ -286,15 +342,19 @@ export async function mountEcosystem(root: Document, opts: EcosystemOptions): Pr
 
   const scope = scopeOf(list);
   const fragment = root.createDocumentFragment();
+
   for (const entry of entries) {
     const item = root.createElement("li");
     const node = entryNode(root, entry, selfKey);
+
     if (scope !== null) {
       item.setAttribute(scope, "");
       node.setAttribute(scope, "");
     }
+
     item.append(node);
     fragment.append(item);
   }
+
   list.replaceChildren(fragment);
 }

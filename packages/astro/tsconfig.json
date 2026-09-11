@@ -8,8 +8,6 @@
     "vitest.browser.config.ts"
   ],
   "compilerOptions": {
-    "types": [
-      "node"
-    ]
+    "types": ["node"]
   }
 }

@@ -1,5 +1,8 @@
 export function slugifyCategory(name: string): string {
-  return name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
 }
 
 /* The WP-compatible date permalink is the library's documented opinion
@@ -22,8 +25,12 @@ export function categoryPath(name: string, base = "/category"): string {
 /* Canonical href for a static page. One level of nesting exists today
    (children of policies); parent chains deeper than one are not modeled
    anywhere, so this stays flat on purpose. */
-export function pagePath(p: { data: { slug: string; parent?: string } }): string {
-  return p.data.parent ? `/${p.data.parent}/${p.data.slug}/` : `/${p.data.slug}/`;
+export function pagePath(p: {
+  data: { slug: string; parent?: string };
+}): string {
+  return p.data.parent
+    ? `/${p.data.parent}/${p.data.slug}/`
+    : `/${p.data.slug}/`;
 }
 
 /* Canonical lookup key for an internal href: root-relative, fragment
@@ -31,14 +38,19 @@ export function pagePath(p: { data: { slug: string; parent?: string } }): string
    site's own origins reduces to its path; anything else external is
    null, as is a file-ish path (a dot in the last segment, /feed.xml),
    which names a document with no page title to reveal. */
-export function internalHrefKey(href: string, origins: readonly string[] = []): string | null {
+export function internalHrefKey(
+  href: string,
+  origins: readonly string[] = [],
+): string | null {
   let h = href;
+
   for (const o of origins) {
     if (h === o || h.startsWith(`${o}/`)) {
       h = h.slice(o.length) || "/";
       break;
     }
   }
+
   if (!h.startsWith("/") || h.startsWith("//")) return null;
   h = h.replace(/[#?].*$/, "");
   if (h === "") return "/";
@@ -50,7 +62,12 @@ export function internalHrefKey(href: string, origins: readonly string[] = []): 
 /* Top-level path segments owned by real routes. A page slugged one of these
    (or a bare year) would shadow the archive, pagination, category, or search
    trees under the [...slug] catch-all without any build error. */
-export const RESERVED_PAGE_SLUGS = new Set(["page", "category", "search", "404"]);
+export const RESERVED_PAGE_SLUGS = new Set([
+  "page",
+  "category",
+  "search",
+  "404",
+]);
 
 /* Build-time guard for the [...slug] catch-all: rejects reserved top-level
    slugs and parent references that resolve to nothing (a typo'd parent would
@@ -67,7 +84,13 @@ export function assertPageRoutable(
       `Page "${p.data.slug}" declares parent "${p.data.parent}", which matches no page slug`,
     );
   }
-  if (!p.data.parent && (reserved.has(p.data.slug) || /^\d{4}$/.test(p.data.slug))) {
-    throw new Error(`Page slug "${p.data.slug}" collides with a reserved route`);
+
+  if (
+    !p.data.parent &&
+    (reserved.has(p.data.slug) || /^\d{4}$/.test(p.data.slug))
+  ) {
+    throw new Error(
+      `Page slug "${p.data.slug}" collides with a reserved route`,
+    );
   }
 }

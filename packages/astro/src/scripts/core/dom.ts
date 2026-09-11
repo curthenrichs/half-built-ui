@@ -14,7 +14,12 @@ export function el<K extends keyof HTMLElementTagNameMap>(
   return node;
 }
 
-export function iconButton(doc: Document, className: string, label: string, svg: string): HTMLButtonElement {
+export function iconButton(
+  doc: Document,
+  className: string,
+  label: string,
+  svg: string,
+): HTMLButtonElement {
   const btn = doc.createElement("button");
   btn.type = "button";
   btn.className = className;

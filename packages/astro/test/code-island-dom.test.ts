@@ -30,6 +30,7 @@ describe("code island decorator (DOM runtime)", () => {
     document.body.innerHTML = PAGE;
     vi.useFakeTimers();
   });
+
   afterEach(() => {
     vi.useRealTimers();
     vi.unstubAllGlobals();
@@ -44,7 +45,11 @@ describe("code island decorator (DOM runtime)", () => {
 
   it("labels carry filename and language when present, language alone otherwise", () => {
     mountCodeIslands(document);
-    const labels = [...document.querySelectorAll(".code-island-bar span")].map((s) => s.textContent);
+
+    const labels = [...document.querySelectorAll(".code-island-bar span")].map(
+      (s) => s.textContent,
+    );
+
     expect(labels[0]).toBe("demo.py · python");
     expect(labels[1]).toBe("basic");
   });
@@ -74,6 +79,7 @@ describe("code island decorator (DOM runtime)", () => {
     mountCodeIslands(document);
     mountCodeIslands(document);
     expect(document.querySelectorAll(".code-island-bar").length).toBe(2);
+
     for (const pre of document.querySelectorAll(".prose pre.astro-code")) {
       expect(pre.hasAttribute("data-island-code")).toBe(true);
     }
@@ -84,6 +90,7 @@ describe("code island decorator (DOM runtime)", () => {
     expect(document.querySelectorAll(".code-island-bar").length).toBe(2);
     handle.destroy();
     expect(document.querySelectorAll(".code-island-bar").length).toBe(0);
+
     for (const pre of document.querySelectorAll(".prose pre.astro-code")) {
       expect(pre.hasAttribute("data-island-code")).toBe(false);
     }
@@ -92,7 +99,11 @@ describe("code island decorator (DOM runtime)", () => {
   it("custom copy labels appear on the button through a click cycle", async () => {
     const writeText = vi.fn().mockResolvedValue(undefined);
     vi.stubGlobal("navigator", { clipboard: { writeText } });
-    mountCodeIslands(document, { copy: { copy: "GET", copied: "GOT IT", failed: "NOPE" } });
+
+    mountCodeIslands(document, {
+      copy: { copy: "GET", copied: "GOT IT", failed: "NOPE" },
+    });
+
     const btn = document.querySelectorAll<HTMLButtonElement>(".code-copy")[0];
     expect(btn.textContent).toBe("GET");
     btn.click();

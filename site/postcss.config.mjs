@@ -9,11 +9,10 @@ import postcssGlobalData from "@csstools/postcss-global-data";
 import postcssCustomMedia from "postcss-custom-media";
 import { fileURLToPath } from "node:url";
 
-const breakpoints = fileURLToPath(import.meta.resolve("@half-built/css/tokens/breakpoints.css"));
+const breakpoints = fileURLToPath(
+  import.meta.resolve("@half-built/css/tokens/breakpoints.css"),
+);
 
 export default {
-  plugins: [
-    postcssGlobalData({ files: [breakpoints] }),
-    postcssCustomMedia(),
-  ],
+  plugins: [postcssGlobalData({ files: [breakpoints] }), postcssCustomMedia()],
 };

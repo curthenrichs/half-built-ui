@@ -35,13 +35,17 @@ export const MSG = {
      A function member so an overridden register controls the whole
      sentence, joiner included (step 9.5; the generalization review found
      the joiner was the one baked phrase left in this script). */
-  failedAt: (failed: string, url: string): string => `${failed.replace(/\.$/, "")}, or sign up at ${url}.`,
+  failedAt: (failed: string, url: string): string =>
+    `${failed.replace(/\.$/, "")}, or sign up at ${url}.`,
 };
 
 /* The provider's public sign-up page rides the form's data-public-url
    (config NEWSLETTER via the component's publicUrl prop), so this script names no provider; without the
    attribute the message stays generic. */
-export function failedMessage(form: HTMLFormElement, messages: typeof MSG): string {
+export function failedMessage(
+  form: HTMLFormElement,
+  messages: typeof MSG,
+): string {
   const url = form.dataset.publicUrl;
   return url ? messages.failedAt(messages.failed, url) : messages.failed;
 }
@@ -51,11 +55,23 @@ function setStatus(status: HTMLElement, text: string, isError: boolean): void {
   status.classList.toggle("subscribe-status-err", isError);
 }
 
-async function send(form: HTMLFormElement, input: HTMLInputElement, button: HTMLButtonElement | null, status: HTMLElement, messages: typeof MSG): Promise<void> {
+async function send(
+  form: HTMLFormElement,
+  input: HTMLInputElement,
+  button: HTMLButtonElement | null,
+  status: HTMLElement,
+  messages: typeof MSG,
+): Promise<void> {
   if (button) button.disabled = true;
   setStatus(status, messages.pending, false);
+
   try {
-    const res = await fetch(form.action, { method: "POST", body: new FormData(form), redirect: "manual" });
+    const res = await fetch(form.action, {
+      method: "POST",
+      body: new FormData(form),
+      redirect: "manual",
+    });
+
     if (res.ok || res.type === "opaqueredirect") {
       setStatus(status, messages.sent, false);
       input.value = "";
@@ -80,27 +96,52 @@ export interface SubscribeOptions {
   messages?: Partial<typeof MSG>;
 }
 
-export const mountSubscribe: Island<SubscribeOptions> = (root, options = {}): IslandHandle => {
-  const { selector = ".subscribe-form", messages: messagesOverride = {} } = options;
+export const mountSubscribe: Island<SubscribeOptions> = (
+  root,
+  options = {},
+): IslandHandle => {
+  const { selector = ".subscribe-form", messages: messagesOverride = {} } =
+    options;
+
   const messages: typeof MSG = { ...MSG, ...messagesOverride };
-  const forms = [...root.querySelectorAll<HTMLFormElement>(selector)].filter((form) => claim(form, "subscribe"));
+
+  const forms = [...root.querySelectorAll<HTMLFormElement>(selector)].filter(
+    (form) => claim(form, "subscribe"),
+  );
 
   const handlers: [HTMLFormElement, (e: Event) => void][] = [];
+
   for (const form of forms) {
     const onSubmit = (e: Event): void => {
       e.preventDefault();
       const input = form.querySelector(".subscribe-email");
       const button = form.querySelector(".subscribe-submit");
       const status = form.parentElement?.querySelector(".subscribe-status");
-      if (!(input instanceof HTMLInputElement) || !(status instanceof HTMLElement)) return;
+
+      if (
+        !(input instanceof HTMLInputElement) ||
+        !(status instanceof HTMLElement)
+      ) {
+        return;
+      }
+
       const value = input.value.trim();
       input.value = value;
+
       if (!EMAIL.test(value)) {
         setStatus(status, messages.invalid, true);
         return;
       }
-      void send(form, input, button instanceof HTMLButtonElement ? button : null, status, messages);
+
+      void send(
+        form,
+        input,
+        button instanceof HTMLButtonElement ? button : null,
+        status,
+        messages,
+      );
     };
+
     form.addEventListener("submit", onSubmit);
     handlers.push([form, onSubmit]);
   }

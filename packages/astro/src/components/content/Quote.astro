@@ -1,18 +1,19 @@
 ---
-/* Attributed quote (spec 2026-08-14-quote-attribution-design.md).
-   Renders a plain blockquote so the boxed treatment in prose.css applies
-   unchanged; the provenance line is opt-in and most quotes should not
-   carry one (Nomenclature callouts and quotes already introduced by the
-   surrounding prose stay bare markdown). The tilde prefix stands in for
-   the traditional em dash, which is banned house-wide; the tilde is
-   already the site's separator (post titles). */
-interface Props { by?: string; when?: string; class?: string }
+interface Props {
+  by?: string;
+  when?: string;
+  class?: string;
+}
+
 const { by, when, class: className } = Astro.props;
 const attribution = [by, when].filter(Boolean).join(", ");
 ---
+
 <blockquote class:list={[className]}>
   <slot />
-  {attribution && <footer class="quote-attribution caption">~ {attribution}</footer>}
+  {attribution && <footer class="quote-attribution caption">
+    ~ {attribution}
+  </footer>}
 </blockquote>
 
 <style>

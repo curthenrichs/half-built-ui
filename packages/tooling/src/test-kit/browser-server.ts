@@ -28,9 +28,13 @@ const CHROME_CANDIDATES = [
 /** Absolute path to a local Chrome; throws naming every path checked. */
 export function findChrome(): string {
   const chrome = CHROME_CANDIDATES.find((p) => p && existsSync(p));
+
   if (chrome == null || chrome === "") {
-    throw new Error(`Chrome not found; checked: ${CHROME_CANDIDATES.filter(Boolean).join(", ")}`);
+    throw new Error(
+      `Chrome not found; checked: ${CHROME_CANDIDATES.filter(Boolean).join(", ")}`,
+    );
   }
+
   return chrome;
 }
 
@@ -43,25 +47,38 @@ async function answers(url: string): Promise<boolean> {
   }
 }
 
-async function waitForServer(url: string, proc: ChildProcess, tries = 60): Promise<void> {
+async function waitForServer(
+  url: string,
+  proc: ChildProcess,
+  tries = 60,
+): Promise<void> {
   for (let i = 0; i < tries; i++) {
     if (proc.exitCode != null) {
-      throw new Error(`preview server exited with code ${proc.exitCode} (see stderr above)`);
+      throw new Error(
+        `preview server exited with code ${proc.exitCode} (see stderr above)`,
+      );
     }
+
     let res: Response | undefined;
+
     try {
       res = await fetch(url);
     } catch {
       /* not up yet */
     }
+
     if (res?.status === 404) {
       /* The server is up but the page is not where the suite thinks:
          fail now and name the likely cause instead of timing out. */
-      throw new Error(`server is up but ${url} is 404; did the route or slug change?`);
+      throw new Error(
+        `server is up but ${url} is 404; did the route or slug change?`,
+      );
     }
+
     if (res?.ok) return;
     await new Promise((r) => setTimeout(r, 500));
   }
+
   throw new Error(`preview server never answered at ${url}`);
 }
 
@@ -71,12 +88,19 @@ async function waitForServer(url: string, proc: ChildProcess, tries = 60): Promi
    validate a server this run does not control. Chrome is located
    before the spawn so a machine without one fails before it has a
    server to clean up. */
-export async function startPreview(port: number, readyPath: string): Promise<ChildProcess> {
+export async function startPreview(
+  port: number,
+  readyPath: string,
+): Promise<ChildProcess> {
   findChrome();
   const origin = `http://localhost:${port}`;
+
   if (await answers(`${origin}/`)) {
-    throw new Error(`something already serves ${origin}; kill it before running the browser suites`);
+    throw new Error(
+      `something already serves ${origin}; kill it before running the browser suites`,
+    );
   }
+
   /* stderr inherited so a failed spawn (missing dist, bad flag) is
      loud instead of a silent 30 s timeout. detached on POSIX so the
      shell wrapper gets its own process group we can kill whole. */
@@ -85,6 +109,7 @@ export async function startPreview(port: number, readyPath: string): Promise<Chi
     stdio: ["ignore", "ignore", "inherit"],
     detached: process.platform !== "win32",
   });
+
   await waitForServer(`${origin}${readyPath}`, server);
   return server;
 }
@@ -93,8 +118,11 @@ export async function startPreview(port: number, readyPath: string): Promise<Chi
    to call when the spawn itself failed, so no orphan keeps the port. */
 export function stopPreview(server: ChildProcess | undefined): void {
   if (server?.pid == null) return;
+
   if (process.platform === "win32") {
-    spawnSync("taskkill", ["/pid", String(server.pid), "/T", "/F"], { stdio: "ignore" });
+    spawnSync("taskkill", ["/pid", String(server.pid), "/T", "/F"], {
+      stdio: "ignore",
+    });
   } else {
     try {
       process.kill(-server.pid, "SIGTERM"); // negative pid: the detached group
@@ -137,7 +165,11 @@ export async function launchChrome(): Promise<Browser> {
 /* A desktop-class page. The pointer itself is a launch setting (see
    launchChrome); this is the viewport, and the one place desktop pages
    are opened so a consumer's suites cannot drift. */
-export async function desktopPage(browser: Browser, width = 1280, height = 900): Promise<Page> {
+export async function desktopPage(
+  browser: Browser,
+  width = 1280,
+  height = 900,
+): Promise<Page> {
   const p = await browser.newPage();
   await p.setViewport({ width, height });
   return p;
@@ -146,8 +178,20 @@ export async function desktopPage(browser: Browser, width = 1280, height = 900):
 /* A phone-class page: iPhone width and touch. hasTouch is what flips
    (hover: none) and (pointer: coarse) on, per page, over the launch
    setting; it is the reason a touch test proves the no-hover path. */
-export async function phonePage(browser: Browser, width = 390, height = 664): Promise<Page> {
+export async function phonePage(
+  browser: Browser,
+  width = 390,
+  height = 664,
+): Promise<Page> {
   const p = await browser.newPage();
-  await p.setViewport({ width, height, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
+
+  await p.setViewport({
+    width,
+    height,
+    deviceScaleFactor: 2,
+    isMobile: true,
+    hasTouch: true,
+  });
+
   return p;
 }

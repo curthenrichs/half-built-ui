@@ -4,7 +4,12 @@
    the geometry is covered by path-player-math tests). */
 import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
 import { createPathPlayer } from "../src/scripts/path-player";
-import { polyfillDialog, stubRafOnFakeTimers, recordingContext, type RecordingContext } from "./helpers";
+import {
+  polyfillDialog,
+  stubRafOnFakeTimers,
+  recordingContext,
+  type RecordingContext,
+} from "./helpers";
 
 /* The blog's copy of this suite typed SAMPLES against fluid/path-pipeline's
    TimelineSample. path-player.ts is generic over the sample type (it "knows
@@ -13,7 +18,9 @@ import { polyfillDialog, stubRafOnFakeTimers, recordingContext, type RecordingCo
    the literal below instead; the shape is unchanged. */
 const SAMPLES = Array.from({ length: 60 }, (_, i) => ({
   t: i / 30,
-  x: i / 60, y: -i / 60, z: 0.1,
+  x: i / 60,
+  y: -i / 60,
+  z: 0.1,
   color: { r: 0.05, g: 0.075, b: 0.1 },
   radius: 0.55,
   wp: i < 30 ? 0 : 1,
@@ -23,7 +30,11 @@ const SAMPLES = Array.from({ length: 60 }, (_, i) => ({
 /* One shape for the spy sink: the declaration below and makePlayer's
    config both use it, so a grown sink (seek is the obvious next method)
    is a one-line change here. */
-type SinkSpies = Record<"start" | "move" | "stop" | "pause" | "resume", ReturnType<typeof vi.fn>>;
+type SinkSpies = Record<
+  "start" | "move" | "stop" | "pause" | "resume",
+  ReturnType<typeof vi.fn>
+>;
+
 let sink: SinkSpies;
 
 /* Every test uses the beforeEach sink; makePlayer closes over it. */
@@ -35,7 +46,10 @@ function makePlayer() {
     duration: 2,
     samples: SAMPLES,
     tracks: [],
-    buildStage: (viewbox) => { viewbox.append(document.createElement("canvas")); return true; },
+    buildStage: (viewbox) => {
+      viewbox.append(document.createElement("canvas"));
+      return true;
+    },
     sink,
   });
 }
@@ -49,7 +63,14 @@ describe("createPathPlayer", () => {
     vi.useFakeTimers();
     stubRafOnFakeTimers();
     document.body.innerHTML = "<button id='opener'>run</button>";
-    sink = { start: vi.fn(), move: vi.fn(), stop: vi.fn(), pause: vi.fn(), resume: vi.fn() };
+
+    sink = {
+      start: vi.fn(),
+      move: vi.fn(),
+      stop: vi.fn(),
+      pause: vi.fn(),
+      resume: vi.fn(),
+    };
   });
 
   afterEach(() => {
@@ -76,10 +97,21 @@ describe("createPathPlayer", () => {
   it("renders the labels, caption, and transport", () => {
     const player = makePlayer();
     player.open(null);
-    expect(document.querySelector(".pp-title")?.textContent).toBe("PATH PLAYER");
+
+    expect(document.querySelector(".pp-title")?.textContent).toBe(
+      "PATH PLAYER",
+    );
+
     expect(document.querySelector(".pp-source")?.textContent).toBe("TEST");
-    expect(document.querySelector(".pp-caption")?.textContent).toBe("Test caption.");
-    expect(document.querySelector(".pp-readout")?.textContent).toBe("T+00.0 / 2.0s");
+
+    expect(document.querySelector(".pp-caption")?.textContent).toBe(
+      "Test caption.",
+    );
+
+    expect(document.querySelector(".pp-readout")?.textContent).toBe(
+      "T+00.0 / 2.0s",
+    );
+
     expect(document.querySelector(".pp-play")).not.toBeNull();
     expect(document.querySelector(".pp-restart")).not.toBeNull();
   });
@@ -98,8 +130,13 @@ describe("createPathPlayer", () => {
   });
 
   it("opens paused under prefers-reduced-motion, transport still plays", () => {
-    const matchMedia = vi.fn((q: string) => ({ matches: q.includes("reduce"), media: q }));
+    const matchMedia = vi.fn((q: string) => ({
+      matches: q.includes("reduce"),
+      media: q,
+    }));
+
     vi.stubGlobal("matchMedia", matchMedia);
+
     try {
       const player = makePlayer();
       player.open(null);
@@ -119,13 +156,22 @@ describe("createPathPlayer", () => {
     player.open(null);
     const play = document.querySelector<HTMLButtonElement>(".pp-play");
     if (!play) throw new Error("no play button");
+
     // Space with the button as target: native activation handles it,
     // the global handler must ignore it, so state stays playing.
-    play.dispatchEvent(new KeyboardEvent("keydown", { key: " ", bubbles: true }));
+    play.dispatchEvent(
+      new KeyboardEvent("keydown", { key: " ", bubbles: true }),
+    );
+
     expect(player.isPlaying()).toBe(true);
+
     // Space on the dialog itself toggles.
-    document.querySelector("dialog")?.dispatchEvent(
-      new KeyboardEvent("keydown", { key: " ", bubbles: true }));
+    document
+      .querySelector("dialog")
+      ?.dispatchEvent(
+        new KeyboardEvent("keydown", { key: " ", bubbles: true }),
+      );
+
     expect(player.isPlaying()).toBe(false);
   });
 
@@ -159,15 +205,27 @@ describe("createPathPlayer", () => {
      has WebGL, which is why it gets a test. */
   it("buildStage returning false disables the transport and skips autoplay", () => {
     const player = createPathPlayer(document, {
-      title: "T", source: "S", caption: "C",
-      duration: 2, samples: SAMPLES, tracks: [],
+      title: "T",
+      source: "S",
+      caption: "C",
+      duration: 2,
+      samples: SAMPLES,
+      tracks: [],
       buildStage: () => false,
       sink,
     });
+
     player.open(null);
     expect(document.querySelector("dialog")?.hasAttribute("open")).toBe(true);
-    expect(document.querySelector<HTMLButtonElement>(".pp-play")?.disabled).toBe(true);
-    expect(document.querySelector<HTMLButtonElement>(".pp-restart")?.disabled).toBe(true);
+
+    expect(
+      document.querySelector<HTMLButtonElement>(".pp-play")?.disabled,
+    ).toBe(true);
+
+    expect(
+      document.querySelector<HTMLButtonElement>(".pp-restart")?.disabled,
+    ).toBe(true);
+
     expect(player.isPlaying()).toBe(false);
     expect(sink.start).not.toHaveBeenCalled();
   });
@@ -180,12 +238,19 @@ describe("createPathPlayer", () => {
     if (!restart) throw new Error("no restart button");
     restart.dispatchEvent(new MouseEvent("click", { bubbles: true }));
     vi.advanceTimersByTime(20); // one frame so the readout repaints
-    expect(document.querySelector(".pp-readout")?.textContent).toBe("T+00.0 / 2.0s");
+
+    expect(document.querySelector(".pp-readout")?.textContent).toBe(
+      "T+00.0 / 2.0s",
+    );
+
     expect(player.isPlaying()).toBe(true);
+
     // Pause, then restart: the emitter repositions (sink.start) but
     // playback stays paused.
-    document.querySelector<HTMLButtonElement>(".pp-play")
+    document
+      .querySelector<HTMLButtonElement>(".pp-play")
       ?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+
     expect(player.isPlaying()).toBe(false);
     const startsBefore = sink.start.mock.calls.length;
     restart.dispatchEvent(new MouseEvent("click", { bubbles: true }));
@@ -199,23 +264,35 @@ describe("createPathPlayer", () => {
      stamped and a playhead drawn every frame. */
   function recordCanvases(): Map<HTMLCanvasElement, RecordingContext> {
     const recorders = new Map<HTMLCanvasElement, RecordingContext>();
+
     vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockImplementation(
       function (this: HTMLCanvasElement) {
         let r = recorders.get(this);
-        if (!r) { r = recordingContext(); recorders.set(this, r); }
+
+        if (!r) {
+          r = recordingContext();
+          recorders.set(this, r);
+        }
+
         return r.ctx;
       },
     );
+
     return recorders;
   }
+
   const TRACKS = [
     {
-      kind: "band" as const, height: 30, label: "FEED",
+      kind: "band" as const,
+      height: 30,
+      label: "FEED",
       colorAt: (i: number) => SAMPLES[i].color,
       envelopeAt: (i: number) => SAMPLES[i].radius,
     },
     {
-      kind: "lines" as const, height: 60, label: "PATH",
+      kind: "lines" as const,
+      height: 60,
+      label: "PATH",
       series: [
         { label: "x", values: SAMPLES.map((s) => s.x), cssVar: "--track-x" },
         { label: "y", values: SAMPLES.map((s) => s.y), cssVar: "--track-y" },
@@ -224,13 +301,20 @@ describe("createPathPlayer", () => {
       ticks: [{ t: 1, label: "2" }],
     },
   ];
+
   function makePaintedPlayer() {
     return createPathPlayer(document, {
-      title: "T", source: "S", caption: "C", duration: 2, samples: SAMPLES, tracks: TRACKS,
+      title: "T",
+      source: "S",
+      caption: "C",
+      duration: 2,
+      samples: SAMPLES,
+      tracks: TRACKS,
       buildStage: () => true,
       sink,
     });
   }
+
   const visibleCanvas = (): HTMLCanvasElement => {
     const c = document.querySelector<HTMLCanvasElement>(".pp-tracks");
     if (!c) throw new Error("no tracks canvas");
@@ -251,7 +335,10 @@ describe("createPathPlayer", () => {
     // 600 band columns, the paper panel, one region, two chips
     expect(offscreen.ops("fillRect")).toHaveLength(600 + 1 + 1 + 2);
     const texts = offscreen.ops("fillText").map((c) => c.args[0]);
-    expect(texts).toEqual(expect.arrayContaining(["FEED", "PATH", "2", "X", "Y", "0s"]));
+
+    expect(texts).toEqual(
+      expect.arrayContaining(["FEED", "PATH", "2", "X", "Y", "0s"]),
+    );
 
     vi.advanceTimersByTime(48); // three frames
     const visible = recorders.get(canvas);
@@ -265,21 +352,32 @@ describe("createPathPlayer", () => {
     expect(xs[0]).toBe(0);
     expect(xs[1]).toBeGreaterThan(xs[0]);
     expect(xs[2]).toBeGreaterThan(xs[1]);
-    expect(visible.ops("lineTo").map((c) => c.args[1])).toEqual([100, 100, 100]); // timeline minus the axis
+
+    expect(visible.ops("lineTo").map((c) => c.args[1])).toEqual([
+      100, 100, 100,
+    ]); // timeline minus the axis
+
     player.close();
   });
 
   it("cssColor reads a custom property, trimmed, and falls back to ink", () => {
     const recorders = recordCanvases();
+
     vi.spyOn(window, "getComputedStyle").mockReturnValue({
       getPropertyValue: (v: string) => (v === "--track-x" ? " #ff0000 " : ""),
     } as unknown as CSSStyleDeclaration);
+
     const player = makePaintedPlayer();
     player.open(null);
     const canvas = visibleCanvas();
     const offscreen = [...recorders.entries()].find(([c]) => c !== canvas)?.[1];
     if (!offscreen) throw new Error("static canvas was never painted");
-    const series = offscreen.ops("stroke").filter((c) => c.lineWidth === 1.5).map((c) => c.strokeStyle);
+
+    const series = offscreen
+      .ops("stroke")
+      .filter((c) => c.lineWidth === 1.5)
+      .map((c) => c.strokeStyle);
+
     // band envelope, then x in its token color, then y on the fallback
     expect(series).toEqual(["rgba(255, 255, 255, 0.9)", "#ff0000", "#111111"]);
     player.close();
@@ -301,10 +399,16 @@ describe("createPathPlayer", () => {
   it("on phones the caption starts hidden behind the toggle, which reveals it", () => {
     /* The nine-line caption was the biggest block in a plate that ran
        100px past a 664px phone (spec 2026-08-25, item 1). */
-    vi.stubGlobal("matchMedia", (q: string) => ({ matches: q === "(max-width: 768px)" }));
+    vi.stubGlobal("matchMedia", (q: string) => ({
+      matches: q === "(max-width: 768px)",
+    }));
+
     const player = makePlayer();
     player.open(null);
-    const toggle = document.querySelector<HTMLButtonElement>(".pp-caption-toggle");
+
+    const toggle =
+      document.querySelector<HTMLButtonElement>(".pp-caption-toggle");
+
     const caption = document.querySelector<HTMLElement>(".pp-caption");
     if (!toggle || !caption) throw new Error("toggle or caption missing");
     expect(caption.hidden).toBe(true);
@@ -322,27 +426,49 @@ describe("createPathPlayer", () => {
     vi.stubGlobal("matchMedia", () => ({ matches: false }));
     const player = makePlayer();
     player.open(null);
-    expect(document.querySelector<HTMLElement>(".pp-caption")?.hidden).toBe(false);
-    expect(document.querySelector(".pp-caption-toggle")?.getAttribute("aria-expanded")).toBe("true");
+
+    expect(document.querySelector<HTMLElement>(".pp-caption")?.hidden).toBe(
+      false,
+    );
+
+    expect(
+      document
+        .querySelector(".pp-caption-toggle")
+        ?.getAttribute("aria-expanded"),
+    ).toBe("true");
   });
 
   it("without matchMedia at all (jsdom) the caption is visible", () => {
     const player = makePlayer();
     player.open(null);
-    expect(document.querySelector<HTMLElement>(".pp-caption")?.hidden).toBe(false);
+
+    expect(document.querySelector<HTMLElement>(".pp-caption")?.hidden).toBe(
+      false,
+    );
   });
 
   it("crossing the phone breakpoint while open follows the query", () => {
     const captured: { cb?: (ev: { matches: boolean }) => void } = {};
+
     vi.stubGlobal("matchMedia", (q: string) => ({
       matches: q === "(max-width: 768px)",
-      addEventListener: (_type: "change", cb: (ev: { matches: boolean }) => void) => { captured.cb = cb; },
+      addEventListener: (
+        _type: "change",
+        cb: (ev: { matches: boolean }) => void,
+      ) => {
+        captured.cb = cb;
+      },
     }));
+
     const player = makePlayer();
     player.open(null);
     const caption = document.querySelector<HTMLElement>(".pp-caption");
     const toggle = document.querySelector(".pp-caption-toggle");
-    if (!caption || !toggle || !captured.cb) throw new Error("caption, toggle, or listener missing");
+
+    if (!caption || !toggle || !captured.cb) {
+      throw new Error("caption, toggle, or listener missing");
+    }
+
     expect(caption.hidden).toBe(true);
     captured.cb({ matches: false });
     expect(caption.hidden).toBe(false);
@@ -356,7 +482,10 @@ describe("createPathPlayer", () => {
      pause; only the loop halts and resumes. */
   describe("visibility pause (step 10)", () => {
     afterEach(() => {
-      Object.defineProperty(document, "hidden", { value: false, configurable: true });
+      Object.defineProperty(document, "hidden", {
+        value: false,
+        configurable: true,
+      });
     });
 
     it("hides: the loop stops while the document is hidden", () => {
@@ -364,7 +493,12 @@ describe("createPathPlayer", () => {
       player.open(null);
       vi.advanceTimersByTime(48); // a few frames
       const before = document.querySelector(".pp-readout")?.textContent ?? "";
-      Object.defineProperty(document, "hidden", { value: true, configurable: true });
+
+      Object.defineProperty(document, "hidden", {
+        value: true,
+        configurable: true,
+      });
+
       document.dispatchEvent(new Event("visibilitychange"));
       vi.advanceTimersByTime(200); // would be several more frames if still running
       const after = document.querySelector(".pp-readout")?.textContent ?? "";
@@ -375,10 +509,20 @@ describe("createPathPlayer", () => {
     it("returns: the loop resumes without a dt jump", () => {
       const player = makePlayer();
       player.open(null);
-      Object.defineProperty(document, "hidden", { value: true, configurable: true });
+
+      Object.defineProperty(document, "hidden", {
+        value: true,
+        configurable: true,
+      });
+
       document.dispatchEvent(new Event("visibilitychange"));
       vi.advanceTimersByTime(5000); // a long hidden gap
-      Object.defineProperty(document, "hidden", { value: false, configurable: true });
+
+      Object.defineProperty(document, "hidden", {
+        value: false,
+        configurable: true,
+      });
+
       document.dispatchEvent(new Event("visibilitychange"));
       vi.advanceTimersByTime(16); // one frame back
       const txt = document.querySelector(".pp-readout")?.textContent ?? "";

@@ -11,6 +11,7 @@ import js from "@eslint/js";
 import tseslint from "typescript-eslint";
 import eslintPluginAstro from "eslint-plugin-astro";
 import globals from "globals";
+import stylistic from "@stylistic/eslint-plugin";
 
 export default tseslint.config(
   { ignores: ["**/dist/", "**/node_modules/", "**/.astro/", "**/public/"] },
@@ -46,10 +47,76 @@ export default tseslint.config(
     rules: {
       // Numbers interpolate into template literals losslessly; forbidding
       // them buys String() noise, not safety.
-      "@typescript-eslint/restrict-template-expressions": ["error", { allowNumber: true }],
+      "@typescript-eslint/restrict-template-expressions": [
+        "error",
+        { allowNumber: true },
+      ],
     },
   },
   ...eslintPluginAstro.configs.recommended,
+  {
+    // Vertical whitespace is a lint concern, not a Prettier one: Prettier
+    // keeps the blank lines it finds and never adds any, so the breathing
+    // room between blocks is enforced (and autofixed) here. The policy
+    // opens structural boundaries: a blank line after the import block
+    // and after directives, around declarations of interfaces, types,
+    // enums, classes, functions, and exports, and around any statement
+    // that spans several lines. One-line statements may still sit
+    // together, and runs of one-line type aliases or re-exports may too.
+    // Later entries override earlier ones, so the "any" relaxations come
+    // last. Astro frontmatter is a Program to the astro parser, so this
+    // reaches component frontmatter and <script> blocks as well.
+    plugins: { "@stylistic": stylistic },
+    rules: {
+      // A control statement's body may stay bare on the same line
+      // (`if (open) return;`); once it drops to the next line it takes
+      // braces, so the block's extent is never a matter of indentation
+      // (owner rule 2026-09-10). Fixable.
+      curly: ["error", "multi-line"],
+      // A ternary inside a ternary has no fixer and no defence; it fails
+      // loud so the branches get names (owner rule 2026-09-10).
+      "no-nested-ternary": "error",
+      "@stylistic/padding-line-between-statements": [
+        "error",
+        { blankLine: "always", prev: "import", next: "*" },
+        { blankLine: "any", prev: "import", next: "import" },
+        { blankLine: "always", prev: "directive", next: "*" },
+        { blankLine: "any", prev: "directive", next: "directive" },
+        {
+          blankLine: "always",
+          prev: "*",
+          next: ["interface", "type", "enum", "class", "function", "export"],
+        },
+        {
+          blankLine: "always",
+          prev: ["interface", "type", "enum", "class", "function", "export"],
+          next: "*",
+        },
+        {
+          blankLine: "always",
+          prev: "*",
+          next: [
+            "multiline-const",
+            "multiline-let",
+            "multiline-expression",
+            "multiline-block-like",
+          ],
+        },
+        {
+          blankLine: "always",
+          prev: [
+            "multiline-const",
+            "multiline-let",
+            "multiline-expression",
+            "multiline-block-like",
+          ],
+          next: "*",
+        },
+        { blankLine: "any", prev: "type", next: "type" },
+        { blankLine: "any", prev: "export", next: "export" },
+      ],
+    },
+  },
   {
     files: ["**/scripts/**/*.mjs"],
     languageOptions: { globals: { ...globals.node } },
@@ -73,5 +140,5 @@ export default tseslint.config(
     // Client-side <script> blocks inside Astro components run in the browser.
     files: ["**/*.astro/*.js", "**/*.astro/*.ts", "**/src/pages/**/*.astro"],
     languageOptions: { globals: { ...globals.browser } },
-  }
+  },
 );

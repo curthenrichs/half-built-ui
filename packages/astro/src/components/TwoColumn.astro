@@ -1,11 +1,11 @@
 ---
-/* The two-column page body (step 8, 2026-08-30): content beside the
-   sidebar slot. Column grid, widths, and the collapse live once in
-   styles/base/shell.css; this component is structure only, so it ships
-   no scoped CSS and stamps no cid on the markup. */
-interface Props { class?: string }
+interface Props {
+  class?: string;
+}
+
 const { class: className } = Astro.props;
 ---
+
 <div class:list={["two-column", className]}>
   <main class="site-main"><slot /></main>
   <slot name="aside" />

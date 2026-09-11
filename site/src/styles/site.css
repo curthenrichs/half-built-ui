@@ -13,12 +13,15 @@
     align-items: start;
     gap: var(--column-gap);
   }
+
   /* The content track may shrink below its content's intrinsic width
      (shell.css gives .site-main the same min-width: 0). A grid item's
      automatic minimum is its min-content, so without this a table
      wider than the column widened the article and the page scrolled
      sideways instead of the table's own scroll box. */
-  .site-layout > * { min-width: 0; }
+  .site-layout > * {
+    min-width: 0;
+  }
 
   /* The site rail (owner call 2026-09-06): palette knob and section
      TOC merged into one viewport-tracking stack. Desktop: the sticky
@@ -32,18 +35,24 @@
     align-self: start;
     display: flex;
     flex-direction: column;
+
     /* Clears the Sections label, which straddles the box's top rule
        and so reaches about 10px up into this gap. */
     gap: 28px;
     z-index: calc(var(--z-scroll-top) + 1);
   }
+
   /* The Sections knob exists for the corner cluster only. */
-  .site-rail-sections { display: none; }
+  .site-rail-sections {
+    display: none;
+  }
 
   /* The token sheet: variable names and hex chips never break
      mid-identifier; the ledger's .table-scroll wrapper owns any
      overflow. The note column keeps wrapping. */
-  .palette td:nth-child(-n+3) { white-space: nowrap; }
+  .palette td:nth-child(-n + 3) {
+    white-space: nowrap;
+  }
 
   /* The patterns ledger: same rule for its class-name column, plus
      room to breathe (owner call 2026-09-06: more width). */
@@ -60,6 +69,7 @@
      as a deliberate control; the palette knob's two live swatches
      read the brand variables directly, so an applied palette recolors
      the closed button with no script. */
+
   /* Above the TOC box: that box is positioned too (its label straddles
      the top rule) and comes later in the rail, so without this step
      the open palette panel paints underneath it. */
@@ -67,6 +77,7 @@
     position: relative;
     z-index: 1;
   }
+
   .site-knob > summary {
     cursor: pointer;
     list-style: none;
@@ -81,20 +92,33 @@
     font-size: var(--font-size-sm);
     white-space: nowrap;
   }
-  .site-knob > summary::-webkit-details-marker { display: none; }
+
+  .site-knob > summary::-webkit-details-marker {
+    display: none;
+  }
+
   /* Hover is the accent press box's tint step (patterns.css), not an
      outline: an outline in the rule ink sat as a dark rim outside the
      accent border, and touch browsers keep :hover applied after a tap,
      so the rim stayed on the knob just tapped (owner report
      2026-09-09). */
-  .site-knob > summary:hover { background: color-mix(in srgb, var(--accent-1) 14%, var(--surface)); }
+  .site-knob > summary:hover {
+    background: color-mix(in srgb, var(--accent-1) 14%, var(--surface));
+  }
+
   .site-toolbar-swatch {
     width: 12px;
     height: 12px;
     border: 1px solid var(--rule);
   }
-  .site-toolbar-swatch-1 { background: var(--brand-1-500); }
-  .site-toolbar-swatch-2 { background: var(--brand-2-500); }
+
+  .site-toolbar-swatch-1 {
+    background: var(--brand-1-500);
+  }
+
+  .site-toolbar-swatch-2 {
+    background: var(--brand-2-500);
+  }
 
   /* The body is the frame; .site-toolbar-scroll inside it owns the
      scrolling, so the corner X can straddle the border without being
@@ -111,6 +135,7 @@
     box-shadow: var(--shadow);
     font-size: var(--font-size-sm);
   }
+
   .site-toolbar-scroll {
     max-height: calc(100vh - 12rem);
     overflow: auto;
@@ -119,9 +144,13 @@
     flex-direction: column;
     gap: 10px;
   }
+
   /* The caption's top margin exists to separate it from the section
      above; the first one in the panel needs none. */
-  .site-toolbar-scroll > .site-toolbar-caption:first-child { margin-top: 0; }
+  .site-toolbar-scroll > .site-toolbar-caption:first-child {
+    margin-top: 0;
+  }
+
   /* The signature corner X, straddling the panel's top right border
      the way the plate modal's close box straddles its plate. */
   .site-toolbar-close {
@@ -129,6 +158,7 @@
     top: -14px;
     right: -14px;
   }
+
   /* Swatch first, label beside it, left aligned: the old
      space-between rows read as a weirdly spaced table (owner call
      2026-09-06). */
@@ -137,19 +167,25 @@
     align-items: center;
     gap: 10px;
   }
+
   .site-toolbar-caption {
     margin: 4px 0 0;
     font-size: var(--font-size-sm);
     color: var(--ink-muted);
   }
+
   .site-toolbar-presets {
     display: flex;
     flex-wrap: wrap;
     gap: 6px;
   }
+
   /* Second-column controls: the theme toggle ends the Accent 1 row the
      way Flip ends the Accent 2 row (owner call 2026-09-06). */
-  .site-toolbar-rowend { margin-left: auto; }
+  .site-toolbar-rowend {
+    margin-left: auto;
+  }
+
   .site-toolbar-presets button,
   .site-toolbar-flip,
   .site-toolbar-actions button {
@@ -160,6 +196,7 @@
     font-size: var(--font-size-sm);
     cursor: pointer;
   }
+
   /* The chip whose bases are live wears the accent-box treatment (the
      summary's own recipe), so the panel shows which preset is in
      effect; a manual pick that matches none leaves every chip plain. */
@@ -168,6 +205,7 @@
     background: color-mix(in srgb, var(--accent-1) 6%, var(--surface));
     border-color: var(--accent-1);
   }
+
   .site-toolbar-readouts {
     list-style: none;
     margin: 0;
@@ -178,14 +216,21 @@
     font-size: var(--font-size-sm);
     color: var(--ink-muted);
   }
+
   /* A failing base is inked as an error in both themes, so the warning
      sentence reads as one instead of blending into the muted status
      gray. */
-  .site-toolbar-warn { color: var(--error-ink); }
+  .site-toolbar-warn {
+    color: var(--error-ink);
+  }
+
   /* The detail list is label lines with their ratio chips indented
      beneath (owner call 2026-09-06); the indent matches the panel's
      own padding so the hierarchy reads at a glance. */
-  .site-toolbar-readouts .site-toolbar-indent { padding-left: 14px; }
+  .site-toolbar-readouts .site-toolbar-indent {
+    padding-left: 14px;
+  }
+
   /* The ratio lines are inline code, the package's own recipe
      (code.css's :not(pre) > code), restated here because the panel is
      not .prose. */
@@ -196,6 +241,7 @@
     font-size: 0.9em;
     white-space: nowrap;
   }
+
   .site-toolbar-more summary {
     cursor: pointer;
     list-style: none;
@@ -203,8 +249,15 @@
     text-decoration: underline;
     text-underline-offset: 3px;
   }
-  .site-toolbar-more summary::-webkit-details-marker { display: none; }
-  .site-toolbar-more[open] summary { margin-bottom: 6px; }
+
+  .site-toolbar-more summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .site-toolbar-more[open] summary {
+    margin-bottom: 6px;
+  }
+
   /* The copy block wears the code island's own tokens (--code-bg and
      kin) so it reads as this system's code surface. It cannot be a
      real CodeBlock: that component is Shiki-highlighted at build time,
@@ -214,12 +267,13 @@
     padding: 8px 10px;
     overflow: auto;
     white-space: pre-wrap;
-    word-break: break-word;
+    overflow-wrap: anywhere;
     background: var(--code-bg);
     color: var(--code-fg);
     border: var(--stroke) solid var(--code-line);
     line-height: 1.7;
   }
+
   /* A pinned footer below the scroll region (see Toolbar.astro), so
      Copy CSS and Reset stay reachable however tall the disclosures
      make the scrolling content. The scroll region's max-height above
@@ -238,10 +292,28 @@
      open upward, and the corner X flips to straddle the bottom border
      so it stays beside the trigger and the thumb. */
   @media (--bp-tablet) {
-    .site-layout { display: block; }
+    .site-layout {
+      display: block;
+    }
+
     /* The cluster's inset from the viewport corner, shared with the
        footer's reserve below so the two cannot drift apart. */
-    :root { --site-rail-inset: 1rem; }
+    :root {
+      --site-rail-inset: 1rem;
+
+      /* A fixed cluster takes no room in flow, so the footer's last
+         links ended under it (owner report 2026-09-09): Portfolio and
+         Okos Polip at phone widths, and the Site column's Components and
+         CSS at tablet widths, where the sitemap's leftmost column starts
+         inside the cluster's span. The package's --dock-bottom token is
+         the general rule for a viewport-bound bottom component: the
+         Footer reserves that much below its last link. This site sets
+         it to the cluster's room: the inset, the knob (font-size-sm plus
+         8px of padding and the stroke each side, 40px), and a line of
+         air. */
+      --dock-bottom: calc(var(--site-rail-inset) + 40px + 1rem);
+    }
+
     .site-rail {
       position: fixed;
       top: auto;
@@ -250,32 +322,35 @@
       flex-direction: row;
       gap: 8px;
     }
-    /* A fixed cluster takes no room in flow, so the footer's last
-       links ended under it (owner report 2026-09-09): Portfolio and
-       Okos Polip at phone widths, and the Site column's Components and
-       CSS at tablet widths, where the sitemap's leftmost column starts
-       inside the cluster's span. The package's --dock-bottom token is
-       the general rule for a viewport-bound bottom component: the
-       Footer reserves that much below its last link. This site sets
-       it to the cluster's room: the inset, the knob (font-size-sm plus
-       8px of padding and the stroke each side, 40px), and a line of
-       air. */
-    :root { --dock-bottom: calc(var(--site-rail-inset) + 40px + 1rem); }
-    .site-rail-toc { display: none; }
-    .site-rail-sections { display: block; }
+
+    .site-rail-toc {
+      display: none;
+    }
+
+    .site-rail-sections {
+      display: block;
+    }
+
     /* Panels anchor to the rail, not their own knob: anchored to the
        second knob the sections panel ran off the right viewport edge.
        The rail is the fixed element, so static knobs make it the
        containing block and every panel opens above the whole cluster,
        aligned to its 1rem inset. */
-    .site-knob { position: static; }
+    .site-knob {
+      position: static;
+    }
+
     /* The cluster's knobs size to their own labels; only the desktop
        rail stretches them to the column the TOC sets. */
-    .site-knob > summary { width: fit-content; }
+    .site-knob > summary {
+      width: fit-content;
+    }
+
     .site-toolbar-body {
       top: auto;
       bottom: calc(100% + 8px);
     }
+
     .site-toolbar-close {
       top: auto;
       bottom: -14px;

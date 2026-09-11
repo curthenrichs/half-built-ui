@@ -23,7 +23,10 @@ export function createFrameLoop(
 
   function tick(now: number): void {
     if (!live) return;
-    const dt = last === 0 ? firstDt : Math.min(clamp, Math.max(0, (now - last) / 1000));
+
+    const elapsed = Math.max(0, (now - last) / 1000);
+    const dt = last === 0 ? firstDt : Math.min(clamp, elapsed);
+
     last = now;
     cb(dt);
     // cb may have called stop() reentrantly; a fresh function body reads live without stale narrowing.

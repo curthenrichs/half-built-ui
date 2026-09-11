@@ -9,17 +9,22 @@ export interface ScrollTopOptions {
   watchId?: string;
 }
 
-export const mountScrollTop: Island<ScrollTopOptions> = (root, options = {}): IslandHandle => {
+export const mountScrollTop: Island<ScrollTopOptions> = (
+  root,
+  options = {},
+): IslandHandle => {
   const { buttonId = "scroll-to-top", watchId = "masthead" } = options;
   const doc = docOf(root);
   // Scroll-to-top floater: shows once the header leaves the viewport.
   const toTop = doc.getElementById(buttonId);
   const masthead = doc.getElementById(watchId);
   let observer: IntersectionObserver | null = null;
+
   if (toTop && masthead && claim(toTop, "scroll-top")) {
     observer = new IntersectionObserver(([entry]) => {
       toTop.classList.toggle("show", !entry.isIntersecting);
     });
+
     observer.observe(masthead);
   }
 

@@ -19,7 +19,13 @@ import type { ChildProcess } from "node:child_process";
 import type { Browser, Page } from "puppeteer-core";
 import { AxePuppeteer } from "@axe-core/puppeteer";
 import type { RunOptions } from "axe-core";
-import { startPreview, stopPreview, launchChrome, desktopPage, phonePage } from "@half-built/tooling/test-kit/browser-server.ts";
+import {
+  startPreview,
+  stopPreview,
+  launchChrome,
+  desktopPage,
+  phonePage,
+} from "@half-built/tooling/test-kit/browser-server.ts";
 import { SECTIONS } from "../src/data/sections";
 
 const enabled = process.env.BROWSER_TESTS === "1";
@@ -38,7 +44,10 @@ const ACCENT_1_CHIP = '.palette-chip[style="background-color:var(--accent-1)"]';
    spec names elsewhere in this repo. Best-practice rules are left out
    so a failure here always maps to a success criterion. */
 const RUN: RunOptions = {
-  runOnly: { type: "tag", values: ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"] },
+  runOnly: {
+    type: "tag",
+    values: ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"],
+  },
   resultTypes: ["violations"],
 };
 
@@ -64,8 +73,11 @@ async function runAxe(page: Page): Promise<Violation[]> {
 }
 
 function report(theme: string, violations: Violation[]): string {
-  const lines = violations.map((v) =>
-    `  ${v.id} [${v.impact ?? "?"}] ${v.help}\n    ${v.helpUrl}\n${v.targets.map((t) => `    - ${t}`).join("\n")}`);
+  const lines = violations.map(
+    (v) =>
+      `  ${v.id} [${v.impact ?? "?"}] ${v.help}\n    ${v.helpUrl}\n${v.targets.map((t) => `    - ${t}`).join("\n")}`,
+  );
+
   return `/ (${theme}) axe violations:\n${lines.join("\n")}`;
 }
 
@@ -99,6 +111,7 @@ describe.skipIf(!enabled)("browser suite", () => {
     if (!browser) throw new Error("no browser (beforeAll failed)");
     const p = await desktopPage(browser);
     page = p;
+
     /* No test inherits another's persisted palette or theme: the clear
        must run BEFORE the page's scripts, because the editor applies a
        stored palette at mount; a post-goto clear would leave the prior
@@ -110,32 +123,49 @@ describe.skipIf(!enabled)("browser suite", () => {
         /* storage unavailable; nothing persisted to clear */
       }
     });
+
     await p.goto(`${ORIGIN}/`, { waitUntil: "networkidle0" });
+
     /* Colors must be settled when axe reads them: a theme flip mid
        transition can interpolate a color past its passing endpoint. */
-    await p.addStyleTag({ content: "*, *::before, *::after { transition: none !important; animation: none !important; }" });
+    await p.addStyleTag({
+      content:
+        "*, *::before, *::after { transition: none !important; animation: none !important; }",
+    });
+
     return p;
   }
 
   it("has no WCAG 2.1 AA violations in the light theme", async () => {
     const p = await open();
+
     /* Light is forced, not assumed: the head stamp follows
        prefers-color-scheme when nothing is stored, so on a
        dark-preference machine the page would otherwise arrive dark
        and an unforced "light" pass would audit dark twice. */
-    await p.evaluate(() => { delete document.documentElement.dataset.theme; });
+    await p.evaluate(() => {
+      delete document.documentElement.dataset.theme;
+    });
+
     const violations = await runAxe(p);
     expect(violations, report("light", violations)).toEqual([]);
   }, 60_000);
 
   it("has no WCAG 2.1 AA violations in the dark theme", async () => {
     const p = await open();
-    await p.evaluate(() => { document.documentElement.dataset.theme = "dark"; });
+
+    await p.evaluate(() => {
+      document.documentElement.dataset.theme = "dark";
+    });
+
     /* One rAF tick so the dark token layer's cascade has actually
        applied before axe reads computed colors. */
     await p.evaluate(async () => {
-      await new Promise((resolve) => { requestAnimationFrame(resolve); });
+      await new Promise((resolve) => {
+        requestAnimationFrame(resolve);
+      });
     });
+
     const violations = await runAxe(p);
     expect(violations, report("dark", violations)).toEqual([]);
   }, 60_000);
@@ -144,50 +174,79 @@ describe.skipIf(!enabled)("browser suite", () => {
     const p = await open();
     await p.click("[data-palette-editor] summary");
     await p.waitForSelector(ACCENT_1_CHIP);
-    const before = await p.$eval(ACCENT_1_CHIP, (el) => getComputedStyle(el).backgroundColor);
+
+    const before = await p.$eval(
+      ACCENT_1_CHIP,
+      (el) => getComputedStyle(el).backgroundColor,
+    );
 
     await p.evaluate(() => {
-      const input = document.querySelector<HTMLInputElement>('input[data-palette-base="1"]');
+      const input = document.querySelector<HTMLInputElement>(
+        'input[data-palette-base="1"]',
+      );
+
       if (!input) throw new Error("no base-1 input");
       input.value = "#2f9e44";
       input.dispatchEvent(new Event("input", { bubbles: true }));
     });
 
     const brand1500 = await p.evaluate(() =>
-      getComputedStyle(document.documentElement).getPropertyValue("--brand-1-500").trim());
+      getComputedStyle(document.documentElement)
+        .getPropertyValue("--brand-1-500")
+        .trim(),
+    );
+
     expect(brand1500).toBe("#2f9e44");
 
-    const after = await p.$eval(ACCENT_1_CHIP, (el) => getComputedStyle(el).backgroundColor);
-    expect(after, "the accent-1 chip's painted color never changed").not.toBe(before);
+    const after = await p.$eval(
+      ACCENT_1_CHIP,
+      (el) => getComputedStyle(el).backgroundColor,
+    );
+
+    expect(after, "the accent-1 chip's painted color never changed").not.toBe(
+      before,
+    );
 
     /* the token sheet's hex readout follows the pick (token-hexes.ts
        refreshes on the html style mutation, an async observer tick) */
-    await p.waitForFunction(() =>
-      document.querySelector('[data-token-hex="--accent-1"]')?.textContent === "#2f9e44");
+    await p.waitForFunction(
+      () =>
+        document.querySelector('[data-token-hex="--accent-1"]')?.textContent ===
+        "#2f9e44",
+    );
   }, 30_000);
 
   it("the copyable css block declares exactly the twelve override properties", async () => {
     const p = await open();
+
     /* Same two-type-worlds note as palette-editor.ts's copy handler:
        strict DOM sees string | null, the lint project sees string. */
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-    const text = await p.$eval("[data-palette-css]", (el) => el.textContent ?? "");
+
+    const text = await p.$eval(
+      "[data-palette-css]",
+      (el) => el.textContent || "",
+    );
+
     expect(text).toMatch(/^:root \{$/m);
     const names = [...text.matchAll(/^\s*(--[a-z0-9-]+):/gm)].map((m) => m[1]);
-    expect(new Set(names)).toEqual(new Set([
-      "--brand-1-300",
-      "--brand-1-500",
-      "--brand-1-vivid",
-      "--brand-1-600",
-      "--brand-1-700",
-      "--brand-2-300",
-      "--brand-2-500",
-      "--brand-2-700",
-      "--code-bg",
-      "--code-line",
-      "--code-fg",
-      "--code-token-comment",
-    ]));
+
+    expect(new Set(names)).toEqual(
+      new Set([
+        "--brand-1-300",
+        "--brand-1-500",
+        "--brand-1-vivid",
+        "--brand-1-600",
+        "--brand-1-700",
+        "--brand-2-300",
+        "--brand-2-500",
+        "--brand-2-700",
+        "--code-bg",
+        "--code-line",
+        "--code-fg",
+        "--code-token-comment",
+      ]),
+    );
+
     expect(names).toHaveLength(12);
   }, 30_000);
 
@@ -200,16 +259,37 @@ describe.skipIf(!enabled)("browser suite", () => {
     const KEYWORD_SPAN = '.code-block span[style*="--code-token-keyword"]';
     const PRE = ".code-block pre";
     await p.waitForSelector(KEYWORD_SPAN);
-    const before = await p.$eval(KEYWORD_SPAN, (el) => getComputedStyle(el).color);
-    const beforeBg = await p.$eval(PRE, (el) => getComputedStyle(el).backgroundColor);
+
+    const before = await p.$eval(
+      KEYWORD_SPAN,
+      (el) => getComputedStyle(el).color,
+    );
+
+    const beforeBg = await p.$eval(
+      PRE,
+      (el) => getComputedStyle(el).backgroundColor,
+    );
 
     await p.click("[data-palette-editor] summary");
     await p.click('[data-palette-preset][data-base-1="#2f9e44"]');
 
-    const after = await p.$eval(KEYWORD_SPAN, (el) => getComputedStyle(el).color);
-    expect(after, "the keyword span's painted color never changed").not.toBe(before);
-    const afterBg = await p.$eval(PRE, (el) => getComputedStyle(el).backgroundColor);
-    expect(afterBg, "the code ground's painted color never changed").not.toBe(beforeBg);
+    const after = await p.$eval(
+      KEYWORD_SPAN,
+      (el) => getComputedStyle(el).color,
+    );
+
+    expect(after, "the keyword span's painted color never changed").not.toBe(
+      before,
+    );
+
+    const afterBg = await p.$eval(
+      PRE,
+      (el) => getComputedStyle(el).backgroundColor,
+    );
+
+    expect(afterBg, "the code ground's painted color never changed").not.toBe(
+      beforeBg,
+    );
   }, 30_000);
 
   it("only the forced demo editor note reaches the built page", async () => {
@@ -228,17 +308,29 @@ describe.skipIf(!enabled)("browser suite", () => {
 
   it("the icon set is wired in the head and every icon resolves", async () => {
     const p = await open();
-    const hrefs = await p.$$eval('link[rel="icon"], link[rel="apple-touch-icon"]', (els) =>
-      els.map((el) => el.getAttribute("href") ?? ""));
-    expect(new Set(hrefs)).toEqual(new Set(["/favicon.svg", "/favicon-32.png", "/apple-touch-icon.png"]));
+
+    const hrefs = await p.$$eval(
+      'link[rel="icon"], link[rel="apple-touch-icon"]',
+      (els) => els.map((el) => el.getAttribute("href") ?? ""),
+    );
+
+    expect(new Set(hrefs)).toEqual(
+      new Set(["/favicon.svg", "/favicon-32.png", "/apple-touch-icon.png"]),
+    );
+
     for (const href of hrefs) {
-      const status = await p.evaluate(async (h: string) => (await fetch(h)).status, href);
+      const status = await p.evaluate(
+        async (h: string) => (await fetch(h)).status,
+        href,
+      );
+
       expect(status, `${href} did not resolve`).toBe(200);
     }
   }, 30_000);
 
   it("jumping to a section marks that same section in the toc", async () => {
     const p = await open();
+
     /* The anchor puts the target's top at the viewport top, above the
        scroll-spy band, so before the 2026-09-06 fix a short section
        (Frame) handed the highlight to the next one down. */
@@ -247,9 +339,11 @@ describe.skipIf(!enabled)("browser suite", () => {
         location.hash = "";
         location.hash = id;
       }, section.id);
+
       await p.waitForFunction(
         (title: string) =>
-          document.querySelector('.site-rail-toc a[aria-current="true"]')?.textContent === title,
+          document.querySelector('.site-rail-toc a[aria-current="true"]')
+            ?.textContent === title,
         { timeout: 5000 },
         section.title,
       );
@@ -271,9 +365,13 @@ describe.skipIf(!enabled)("browser suite", () => {
        and keeps the suite hermetic. The fetch-and-replace path is
        covered against fixtures in ecosystem-dom.test.ts. */
     await p.setRequestInterception(true);
+
     p.on("request", (req) => {
-      void (req.url().includes("ecosystem.json") ? req.abort() : req.continue());
+      void (req.url().includes("ecosystem.json")
+        ? req.abort()
+        : req.continue());
     });
+
     await p.reload({ waitUntil: "networkidle0" });
     /* The island keeps its last good document in localStorage for a
        day and falls back to it once its retries (400ms, then 1200ms,
@@ -288,15 +386,23 @@ describe.skipIf(!enabled)("browser suite", () => {
     await new Promise((r) => setTimeout(r, 2500));
     const list = await p.$("footer [data-ecosystem]");
     expect(list, "the footer has no data-ecosystem hook").not.toBeNull();
+
     /* Same two-type-worlds note as palette-editor.ts's copy handler:
        strict DOM sees string | null, the lint project sees string. */
     const items = await p.$$eval("footer [data-ecosystem] li", (els) =>
       // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-      els.map((el) => el.textContent?.trim() ?? ""));
+      els.map((el) => el.textContent?.trim() ?? ""),
+    );
+
     expect(items).toEqual(["half-built-ui", "Half-Built Robots"]);
-    const self = await p.$$eval("footer [data-ecosystem] .footer-sitemap-self", (els) =>
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-      els.map((el) => el.textContent?.trim() ?? ""));
+
+    const self = await p.$$eval(
+      "footer [data-ecosystem] .footer-sitemap-self",
+      (els) =>
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+        els.map((el) => el.textContent?.trim() ?? ""),
+    );
+
     expect(self).toEqual(["half-built-ui"]);
   }, 30_000);
 
@@ -314,13 +420,33 @@ describe.skipIf(!enabled)("browser suite", () => {
       version: 1,
       updated: "2026-09-07",
       entries: [
-        { key: "blog", label: "Half-Built Robots", href: "https://half-built-robots.com/", priority: 0, family: "half-built" },
-        { key: "beadz", label: "The Bead Reserve", href: null, priority: 1, family: "half-built" },
-        { key: "ui", label: "half-built-ui", href: null, priority: 3, family: "half-built" },
+        {
+          key: "blog",
+          label: "Half-Built Robots",
+          href: "https://half-built-robots.com/",
+          priority: 0,
+          family: "half-built",
+        },
+        {
+          key: "beadz",
+          label: "The Bead Reserve",
+          href: null,
+          priority: 1,
+          family: "half-built",
+        },
+        {
+          key: "ui",
+          label: "half-built-ui",
+          href: null,
+          priority: 3,
+          family: "half-built",
+        },
       ],
     });
+
     const p = await open();
     await p.setRequestInterception(true);
+
     p.on("request", (req) => {
       void (req.url().includes("ecosystem.json")
         ? req.respond({
@@ -336,17 +462,30 @@ describe.skipIf(!enabled)("browser suite", () => {
           })
         : req.continue());
     });
+
     await p.reload({ waitUntil: "networkidle0" });
+
     const rendered = await p.$$eval("footer [data-ecosystem] li > *", (els) =>
       els.map((el) => {
         const cs = getComputedStyle(el);
         /* Same two-type-worlds note as the baseline test above: strict
            DOM sees string | null, the lint project sees string. */
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-        return { text: el.textContent?.trim() ?? "", weight: cs.fontWeight,
-          opacity: cs.opacity, deco: cs.textDecorationLine };
-      }));
-    expect(rendered.map((r) => r.text)).toEqual(["Half-Built Robots", "The Bead Reserve", "half-built-ui"]);
+
+        return {
+          text: (el.textContent || "").trim(),
+          weight: cs.fontWeight,
+          opacity: cs.opacity,
+          deco: cs.textDecorationLine,
+        };
+      }),
+    );
+
+    expect(rendered.map((r) => r.text)).toEqual([
+      "Half-Built Robots",
+      "The Bead Reserve",
+      "half-built-ui",
+    ]);
+
     /* The link keeps the footer's underline-on-hover treatment rather
        than falling back to the browser's default underline. */
     expect(rendered[0].deco).toBe("none");
@@ -358,12 +497,23 @@ describe.skipIf(!enabled)("browser suite", () => {
 
   it("the toc renders one link per section and every href target exists", async () => {
     const p = await open();
-    const hrefs = await p.$$eval('.site-rail-toc a', (els) =>
-      els.map((el) => el.getAttribute("href") ?? ""));
+
+    const hrefs = await p.$$eval(".site-rail-toc a", (els) =>
+      els.map((el) => el.getAttribute("href") ?? ""),
+    );
+
     expect(hrefs).toEqual(SECTIONS.map((s) => `#${s.id}`));
-    const missing = await p.evaluate((ids: string[]) =>
-      ids.filter((id) => document.getElementById(id) === null), SECTIONS.map((s) => s.id));
-    expect(missing, `toc targets missing from the page: ${missing.join(", ")}`).toEqual([]);
+
+    const missing = await p.evaluate(
+      (ids: string[]) =>
+        ids.filter((id) => document.getElementById(id) === null),
+      SECTIONS.map((s) => s.id),
+    );
+
+    expect(
+      missing,
+      `toc targets missing from the page: ${missing.join(", ")}`,
+    ).toEqual([]);
   }, 30_000);
 
   it("the fixed corner cluster never covers the footer's links", async () => {
@@ -378,35 +528,68 @@ describe.skipIf(!enabled)("browser suite", () => {
        page is the design, the closed knobs covering it is the bug. */
     if (!browser) throw new Error("no browser (beforeAll failed)");
     const b = browser;
+
     const viewports: { name: string; open: () => Promise<Page> }[] = [
       { name: "phone", open: () => phonePage(b) },
       { name: "tablet", open: () => desktopPage(b, 900, 800) },
     ];
+
     for (const viewport of viewports) {
       const p = await viewport.open();
       page = p;
       await p.goto(`${ORIGIN}/`, { waitUntil: "networkidle0" });
+
       const covered = await p.evaluate(() => {
-        document.querySelectorAll(".footer-sitemap-collapsible").forEach((d) => { d.setAttribute("open", ""); });
+        document
+          .querySelectorAll(".footer-sitemap-collapsible")
+          .forEach((d) => {
+            d.setAttribute("open", "");
+          });
+
         /* Instant, not the reset's smooth scroll: a smooth scrollTo
            animates, and the rects read next would still describe the
            page top. */
-        window.scrollTo({ top: document.documentElement.scrollHeight, behavior: "instant" });
+        window.scrollTo({
+          top: document.documentElement.scrollHeight,
+          behavior: "instant",
+        });
+
         const rail = document.querySelector(".site-rail");
-        if (!rail || getComputedStyle(rail).position !== "fixed") return ["(no fixed rail at this width)"];
+
+        if (!rail || getComputedStyle(rail).position !== "fixed") {
+          return ["(no fixed rail at this width)"];
+        }
+
         const r = rail.getBoundingClientRect();
-        return [...document.querySelectorAll(".footer-sitemap a, .footer-sitemap span, .footer-sitemap h2")]
-          .filter((el) => {
-            const b = el.getBoundingClientRect();
-            return b.width > 0 && b.left < r.right && b.right > r.left && b.top < r.bottom && b.bottom > r.top;
-          })
-          /* Same two-type-worlds note as palette-editor.ts's copy
+        return (
+          [
+            ...document.querySelectorAll(
+              ".footer-sitemap a, .footer-sitemap span, .footer-sitemap h2",
+            ),
+          ]
+            .filter((el) => {
+              const b = el.getBoundingClientRect();
+              return (
+                b.width > 0 &&
+                b.left < r.right &&
+                b.right > r.left &&
+                b.top < r.bottom &&
+                b.bottom > r.top
+              );
+            })
+            /* Same two-type-worlds note as palette-editor.ts's copy
              handler: strict DOM sees string | null, the lint project
              sees string. */
-          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-          .map((el) => el.textContent?.trim() ?? "");
+            // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+            .map((el) => el.textContent?.trim() ?? "")
+        );
       });
-      expect(covered, `${viewport.name}: footer text under the corner cluster`).toEqual([]);
+
+      expect(
+        covered,
+        `${viewport.name}: footer text under the corner cluster`,
+      ).toEqual([]);
+
       await p.close();
       page = undefined;
     }

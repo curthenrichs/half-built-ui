@@ -11,21 +11,31 @@ export interface PlateModalRefs {
   zone: HTMLDivElement;
   plate: HTMLDivElement;
   closeBtn: HTMLButtonElement;
-  addLabel: (pos: "topLeft" | "bottomLeft" | "bottomRight", className?: string) => HTMLSpanElement;
+  addLabel: (
+    pos: "topLeft" | "bottomLeft" | "bottomRight",
+    className?: string,
+  ) => HTMLSpanElement;
   open: (opener: HTMLElement | null) => void;
   close: () => void;
   isOpen: () => boolean;
 }
 
-const POS_CLASS = { topLeft: "pm-label-tl", bottomLeft: "pm-label-bl", bottomRight: "pm-label-br" } as const;
+const POS_CLASS = {
+  topLeft: "pm-label-tl",
+  bottomLeft: "pm-label-bl",
+  bottomRight: "pm-label-br",
+} as const;
 
 export function buildPlateModal(
   doc: Document,
   opts: { ariaLabel: string; legacyPrefix?: string; closeLabel?: string },
 ): PlateModalRefs {
   const { closeLabel = "Close" } = opts;
+
   const legacy = (name: string): string[] =>
-    opts.legacyPrefix ? [`pm-${name}`, `${opts.legacyPrefix}-${name}`] : [`pm-${name}`];
+    opts.legacyPrefix
+      ? [`pm-${name}`, `${opts.legacyPrefix}-${name}`]
+      : [`pm-${name}`];
 
   const dialog = doc.createElement("dialog");
   dialog.classList.add(...legacy("dialog"));
@@ -33,6 +43,7 @@ export function buildPlateModal(
 
   const zone = doc.createElement("div");
   zone.classList.add(...legacy("zone"));
+
   for (const c of ["tl", "tr", "bl", "br"]) {
     const corner = doc.createElement("div");
     corner.classList.add(...legacy("corner"), ...legacy(`c-${c}`));
@@ -59,11 +70,16 @@ export function buildPlateModal(
      path out (close box, veil click, Escape, a consumer's close())
      unlocks it. */
   const root = doc.documentElement;
-  closeBtn.addEventListener("click", () => { dialog.close(); });
+
+  closeBtn.addEventListener("click", () => {
+    dialog.close();
+  });
+
   dialog.addEventListener("close", () => {
     root.classList.remove("pm-open");
     opener?.focus();
   });
+
   /* The dialog fills the viewport; a veil click targets the dialog
      element itself (everything inside the zone targets a descendant).
      Checked by identity, not zone.contains: a handler that swaps a
@@ -74,18 +90,38 @@ export function buildPlateModal(
     if (ev.target === dialog) dialog.close();
   });
 
-  const addLabel = (pos: "topLeft" | "bottomLeft" | "bottomRight", className?: string): HTMLSpanElement => {
+  const addLabel = (
+    pos: "topLeft" | "bottomLeft" | "bottomRight",
+    className?: string,
+  ): HTMLSpanElement => {
     const span = doc.createElement("span");
-    span.classList.add("pm-label", POS_CLASS[pos], "boxed-label", "micro-label");
+
+    span.classList.add(
+      "pm-label",
+      POS_CLASS[pos],
+      "boxed-label",
+      "micro-label",
+    );
+
     if (className) span.classList.add(...className.split(" "));
     plate.append(span);
     return span;
   };
 
   return {
-    dialog, zone, plate, closeBtn, addLabel,
-    open: (o) => { opener = o; dialog.showModal(); root.classList.add("pm-open"); },
-    close: () => { dialog.close(); },
+    dialog,
+    zone,
+    plate,
+    closeBtn,
+    addLabel,
+    open: (o) => {
+      opener = o;
+      dialog.showModal();
+      root.classList.add("pm-open");
+    },
+    close: () => {
+      dialog.close();
+    },
     isOpen: () => dialog.open,
   };
 }

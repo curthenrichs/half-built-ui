@@ -1,0 +1,16 @@
+---
+import { iconMarkup, type IconName } from "../scripts/core/icons";
+
+interface Props {
+  name: IconName;
+  size?: number | string;
+  strokeWidth?: number;
+  class?: string;
+}
+
+const { name, size, strokeWidth, class: className } = Astro.props;
+---
+
+<Fragment
+  set:html={iconMarkup(name, { size, strokeWidth, class: className })}
+/>

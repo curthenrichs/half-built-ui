@@ -1,51 +1,61 @@
 /* Layer: components (code island stylesheet).
    See docs/css-architecture.md. */
 @layer components {
-/* Terminal island (spec section 5): the one deliberate dark surface on the
+  /* Terminal island (spec section 5): the one deliberate dark surface on the
    light page, in the parent theme's own palette. */
-.prose pre.astro-code {
-  border: var(--stroke) solid var(--rule);
-  padding: 12px 14px;
-  margin: 20px 0;
-  overflow-x: auto;
-  font-size: var(--font-size-sm);
-  line-height: 1.7;
-}
-/* Inline code in running text (spec 2026-07-28, toned down same day by
+  .prose pre.astro-code {
+    border: var(--stroke) solid var(--rule);
+    padding: 12px 14px;
+    margin: 20px 0;
+    overflow-x: auto;
+    font-size: var(--font-size-sm);
+    line-height: 1.7;
+  }
+
+  /* Inline code in running text (spec 2026-07-28, toned down same day by
    owner request: the dark chip read too loud in prose). Muted gray ground
    with a hairline border; the body font is already mono, so the box alone
    marks backticked names. Excludes code inside pre, which the island owns. */
-.prose :not(pre) > code {
-  background: var(--band);
-  border: 1px solid var(--hairline);
-  padding: 1px 5px;
-  font-size: 0.9em;
-}
-.code-island-bar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border: var(--stroke) solid var(--rule);
-  border-bottom: 1px solid var(--code-line);
-  background: var(--code-bg);
-  color: var(--accent-1);
-  font-size: var(--font-size-xs);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  padding: 6px 10px;
-  margin: 20px 0 0;
-}
-.code-island-bar + pre.astro-code { margin-top: 0; border-top: 0; }
-.code-copy {
-  border: 1px solid currentColor;
-  background: none;
-  color: inherit;
-  font-family: var(--font-body);
-  font-size: inherit;
-  letter-spacing: inherit;
-  text-transform: inherit;
-  padding: 2px 8px;
-  cursor: pointer;
-}
-.code-copy:hover { outline: 1px solid currentColor; }
+  .prose :not(pre) > code {
+    background: var(--band);
+    border: 1px solid var(--hairline);
+    padding: 1px 5px;
+    font-size: 0.9em;
+  }
+
+  .code-island-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: var(--stroke) solid var(--rule);
+    border-bottom: 1px solid var(--code-line);
+    background: var(--code-bg);
+    color: var(--accent-1);
+    font-size: var(--font-size-xs);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 6px 10px;
+    margin: 20px 0 0;
+  }
+
+  .code-island-bar + pre.astro-code {
+    margin-top: 0;
+    border-top: 0;
+  }
+
+  .code-copy {
+    border: 1px solid currentColor;
+    background: none;
+    color: inherit;
+    font-family: var(--font-body);
+    font-size: inherit;
+    letter-spacing: inherit;
+    text-transform: inherit;
+    padding: 2px 8px;
+    cursor: pointer;
+  }
+
+  .code-copy:hover {
+    outline: 1px solid currentColor;
+  }
 }

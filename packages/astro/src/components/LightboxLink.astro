@@ -1,13 +1,22 @@
 ---
-/* The build-time lightbox anchor (step 5, 2026-08-30): owner of the
-   data-lb-* contract that scripts/lightbox.ts itemFor() reads. The
-   caption string feeds both data-lb-caption and the aria-label detail;
-   every pre-step-5 site passed the same string to both. class:list
-   stays FIRST in the tag: content-components and kitchen-sink pin
-   `<a class="lightbox-link"` as the anchor's opening. Base styling
-   (display, position, cursor) lives in styles/lightbox.css; no scoped
-   CSS here so callers' :global-wrapped rules reach the anchor. */
-interface Props extends Record<string, unknown> { href: string; w: number; h: number; caption?: string; class?: string }
+interface Props extends Record<string, unknown> {
+  href: string;
+  w: number;
+  h: number;
+  caption?: string;
+  class?: string;
+}
+
 const { href, w, h, caption = "", class: className, ...rest } = Astro.props;
 ---
-<a class:list={["lightbox-link", className]} href={href} data-lb-w={w} data-lb-h={h} data-lb-caption={caption} aria-label={`View full-size image${caption ? `: ${caption}` : ""}`} {...rest}><slot /></a>
+
+<a
+  class:list={["lightbox-link", className]}
+  href={href}
+  data-lb-w={w}
+  data-lb-h={h}
+  data-lb-caption={caption}
+  aria-label={`View full-size image${caption ? `: ${caption}` : ""}`}
+  {...rest}
+  ><slot
+/></a>

@@ -1,14 +1,21 @@
 ---
-/* The document shell (step 8, 2026-08-30): doctype and head skeleton,
-   first-paint theme stamp, skip link, page frame, scroll-to-top
-   floater. Site-specific head content (meta, OG, title) arrives through
-   the head slot, the chrome through the header and footer slots, so a
-   second site reuses the frame without forking it. No scoped CSS on
-   purpose: the shell's layout rules live once in styles/base/shell.css
-   (pinned by test/base.test.ts). */
-interface Props { lang?: string; skipLabel?: string; scrollTopLabel?: string; themeStorageKey: string }
-const { lang = "en", skipLabel = "Skip to content", scrollTopLabel = "Scroll to top", themeStorageKey } = Astro.props;
+import Icon from "./Icon.astro";
+
+interface Props {
+  lang?: string;
+  skipLabel?: string;
+  scrollTopLabel?: string;
+  themeStorageKey: string;
+}
+
+const {
+  lang = "en",
+  skipLabel = "Skip to content",
+  scrollTopLabel = "Scroll to top",
+  themeStorageKey,
+} = Astro.props;
 ---
+
 <!doctype html>
 <html lang={lang}>
   <head>
@@ -34,7 +41,9 @@ const { lang = "en", skipLabel = "Skip to content", scrollTopLabel = "Scroll to 
   </head>
   <body>
     <div id="page" class="site">
-      <a class="skip-link screen-reader-text" href="#primary-content">{skipLabel}</a>
+      <a class="skip-link screen-reader-text" href="#primary-content"
+        >{skipLabel}</a
+      >
       <slot name="header" />
       <div id="primary-content" class="primary-site-content">
         <div class="site-content shell">
@@ -42,8 +51,13 @@ const { lang = "en", skipLabel = "Skip to content", scrollTopLabel = "Scroll to 
         </div>
       </div>
       <slot name="footer" />
-      <a href="#page" id="scroll-to-top" class="scroll-top" aria-label={scrollTopLabel}>
-        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="4 15 12 7 20 15" /></svg>
+      <a
+        href="#page"
+        id="scroll-to-top"
+        class="scroll-top"
+        aria-label={scrollTopLabel}
+      >
+        <Icon name="chevron-up" size={14} />
       </a>
     </div>
     {/* Site behavior scripts land here, inside the body, where the pre-step-8 markup carried them. */}

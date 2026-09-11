@@ -3,17 +3,52 @@
    last-known-good cache, and the render. Mirrors the jsdom conventions
    in theme-toggle-dom.test.ts, with global fetch stubbed per test. */
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import { validateDocument, sortEntries, loadDocument, mountEcosystem } from "../src/scripts/ecosystem";
+import {
+  validateDocument,
+  sortEntries,
+  loadDocument,
+  mountEcosystem,
+} from "../src/scripts/ecosystem";
 
 const DOC = {
   version: 1,
   updated: "2026-09-06",
   entries: [
-    { key: "blog", label: "Half-Built Robots", href: "https://half-built-robots.com/", priority: 0, family: "half-built" },
-    { key: "beadz", label: "The Bead Reserve", href: null, priority: 1, family: "half-built" },
-    { key: "portfolio", label: "Portfolio", href: "https://curthenrichs.github.io/", priority: 1, family: "adjacent" },
-    { key: "okospolip", label: "Okos Polip", href: null, priority: 2, family: "adjacent" },
-    { key: "ui", label: "half-built-ui", href: "https://ui.half-built-robots.com/", priority: 3, family: "half-built" },
+    {
+      key: "blog",
+      label: "Half-Built Robots",
+      href: "https://half-built-robots.com/",
+      priority: 0,
+      family: "half-built",
+    },
+    {
+      key: "beadz",
+      label: "The Bead Reserve",
+      href: null,
+      priority: 1,
+      family: "half-built",
+    },
+    {
+      key: "portfolio",
+      label: "Portfolio",
+      href: "https://curthenrichs.github.io/",
+      priority: 1,
+      family: "adjacent",
+    },
+    {
+      key: "okospolip",
+      label: "Okos Polip",
+      href: null,
+      priority: 2,
+      family: "adjacent",
+    },
+    {
+      key: "ui",
+      label: "half-built-ui",
+      href: "https://ui.half-built-robots.com/",
+      priority: 3,
+      family: "half-built",
+    },
   ],
 };
 
@@ -49,7 +84,11 @@ describe("validateDocument", () => {
   });
 
   it("refuses an entry whose href is not an absolute http(s) URL", () => {
-    const bad = { ...DOC, entries: [{ ...DOC.entries[0], href: "javascript:alert(1)" }] };
+    const bad = {
+      ...DOC,
+      entries: [{ ...DOC.entries[0], href: "javascript:alert(1)" }],
+    };
+
     expect(validateDocument(bad)).toBeNull();
   });
 });
@@ -57,21 +96,42 @@ describe("validateDocument", () => {
 describe("sortEntries", () => {
   it("puts the self entry's own family first, each group by priority", () => {
     expect(keys(sortEntries(DOC.entries, "ui", 6))).toEqual([
-      "blog", "beadz", "ui", "portfolio", "okospolip",
+      "blog",
+      "beadz",
+      "ui",
+      "portfolio",
+      "okospolip",
     ]);
   });
 
   it("sorts differently for a site in the other family", () => {
     expect(keys(sortEntries(DOC.entries, "portfolio", 6))).toEqual([
-      "portfolio", "okospolip", "blog", "beadz", "ui",
+      "portfolio",
+      "okospolip",
+      "blog",
+      "beadz",
+      "ui",
     ]);
   });
 
   it("breaks a priority tie inside one family on the label", () => {
     const tied = [
-      { key: "zeta", label: "Zeta", href: null, priority: 1, family: "half-built" },
-      { key: "alpha", label: "Alpha", href: null, priority: 1, family: "half-built" },
+      {
+        key: "zeta",
+        label: "Zeta",
+        href: null,
+        priority: 1,
+        family: "half-built",
+      },
+      {
+        key: "alpha",
+        label: "Alpha",
+        href: null,
+        priority: 1,
+        family: "half-built",
+      },
     ];
+
     expect(keys(sortEntries(tied, "zeta", 6))).toEqual(["alpha", "zeta"]);
   });
 
@@ -87,18 +147,29 @@ describe("sortEntries", () => {
 const NO_DELAY = [0, 0];
 
 function jsonResponse(body: unknown, status = 200): Response {
-  return new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } });
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { "content-type": "application/json" },
+  });
 }
 
 function memoryStorage(): Storage {
   const map = new Map<string, string>();
   return {
-    get length() { return map.size; },
-    clear: () => { map.clear(); },
+    get length() {
+      return map.size;
+    },
+    clear: () => {
+      map.clear();
+    },
     getItem: (k: string) => map.get(k) ?? null,
     key: (i: number) => [...map.keys()][i] ?? null,
-    removeItem: (k: string) => { map.delete(k); },
-    setItem: (k: string, v: string) => { map.set(k, v); },
+    removeItem: (k: string) => {
+      map.delete(k);
+    },
+    setItem: (k: string, v: string) => {
+      map.set(k, v);
+    },
   };
 }
 
@@ -110,17 +181,33 @@ describe("loadDocument", () => {
   it("returns the document on a first-attempt success", async () => {
     const fetchMock = vi.fn().mockResolvedValue(jsonResponse(DOC));
     vi.stubGlobal("fetch", fetchMock);
-    const doc = await loadDocument("https://e.test/x.json", null, 1000, NO_DELAY);
+
+    const doc = await loadDocument(
+      "https://e.test/x.json",
+      null,
+      1000,
+      NO_DELAY,
+    );
+
     expect(doc?.entries).toHaveLength(5);
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
   it("retries a 500 and succeeds on the second attempt", async () => {
-    const fetchMock = vi.fn()
+    const fetchMock = vi
+      .fn()
       .mockResolvedValueOnce(jsonResponse({}, 500))
       .mockResolvedValueOnce(jsonResponse(DOC));
+
     vi.stubGlobal("fetch", fetchMock);
-    const doc = await loadDocument("https://e.test/x.json", null, 1000, NO_DELAY);
+
+    const doc = await loadDocument(
+      "https://e.test/x.json",
+      null,
+      1000,
+      NO_DELAY,
+    );
+
     expect(doc?.entries).toHaveLength(5);
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
@@ -128,7 +215,14 @@ describe("loadDocument", () => {
   it("retries a network failure up to three attempts, then gives up", async () => {
     const fetchMock = vi.fn().mockRejectedValue(new Error("offline"));
     vi.stubGlobal("fetch", fetchMock);
-    const doc = await loadDocument("https://e.test/x.json", null, 1000, NO_DELAY);
+
+    const doc = await loadDocument(
+      "https://e.test/x.json",
+      null,
+      1000,
+      NO_DELAY,
+    );
+
     expect(doc).toBeNull();
     expect(fetchMock).toHaveBeenCalledTimes(3);
   });
@@ -136,21 +230,39 @@ describe("loadDocument", () => {
   it("does not retry a 404, because the URL is wrong", async () => {
     const fetchMock = vi.fn().mockResolvedValue(jsonResponse({}, 404));
     vi.stubGlobal("fetch", fetchMock);
-    expect(await loadDocument("https://e.test/x.json", null, 1000, NO_DELAY)).toBeNull();
+
+    expect(
+      await loadDocument("https://e.test/x.json", null, 1000, NO_DELAY),
+    ).toBeNull();
+
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
   it("does not retry an unparseable body, because the bytes will not change", async () => {
-    const fetchMock = vi.fn().mockResolvedValue(new Response("{not json", { status: 200 }));
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(new Response("{not json", { status: 200 }));
+
     vi.stubGlobal("fetch", fetchMock);
-    expect(await loadDocument("https://e.test/x.json", null, 1000, NO_DELAY)).toBeNull();
+
+    expect(
+      await loadDocument("https://e.test/x.json", null, 1000, NO_DELAY),
+    ).toBeNull();
+
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
   it("does not retry a valid response carrying an unknown version", async () => {
-    const fetchMock = vi.fn().mockResolvedValue(jsonResponse({ ...DOC, version: 99 }));
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(jsonResponse({ ...DOC, version: 99 }));
+
     vi.stubGlobal("fetch", fetchMock);
-    expect(await loadDocument("https://e.test/x.json", null, 1000, NO_DELAY)).toBeNull();
+
+    expect(
+      await loadDocument("https://e.test/x.json", null, 1000, NO_DELAY),
+    ).toBeNull();
+
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
@@ -160,17 +272,36 @@ describe("loadDocument", () => {
     await loadDocument("https://e.test/x.json", storage, 1000, NO_DELAY);
 
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("offline")));
-    const doc = await loadDocument("https://e.test/x.json", storage, 2000, NO_DELAY);
+
+    const doc = await loadDocument(
+      "https://e.test/x.json",
+      storage,
+      2000,
+      NO_DELAY,
+    );
+
     expect(doc?.entries).toHaveLength(5);
   });
 
   it("prefers a fresh fetch over a present, valid cache entry", async () => {
     const storage = memoryStorage();
     const staleDoc = { version: 1, entries: [DOC.entries[0]] };
-    storage.setItem("half-built-ecosystem", JSON.stringify({ fetchedAt: 500, document: staleDoc }));
+
+    storage.setItem(
+      "half-built-ecosystem",
+      JSON.stringify({ fetchedAt: 500, document: staleDoc }),
+    );
+
     const fetchMock = vi.fn().mockResolvedValue(jsonResponse(DOC));
     vi.stubGlobal("fetch", fetchMock);
-    const doc = await loadDocument("https://e.test/x.json", storage, 1000, NO_DELAY);
+
+    const doc = await loadDocument(
+      "https://e.test/x.json",
+      storage,
+      1000,
+      NO_DELAY,
+    );
+
     expect(doc?.entries).toHaveLength(5);
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
@@ -182,27 +313,57 @@ describe("loadDocument", () => {
 
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("offline")));
     const dayLater = 1000 + 24 * 60 * 60 * 1000 + 1;
-    expect(await loadDocument("https://e.test/x.json", storage, dayLater, NO_DELAY)).toBeNull();
+
+    expect(
+      await loadDocument("https://e.test/x.json", storage, dayLater, NO_DELAY),
+    ).toBeNull();
   });
 
   it("refuses a cached copy carrying a stale schema", async () => {
     const storage = memoryStorage();
-    storage.setItem("half-built-ecosystem", JSON.stringify({ fetchedAt: 1000, document: { version: 99, entries: DOC.entries } }));
+
+    storage.setItem(
+      "half-built-ecosystem",
+      JSON.stringify({
+        fetchedAt: 1000,
+        document: { version: 99, entries: DOC.entries },
+      }),
+    );
+
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("offline")));
-    expect(await loadDocument("https://e.test/x.json", storage, 1500, NO_DELAY)).toBeNull();
+
+    expect(
+      await loadDocument("https://e.test/x.json", storage, 1500, NO_DELAY),
+    ).toBeNull();
   });
 
   it("survives a storage that throws", async () => {
     const hostile = {
-      getItem: () => { throw new Error("blocked"); },
-      setItem: () => { throw new Error("blocked"); },
-      removeItem: () => { throw new Error("blocked"); },
-      clear: () => { throw new Error("blocked"); },
+      getItem: () => {
+        throw new Error("blocked");
+      },
+      setItem: () => {
+        throw new Error("blocked");
+      },
+      removeItem: () => {
+        throw new Error("blocked");
+      },
+      clear: () => {
+        throw new Error("blocked");
+      },
       key: () => null,
       length: 0,
     } as unknown as Storage;
+
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(jsonResponse(DOC)));
-    const doc = await loadDocument("https://e.test/x.json", hostile, 1000, NO_DELAY);
+
+    const doc = await loadDocument(
+      "https://e.test/x.json",
+      hostile,
+      1000,
+      NO_DELAY,
+    );
+
     expect(doc?.entries).toHaveLength(5);
   });
 });
@@ -238,18 +399,42 @@ describe("mountEcosystem", () => {
   it("replaces the baseline with the fetched list in sorted order", async () => {
     const list = mountFixture();
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(jsonResponse(DOC)));
-    await mountEcosystem(document, { endpoint: "https://e.test/x.json", selfKey: "ui", retryDelaysMs: NO_DELAY });
-    expect([...list.querySelectorAll("li")].map((li) => li.textContent)).toEqual([
-      "Half-Built Robots", "The Bead Reserve", "half-built-ui", "Portfolio", "Okos Polip",
+
+    await mountEcosystem(document, {
+      endpoint: "https://e.test/x.json",
+      selfKey: "ui",
+      retryDelaysMs: NO_DELAY,
+    });
+
+    expect(
+      [...list.querySelectorAll("li")].map((li) => li.textContent),
+    ).toEqual([
+      "Half-Built Robots",
+      "The Bead Reserve",
+      "half-built-ui",
+      "Portfolio",
+      "Okos Polip",
     ]);
   });
 
   it("renders the three states the component renders", async () => {
     const list = mountFixture();
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(jsonResponse(DOC)));
-    await mountEcosystem(document, { endpoint: "https://e.test/x.json", selfKey: "ui", retryDelaysMs: NO_DELAY });
-    expect(list.querySelector(".footer-sitemap-self")?.textContent).toBe("half-built-ui");
-    expect(list.querySelector('a[href="https://half-built-robots.com/"]')).not.toBeNull();
+
+    await mountEcosystem(document, {
+      endpoint: "https://e.test/x.json",
+      selfKey: "ui",
+      retryDelaysMs: NO_DELAY,
+    });
+
+    expect(list.querySelector(".footer-sitemap-self")?.textContent).toBe(
+      "half-built-ui",
+    );
+
+    expect(
+      list.querySelector('a[href="https://half-built-robots.com/"]'),
+    ).not.toBeNull();
+
     /* Two undeployed properties, both visible and unlinked. */
     expect(list.querySelectorAll(".footer-sitemap-pending")).toHaveLength(2);
   });
@@ -266,35 +451,70 @@ describe("mountEcosystem", () => {
       <ul data-ecosystem data-astro-cid-abc123>
         <li data-astro-cid-abc123><span class="footer-sitemap-self" data-astro-cid-abc123>half-built-ui</span></li>
       </ul>`;
+
     const list = document.querySelector<HTMLElement>("[data-ecosystem]");
     if (!list) throw new Error("no fixture list");
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(jsonResponse(DOC)));
-    await mountEcosystem(document, { endpoint: "https://e.test/x.json", selfKey: "ui", retryDelaysMs: NO_DELAY });
+
+    await mountEcosystem(document, {
+      endpoint: "https://e.test/x.json",
+      selfKey: "ui",
+      retryDelaysMs: NO_DELAY,
+    });
+
     const built = [...list.querySelectorAll("li, li > *")];
     expect(built.length).toBe(10);
-    expect(built.every((el) => el.hasAttribute("data-astro-cid-abc123"))).toBe(true);
+
+    expect(built.every((el) => el.hasAttribute("data-astro-cid-abc123"))).toBe(
+      true,
+    );
   });
 
   it("builds an unscoped list when the consumer's footer is unscoped", async () => {
     const list = mountFixture();
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(jsonResponse(DOC)));
-    await mountEcosystem(document, { endpoint: "https://e.test/x.json", selfKey: "ui", retryDelaysMs: NO_DELAY });
-    const attrs = [...list.querySelectorAll("li, li > *")].flatMap((el) => [...el.attributes].map((a) => a.name));
+
+    await mountEcosystem(document, {
+      endpoint: "https://e.test/x.json",
+      selfKey: "ui",
+      retryDelaysMs: NO_DELAY,
+    });
+
+    const attrs = [...list.querySelectorAll("li, li > *")].flatMap((el) =>
+      [...el.attributes].map((a) => a.name),
+    );
+
     expect(attrs.filter((n) => n.startsWith("data-astro-cid-"))).toEqual([]);
   });
 
   it("marks the self entry for a screen reader, which cannot see the bold", async () => {
     const list = mountFixture();
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(jsonResponse(DOC)));
-    await mountEcosystem(document, { endpoint: "https://e.test/x.json", selfKey: "ui", retryDelaysMs: NO_DELAY });
-    expect(list.querySelector(".footer-sitemap-self")?.getAttribute("aria-current")).toBe("page");
+
+    await mountEcosystem(document, {
+      endpoint: "https://e.test/x.json",
+      selfKey: "ui",
+      retryDelaysMs: NO_DELAY,
+    });
+
+    expect(
+      list.querySelector(".footer-sitemap-self")?.getAttribute("aria-current"),
+    ).toBe("page");
+
     expect(list.querySelectorAll('[aria-current="page"]')).toHaveLength(1);
   });
 
   it("honours the limit", async () => {
     const list = mountFixture();
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(jsonResponse(DOC)));
-    await mountEcosystem(document, { endpoint: "https://e.test/x.json", selfKey: "ui", limit: 2, retryDelaysMs: NO_DELAY });
+
+    await mountEcosystem(document, {
+      endpoint: "https://e.test/x.json",
+      selfKey: "ui",
+      limit: 2,
+      retryDelaysMs: NO_DELAY,
+    });
+
     expect(list.querySelectorAll("li")).toHaveLength(2);
   });
 
@@ -302,16 +522,33 @@ describe("mountEcosystem", () => {
     const list = mountFixture();
     const before = list.innerHTML;
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("offline")));
-    await mountEcosystem(document, { endpoint: "https://e.test/x.json", selfKey: "ui", retryDelaysMs: NO_DELAY });
+
+    await mountEcosystem(document, {
+      endpoint: "https://e.test/x.json",
+      selfKey: "ui",
+      retryDelaysMs: NO_DELAY,
+    });
+
     expect(list.innerHTML).toBe(before);
   });
 
   it("leaves the baseline alone when the document omits this site", async () => {
     const list = mountFixture();
     const before = list.innerHTML;
-    const without = { ...DOC, entries: DOC.entries.filter((e) => e.key !== "ui") };
+
+    const without = {
+      ...DOC,
+      entries: DOC.entries.filter((e) => e.key !== "ui"),
+    };
+
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(jsonResponse(without)));
-    await mountEcosystem(document, { endpoint: "https://e.test/x.json", selfKey: "ui", retryDelaysMs: NO_DELAY });
+
+    await mountEcosystem(document, {
+      endpoint: "https://e.test/x.json",
+      selfKey: "ui",
+      retryDelaysMs: NO_DELAY,
+    });
+
     expect(list.innerHTML).toBe(before);
   });
 
@@ -319,7 +556,13 @@ describe("mountEcosystem", () => {
     document.body.innerHTML = "<p>no footer here</p>";
     const fetchMock = vi.fn();
     vi.stubGlobal("fetch", fetchMock);
-    await mountEcosystem(document, { endpoint: "https://e.test/x.json", selfKey: "ui", retryDelaysMs: NO_DELAY });
+
+    await mountEcosystem(document, {
+      endpoint: "https://e.test/x.json",
+      selfKey: "ui",
+      retryDelaysMs: NO_DELAY,
+    });
+
     expect(fetchMock).not.toHaveBeenCalled();
   });
 });

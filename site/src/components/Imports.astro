@@ -1,17 +1,16 @@
 ---
-/* A section's paste-ready import lines, behind a disclosure (owner
-   call 2026-09-06, replacing the raw comma-separated path lists that
-   sat in the reading line and could not be pasted). A real CodeBlock,
-   so the code island mounts its COPY button and the code-vars
-   transformer keeps the syntax colors on the live palette. */
 import { Code } from "astro:components";
 import CodeBlock from "@half-built/astro/content/CodeBlock.astro";
 import codeTheme from "@half-built/astro/shiki/code-theme";
 import codeVars from "@half-built/astro/shiki/code-vars";
 
-interface Props { code: string }
+interface Props {
+  code: string;
+}
+
 const { code } = Astro.props;
 ---
+
 <details class="demo-imports">
   <summary>Show imports</summary>
   <CodeBlock>
@@ -24,6 +23,7 @@ const { code } = Astro.props;
      than a marker triangle, so it reads as a control and not a list
      item. The block below it is the code island's own furniture. */
   .demo-imports { margin: 0 0 1.5em; }
+
   .demo-imports > summary {
     cursor: pointer;
     list-style: none;

@@ -9,7 +9,12 @@ import { createFrameLoop } from "./core/frame-loop";
 import { ICON_PLAY, ICON_PAUSE, ICON_ROTATE_CCW } from "./core/icons";
 import { playheadX, formatReadout, columnIndex } from "./path-player-math";
 import {
-  type Painter, paintBand, paintLines, paintLabelChip, paintAxis, INK,
+  type Painter,
+  paintBand,
+  paintLines,
+  paintLabelChip,
+  paintAxis,
+  INK,
 } from "./path-player-paint";
 
 /* Widened to `boolean` via assertion (not a `: boolean` annotation,
@@ -24,6 +29,7 @@ const TRACK_GAP = 5;
 /* Caption ids: one player per page today, but aria-controls needs a
    unique target if a second ever lands. */
 let captionSeq = 0;
+
 export interface BandTrack {
   kind: "band";
   height: number;
@@ -52,8 +58,11 @@ export interface PathPlayerConfig<S> {
   tracks: TrackSpec[];
   buildStage: (viewbox: HTMLElement) => boolean | undefined;
   sink: {
-    start: (s: S) => void; move: (s: S) => void; stop: () => void;
-    pause?: () => void; resume?: () => void;
+    start: (s: S) => void;
+    move: (s: S) => void;
+    stop: () => void;
+    pause?: () => void;
+    resume?: () => void;
   };
   /* Transport and caption-toggle text, defaulting to the English copy
      this player shipped with. A caller with its own site voice (or a
@@ -68,22 +77,36 @@ export interface PathPlayerHandle {
 }
 
 /* Transport state shared with the optional scrub handlers. */
-interface TransportState { t: number; playing: boolean; lastIdx: number }
+interface TransportState {
+  t: number;
+  playing: boolean;
+  lastIdx: number;
+}
 
 /* Read-only timeline shipped (owner call 2026-08-22). When enabled:
    pointer drag pauses the clock and paints the emitter along the path;
    the fluid itself is never seekable, only the input. */
 function attachScrub(
-  timeline: HTMLElement, state: TransportState, duration: number,
-  applyCurrent: (useStart: boolean) => void, setPlaying: (playing: boolean) => void,
+  timeline: HTMLElement,
+  state: TransportState,
+  duration: number,
+  applyCurrent: (useStart: boolean) => void,
+  setPlaying: (playing: boolean) => void,
 ): void {
   let active = false;
   let wasPlaying = false;
+
   const seek = (ev: PointerEvent): void => {
     const rect = timeline.getBoundingClientRect();
-    const frac = Math.max(0, Math.min(1, (ev.clientX - rect.left) / (rect.width || 1)));
+
+    const frac = Math.max(
+      0,
+      Math.min(1, (ev.clientX - rect.left) / (rect.width || 1)),
+    );
+
     state.t = frac * duration;
   };
+
   timeline.addEventListener("pointerdown", (ev) => {
     active = true;
     wasPlaying = state.playing;
@@ -92,19 +115,29 @@ function attachScrub(
     seek(ev);
     applyCurrent(true);
   });
+
   timeline.addEventListener("pointermove", (ev) => {
     if (!active) return;
     seek(ev);
     applyCurrent(false);
   });
+
   timeline.addEventListener("pointerup", () => {
     active = false;
     setPlaying(wasPlaying);
   });
 }
 
-export function createPathPlayer<S>(doc: Document, config: PathPlayerConfig<S>): PathPlayerHandle {
-  const { play = "Play or pause", restart = "Restart", about = "ABOUT" } = config.labels ?? {};
+export function createPathPlayer<S>(
+  doc: Document,
+  config: PathPlayerConfig<S>,
+): PathPlayerHandle {
+  const {
+    play = "Play or pause",
+    restart = "Restart",
+    about = "ABOUT",
+  } = config.labels ?? {};
+
   const pm = buildPlateModal(doc, { ariaLabel: config.title });
   pm.addLabel("topLeft", "pp-title").textContent = config.title;
   pm.addLabel("bottomLeft", "pp-source").textContent = config.source;
@@ -128,7 +161,12 @@ export function createPathPlayer<S>(doc: Document, config: PathPlayerConfig<S>):
   restartBtn.className = "pp-restart icon-box press-box";
   restartBtn.setAttribute("aria-label", restart);
   restartBtn.innerHTML = ICON_ROTATE_CCW;
-  if (!stageReady) { playBtn.disabled = true; restartBtn.disabled = true; }
+
+  if (!stageReady) {
+    playBtn.disabled = true;
+    restartBtn.disabled = true;
+  }
+
   const timeline = doc.createElement("div");
   timeline.className = "pp-timeline";
   const tracksCanvas = doc.createElement("canvas");
@@ -147,28 +185,52 @@ export function createPathPlayer<S>(doc: Document, config: PathPlayerConfig<S>):
      toggle (path-player.css) and always see the caption. */
   const captionToggle = doc.createElement("button");
   captionToggle.type = "button";
-  captionToggle.className = "pp-caption-toggle boxed-label micro-label press-box";
+
+  captionToggle.className =
+    "pp-caption-toggle boxed-label micro-label press-box";
+
   captionToggle.textContent = about;
   captionToggle.setAttribute("aria-controls", caption.id);
+
   /* Same widening as henry-loose.ts: jsdom has no matchMedia, and a
      bare typeof check reads as always-true to the lint. The query list
      type is widened too so a test stub without addEventListener is
      still valid. */
-  interface PhoneQuery { matches: boolean; addEventListener?: (type: "change", cb: (ev: { matches: boolean }) => void) => void }
+  interface PhoneQuery {
+    matches: boolean;
+    addEventListener?: (
+      type: "change",
+      cb: (ev: { matches: boolean }) => void,
+    ) => void;
+  }
+
   const phoneQuery = (): PhoneQuery | null => {
-    const mediaQuery = (globalThis as { matchMedia?: (q: string) => PhoneQuery }).matchMedia;
-    return mediaQuery ? mediaQuery.call(globalThis, "(max-width: 768px)") : null;
+    const mediaQuery = (
+      globalThis as { matchMedia?: (q: string) => PhoneQuery }
+    ).matchMedia;
+
+    if (!mediaQuery) return null;
+
+    return mediaQuery.call(globalThis, "(max-width: 768px)");
   };
+
   const phone = (): boolean => phoneQuery()?.matches ?? false;
+
   const setCaptionShown = (shown: boolean): void => {
     caption.hidden = !shown;
     captionToggle.setAttribute("aria-expanded", String(shown));
   };
-  captionToggle.addEventListener("click", () => { setCaptionShown(caption.hidden); });
+
+  captionToggle.addEventListener("click", () => {
+    setCaptionShown(caption.hidden);
+  });
+
   /* Rotating with the modal open crosses the breakpoint: follow it so
      a caption hidden in portrait is not stranded behind a toggle that
      landscape no longer shows (final review 2026-08-26). */
-  phoneQuery()?.addEventListener?.("change", (ev) => { setCaptionShown(!ev.matches); });
+  phoneQuery()?.addEventListener?.("change", (ev) => {
+    setCaptionShown(!ev.matches);
+  });
 
   /* pp-plate scopes the player's narrow-viewport flex reflow without
      touching the lightbox's shared pm-plate rules. */
@@ -176,14 +238,25 @@ export function createPathPlayer<S>(doc: Document, config: PathPlayerConfig<S>):
   pm.plate.append(viewbox, timeline, captionToggle, caption, transport);
 
   const state: TransportState = { t: 0, playing: false, lastIdx: -1 };
+
   /* All tracks, their gaps, and the axis: the canvas's CSS height. */
-  const timelineHeight = config.tracks.reduce((h, tr) => h + tr.height + TRACK_GAP, 0) + AXIS_H;
+  const timelineHeight =
+    config.tracks.reduce((h, tr) => h + tr.height + TRACK_GAP, 0) + AXIS_H;
+
   let staticTracks: HTMLCanvasElement | null = null;
 
   const dpr = (): number => doc.defaultView?.devicePixelRatio ?? 1;
-  const sampleIndexAt = (t: number): number => columnIndex(t, config.duration, config.samples.length);
+
+  const sampleIndexAt = (t: number): number =>
+    columnIndex(t, config.duration, config.samples.length);
+
   const cssColor = (v: string): string =>
-    (doc.defaultView?.getComputedStyle(doc.documentElement).getPropertyValue(v).trim() ?? "") || INK;
+    (doc.defaultView
+      ?.getComputedStyle(doc.documentElement)
+      .getPropertyValue(v)
+      .trim() ??
+      "") ||
+    INK;
 
   /* The tracks, axis, chips, and labels never change while the modal
      is open, so they paint once to an offscreen canvas at layout time;
@@ -195,20 +268,30 @@ export function createPathPlayer<S>(doc: Document, config: PathPlayerConfig<S>):
     const ctx = off.getContext("2d");
     if (!ctx) return null; // jsdom: geometry is tested; painting is not
     ctx.scale(scale, scale);
+
     /* The tracks follow the theme: paper is the field well, ink and rule
        the theme's own, so the strip reads as part of the plate by day
        and by night (owner call 2026-08-26). */
     const p: Painter = {
-      ctx, width, xAt: (t) => playheadX(t, config.duration, width), cssColor,
-      paper: cssColor("--well"), ink: cssColor("--ink"), rule: cssColor("--rule"),
+      ctx,
+      width,
+      xAt: (t) => playheadX(t, config.duration, width),
+      cssColor,
+      paper: cssColor("--well"),
+      ink: cssColor("--ink"),
+      rule: cssColor("--rule"),
     };
+
     let top = 0;
+
     for (const track of config.tracks) {
-      if (track.kind === "band") paintBand(p, track, top, config.samples.length);
-      else paintLines(p, track, top);
+      if (track.kind === "band") {
+        paintBand(p, track, top, config.samples.length);
+      } else paintLines(p, track, top);
       if (track.label) paintLabelChip(p, track.label, top);
       top += track.height + TRACK_GAP;
     }
+
     paintAxis(p, top, config.duration);
     return off;
   }
@@ -245,7 +328,8 @@ export function createPathPlayer<S>(doc: Document, config: PathPlayerConfig<S>):
     if (idx === state.lastIdx && !useStart) return;
     state.lastIdx = idx;
     const s = config.samples[idx];
-    if (useStart) config.sink.start(s); else config.sink.move(s);
+    if (useStart) config.sink.start(s);
+    else config.sink.move(s);
   }
 
   /* Old shape of this function was tick(now): computed dt itself from
@@ -257,6 +341,7 @@ export function createPathPlayer<S>(doc: Document, config: PathPlayerConfig<S>):
   function frame(dt: number): void {
     if (state.playing) {
       state.t += dt;
+
       if (state.t >= config.duration) {
         state.t -= config.duration;
         applyCurrent(true); // teleport at the wrap, no smear
@@ -264,6 +349,7 @@ export function createPathPlayer<S>(doc: Document, config: PathPlayerConfig<S>):
         applyCurrent(false);
       }
     }
+
     drawFrame();
     readout.textContent = formatReadout(state.t, config.duration);
   }
@@ -285,20 +371,26 @@ export function createPathPlayer<S>(doc: Document, config: PathPlayerConfig<S>):
     if (doc.hidden) loop.stop();
     else if (pm.dialog.hasAttribute("open")) loop.start();
   }
+
   doc.addEventListener("visibilitychange", onVisibility);
 
   function setPlaying(playing: boolean): void {
     state.playing = playing;
     playBtn.innerHTML = playing ? ICON_PAUSE : ICON_PLAY;
     playBtn.setAttribute("aria-pressed", `${playing}`);
-    if (playing) applyCurrent(true); else config.sink.stop();
+    if (playing) applyCurrent(true);
+    else config.sink.stop();
   }
 
-  playBtn.addEventListener("click", () => { setPlaying(!state.playing); });
+  playBtn.addEventListener("click", () => {
+    setPlaying(!state.playing);
+  });
+
   restartBtn.addEventListener("click", () => {
     state.t = 0;
     applyCurrent(true);
   });
+
   pm.dialog.addEventListener("keydown", (ev) => {
     /* Space on a button is its native activation; handling it here too
        would toggle twice in one stroke. */
@@ -307,13 +399,16 @@ export function createPathPlayer<S>(doc: Document, config: PathPlayerConfig<S>):
       setPlaying(!state.playing);
     }
   });
+
   pm.dialog.addEventListener("close", () => {
     setPlaying(false);
     loop.stop();
     config.sink.pause?.();
   });
 
-  if (SCRUB) attachScrub(timeline, state, config.duration, applyCurrent, setPlaying);
+  if (SCRUB) {
+    attachScrub(timeline, state, config.duration, applyCurrent, setPlaying);
+  }
 
   return {
     open: (opener) => {
@@ -323,19 +418,26 @@ export function createPathPlayer<S>(doc: Document, config: PathPlayerConfig<S>):
       layoutTracks();
       readout.textContent = formatReadout(state.t, config.duration);
       config.sink.resume?.();
+
       /* Reduced motion: open paused; the transport still plays on demand.
          jsdom has no matchMedia, hence the widened type (same guard as
          henry-loose.ts). Kept separate from the frame loop's `win`,
          which is cast non-null: this one must stay optional so a
          matchMedia-less jsdom does not throw. */
-      const mmWin = doc.defaultView as { matchMedia?: typeof window.matchMedia } | null;
+      const mmWin = doc.defaultView as {
+        matchMedia?: typeof window.matchMedia;
+      } | null;
+
       const reduced = mmWin?.matchMedia
         ? mmWin.matchMedia("(prefers-reduced-motion: reduce)").matches
         : false;
+
       if (stageReady && !reduced) setPlaying(true);
       loop.start();
     },
-    close: () => { pm.close(); },
+    close: () => {
+      pm.close();
+    },
     isPlaying: () => state.playing,
   };
 }

@@ -12,8 +12,39 @@ is the design record for this package.
 
 ## Icons
 
-Default icon glyphs are derived from Lucide (https://lucide.dev), ISC
-license. See `ICONS-LICENSE`.
+Every glyph the package draws comes from one registry,
+`scripts/core/icons.ts`, derived from Lucide (https://lucide.dev), ISC
+license; see `ICONS-LICENSE`. Templates render one through
+`components/Icon.astro`:
+
+```astro
+<Icon name="search" size={14} />
+```
+
+`name` is a registry key (`x`, `play`, `sparkles`, `pause`,
+`rotate-ccw`, `chevron-left`, `chevron-right`, `chevron-up`,
+`arrow-left`, `arrow-right`, `sun`, `moon`, `search`, `clock`, `user`,
+`calendar`, `circle`), `size` a CSS
+length or pixel count (default `1em`, tracking the parent's font
+size), `strokeWidth` defaults to 2.5, and `class` lands on the svg.
+The icon is decorative by contract (aria-hidden, pointer-events none),
+so the accessible name belongs to the button or link around it. The
+svg arrives through `set:html` and carries no scoped-style attribute;
+style it from the parent with `:global(svg)`. Client scripts take the
+`ICON_*` strings from the same file. Add a glyph to the registry,
+never as inline `<svg>` in a component; a test enforces that.
+
+## Corner badges
+
+`CornerBadges.astro` takes its chips as data, `badges: Badge[]` from
+`scripts/core/badges.ts`: a `key` (rendered as the `badge-<key>` class,
+the styling hook), a `label`, and an `icon` name from the registry.
+The two house conventions ship as `GENAI_BADGE` and `DEMO_BADGE`; a
+site's view-model lists the badges a post carries, in order, and can
+add its own without a package change. `PostCardModel.badges` carries
+them to the card. The content components (`BlogImage`, `GalleryImage`,
+`MediaText`) keep a `genai` boolean as authoring sugar for MDX and take
+`badges` for anything else.
 
 ## EditorNote
 

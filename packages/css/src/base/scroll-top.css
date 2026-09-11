@@ -20,16 +20,26 @@
     border: 1px solid var(--rule);
     transition: var(--transition);
   }
-  a.scroll-top:hover { outline: var(--stroke) solid var(--rule); }
+
+  a.scroll-top:hover {
+    outline: var(--stroke) solid var(--rule);
+  }
+
   a.scroll-top:hover,
-  a.scroll-top:focus-visible { transform: translateY(-10px); }
+  a.scroll-top:focus-visible {
+    transform: translateY(-10px);
+  }
+
   a.scroll-top.show {
     opacity: 1;
     visibility: visible;
   }
+
   /* Phones flick-scroll and tap the status bar; the pinned button only
      ate column pixels there (owner call 2026-08-20). */
   @media (--bp-phone) {
-    a.scroll-top { display: none; }
+    a.scroll-top {
+      display: none;
+    }
   }
 }

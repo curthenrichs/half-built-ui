@@ -4,6 +4,9 @@
    house default. */
 export function formatPostDate(d: Date, locale = "en-US"): string {
   return d.toLocaleDateString(locale, {
-    year: "numeric", month: "long", day: "numeric", timeZone: "UTC",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    timeZone: "UTC",
   });
 }

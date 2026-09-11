@@ -1,19 +1,36 @@
 ---
 import type { ImageMetadata } from "astro";
 import CornerBadges from "../CornerBadges.astro";
+import type { Badge } from "../../scripts/core/badges";
 import SmartImage from "../SmartImage.astro";
 import LightboxLink from "../LightboxLink.astro";
 
-/* `genai` marks an AI-generated plate with the AI Art corner badge
-   (CornerBadges.astro). */
-interface Props { src: ImageMetadata; alt?: string; caption?: string; genai?: boolean; class?: string }
-const { src, alt = "", caption, genai = false, class: className } = Astro.props;
+interface Props {
+  src: ImageMetadata;
+  alt?: string;
+  caption?: string;
+  badges?: Badge[];
+  class?: string;
+}
+
+const { src, alt = "", caption, badges = [], class: className } = Astro.props;
 ---
+
 <figure class:list={["gallery-plate", className]}>
   <div class="plate-frame">
-    <LightboxLink href={src.src} w={src.width} h={src.height} caption={caption ?? alt}>
-      <SmartImage src={src} alt={alt} widths={[320, 640]} sizes="(max-width: 600px) 100vw, 320px" />
-      <CornerBadges genai={genai} />
+    <LightboxLink
+      href={src.src}
+      w={src.width}
+      h={src.height}
+      caption={caption ?? alt}
+    >
+      <SmartImage
+        src={src}
+        alt={alt}
+        widths={[320, 640]}
+        sizes="(max-width: 600px) 100vw, 320px"
+      />
+      <CornerBadges badges={badges} />
     </LightboxLink>
   </div>
   {caption && <figcaption class="caption">{caption}</figcaption>}
@@ -22,9 +39,11 @@ const { src, alt = "", caption, genai = false, class: className } = Astro.props;
 <style>
   .gallery-plate { margin: 0; }
   .plate-frame { border: var(--stroke) solid var(--rule); line-height: 0; }
+
   /* The frame owns the outline; zero the default img border from
      prose.css so plates don't double-line. */
   .plate-frame :global(img) { width: 100%; height: 220px; object-fit: cover; border: 0; }
+
   /* Type from the .caption pattern, tracked a touch wider under a plate.
      Caption case is the author's own; the uppercase transform from the
      original plate design was dropped by owner request 2026-07-26. */

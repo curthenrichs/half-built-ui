@@ -9,13 +9,17 @@
    page's Rail.astro is the only consumer. */
 export function mountToc(root: Document): void {
   const links = new Map<string, HTMLAnchorElement[]>();
-  root.querySelectorAll<HTMLAnchorElement>(".site-rail nav a[href^='#']").forEach((anchor) => {
-    const id = anchor.hash.slice(1);
-    if (!id) return;
-    const list = links.get(id) ?? [];
-    list.push(anchor);
-    links.set(id, list);
-  });
+
+  root
+    .querySelectorAll<HTMLAnchorElement>(".site-rail nav a[href^='#']")
+    .forEach((anchor) => {
+      const id = anchor.hash.slice(1);
+      if (!id) return;
+      const list = links.get(id) ?? [];
+      list.push(anchor);
+      links.set(id, list);
+    });
+
   const sections = root.querySelectorAll("section[id]");
   if (links.size === 0 || sections.length === 0) return;
 
@@ -46,6 +50,7 @@ export function mountToc(root: Document): void {
     },
     { rootMargin: "-40% 0px -55% 0px" },
   );
+
   sections.forEach((section) => {
     observer.observe(section);
   });
@@ -57,40 +62,54 @@ export function mountToc(root: Document): void {
      observer take it from there. */
   const viewportH = root.defaultView?.innerHeight ?? 0;
   let openingId = "";
+
   for (const section of sections) {
     /* The first section seeds the value, then every section already
        past the band overwrites it, so this ends on the last one the
        page opens against. No index access, which keeps the check
        honest under both the strict and the lint type projects. */
-    if (openingId === "" || section.getBoundingClientRect().top <= viewportH * 0.45) {
+    if (
+      openingId === "" ||
+      section.getBoundingClientRect().top <= viewportH * 0.45
+    ) {
       openingId = section.id;
     }
   }
+
   setCurrent(openingId);
 
   const view = root.defaultView;
+
   const markHash = (): void => {
     const id = view?.location.hash.slice(1) ?? "";
     if (id === "" || !links.has(id)) return;
     quietUntil = Date.now() + 900;
     setCurrent(id);
   };
+
   view?.addEventListener("hashchange", markHash);
   markHash();
 
   const panel = root.querySelector<HTMLElement>("[data-rail-sections]");
   if (!(panel instanceof HTMLDetailsElement)) return;
+
   const closePanel = (): void => {
     panel.open = false;
   };
-  panel.querySelector<HTMLButtonElement>("[data-sections-close]")?.addEventListener("click", closePanel);
+
+  panel
+    .querySelector<HTMLButtonElement>("[data-sections-close]")
+    ?.addEventListener("click", closePanel);
+
   panel.querySelectorAll<HTMLAnchorElement>("nav a").forEach((anchor) => {
     anchor.addEventListener("click", closePanel);
   });
+
   root.addEventListener("click", (e) => {
     if (!panel.open) return;
     if (e.target instanceof Node && !panel.contains(e.target)) closePanel();
   });
+
   root.addEventListener("keydown", (e) => {
     if (e.key === "Escape") closePanel();
   });

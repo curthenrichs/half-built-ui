@@ -1,6 +1,6 @@
 {
   "name": "@half-built/astro",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Astro components, islands, and pure helpers for the half-built design system.",
   "license": "MIT",
   "repository": {
@@ -9,7 +9,10 @@
     "directory": "packages/astro"
   },
   "type": "module",
-  "files": ["src", "ICONS-LICENSE"],
+  "files": [
+    "src",
+    "ICONS-LICENSE"
+  ],
   "exports": {
     "./components/Masthead.astro": "./src/components/SiteHeader.astro",
     "./components/*": "./src/components/*",
@@ -19,6 +22,10 @@
     "./shiki/code-theme": "./src/shiki/code-theme.mjs",
     "./shiki/code-vars": "./src/shiki/code-vars.mjs"
   },
-  "peerDependencies": { "astro": "^5.0.0" },
-  "publishConfig": { "access": "public" }
+  "peerDependencies": {
+    "astro": "^5.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
 }

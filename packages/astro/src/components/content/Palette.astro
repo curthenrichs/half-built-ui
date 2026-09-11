@@ -1,25 +1,31 @@
 ---
-/* Color-chip palette table, the treatment lifted from the BEADZ brand
-   page: bordered swatch, role, hex. Hand-authored-page component (the
-   migrator never emits it). Chip color is per-entry data, so it rides an
-   inline background-color, which the html-validate gate whitelists for
-   exactly this dynamic-value case.
-   An entry may carry `token` instead of `hex` (owner ask 2026-09-06,
-   the reference site's live token sheet): the chip then paints
-   var(token), following the live cascade with no script, and the hex
-   cell renders empty with data-token-hex for a consumer script to
-   fill from computed styles; the component itself stays inert. */
-interface Entry { role: string; hex?: string; token?: string; note?: string }
-interface Props { entries: Entry[]; class?: string; label?: string }
+interface Entry {
+  role: string;
+  hex?: string;
+  token?: string;
+  note?: string;
+}
+
+interface Props {
+  entries: Entry[];
+  class?: string;
+  label?: string;
+}
+
 const { entries, class: className, label = "Palette" } = Astro.props;
 ---
+
 {/* The scroll box is a tab stop with a name: below the column's width
     the table scrolls sideways, and a scrolling region a keyboard cannot
     reach fails WCAG 2.1.1 (axe scrollable-region-focusable). A named
     <section> is the region landmark natively; a div with role=region
     fails html-validate's prefer-native-element (the blog's gate caught
     it at the 0.4.0 pin bump). */}
-<section class:list={["table-scroll", className]} tabindex="0" aria-label={label}>
+<section
+  class:list={["table-scroll", className]}
+  tabindex="0"
+  aria-label={label}
+>
   <table class="palette">
     <thead>
       <tr>
@@ -30,14 +36,24 @@ const { entries, class: className, label = "Palette" } = Astro.props;
       </tr>
     </thead>
     <tbody>
-      {entries.map((e) => (
-        <tr>
-          <td><span class="palette-chip" aria-hidden="true" style={`background-color:${e.token ? `var(${e.token})` : e.hex}`}></span></td>
-          <td>{e.role}</td>
-          <td>{e.token ? <code data-token-hex={e.token}></code> : <code>{e.hex}</code>}</td>
-          <td>{e.note}</td>
-        </tr>
-      ))}
+      {entries.map((e) => <tr>
+        <td>
+          <span
+            class="palette-chip"
+            aria-hidden="true"
+            style={`background-color:${e.token ? `var(${e.token})` : e.hex}`}
+          ></span>
+        </td>
+        <td>{e.role}</td>
+        <td>
+          {e.token ? (
+            <code data-token-hex={e.token}></code>
+          ) : (
+            <code>{e.hex}</code>
+          )}
+        </td>
+        <td>{e.note}</td>
+      </tr>)}
     </tbody>
   </table>
 </section>

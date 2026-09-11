@@ -15,9 +15,13 @@ export interface FocusModeOptions {
   target?: EventTarget;
 }
 
-export const mountFocusMode: Island<FocusModeOptions> = (root, options = {}): IslandHandle => {
+export const mountFocusMode: Island<FocusModeOptions> = (
+  root,
+  options = {},
+): IslandHandle => {
   const el = root as HTMLElement;
   const target = options.target ?? window;
+
   if (!claim(el, "focus-mode")) {
     return {
       destroy(): void {
@@ -26,8 +30,15 @@ export const mountFocusMode: Island<FocusModeOptions> = (root, options = {}): Is
       },
     };
   }
-  const onKeydown = (): void => { el.dataset.focus = "keyboard"; };
-  const onPointerdown = (): void => { el.dataset.focus = "pointer"; };
+
+  const onKeydown = (): void => {
+    el.dataset.focus = "keyboard";
+  };
+
+  const onPointerdown = (): void => {
+    el.dataset.focus = "pointer";
+  };
+
   target.addEventListener("keydown", onKeydown, true);
   target.addEventListener("pointerdown", onPointerdown, true);
 

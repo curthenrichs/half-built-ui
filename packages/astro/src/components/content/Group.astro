@@ -1,12 +1,11 @@
 ---
-/* Boxed prose container. Born in phase 1 as a bare passthrough (the
-   migration target for Gutenberg's Group block); styled 2026-08-21 to
-   match the style guide's description of it, as the label-less,
-   tint-less sibling of Callout's box. The box itself is the .rule-box
-   pattern; only the outer margin is this component's. */
-interface Props { class?: string }
+interface Props {
+  class?: string;
+}
+
 const { class: className } = Astro.props;
 ---
+
 <div class:list={["content-group", "rule-box", className]}><slot /></div>
 
 <style>

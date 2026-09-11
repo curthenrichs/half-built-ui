@@ -1,0 +1,4 @@
+# Prettier also honors .gitignore (node_modules, dist, .astro).
+package-lock.json
+# Prose and records stay as written; Prettier formats code, not writing.
+*.md
