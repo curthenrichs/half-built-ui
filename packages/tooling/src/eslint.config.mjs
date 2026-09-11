@@ -73,6 +73,9 @@ export default tseslint.config(
       // braces, so the block's extent is never a matter of indentation
       // (owner rule 2026-09-10). Fixable.
       curly: ["error", "multi-line"],
+      // A ternary inside a ternary has no fixer and no defence; it fails
+      // loud so the branches get names (owner rule 2026-09-10).
+      "no-nested-ternary": "error",
       "@stylistic/padding-line-between-statements": [
         "error",
         { blankLine: "always", prev: "import", next: "*" },

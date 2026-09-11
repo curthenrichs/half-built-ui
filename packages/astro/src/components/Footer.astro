@@ -72,17 +72,23 @@ const year = new Date().getFullYear();
         <details class="footer-sitemap-group footer-sitemap-collapsible" open>
           <summary><h2>{ecosystemTitle}</h2></summary>
           <ul data-ecosystem>
-            {ecosystem.map((entry) => <li>
-              {entry.key === ecosystemSelf ? (
-                <span class="footer-sitemap-self" aria-current="page"
+            {ecosystem.map((entry) => {
+              /* Three states, one block each: this site, a live
+                 property, a property with no href yet. */
+              const self = entry.key === ecosystemSelf;
+              const live = !self && entry.href !== null;
+              const pending = !self && !live;
+
+              return <li>
+                {self && <span class="footer-sitemap-self" aria-current="page"
                   >{entry.label}</span
-                >
-              ) : entry.href !== null ? (
-                <a href={entry.href}>{entry.label}</a>
-              ) : (
-                <span class="footer-sitemap-pending">{entry.label}</span>
-              )}
-            </li>)}
+                >}{live && <a href={entry.href}
+                  >{entry.label}</a
+                >}{pending && <span class="footer-sitemap-pending"
+                  >{entry.label}</span
+                >}
+              </li>;
+            })}
           </ul>
         </details>
       </nav>

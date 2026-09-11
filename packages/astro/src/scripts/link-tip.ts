@@ -39,8 +39,9 @@ export function placeTip(
   align: TipAlign = "start",
   edge: number = EDGE,
 ): TipPosition {
-  let x =
-    align === "start" ? anchor.left - INSET : anchor.right + INSET - tip.width;
+  const startX = anchor.left - INSET;
+  const endX = anchor.right + INSET - tip.width;
+  let x = align === "start" ? startX : endX;
 
   const overRight = x + tip.width - (viewport.width - edge);
   if (overRight > 0) x -= overRight;

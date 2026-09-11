@@ -64,8 +64,9 @@ export function initialView(
 ): ZoomView {
   const zoom = fitZoom(imgW, imgH, boxW, boxH);
 
-  const y =
-    imgH / imgW >= TALL_ASPECT ? Math.max(0, (imgH * zoom - boxH) / 2) : 0;
+  const tall = imgH / imgW >= TALL_ASPECT;
+  const centered = Math.max(0, (imgH * zoom - boxH) / 2);
+  const y = tall ? centered : 0;
 
   return normalizePan({ zoom, x: 0, y });
 }

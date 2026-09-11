@@ -20,8 +20,7 @@ const {
   hero,
   heroPosition,
   draft = false,
-  genai,
-  demo,
+  badges,
   categories,
   headingLevel = 2,
   class: className,
@@ -53,7 +52,7 @@ const heroStyle = heroPosition ? `object-position: ${heroPosition}` : undefined;
           <Icon name="clock" size={12} />
           {`${minutes} ${minReadLabel}`}</span>
       </div>
-      <CornerBadges genai={genai} demo={demo} />
+      <CornerBadges badges={badges} />
     </div>
     <div class="post-item-content">
       <div class="entry-cat">

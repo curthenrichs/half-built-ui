@@ -1,6 +1,7 @@
 ---
 import type { ImageMetadata } from "astro";
 import CornerBadges from "../CornerBadges.astro";
+import type { Badge } from "../../scripts/core/badges";
 import SmartImage from "../SmartImage.astro";
 import LightboxLink from "../LightboxLink.astro";
 
@@ -9,7 +10,7 @@ interface Props {
   alt?: string;
   mediaSide?: "left" | "right";
   natural?: boolean;
-  genai?: boolean;
+  badges?: Badge[];
   class?: string;
 }
 
@@ -18,7 +19,7 @@ const {
   alt = "",
   mediaSide = "left",
   natural = false,
-  genai = false,
+  badges = [],
   class: className,
 } = Astro.props;
 ---
@@ -46,7 +47,7 @@ const {
           sizes="(max-width: 600px) 100vw, 480px"
         />
       )}
-      <CornerBadges genai={genai} />
+      <CornerBadges badges={badges} />
     </LightboxLink>
   </div>
   <figcaption class="media-text-content caption"><slot /></figcaption>

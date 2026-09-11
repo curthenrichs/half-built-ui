@@ -24,8 +24,8 @@ export function createFrameLoop(
   function tick(now: number): void {
     if (!live) return;
 
-    const dt =
-      last === 0 ? firstDt : Math.min(clamp, Math.max(0, (now - last) / 1000));
+    const elapsed = Math.max(0, (now - last) / 1000);
+    const dt = last === 0 ? firstDt : Math.min(clamp, elapsed);
 
     last = now;
     cb(dt);

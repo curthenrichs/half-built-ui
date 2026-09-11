@@ -209,9 +209,9 @@ export function createPathPlayer<S>(
       globalThis as { matchMedia?: (q: string) => PhoneQuery }
     ).matchMedia;
 
-    return mediaQuery
-      ? mediaQuery.call(globalThis, "(max-width: 768px)")
-      : null;
+    if (!mediaQuery) return null;
+
+    return mediaQuery.call(globalThis, "(max-width: 768px)");
   };
 
   const phone = (): boolean => phoneQuery()?.matches ?? false;

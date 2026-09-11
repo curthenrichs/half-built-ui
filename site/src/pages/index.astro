@@ -10,6 +10,10 @@ import PostCard from "@half-built/astro/components/PostCard.astro";
 import CategoryCard from "@half-built/astro/components/CategoryCard.astro";
 import Pagination from "@half-built/astro/components/Pagination.astro";
 import Icon from "@half-built/astro/components/Icon.astro";
+import {
+  GENAI_BADGE,
+  DEMO_BADGE,
+} from "@half-built/astro/scripts/core/badges.ts";
 import PostNavigation from "@half-built/astro/components/PostNavigation.astro";
 import LinkListWidget from "@half-built/astro/components/LinkListWidget.astro";
 import Widget from "@half-built/astro/components/Widget.astro";
@@ -72,8 +76,7 @@ const posts: PostCardModel[] = [
     dateStr: "3, Jan 2026",
     minutes: 3,
     hero: placeholderWide,
-    genai: true,
-    demo: true,
+    badges: [GENAI_BADGE, DEMO_BADGE],
     categories: [{ name: "Demo", href: "#" }],
   },
 ];
@@ -132,11 +135,9 @@ const STOP = /^(\d+|a\d+|vivid|dim)$/;
 const stopOrder = (stop: string): number => {
   if (stop === "plain") return -1;
   if (/^\d+$/.test(stop)) return Number(stop);
-  return (
-    1000 +
-    ["vivid", "dim"].indexOf(stop) +
-    (stop.startsWith("a") ? 100 + Number(stop.slice(1)) : 0)
-  );
+  const accentRank = stop.startsWith("a") ? 100 + Number(stop.slice(1)) : 0;
+
+  return 1000 + ["vivid", "dim"].indexOf(stop) + accentRank;
 };
 
 const ramps = new Map<string, Map<string, string>>();

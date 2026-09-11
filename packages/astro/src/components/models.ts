@@ -4,6 +4,7 @@
    CollectionEntry mapping that produces them is src/lib/view-models.ts,
    which stays site-side. */
 import type { ImageMetadata } from "astro";
+import type { Badge } from "../scripts/core/badges";
 
 export interface PostCardModel {
   href: string;
@@ -15,8 +16,7 @@ export interface PostCardModel {
   hero: ImageMetadata;
   heroPosition?: string;
   draft?: boolean;
-  genai?: boolean;
-  demo?: boolean;
+  badges?: Badge[];
   categories: { name: string; href: string }[];
 }
 

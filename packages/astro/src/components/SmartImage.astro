@@ -25,10 +25,12 @@ const {
 } = Astro.props;
 
 const passthrough = src.format === "gif" || src.format === "svg";
+const responsive = !passthrough && widths !== undefined;
+const fixed = !passthrough && widths === undefined;
 const imgLoading = loading === "eager" ? undefined : loading;
 ---
 
-{passthrough ? (
+{passthrough && (
   <img
     src={src.src}
     width={src.width}
@@ -39,7 +41,7 @@ const imgLoading = loading === "eager" ? undefined : loading;
     style={style}
     fetchpriority={fetchpriority}
   />
-) : widths ? (
+)}{responsive && (
   <Image
     src={src}
     widths={widths}
@@ -50,7 +52,7 @@ const imgLoading = loading === "eager" ? undefined : loading;
     style={style}
     fetchpriority={fetchpriority}
   />
-) : (
+)}{fixed && (
   <Image
     src={src}
     width={src.width}
