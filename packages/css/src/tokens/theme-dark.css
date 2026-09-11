@@ -9,6 +9,7 @@
 @layer tokens {
   :root[data-theme="dark"] {
     color-scheme: dark;
+
     --surface: var(--black-900);
     --ink: var(--parchment);
     --rule: var(--parchment);
@@ -18,6 +19,7 @@
     --hairline: var(--gray-800);
     --divider-faint: var(--white-a10);
     --input-border: var(--gray-750);
+
     /* One step up from the page so a field reads as a field, not a hole. */
     --well: var(--black-850);
 
@@ -36,6 +38,7 @@
     --code-bg: var(--ink-900);
     --code-fg: var(--parchment);
     --code-line: var(--ink-800);
+
     /* Syntax token roles (spec 2026-09-06): what the Shiki theme bakes
        as hex, restated as variables so the code-vars transformer can
        emit tokens that follow a palette override. Identical in both
@@ -44,13 +47,12 @@
     --code-token-function: var(--brand-1-300);
     --code-token-string: var(--brand-1-vivid);
     --code-token-comment: var(--umber-500);
-
     --veil: var(--black-a60);
     --mat-line: var(--gray-800);
+
     /* Keyboard ring: the second accent by night, the first by day
        (owner call 2026-08-26). */
     --focus-ring: var(--brand-2-500);
-
     --track-x: var(--brand-1-500);
     --track-y: var(--brand-2-300);
     --track-z: var(--violet-300);

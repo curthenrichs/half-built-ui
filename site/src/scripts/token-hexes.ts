@@ -13,6 +13,7 @@ export function mountTokenHexes(root: Document): void {
   const fill = (): void => {
     const computed = root.defaultView?.getComputedStyle(html);
     if (!computed) return;
+
     for (const cell of cells) {
       const token = cell.getAttribute("data-token-hex");
       if (!token) continue;
@@ -22,5 +23,9 @@ export function mountTokenHexes(root: Document): void {
 
   fill();
   const observer = new MutationObserver(fill);
-  observer.observe(html, { attributes: true, attributeFilter: ["style", "data-theme"] });
+
+  observer.observe(html, {
+    attributes: true,
+    attributeFilter: ["style", "data-theme"],
+  });
 }

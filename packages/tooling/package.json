@@ -1,6 +1,6 @@
 {
   "name": "@half-built/tooling",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Lint presets and the test kit for half-built sites.",
   "license": "MIT",
   "repository": {
@@ -9,28 +9,38 @@
     "directory": "packages/tooling"
   },
   "type": "module",
-  "files": ["src"],
+  "files": [
+    "src"
+  ],
   "exports": {
     "./eslint": "./src/eslint.config.mjs",
     "./stylelint": "./src/stylelintrc.json",
     "./htmlvalidate": "./src/htmlvalidate.json",
-    "./test-kit/*": "./src/test-kit/*"
+    "./test-kit/*": "./src/test-kit/*",
+    "./prettier": "./src/prettier.config.mjs"
   },
   "dependencies": {
     "@eslint/js": "^10.0.1",
-    "typescript-eslint": "^8.65.0",
+    "@stylistic/eslint-plugin": "^5.10.0",
     "eslint-plugin-astro": "^1.7.0",
-    "globals": "^17.8.0"
+    "globals": "^17.8.0",
+    "prettier-plugin-astro": "^1.0.0",
+    "typescript-eslint": "^8.65.0"
   },
   "peerDependencies": {
     "eslint": "^10.8.0",
-    "stylelint": "^17.14.1",
     "html-validate": "^9.7.1",
+    "puppeteer-core": "^25.8.0",
+    "stylelint": "^17.14.1",
     "vitest": "^2.1.9",
-    "puppeteer-core": "^25.8.0"
+    "prettier": "^3.9.6"
   },
   "peerDependenciesMeta": {
-    "puppeteer-core": { "optional": true }
+    "puppeteer-core": {
+      "optional": true
+    }
   },
-  "publishConfig": { "access": "public" }
+  "publishConfig": {
+    "access": "public"
+  }
 }

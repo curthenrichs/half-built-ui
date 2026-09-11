@@ -6,22 +6,54 @@ import LightboxLink from "../LightboxLink.astro";
 
 /* `genai` marks an AI-generated image with the AI Art corner badge
    (CornerBadges.astro). */
-interface Props { src: ImageMetadata; alt?: string; mediaSide?: "left" | "right"; natural?: boolean; genai?: boolean; class?: string }
-const { src, alt = "", mediaSide = "left", natural = false, genai = false, class: className } = Astro.props;
+interface Props {
+  src: ImageMetadata;
+  alt?: string;
+  mediaSide?: "left" | "right";
+  natural?: boolean;
+  genai?: boolean;
+  class?: string;
+}
+
+const {
+  src,
+  alt = "",
+  mediaSide = "left",
+  natural = false,
+  genai = false,
+  class: className,
+} = Astro.props;
 ---
-<figure class:list={["media-text", mediaSide === "right" && "media-right", natural && "media-natural", className]}>
+
+<figure
+  class:list={[
+    "media-text",
+    mediaSide === "right" && "media-right",
+    natural && "media-natural",
+    className,
+  ]}
+>
   <div class="media-text-media">
     <LightboxLink href={src.src} w={src.width} h={src.height} caption={alt}>
-      {natural
+      {natural ? (
         /* No responsive widths/sizes here: a `sizes` attribute makes the
            browser report that size as the intrinsic width, which defeats
            the natural-size rendering below. */
-        ? <SmartImage src={src} alt={alt} />
-        : <SmartImage src={src} alt={alt} widths={[480, 960]} sizes="(max-width: 600px) 100vw, 480px" />}
+        <SmartImage src={src} alt={alt} />
+      ) : (
+        <SmartImage
+          src={src}
+          alt={alt}
+          widths={[480, 960]}
+          sizes="(max-width: 600px) 100vw, 480px"
+        />
+      )}
       <CornerBadges genai={genai} />
     </LightboxLink>
   </div>
-  <figcaption class="media-text-content caption"><slot /></figcaption>
+  <figcaption class="media-text-content caption">
+    <slot />
+  </figcaption>
 </figure>
 
 <style>
@@ -32,29 +64,71 @@ const { src, alt = "", mediaSide = "left", natural = false, genai = false, class
     align-items: center;
     margin: 20px 0;
   }
-  .media-right .media-text-media { order: 2; }
-  .media-text-media { margin: 0; line-height: 0; }
+
+  .media-right .media-text-media {
+    order: 2;
+  }
+
+  .media-text-media {
+    margin: 0;
+    line-height: 0;
+  }
+
   /* The side text is the caption: type from the .caption pattern (owner
      request 2026-08-14), left-aligned while it sits in its own column;
      it centers only when stacked below. */
-  .media-text-content { text-align: left; }
-  .media-text-content :global(p) { margin: 0 0 0.5em; }
-  .media-text-content :global(p:last-child) { margin-bottom: 0; }
+  .media-text-content {
+    text-align: left;
+  }
+
+  .media-text-content :global(p) {
+    margin: 0 0 0.5em;
+  }
+
+  .media-text-content :global(p:last-child) {
+    margin-bottom: 0;
+  }
+
   /* Outline comes from the .prose img standard in prose.css. */
-  .media-text-media :global(img) { width: 100%; height: auto; }
+  .media-text-media :global(img) {
+    width: 100%;
+    height: auto;
+  }
+
   /* natural: opt-in for small diagrams and cartoons that look blown out
      when stretched to the media column; renders at intrinsic size,
      centered in the cell (owner request 2026-07-30). */
-  .media-natural .media-text-media { text-align: center; }
+  .media-natural .media-text-media {
+    text-align: center;
+  }
+
   /* The link hugs the natural-size image so a corner badge lands on the
      image, not the cell (same idiom as BlogImage). */
-  .media-natural .media-text-media :global(.lightbox-link) { width: fit-content; max-width: 100%; margin-inline: auto; }
-  .media-natural .media-text-media :global(img) { width: auto; max-width: 100%; }
+  .media-natural .media-text-media :global(.lightbox-link) {
+    width: fit-content;
+    max-width: 100%;
+    margin-inline: auto;
+  }
+
+  .media-natural .media-text-media :global(img) {
+    width: auto;
+    max-width: 100%;
+  }
+
   @media (max-width: 600px) {
     /* Stacked, the caption sits below the image like BlogImage's:
        centered, hugging at the same 5px. */
-    .media-text { grid-template-columns: 1fr; gap: 5px; }
-    .media-right .media-text-media { order: 0; }
-    .media-text-content { text-align: center; }
+    .media-text {
+      grid-template-columns: 1fr;
+      gap: 5px;
+    }
+
+    .media-right .media-text-media {
+      order: 0;
+    }
+
+    .media-text-content {
+      text-align: center;
+    }
   }
 </style>

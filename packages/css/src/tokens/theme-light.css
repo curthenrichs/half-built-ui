@@ -15,6 +15,7 @@
     --hairline: var(--gray-200);
     --divider-faint: var(--black-a10);
     --input-border: var(--gray-300);
+
     /* The ground inside a text field (the joined field's well). */
     --well: var(--white);
 
@@ -23,11 +24,13 @@
        surface (the tagline's box, Callout tip and warning types). */
     --accent-1: var(--brand-1-500);
     --accent-1-ink: var(--brand-1-700);
+
     /* Second accent (cyan), the amber's complement. Same split: the
        bright value is a line or fill, the dark one is text. No component
        reads it yet; its jobs are an owner decision (2026-08-26). */
     --accent-2: var(--brand-2-500);
     --accent-2-ink: var(--brand-2-700);
+
     /* Text on an accent fill (a hovered or pressed accent button). */
     --on-accent-1: var(--ink-900);
     --on-accent-2: var(--ink-900);
@@ -37,6 +40,7 @@
     --code-bg: var(--ink-900);
     --code-fg: var(--parchment);
     --code-line: var(--ink-800);
+
     /* Syntax token roles (spec 2026-09-06): what the Shiki theme bakes
        as hex, restated as variables so the code-vars transformer can
        emit tokens that follow a palette override. Identical in both
@@ -54,6 +58,7 @@
 
     /* Path-player timeline series (spec 2026-08-22, owner question 1). */
     --track-x: var(--brand-1-600);
+
     /* The second data track is the second accent (owner call 2026-08-26). */
     --track-y: var(--brand-2-500);
     --track-z: var(--violet-600);
@@ -66,12 +71,14 @@
     --panel-ink: var(--ink-900);
     --panel-rule: var(--ink-900);
     --panel-error: var(--red-800);
+
     /* The email box's click highlight in the panel: ink on the amber by
        day, amber by night. Not the keyboard ring, which is the site's. */
     --panel-ring: var(--ink-900);
 
     /* Keyboard focus: one ring for the whole site (base/reset.css), amber
        so it reads on both grounds and never means the same as hover. */
+
     /* Keyboard ring: the first accent by day, the second by night
        (owner call 2026-08-26). */
     --focus-ring: var(--brand-1-500);

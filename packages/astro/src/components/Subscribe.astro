@@ -30,29 +30,71 @@ interface Props {
   placeholder?: string;
   buttonLabel?: string;
 }
+
 const {
-  variant = "post", headingLevel = 2, class: className,
-  action, publicUrl,
-  placeholder = "you@somewhere.tld", buttonLabel = "Subscribe",
+  variant = "post",
+  headingLevel = 2,
+  class: className,
+  action,
+  publicUrl,
+  placeholder = "you@somewhere.tld",
+  buttonLabel = "Subscribe",
 } = Astro.props;
+
 /* Annotated, not cast: an `as` cast in the frontmatter can make the Astro
    compiler drop the Props type (see PostCard.astro). */
 const Heading: "h2" | "h3" | "h4" = `h${headingLevel}`;
 ---
+
 <section class:list={["subscribe", `subscribe-${variant}`, className]}>
-  <Heading class="subscribe-title"><slot name="title">{variant === "post" ? "Plenty more where this came from" : "Join the Mailing List"}</slot></Heading>
+  <Heading class="subscribe-title">
+    <slot name="title">
+      {variant === "post"
+        ? "Plenty more where this came from"
+        : "Join the Mailing List"}
+    </slot>
+  </Heading>
   {variant === "sidebar" ? (
-    <p class="subscribe-blurb"><slot name="blurb">An email when something new goes up.</slot></p>
+    <p class="subscribe-blurb">
+      <slot name="blurb">An email when something new goes up.</slot>
+    </p>
   ) : (
-    <p class="subscribe-blurb"><slot name="blurb">If you want to hear when a new post or project goes up, leave an email
-      and I'll send a note. No schedule, no spam.</slot></p>
+    <p class="subscribe-blurb">
+      <slot name="blurb">
+        If you want to hear when a new post or project goes up, leave an email
+        and I'll send a note. No schedule, no spam.
+      </slot>
+    </p>
   )}
-  <form class="subscribe-form field-join" method="post" action={action} data-public-url={publicUrl} novalidate>
+  <form
+    class="subscribe-form field-join"
+    method="post"
+    action={action}
+    data-public-url={publicUrl}
+    novalidate
+  >
     <input type="hidden" name="embed" value="1" />
-    <input class="subscribe-email field-join-input" type="email" name="email" placeholder={placeholder} aria-label="Email address" required />
-    <button class="subscribe-submit field-join-button press-box press-box-shaded" type="submit">{buttonLabel}</button>
+    <input
+      class="subscribe-email field-join-input"
+      type="email"
+      name="email"
+      placeholder={placeholder}
+      aria-label="Email address"
+      required
+    />
+    <button
+      class="subscribe-submit field-join-button press-box press-box-shaded"
+      type="submit"
+    >
+      {buttonLabel}
+    </button>
   </form>
-  <p class="subscribe-fine"><slot name="fine-print">Double opt-in. Every email has an <a href="/policies/mailing-list/">unsubscribe link</a>.</slot></p>
+  <p class="subscribe-fine">
+    <slot name="fine-print">
+      Double opt-in. Every email has an{" "}
+      <a href="/policies/mailing-list/">unsubscribe link</a>.
+    </slot>
+  </p>
   <p class="subscribe-status" role="status"></p>
 </section>
 
@@ -75,18 +117,41 @@ const Heading: "h2" | "h3" | "h4" = `h${headingLevel}`;
     outline: var(--stroke) solid var(--panel-rule);
     outline-offset: -10px;
   }
-  .subscribe-post { padding: 30px; margin-top: 30px; }
-  .subscribe-sidebar { padding: 24px 22px; margin-bottom: 40px; }
-  .subscribe-page { padding: 30px; }
+
+  .subscribe-post {
+    padding: 30px;
+    margin-top: 30px;
+  }
+
+  .subscribe-sidebar {
+    padding: 24px 22px;
+    margin-bottom: 40px;
+  }
+
+  .subscribe-page {
+    padding: 30px;
+  }
+
   .subscribe-title {
     margin: 0 0 8px;
     font-family: var(--font-body);
     line-height: 1.2;
   }
+
   .subscribe-post .subscribe-title,
-  .subscribe-page .subscribe-title { font-size: var(--font-size-md); }
-  .subscribe-sidebar .subscribe-title { font-size: var(--font-size-base); }
-  .subscribe-blurb { margin: 0 0 16px; font-size: var(--font-size-sm); }
+  .subscribe-page .subscribe-title {
+    font-size: var(--font-size-md);
+  }
+
+  .subscribe-sidebar .subscribe-title {
+    font-size: var(--font-size-base);
+  }
+
+  .subscribe-blurb {
+    margin: 0 0 16px;
+    font-size: var(--font-size-sm);
+  }
+
   /* Form anatomy, focus rings, and press feedback all come from the
      .field-join pattern (patterns.css, house rule 2026-07-30, settled
      after trying inset and side-by-side variants); this island only sets
@@ -95,23 +160,46 @@ const Heading: "h2" | "h3" | "h4" = `h${headingLevel}`;
   .subscribe-form {
     --field-ink: var(--panel-rule);
     --field-text: var(--panel-ink);
+
     /* The email box's click highlight is the panel's own (ink on the
        amber by day, amber by night); the keyboard ring stays the site's
        everywhere in the panel (owner rule 2026-08-26). */
     --field-ring: var(--panel-ring);
+
     /* The well is the page surface, so it sits a step below the panel in
        both themes (white on amber by day, black on the dark panel by night). */
     --field-well: var(--surface);
   }
+
   .subscribe-post .subscribe-form,
-  .subscribe-page .subscribe-form { max-width: 520px; }
+  .subscribe-page .subscribe-form {
+    max-width: 520px;
+  }
+
   /* Fine print sits between form and status so an error line never
      shoves it around; the link inherits the block's ink. Owner wanted it
      smaller than the status line (2026-08-16); xs is the scale's floor,
      so this steps below it off the token rather than hardcoding a size. */
-  .subscribe-fine { margin: 10px 0 0; font-size: calc(var(--font-size-xs) * 0.88); }
-  .subscribe-fine a { color: inherit; }
-  .subscribe-status { margin: 10px 0 0; font-size: var(--font-size-xs); font-weight: 700; }
-  .subscribe-status:empty { display: none; }
-  .subscribe-status-err { color: var(--panel-error); }
+  .subscribe-fine {
+    margin: 10px 0 0;
+    font-size: calc(var(--font-size-xs) * 0.88);
+  }
+
+  .subscribe-fine a {
+    color: inherit;
+  }
+
+  .subscribe-status {
+    margin: 10px 0 0;
+    font-size: var(--font-size-xs);
+    font-weight: 700;
+  }
+
+  .subscribe-status:empty {
+    display: none;
+  }
+
+  .subscribe-status-err {
+    color: var(--panel-error);
+  }
 </style>

@@ -19,7 +19,11 @@ const HEX_TO_VAR = {
 function swap(node) {
   const style = node.properties?.style;
   if (typeof style !== "string") return;
-  node.properties.style = style.replace(/#[0-9a-fA-F]{6}/g, (hex) => HEX_TO_VAR[hex.toLowerCase()] ?? hex);
+
+  node.properties.style = style.replace(
+    /#[0-9a-fA-F]{6}/g,
+    (hex) => HEX_TO_VAR[hex.toLowerCase()] ?? hex,
+  );
 }
 
 export default {

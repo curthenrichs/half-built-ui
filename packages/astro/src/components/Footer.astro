@@ -1,6 +1,7 @@
 ---
 import type { SitemapGroup, EcosystemEntry } from "./models";
 import { BP_PHONE_MAX } from "../scripts/core/breakpoints";
+
 /* The real half-built-robots.com footer is a single bottom bar with the
    copyright line, and the live site has no footer widget row. The sitemap
    below the copyright line is a deliberate divergence, owner-directed
@@ -17,9 +18,19 @@ interface Props {
   ecosystemSelf: string;
   ecosystemTitle?: string;
 }
-const { siteName, legalHolder, sitemap, ecosystem, ecosystemSelf, ecosystemTitle = "Ecosystem" } = Astro.props;
+
+const {
+  siteName,
+  legalHolder,
+  sitemap,
+  ecosystem,
+  ecosystemSelf,
+  ecosystemTitle = "Ecosystem",
+} = Astro.props;
+
 const year = new Date().getFullYear();
 ---
+
 <footer id="colophon" class="site-footer">
   <div class="bottom-footer tint-overlay">
     <div class="shell">
@@ -30,22 +41,36 @@ const year = new Date().getFullYear();
               which the line break replaces below the mobile breakpoint
               (owner call 2026-08-20). Desktop and tablet render the
               one line exactly as before. */}
-          <slot name="site-info"><span>
+          <slot name="site-info">
+            <span>
               <span class="site-info-seg">Copyright © {year}</span>{" "}
               <span class="site-info-seg">{legalHolder}</span>{" "}
-              <span class="site-info-sep" aria-hidden="true">|</span>{" "}
-              <a class="site-info-seg" href="/">{siteName}</a>
-            </span></slot>
+              <span class="site-info-sep" aria-hidden="true">
+                |
+              </span>{" "}
+              <a class="site-info-seg" href="/">
+                {siteName}
+              </a>
+            </span>
+          </slot>
         </div>
       </div>
       <nav class="footer-sitemap" aria-label="Sitemap">
         {sitemap.map((group) =>
           group.collapsible ? (
-            <details class="footer-sitemap-group footer-sitemap-collapsible" open data-phone-open={group.phoneOpen ? "" : undefined}>
-              <summary><h2>{group.title}</h2></summary>
+            <details
+              class="footer-sitemap-group footer-sitemap-collapsible"
+              open
+              data-phone-open={group.phoneOpen ? "" : undefined}
+            >
+              <summary>
+                <h2>{group.title}</h2>
+              </summary>
               <ul>
                 {group.links.map((link) => (
-                  <li><a href={link.href}>{link.label}</a></li>
+                  <li>
+                    <a href={link.href}>{link.label}</a>
+                  </li>
                 ))}
               </ul>
             </details>
@@ -54,19 +79,25 @@ const year = new Date().getFullYear();
               <h2>{group.title}</h2>
               <ul>
                 {group.links.map((link) => (
-                  <li><a href={link.href}>{link.label}</a></li>
+                  <li>
+                    <a href={link.href}>{link.label}</a>
+                  </li>
                 ))}
               </ul>
             </section>
           ),
         )}
         <details class="footer-sitemap-group footer-sitemap-collapsible" open>
-          <summary><h2>{ecosystemTitle}</h2></summary>
+          <summary>
+            <h2>{ecosystemTitle}</h2>
+          </summary>
           <ul data-ecosystem>
             {ecosystem.map((entry) => (
               <li>
                 {entry.key === ecosystemSelf ? (
-                  <span class="footer-sitemap-self" aria-current="page">{entry.label}</span>
+                  <span class="footer-sitemap-self" aria-current="page">
+                    {entry.label}
+                  </span>
                 ) : entry.href !== null ? (
                   <a href={entry.href}>{entry.label}</a>
                 ) : (
@@ -86,9 +117,13 @@ const year = new Date().getFullYear();
            open, which is the graceful state.
            The value rides define:vars from core/breakpoints.ts (step 11.1). */
         if (window.matchMedia(`(max-width: ${bpPhoneMax}px)`).matches) {
-          document.querySelectorAll(".footer-sitemap-collapsible:not([data-phone-open])").forEach((d) => {
-            d.removeAttribute("open");
-          });
+          document
+            .querySelectorAll(
+              ".footer-sitemap-collapsible:not([data-phone-open])",
+            )
+            .forEach((d) => {
+              d.removeAttribute("open");
+            });
         }
       </script>
     </div>
@@ -96,13 +131,20 @@ const year = new Date().getFullYear();
 </footer>
 
 <style>
-  .site-footer { margin-top: 50px; }
+  .site-footer {
+    margin-top: 50px;
+  }
+
   /* Tint comes from the .tint-overlay pattern (default 0.1 opacity).
      The bottom padding adds --dock-bottom (tokens/primitives.css): a
      site with a viewport-fixed bottom cluster sets it to the room
      that cluster occupies, and the tinted band runs on below the last
      link by that much, so the page scrolls far enough to clear it. */
-  .bottom-footer { padding: 15px 0 calc(20px + var(--dock-bottom, 0px)); z-index: 1; }
+  .bottom-footer {
+    padding: 15px 0 calc(20px + var(--dock-bottom, 0px));
+    z-index: 1;
+  }
+
   .bottom-footer-info {
     display: flex;
     flex-wrap: wrap;
@@ -111,21 +153,41 @@ const year = new Date().getFullYear();
     position: relative;
     font-size: var(--font-size-sm);
   }
+
   /* The wrapped phone lines center under each other like the sitemap
      below (owner report 2026-08-25); one line on desktop, as before. */
-  .site-info { text-align: center; }
+  .site-info {
+    text-align: center;
+  }
+
   /* Underlined, unlike the sitemap links below: this one sits inside
      running text (the copyright line), where the same ink at 0.8
      opacity is not a visible link mark (WCAG 1.4.1, axe
      link-in-text-block; caught by test/a11y.test.ts at phone width,
      where the pipe retires and the line break is all that frames it). */
-  .site-info a { text-decoration: underline; opacity: 0.8; transition: var(--transition); color: var(--ink); }
-  .site-info-seg { white-space: nowrap; }
+  .site-info a {
+    text-decoration: underline;
+    opacity: 0.8;
+    transition: var(--transition);
+    color: var(--ink);
+  }
+
+  .site-info-seg {
+    white-space: nowrap;
+  }
+
   /* The pipe's separating job is done by the line break when the
      segments wrap; below the mobile breakpoint the break is expected,
      so the pipe retires there. */
-  @media (--bp-phone) { .site-info-sep { display: none; } }
-  .site-info a:hover { opacity: 1; }
+  @media (--bp-phone) {
+    .site-info-sep {
+      display: none;
+    }
+  }
+
+  .site-info a:hover {
+    opacity: 1;
+  }
 
   /* Sitemap columns under the copyright line, centered like it (owner
      feedback 2026-08-01). position: relative lifts the content above the
@@ -141,37 +203,63 @@ const year = new Date().getFullYear();
     border-top: 1px solid var(--hairline);
     font-size: var(--font-size-sm);
   }
+
   .footer-sitemap-group h2 {
     margin: 0 0 8px;
     font-size: var(--font-size-xs);
     font-weight: 700;
     text-transform: uppercase;
   }
+
   .footer-sitemap-group ul {
     list-style: none;
     margin: 0;
     padding: 0;
   }
-  .footer-sitemap-group li { margin: 4px 0; }
+
+  .footer-sitemap-group li {
+    margin: 4px 0;
+  }
+
   .footer-sitemap a {
     text-decoration: none;
     opacity: 0.8;
     transition: var(--transition);
   }
+
   .footer-sitemap a:hover,
-  .footer-sitemap a:focus { opacity: 1; text-decoration: underline; }
+  .footer-sitemap a:focus {
+    opacity: 1;
+    text-decoration: underline;
+  }
+
   /* The monochrome theme makes a color marker invisible (text already IS
      the primary color), so "you are here" is weight, not hue. */
-  .footer-sitemap-self { font-weight: 700; }
-  .footer-sitemap-pending { opacity: 0.55; }
+  .footer-sitemap-self {
+    font-weight: 700;
+  }
+
+  .footer-sitemap-pending {
+    opacity: 0.55;
+  }
 
   /* Collapsible groups: on desktop the summary is nothing but the
      heading it replaced (no marker, no pointer). Mouse toggling is off
      on desktop (the spec's call); keyboard toggling of a focused
      summary remains, reopening is one keypress. */
-  .footer-sitemap-collapsible summary { list-style: none; cursor: default; pointer-events: none; }
-  .footer-sitemap-collapsible summary::-webkit-details-marker { display: none; }
-  .footer-sitemap-collapsible summary h2 { display: inline-block; }
+  .footer-sitemap-collapsible summary {
+    list-style: none;
+    cursor: default;
+    pointer-events: none;
+  }
+
+  .footer-sitemap-collapsible summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .footer-sitemap-collapsible summary h2 {
+    display: inline-block;
+  }
 
   /* Phones: one centered column, every group behind a boxed +/- marker
      in the square grammar (owner call 2026-08-25); Feeds and Ecosystem
@@ -185,13 +273,19 @@ const year = new Date().getFullYear();
       align-items: center;
       gap: 14px;
     }
-    .footer-sitemap-group { text-align: center; width: 100%; }
+
+    .footer-sitemap-group {
+      text-align: center;
+      width: 100%;
+    }
+
     .footer-sitemap-collapsible summary {
       display: block;
       position: relative;
       cursor: pointer;
       pointer-events: auto;
     }
+
     .footer-sitemap-collapsible summary::before {
       content: "+";
       position: absolute;
@@ -206,8 +300,15 @@ const year = new Date().getFullYear();
       font-weight: 700;
       text-align: center;
     }
-    .footer-sitemap-collapsible[open] summary::before { content: "\2212"; }
-    .footer-sitemap-collapsible:not([open]) summary h2 { margin-bottom: 0; }
+
+    .footer-sitemap-collapsible[open] summary::before {
+      content: "\2212";
+    }
+
+    .footer-sitemap-collapsible:not([open]) summary h2 {
+      margin-bottom: 0;
+    }
+
     /* Keyboard focus is the site-wide ring (base/reset.css). */
   }
 </style>

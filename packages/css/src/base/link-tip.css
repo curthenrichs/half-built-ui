@@ -14,6 +14,7 @@
     padding: 5px;
     font-size: 0.85rem;
     line-height: 1.3;
+
     /* A URL is one unbroken word; capped and wrapped it folds into a
        few short lines instead of a spear off the viewport edge. UI
        label, not prose: the no-cap rule does not apply. */
@@ -27,9 +28,15 @@
     transition-property: opacity;
     z-index: var(--z-tooltip);
   }
-  .link-tip.is-open { opacity: 1; }
+
+  .link-tip.is-open {
+    opacity: 1;
+  }
+
   /* Backstop only: the island already mounts inert under (hover: none). */
   @media (hover: none) {
-    .link-tip { display: none; }
+    .link-tip {
+      display: none;
+    }
   }
 }

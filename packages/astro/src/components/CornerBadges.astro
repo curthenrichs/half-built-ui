@@ -13,13 +13,35 @@
    off: a badge inside a lightbox link must not swallow the tap. */
 import { ICON_PLAY, ICON_SPARKLES } from "../scripts/core/icons";
 
-interface Props { genai?: boolean; demo?: boolean; class?: string; genaiLabel?: string; demoLabel?: string }
-const { genai = false, demo = false, class: className, genaiLabel = "AI Art", demoLabel = "Demo" } = Astro.props;
+interface Props {
+  genai?: boolean;
+  demo?: boolean;
+  class?: string;
+  genaiLabel?: string;
+  demoLabel?: string;
+}
+
+const {
+  genai = false,
+  demo = false,
+  class: className,
+  genaiLabel = "AI Art",
+  demoLabel = "Demo",
+} = Astro.props;
 ---
+
 {(genai || demo) && (
   <span class:list={["corner-badges", className]}>
-    {genai && <span class="chip badge-genai"><Fragment set:html={ICON_SPARKLES} /> {genaiLabel}</span>}
-    {demo && <span class="chip badge-demo"><Fragment set:html={ICON_PLAY} /> {demoLabel}</span>}
+    {genai && (
+      <span class="chip badge-genai">
+        <Fragment set:html={ICON_SPARKLES} /> {genaiLabel}
+      </span>
+    )}
+    {demo && (
+      <span class="chip badge-demo">
+        <Fragment set:html={ICON_PLAY} /> {demoLabel}
+      </span>
+    )}
   </span>
 )}
 

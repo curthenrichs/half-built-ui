@@ -1,12 +1,6 @@
 {
-  "extends": [
-    "stylelint-config-standard"
-  ],
-  "ignoreFiles": [
-    "**/dist/**",
-    "**/node_modules/**",
-    "**/public/**"
-  ],
+  "extends": ["stylelint-config-standard"],
+  "ignoreFiles": ["**/dist/**", "**/node_modules/**", "**/public/**"],
   "rules": {
     "color-no-hex": [
       true,
@@ -18,10 +12,6 @@
     "alpha-value-notation": null,
     "color-function-notation": null,
     "no-descending-specificity": null,
-    "custom-property-empty-line-before": null,
-    "declaration-empty-line-before": null,
-    "comment-empty-line-before": null,
-    "rule-empty-line-before": null,
     "value-keyword-case": null,
     "selector-class-pattern": null,
     "font-family-name-quotes": null,
@@ -32,12 +22,9 @@
     "selector-pseudo-class-no-unknown": [
       true,
       {
-        "ignorePseudoClasses": [
-          "global"
-        ]
+        "ignorePseudoClasses": ["global"]
       }
     ],
-    "at-rule-empty-line-before": null,
     "color-hex-length": null,
     "color-function-alias-notation": null,
     "import-notation": null,
@@ -52,16 +39,11 @@
   },
   "overrides": [
     {
-      "files": [
-        "**/*.astro"
-      ],
+      "files": ["**/*.astro"],
       "customSyntax": "postcss-html"
     },
     {
-      "files": [
-        "**/tokens.css",
-        "**/tokens/*.css"
-      ],
+      "files": ["**/tokens.css", "**/tokens/*.css"],
       "rules": {
         "color-no-hex": null
       }

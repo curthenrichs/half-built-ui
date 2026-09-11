@@ -1,7 +1,11 @@
 /* Pure geometry for the path-player timeline; the canvas painter in
    path-player.ts consumes these, jsdom tests never need a 2D context. */
 
-export function normalizeSeries(values: number[]): { min: number; max: number; frac: (v: number) => number } {
+export function normalizeSeries(values: number[]): {
+  min: number;
+  max: number;
+  frac: (v: number) => number;
+} {
   const min = Math.min(...values);
   const max = Math.max(...values);
   return { min, max, frac: (v) => (max > min ? (v - min) / (max - min) : 0.5) };
@@ -29,6 +33,11 @@ export function columnIndex(px: number, width: number, length: number): number {
 
 /* Vertical position of a normalized value inside a track: frac 0 sits
    pad above the track's bottom edge, frac 1 sits pad below its top. */
-export function seriesY(frac: number, top: number, height: number, pad: number): number {
+export function seriesY(
+  frac: number,
+  top: number,
+  height: number,
+  pad: number,
+): number {
   return top + height - pad - frac * (height - 2 * pad);
 }

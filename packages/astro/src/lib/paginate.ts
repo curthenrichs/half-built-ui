@@ -1,7 +1,8 @@
 export function paginatePosts<T>(items: T[], size: number): T[][] {
   if (items.length === 0) return [[]];
   const pages: T[][] = [];
-  for (let i = 0; i < items.length; i += size) pages.push(items.slice(i, i + size));
+  for (let i = 0; i < items.length; i += size)
+    pages.push(items.slice(i, i + size));
   return pages;
 }
 

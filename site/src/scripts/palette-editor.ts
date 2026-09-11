@@ -49,8 +49,12 @@ function isStoredPalette(v: unknown): v is StoredPalette {
 /* Every storage access is guarded: localStorage can throw in a private
    window or with site data blocked, and a missing/garbled value simply
    reads as "nothing stored" rather than a crash. */
-function readStored(storage: Storage | null, key: string): StoredPalette | null {
+function readStored(
+  storage: Storage | null,
+  key: string,
+): StoredPalette | null {
   if (!storage) return null;
+
   try {
     const raw = storage.getItem(key);
     if (!raw) return null;
@@ -61,8 +65,14 @@ function readStored(storage: Storage | null, key: string): StoredPalette | null 
   }
 }
 
-function writeStored(storage: Storage | null, key: string, b1: string, b2: string): void {
+function writeStored(
+  storage: Storage | null,
+  key: string,
+  b1: string,
+  b2: string,
+): void {
   if (!storage) return;
+
   try {
     storage.setItem(key, JSON.stringify({ b1, b2 }));
   } catch {
@@ -72,6 +82,7 @@ function writeStored(storage: Storage | null, key: string, b1: string, b2: strin
 
 function clearStored(storage: Storage | null, key: string): void {
   if (!storage) return;
+
   try {
     storage.removeItem(key);
   } catch {
@@ -104,15 +115,29 @@ interface StatusLine {
 
 function statusLines(base1: Base1Readout, base2: BaseReadout): StatusLine[] {
   const warnings: StatusLine[] = [];
+
   if (!base1.darkTextPasses) {
-    warnings.push({ text: "Accent 1 is too dark to read as text on the dark theme, consider a lighter shade.", warn: true });
+    warnings.push({
+      text: "Accent 1 is too dark to read as text on the dark theme, consider a lighter shade.",
+      warn: true,
+    });
   } else if (!base1.codeTextPasses) {
-    warnings.push({ text: "Accent 1 is too dark to read as code on the code block, consider a lighter shade.", warn: true });
+    warnings.push({
+      text: "Accent 1 is too dark to read as code on the code block, consider a lighter shade.",
+      warn: true,
+    });
   }
+
   if (!base2.darkTextPasses) {
-    warnings.push({ text: "Accent 2 is too dark to read as text on the dark theme, consider a lighter shade.", warn: true });
+    warnings.push({
+      text: "Accent 2 is too dark to read as text on the dark theme, consider a lighter shade.",
+      warn: true,
+    });
   }
-  return warnings.length > 0 ? warnings : [{ text: "Contrast checks pass.", warn: false }];
+
+  return warnings.length > 0
+    ? warnings
+    : [{ text: "Contrast checks pass.", warn: false }];
 }
 
 /* The controls plus the readout/css targets, bundled once the
@@ -136,8 +161,13 @@ interface EditorElements {
    how much". Each accent is a label line with its two ratios as
    nowrap <code> chips on their own indented lines beneath it (owner
    call 2026-09-06), so a figure never wraps through its middle. */
-function fillStatus(doc: Document, list: HTMLUListElement, lines: StatusLine[]): void {
+function fillStatus(
+  doc: Document,
+  list: HTMLUListElement,
+  lines: StatusLine[],
+): void {
   list.innerHTML = "";
+
   for (const line of lines) {
     const li = doc.createElement("li");
     li.textContent = line.text;
@@ -152,24 +182,38 @@ function ratioChip(doc: Document, text: string): HTMLElement {
   return code;
 }
 
-function fillDetail(doc: Document, list: HTMLUListElement, base1: Base1Readout, base2: BaseReadout): void {
+function fillDetail(
+  doc: Document,
+  list: HTMLUListElement,
+  base1: Base1Readout,
+  base2: BaseReadout,
+): void {
   list.innerHTML = "";
+
   /* Accent 1 carries the extra code-ground ratio; see statusLines. */
   const rows: [string, string[]][] = [
-    ["Accent 1", [
-      `text on dark ${base1.darkTextRatio.toFixed(2)}:1`,
-      `fill on light ${base1.lightFillRatio.toFixed(2)}:1`,
-      `code text ${base1.codeTextRatio.toFixed(2)}:1`,
-    ]],
-    ["Accent 2", [
-      `text on dark ${base2.darkTextRatio.toFixed(2)}:1`,
-      `fill on light ${base2.lightFillRatio.toFixed(2)}:1`,
-    ]],
+    [
+      "Accent 1",
+      [
+        `text on dark ${base1.darkTextRatio.toFixed(2)}:1`,
+        `fill on light ${base1.lightFillRatio.toFixed(2)}:1`,
+        `code text ${base1.codeTextRatio.toFixed(2)}:1`,
+      ],
+    ],
+    [
+      "Accent 2",
+      [
+        `text on dark ${base2.darkTextRatio.toFixed(2)}:1`,
+        `fill on light ${base2.lightFillRatio.toFixed(2)}:1`,
+      ],
+    ],
   ];
+
   for (const [label, chips] of rows) {
     const labelLi = doc.createElement("li");
     labelLi.textContent = label;
     list.append(labelLi);
+
     for (const text of chips) {
       const li = doc.createElement("li");
       li.classList.add("site-toolbar-indent");
@@ -179,10 +223,21 @@ function fillDetail(doc: Document, list: HTMLUListElement, base1: Base1Readout, 
   }
 }
 
-function render(doc: Document, els: EditorElements, b1: string, b2: string): PaletteOverride {
+function render(
+  doc: Document,
+  els: EditorElements,
+  b1: string,
+  b2: string,
+): PaletteOverride {
   const derived = derivePalette(b1, b2);
   const readouts = readBases(b1, b2);
-  fillStatus(doc, els.readoutsList, statusLines(readouts.base1, readouts.base2));
+
+  fillStatus(
+    doc,
+    els.readoutsList,
+    statusLines(readouts.base1, readouts.base2),
+  );
+
   /* Ratio lines render as inline code (owner call 2026-09-06). */
   fillDetail(doc, els.detailList, readouts.base1, readouts.base2);
   els.pre.textContent = overrideBlock(derived);
@@ -199,9 +254,11 @@ function applyPalette(
   b2: string,
 ): void {
   const derived = render(doc, els, b1, b2);
+
   for (const key of RAMP_ORDER) {
     html.style.setProperty(key, derived[key]);
   }
+
   writeStored(storage, storageKey, b1, b2);
 }
 
@@ -210,19 +267,60 @@ function setInputs(els: EditorElements, b1: string, b2: string): void {
   els.input2.value = b2;
 }
 
-export function mountPaletteEditor(root: Document, opts: PaletteEditorOptions): void {
+export function mountPaletteEditor(
+  root: Document,
+  opts: PaletteEditorOptions,
+): void {
   const { storageKey } = opts;
   const editor = root.querySelector<HTMLElement>("[data-palette-editor]");
   if (!editor) return;
-  const input1 = editor.querySelector<HTMLInputElement>('input[data-palette-base="1"]');
-  const input2 = editor.querySelector<HTMLInputElement>('input[data-palette-base="2"]');
-  const readoutsList = editor.querySelector<HTMLUListElement>("[data-palette-readouts]");
-  const detailList = editor.querySelector<HTMLUListElement>("[data-palette-detail]");
+
+  const input1 = editor.querySelector<HTMLInputElement>(
+    'input[data-palette-base="1"]',
+  );
+
+  const input2 = editor.querySelector<HTMLInputElement>(
+    'input[data-palette-base="2"]',
+  );
+
+  const readoutsList = editor.querySelector<HTMLUListElement>(
+    "[data-palette-readouts]",
+  );
+
+  const detailList = editor.querySelector<HTMLUListElement>(
+    "[data-palette-detail]",
+  );
+
   const pre = editor.querySelector<HTMLPreElement>("[data-palette-css]");
-  const copyBtn = editor.querySelector<HTMLButtonElement>("[data-palette-copy]");
-  const resetBtn = editor.querySelector<HTMLButtonElement>("[data-palette-reset]");
-  if (!input1 || !input2 || !readoutsList || !detailList || !pre || !copyBtn || !resetBtn) return;
-  const els: EditorElements = { input1, input2, readoutsList, detailList, pre, copyBtn, resetBtn };
+
+  const copyBtn = editor.querySelector<HTMLButtonElement>(
+    "[data-palette-copy]",
+  );
+
+  const resetBtn = editor.querySelector<HTMLButtonElement>(
+    "[data-palette-reset]",
+  );
+
+  if (
+    !input1 ||
+    !input2 ||
+    !readoutsList ||
+    !detailList ||
+    !pre ||
+    !copyBtn ||
+    !resetBtn
+  )
+    return;
+
+  const els: EditorElements = {
+    input1,
+    input2,
+    readoutsList,
+    detailList,
+    pre,
+    copyBtn,
+    resetBtn,
+  };
 
   const storage = safeStorage(root);
   const html = root.documentElement;
@@ -231,12 +329,16 @@ export function mountPaletteEditor(root: Document, opts: PaletteEditorOptions): 
      the panel shows which preset (if any) is in effect; a manual pick
      that matches none clears every chip. Kept in step by every path
      that changes the pair, including mount and reset. */
-  const presets = [...editor.querySelectorAll<HTMLButtonElement>("[data-palette-preset]")];
+  const presets = [
+    ...editor.querySelectorAll<HTMLButtonElement>("[data-palette-preset]"),
+  ];
+
   const syncPresets = (b1: string, b2: string): void => {
     for (const btn of presets) {
       const active =
         btn.getAttribute("data-base-1")?.toLowerCase() === b1.toLowerCase() &&
         btn.getAttribute("data-base-2")?.toLowerCase() === b2.toLowerCase();
+
       btn.setAttribute("aria-pressed", active ? "true" : "false");
     }
   };
@@ -247,6 +349,7 @@ export function mountPaletteEditor(root: Document, opts: PaletteEditorOptions): 
   };
 
   const stored = readStored(storage, storageKey);
+
   if (stored) {
     setInputs(els, stored.b1, stored.b2);
     apply(stored.b1, stored.b2);
@@ -259,23 +362,26 @@ export function mountPaletteEditor(root: Document, opts: PaletteEditorOptions): 
   const onBaseInput = (): void => {
     apply(els.input1.value, els.input2.value);
   };
+
   els.input1.addEventListener("input", onBaseInput);
   els.input2.addEventListener("input", onBaseInput);
 
-  editor.querySelectorAll<HTMLButtonElement>("[data-palette-preset]").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      /* data-base-1/data-base-2 do reflect into .dataset, but under the
+  editor
+    .querySelectorAll<HTMLButtonElement>("[data-palette-preset]")
+    .forEach((btn) => {
+      btn.addEventListener("click", () => {
+        /* data-base-1/data-base-2 do reflect into .dataset, but under the
          literal key "base-1"/"base-2": the camelCase mapping only
          triggers on a hyphen followed by a lowercase letter, and a
          hyphen followed by a digit is left alone. getAttribute is
          still the right call here. */
-      const b1 = btn.getAttribute("data-base-1");
-      const b2 = btn.getAttribute("data-base-2");
-      if (!b1 || !b2) return;
-      setInputs(els, b1, b2);
-      apply(b1, b2);
+        const b1 = btn.getAttribute("data-base-1");
+        const b2 = btn.getAttribute("data-base-2");
+        if (!b1 || !b2) return;
+        setInputs(els, b1, b2);
+        apply(b1, b2);
+      });
     });
-  });
 
   /* Popup manners (owner call 2026-09-06, matching the plate modal's
      conventions): the corner X, a click outside the panel, or Escape
@@ -283,17 +389,26 @@ export function mountPaletteEditor(root: Document, opts: PaletteEditorOptions): 
   const closePanel = (): void => {
     if (editor instanceof HTMLDetailsElement) editor.open = false;
   };
-  const closeBtn = editor.querySelector<HTMLButtonElement>("[data-palette-close]");
+
+  const closeBtn = editor.querySelector<HTMLButtonElement>(
+    "[data-palette-close]",
+  );
+
   closeBtn?.addEventListener("click", closePanel);
+
   root.addEventListener("click", (e) => {
     if (!(editor instanceof HTMLDetailsElement) || !editor.open) return;
     if (e.target instanceof Node && !editor.contains(e.target)) closePanel();
   });
+
   root.addEventListener("keydown", (e) => {
     if (e.key === "Escape") closePanel();
   });
 
-  const flipBtn = editor.querySelector<HTMLButtonElement>("[data-palette-flip]");
+  const flipBtn = editor.querySelector<HTMLButtonElement>(
+    "[data-palette-flip]",
+  );
+
   flipBtn?.addEventListener("click", () => {
     const b1 = els.input2.value;
     const b2 = els.input1.value;
@@ -303,31 +418,40 @@ export function mountPaletteEditor(root: Document, opts: PaletteEditorOptions): 
 
   els.resetBtn.addEventListener("click", () => {
     clearStored(storage, storageKey);
+
     for (const key of RAMP_ORDER) {
       html.style.removeProperty(key);
     }
+
     setInputs(els, SHIPPED_B1, SHIPPED_B2);
     render(root, els, SHIPPED_B1, SHIPPED_B2);
     syncPresets(SHIPPED_B1, SHIPPED_B2);
   });
 
   const copyLabel = els.copyBtn.textContent;
+
   els.copyBtn.addEventListener("click", () => {
     /* textContent is string | null under the strict DOM lib the site
        tsconfig checks with; the lint preset's looser project sees
        plain string, so the fallback reads as unnecessary there. */
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     const text = els.pre.textContent ?? "";
-    void navigator.clipboard.writeText(text).then(() => {
-      els.copyBtn.textContent = "Copied";
-      setTimeout(() => {
-        els.copyBtn.textContent = copyLabel;
-      }, 1500);
-    }).catch(() => {
-      els.copyBtn.textContent = "Copy failed";
-      setTimeout(() => {
-        els.copyBtn.textContent = copyLabel;
-      }, 1500);
-    });
+
+    void navigator.clipboard
+      .writeText(text)
+      .then(() => {
+        els.copyBtn.textContent = "Copied";
+
+        setTimeout(() => {
+          els.copyBtn.textContent = copyLabel;
+        }, 1500);
+      })
+      .catch(() => {
+        els.copyBtn.textContent = "Copy failed";
+
+        setTimeout(() => {
+          els.copyBtn.textContent = copyLabel;
+        }, 1500);
+      });
   });
 }

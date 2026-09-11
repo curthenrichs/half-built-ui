@@ -13,6 +13,7 @@
     border-width: var(--stroke) 0;
     padding: var(--frame-pad);
   }
+
   .bracket-frame::before,
   .bracket-frame::after {
     content: "";
@@ -28,8 +29,14 @@
       var(--rule) 100%
     );
   }
-  .bracket-frame::before { left: 0; }
-  .bracket-frame::after { right: 0; }
+
+  .bracket-frame::before {
+    left: 0;
+  }
+
+  .bracket-frame::after {
+    right: 0;
+  }
 
   /* Boxed label: bordered box on the page background, typically straddling
      a frame rule (date box, Latest Posts title). Padding and straddle
@@ -57,10 +64,13 @@
     cursor: pointer;
     transition: var(--transition);
   }
+
   /* Hover ring in the box's own ink; keyboard focus is the site-wide
      amber ring (base/reset.css), which is why this is :hover alone (a
      mouse click must never leave a ring behind, review 2026-08-23, R3). */
-  .icon-box:hover { outline: 2px solid currentColor; }
+  .icon-box:hover {
+    outline: 2px solid currentColor;
+  }
 
   /* Pressable box: a bordered light box that inverts to ink while held,
      the house press language (2026-07-30). Nav links, pagination cells,
@@ -74,7 +84,11 @@
     font: inherit;
     cursor: pointer;
   }
-  .press-box:active { color: var(--on-ink); background-color: var(--ink); }
+
+  .press-box:active {
+    color: var(--on-ink);
+    background-color: var(--ink);
+  }
 
   /* Accent press box (owner rule 2026-08-26): the callout's combination
      worn by a button. Accent line, the accent's legible ink for the
@@ -89,16 +103,27 @@
     --press-on-accent: var(--on-accent-2);
 
     color: var(--press-accent-ink);
-    background-color: color-mix(in srgb, var(--press-accent) 6%, var(--surface));
+    background-color: color-mix(
+      in srgb,
+      var(--press-accent) 6%,
+      var(--surface)
+    );
     border-color: var(--press-accent);
   }
+
   .press-box-accent:hover {
-    background-color: color-mix(in srgb, var(--press-accent) 14%, var(--surface));
+    background-color: color-mix(
+      in srgb,
+      var(--press-accent) 14%,
+      var(--surface)
+    );
   }
+
   .press-box-accent:active {
     color: var(--press-on-accent);
     background-color: var(--press-accent);
   }
+
   /* Which accent: the brand amber (--accent-1) or the second, cyan
      (--accent-2, also the default above). The Button component renders
      these as its variants. */
@@ -107,11 +132,13 @@
     --press-accent-ink: var(--accent-1-ink);
     --press-on-accent: var(--on-accent-1);
   }
+
   .press-box-accent-2 {
     --press-accent: var(--accent-2);
     --press-accent-ink: var(--accent-2-ink);
     --press-on-accent: var(--on-accent-2);
   }
+
   /* Shaded press box (owner request 2026-08-26): the plain box on a
      ground tinted with ink at the nav's current-item strength (the
      tint overlay at 0.2), for a second, non-accent button beside a
@@ -130,6 +157,7 @@
     align-items: center;
     gap: 10px;
   }
+
   /* Centered row: a lone call to action in a prose column sits in the
      middle rather than hard against the left edge (the blog's demo
      launcher and its link-out buttons). Same row, one modifier. */
@@ -141,7 +169,10 @@
      introducing a second color (current nav item 0.2, footer bar 0.1).
      Knobs: --tint-opacity, and --tint-color for a caller whose line is
      not ink (the callout's typed line color). */
-  .tint-overlay { position: relative; }
+  .tint-overlay {
+    position: relative;
+  }
+
   .tint-overlay::before {
     content: "";
     position: absolute;
@@ -153,8 +184,14 @@
   /* Back link: the deterministic return-to-parent nav under posts (to the
      archive page holding the post) and pages (to parent, or home). One
      definition; both layouts render <nav class="back-link">. */
-  .back-link { margin-top: 20px; font-size: var(--font-size-sm); }
-  .back-link a { color: var(--ink); }
+  .back-link {
+    margin-top: 20px;
+    font-size: var(--font-size-sm);
+  }
+
+  .back-link a {
+    color: var(--ink);
+  }
 
   /* Chip: filled primary label with white text (reading-time chip,
      category-card label). */
@@ -196,12 +233,19 @@
 
   /* Caption: the quiet small line under an image, beside media text, or
      after a quote. Alignment and spacing are contextual. */
-  .caption { font-size: var(--font-size-xs); opacity: 0.75; }
+  .caption {
+    font-size: var(--font-size-xs);
+    opacity: 0.75;
+  }
 
   /* Micro label: the small bold tracked line on plate labels, the
      lightbox HOME box, the player fallback, and the stasis tag. Case is
      the caller's. */
-  .micro-label { font-size: var(--font-size-xs); font-weight: 700; letter-spacing: 0.08em; }
+  .micro-label {
+    font-size: var(--font-size-xs);
+    font-weight: 700;
+    letter-spacing: 0.08em;
+  }
 
   /* Joined field: a text entry and its action button fused in one
      2px-bordered box (subscribe form, search page form). House rule
@@ -229,12 +273,14 @@
     display: flex;
     flex-wrap: wrap;
     border: var(--stroke) solid var(--field-ink, var(--rule));
+
     /* The well behind the input: the theme's --well (white by day, one
        step up from the black by night so the field reads as recessed
        and the button separates from it, owner report 2026-08-26);
        --field-well overrides it for a panel with its own ground. */
     background: var(--field-well, var(--well));
   }
+
   .field-join-input {
     flex: 1;
     min-width: 0;
@@ -246,15 +292,18 @@
     font-family: var(--font-body);
     font-size: var(--font-size-sm);
   }
+
   /* Inset, not the site-wide outside ring: an outside ring around the
      input alone would cut across the fused box. */
   .field-join-input:focus-visible {
     outline: 2px solid var(--field-ring, var(--focus-ring));
     outline-offset: -2px;
   }
+
   :root[data-focus="keyboard"] .field-join-input:focus-visible {
     outline-color: var(--focus-ring);
   }
+
   .field-join-button {
     border-width: 0 0 0 var(--stroke);
     border-color: var(--field-ink, var(--rule));
@@ -269,6 +318,7 @@
     position: relative;
     z-index: 1;
   }
+
   .field-join-button:focus-visible {
     outline: 2px solid var(--focus-ring);
     outline-offset: -4px;

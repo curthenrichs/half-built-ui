@@ -7,10 +7,25 @@ const EDGE = 12; /* px of breathing room against either viewport edge */
 
 export type TipPlace = "above" | "below";
 export type TipAlign = "start" | "end";
-export interface AnchorRect { left: number; right: number; top: number; bottom: number }
-export interface TipSize { width: number; height: number }
-export interface ViewportSize { width: number; height: number }
-export interface TipPosition { x: number; y: number; place: TipPlace }
+export interface AnchorRect {
+  left: number;
+  right: number;
+  top: number;
+  bottom: number;
+}
+export interface TipSize {
+  width: number;
+  height: number;
+}
+export interface ViewportSize {
+  width: number;
+  height: number;
+}
+export interface TipPosition {
+  x: number;
+  y: number;
+  place: TipPlace;
+}
 
 /* Pure placement for the singleton tip: start/end alignment against
    the anchor, horizontal clamp into [edge, vw - edge] with the left
@@ -24,14 +39,23 @@ export function placeTip(
   align: TipAlign = "start",
   edge: number = EDGE,
 ): TipPosition {
-  let x = align === "start" ? anchor.left - INSET : anchor.right + INSET - tip.width;
+  let x =
+    align === "start" ? anchor.left - INSET : anchor.right + INSET - tip.width;
+
   const overRight = x + tip.width - (viewport.width - edge);
   if (overRight > 0) x -= overRight;
   if (x < edge) x = edge;
   let finalPlace = place;
-  if (place === "above" && anchor.top - GAP - tip.height < 0) finalPlace = "below";
-  if (place === "below" && anchor.bottom + GAP + tip.height > viewport.height) finalPlace = "above";
-  const y = finalPlace === "above" ? anchor.top - GAP - tip.height : anchor.bottom + GAP;
+  if (place === "above" && anchor.top - GAP - tip.height < 0)
+    finalPlace = "below";
+  if (place === "below" && anchor.bottom + GAP + tip.height > viewport.height)
+    finalPlace = "above";
+
+  const y =
+    finalPlace === "above"
+      ? anchor.top - GAP - tip.height
+      : anchor.bottom + GAP;
+
   return { x: Math.round(x), y: Math.round(y), place: finalPlace };
 }
 
@@ -47,9 +71,15 @@ export interface LinkTipOptions {
    point (spec 2026-09-02; three positioning defects shipped from
    pseudo-element prediction). Containers steer placement with
    data-tip-place="below" and data-tip-align="end" (the masthead). */
-export const mountLinkTips: Island<LinkTipOptions> = (root, options = {}): IslandHandle => {
-  const { selector = 'a[href^="http"], a[data-tooltip]', edge = EDGE } = options;
+export const mountLinkTips: Island<LinkTipOptions> = (
+  root,
+  options = {},
+): IslandHandle => {
+  const { selector = 'a[href^="http"], a[data-tooltip]', edge = EDGE } =
+    options;
+
   const doc = docOf(root);
+
   if (!claim(doc.documentElement, "link-tip")) {
     return {
       destroy(): void {
@@ -66,6 +96,7 @@ export const mountLinkTips: Island<LinkTipOptions> = (root, options = {}): Islan
      path-player.ts): the plain Window type always declares the method,
      so an unwidened optional chain reads as always-true to the lint. */
   const mmWin = win as { matchMedia?: typeof window.matchMedia } | null;
+
   if (mmWin?.matchMedia?.("(hover: none)").matches) {
     return {
       destroy(): void {
@@ -108,7 +139,12 @@ export const mountLinkTips: Island<LinkTipOptions> = (root, options = {}): Islan
     const box = tip.getBoundingClientRect();
     const place = a.closest('[data-tip-place="below"]') ? "below" : "above";
     const align = a.closest('[data-tip-align="end"]') ? "end" : "start";
-    const viewport = { width: doc.documentElement.clientWidth, height: doc.documentElement.clientHeight };
+
+    const viewport = {
+      width: doc.documentElement.clientWidth,
+      height: doc.documentElement.clientHeight,
+    };
+
     const pos = placeTip(anchor, box, viewport, place, align, edge);
     tip.style.left = `${String(pos.x)}px`;
     tip.style.top = `${String(pos.y)}px`;
@@ -119,12 +155,15 @@ export const mountLinkTips: Island<LinkTipOptions> = (root, options = {}): Islan
     const a = linkFor(ev.target);
     if (a) show(a);
   };
+
   const onOut = (ev: Event): void => {
     if (linkFor(ev.target)) hide();
   };
+
   const onKey = (ev: KeyboardEvent): void => {
     if (ev.key === "Escape") hide();
   };
+
   const onHide = (): void => {
     hide();
   };

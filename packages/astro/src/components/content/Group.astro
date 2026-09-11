@@ -4,12 +4,23 @@
    match the style guide's description of it, as the label-less,
    tint-less sibling of Callout's box. The box itself is the .rule-box
    pattern; only the outer margin is this component's. */
-interface Props { class?: string }
+interface Props {
+  class?: string;
+}
+
 const { class: className } = Astro.props;
 ---
-<div class:list={["content-group", "rule-box", className]}><slot /></div>
+
+<div class:list={["content-group", "rule-box", className]}>
+  <slot />
+</div>
 
 <style>
-  .content-group { margin: 30px 0; }
-  .content-group > :global(:last-child) { margin-bottom: 0; }
+  .content-group {
+    margin: 30px 0;
+  }
+
+  .content-group > :global(:last-child) {
+    margin-bottom: 0;
+  }
 </style>

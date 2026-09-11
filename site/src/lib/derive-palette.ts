@@ -1,6 +1,13 @@
 import { converter, clampChroma, formatHex } from "culori";
 import { contrastRatio } from "./contrast";
-import { LIGHT_PAPER, DARK_GROUND, CODE_GROUND, CODE_LINE, CODE_FG, CODE_COMMENT } from "./grounds";
+import {
+  LIGHT_PAPER,
+  DARK_GROUND,
+  CODE_GROUND,
+  CODE_LINE,
+  CODE_FG,
+  CODE_COMMENT,
+} from "./grounds";
 
 const toOklch = converter("oklch");
 
@@ -46,13 +53,19 @@ export interface Base1Readout extends BaseReadout {
    step, until the candidate clears `passes`. Extremes are the
    backstop: pure black or white always clears these thresholds
    against the opposite ground. */
-function walk(hex: string, dir: -1 | 1, passes: (c: string) => boolean): string {
+function walk(
+  hex: string,
+  dir: -1 | 1,
+  passes: (c: string) => boolean,
+): string {
   const start = toOklch(hex);
   if (start === undefined) throw new Error(`unparseable color ${hex}`);
+
   for (let l = start.l; l >= 0 && l <= 1; l += dir * 0.005) {
     const hexAtL = formatHex(clampChroma({ ...start, l }, "oklch"));
     if (passes(hexAtL)) return hexAtL;
   }
+
   return dir === -1 ? "#000000" : "#ffffff";
 }
 
@@ -89,6 +102,7 @@ function shiftL(hex: string, dl: number): string {
    keeping copies that can drift. */
 export const SHIPPED_B1 = "#ffaa3c";
 export const SHIPPED_B2 = "#3cc7dd";
+
 const SHIPPED_DEFAULTS: PaletteOverride = {
   "--brand-1-300": "#ffd18a",
   "--brand-1-500": "#ffaa3c",
@@ -111,7 +125,8 @@ const SHIPPED_DEFAULTS: PaletteOverride = {
 function hueSwap(ref: string, base: string): string {
   const r = toOklch(ref);
   const b = toOklch(base);
-  if (r === undefined || b === undefined) throw new Error(`unparseable color ${ref} or ${base}`);
+  if (r === undefined || b === undefined)
+    throw new Error(`unparseable color ${ref} or ${base}`);
   return formatHex(clampChroma({ ...r, h: b.h ?? r.h }, "oklch"));
 }
 
@@ -134,8 +149,16 @@ function deriveCodeChrome(b1: string): CodeChrome {
   return {
     "--code-bg": bg,
     "--code-line": hueSwap(CODE_LINE, b1),
-    "--code-fg": walk(hueSwap(CODE_FG, b1), 1, (c) => contrastRatio(c, bg) >= 4.5),
-    "--code-token-comment": walk(hueSwap(CODE_COMMENT, b1), 1, (c) => contrastRatio(c, bg) >= 4.5),
+    "--code-fg": walk(
+      hueSwap(CODE_FG, b1),
+      1,
+      (c) => contrastRatio(c, bg) >= 4.5,
+    ),
+    "--code-token-comment": walk(
+      hueSwap(CODE_COMMENT, b1),
+      1,
+      (c) => contrastRatio(c, bg) >= 4.5,
+    ),
   };
 }
 
@@ -148,19 +171,32 @@ function deriveCodeChrome(b1: string): CodeChrome {
    degrees), which the hue-holding walk cannot reproduce; the anchor
    short-circuit above covers them the way it covers the other
    hand-tuned stops. */
-function deriveCodeKin(b1: string, codeBg: string): Pick<PaletteOverride, "--brand-1-300" | "--brand-1-vivid"> {
+function deriveCodeKin(
+  b1: string,
+  codeBg: string,
+): Pick<PaletteOverride, "--brand-1-300" | "--brand-1-vivid"> {
   return {
-    "--brand-1-300": walk(shiftL(b1, 0.08), 1, (c) => contrastRatio(c, codeBg) >= 4.5),
-    "--brand-1-vivid": walk(shiftL(b1, -0.12), 1, (c) => contrastRatio(c, codeBg) >= 4.5),
+    "--brand-1-300": walk(
+      shiftL(b1, 0.08),
+      1,
+      (c) => contrastRatio(c, codeBg) >= 4.5,
+    ),
+    "--brand-1-vivid": walk(
+      shiftL(b1, -0.12),
+      1,
+      (c) => contrastRatio(c, codeBg) >= 4.5,
+    ),
   };
 }
 
 export function derivePalette(base1: string, base2: string): PaletteOverride {
   const b1 = normalize(base1);
   const b2 = normalize(base2);
+
   if (b1 === normalize(SHIPPED_B1) && b2 === normalize(SHIPPED_B2)) {
     return { ...SHIPPED_DEFAULTS };
   }
+
   const chrome = deriveCodeChrome(b1);
   return {
     ...chrome,
@@ -190,9 +226,14 @@ export function readBases(
   base2: string,
 ): { base1: Base1Readout; base2: BaseReadout } {
   const b1 = normalize(base1);
+
   /* The same anchor-aware path derivePalette takes, so the readout is
      computed against the ground the page will actually paint. */
-  const codeBg = b1 === normalize(SHIPPED_B1) ? CODE_GROUND : deriveCodeChrome(b1)["--code-bg"];
+  const codeBg =
+    b1 === normalize(SHIPPED_B1)
+      ? CODE_GROUND
+      : deriveCodeChrome(b1)["--code-bg"];
+
   const codeTextRatio = contrastRatio(b1, codeBg);
   return {
     base1: {

@@ -6,9 +6,14 @@
    this filter; a call site reaching for getCollection("posts") directly
    would leak drafts into whatever it renders. */
 
-export interface Draftable { data: { draft?: boolean } }
+export interface Draftable {
+  data: { draft?: boolean };
+}
 
-export function visiblePosts<T extends Draftable>(posts: T[], showDrafts: boolean): T[] {
+export function visiblePosts<T extends Draftable>(
+  posts: T[],
+  showDrafts: boolean,
+): T[] {
   return showDrafts ? posts : posts.filter((p) => !p.data.draft);
 }
 
@@ -21,10 +26,14 @@ export function visiblePosts<T extends Draftable>(posts: T[], showDrafts: boolea
    a build error rather than a silently hidden paragraph: a typo must not
    look like "still a draft". */
 
-export interface ForwardLinkable extends Draftable { data: { draft?: boolean; slug: string } }
+export interface ForwardLinkable extends Draftable {
+  data: { draft?: boolean; slug: string };
+}
 
 export function forwardLinkVisible(
-  slug: string, posts: ForwardLinkable[], showDrafts: boolean,
+  slug: string,
+  posts: ForwardLinkable[],
+  showDrafts: boolean,
 ): boolean {
   const target = posts.find((p) => p.data.slug === slug);
   if (!target) throw new Error(`WhenPublished: no post has slug "${slug}"`);
@@ -43,7 +52,9 @@ export function forwardLinkVisible(
 
 import { postPath } from "./slug";
 
-export interface Linkable { data: { slug: string; date: Date } }
+export interface Linkable {
+  data: { slug: string; date: Date };
+}
 
 export function resolvePostHref(slug: string, posts: Linkable[]): string {
   const target = posts.find((p) => p.data.slug === slug);

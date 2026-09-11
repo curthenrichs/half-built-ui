@@ -8,12 +8,30 @@ import SmartImage from "./SmartImage.astro";
 import CornerBadges from "./CornerBadges.astro";
 import type { PostCardModel } from "./models";
 
-interface Props extends PostCardModel { headingLevel?: 2 | 3 | 4; class?: string; minReadLabel?: string }
+interface Props extends PostCardModel {
+  headingLevel?: 2 | 3 | 4;
+  class?: string;
+  minReadLabel?: string;
+}
+
 const {
-  href, title, excerpt, author, dateStr, minutes, hero, heroPosition,
-  draft = false, genai, demo, categories, headingLevel = 2, class: className,
+  href,
+  title,
+  excerpt,
+  author,
+  dateStr,
+  minutes,
+  hero,
+  heroPosition,
+  draft = false,
+  genai,
+  demo,
+  categories,
+  headingLevel = 2,
+  class: className,
   minReadLabel = "min read",
 } = Astro.props;
+
 /* Annotated, not cast: an `as` cast in the frontmatter makes the Astro
    compiler drop the Props type (found 2026-08-25, bisected with
    convertToTSX). */
@@ -22,6 +40,7 @@ const Heading: "h2" | "h3" | "h4" = `h${headingLevel}`;
    heroPosition comment in content.config.ts. */
 const heroStyle = heroPosition ? `object-position: ${heroPosition}` : undefined;
 ---
+
 {/* The mapper guarantees an image (Henry placeholder when no featured
     image), so every card takes the thumbnail treatment. */}
 <article class:list={["has-post-thumbnail", className]}>
@@ -29,13 +48,28 @@ const heroStyle = heroPosition ? `object-position: ${heroPosition}` : undefined;
     <div class="post-item-image">
       {/* alt divergence kept from pre-step-5: empty on the svg placeholder, title on a real hero; the anchor is aria-hidden either way. */}
       <a class="post-thumbnail" href={href} aria-hidden="true" tabindex="-1">
-        <SmartImage src={hero} alt={hero.format === "svg" ? "" : title} widths={[470, 940]} sizes="(max-width: 700px) 100vw, 470px" style={heroStyle} />
+        <SmartImage
+          src={hero}
+          alt={hero.format === "svg" ? "" : title}
+          widths={[470, 940]}
+          sizes="(max-width: 700px) 100vw, 470px"
+          style={heroStyle}
+        />
       </a>
       {draft && <span class="draft-stamp">DRAFT</span>}
       <div class="read-time-comment">
         <span class="reading-time chip">
-          <svg viewBox="0 0 512 512" width="12" height="12" fill="currentColor" aria-hidden="true"><path d="M256 8C119 8 8 119 8 256s111 248 248 248 248-111 248-248S393 8 256 8zm0 448c-110.5 0-200-89.5-200-200S145.5 56 256 56s200 89.5 200 200-89.5 200-200 200zm61.8-104.4l-84.9-61.7c-3.1-2.3-4.9-5.9-4.9-9.7V116c0-6.6 5.4-12 12-12h32c6.6 0 12 5.4 12 12v141.7l66.8 48.6c5.4 3.9 6.5 11.4 2.6 16.8L334.6 349c-3.9 5.3-11.4 6.5-16.8 2.6z"/></svg>
-          {`${minutes} ${minReadLabel}`}</span>
+          <svg
+            viewBox="0 0 512 512"
+            width="12"
+            height="12"
+            fill="currentColor"
+            aria-hidden="true"
+          >
+            <path d="M256 8C119 8 8 119 8 256s111 248 248 248 248-111 248-248S393 8 256 8zm0 448c-110.5 0-200-89.5-200-200S145.5 56 256 56s200 89.5 200 200-89.5 200-200 200zm61.8-104.4l-84.9-61.7c-3.1-2.3-4.9-5.9-4.9-9.7V116c0-6.6 5.4-12 12-12h32c6.6 0 12 5.4 12 12v141.7l66.8 48.6c5.4 3.9 6.5 11.4 2.6 16.8L334.6 349c-3.9 5.3-11.4 6.5-16.8 2.6z" />
+          </svg>
+          {`${minutes} ${minReadLabel}`}
+        </span>
       </div>
       <CornerBadges genai={genai} demo={demo} />
     </div>
@@ -46,18 +80,43 @@ const heroStyle = heroPosition ? `object-position: ${heroPosition}` : undefined;
             lets the browser ellipsize overflow. Do not restore the flex ul. */}
         <span class="post-categories">
           {categories.map((c, idx) => (
-            <Fragment>{idx > 0 && ", "}<a href={c.href} rel="category tag">{c.name}</a></Fragment>
+            <Fragment>
+              {idx > 0 && ", "}
+              <a href={c.href} rel="category tag">
+                {c.name}
+              </a>
+            </Fragment>
           ))}
         </span>
       </div>
-      <Heading class="entry-title"><a href={href} rel="bookmark">{title}</a></Heading>
+      <Heading class="entry-title">
+        <a href={href} rel="bookmark">
+          {title}
+        </a>
+      </Heading>
       <ul class="entry-meta">
         <li class="post-author">
-          <svg viewBox="0 0 448 512" width="11" height="11" fill="currentColor" aria-hidden="true"><path d="M224 256c70.7 0 128-57.3 128-128S294.7 0 224 0 96 57.3 96 128s57.3 128 128 128zm89.6 32h-16.7c-22.2 10.2-46.9 16-72.9 16s-50.6-5.8-72.9-16h-16.7C60.2 288 0 348.2 0 422.4V464c0 26.5 21.5 48 48 48h352c26.5 0 48-21.5 48-48v-41.6c0-74.2-60.2-134.4-134.4-134.4z"/></svg>
+          <svg
+            viewBox="0 0 448 512"
+            width="11"
+            height="11"
+            fill="currentColor"
+            aria-hidden="true"
+          >
+            <path d="M224 256c70.7 0 128-57.3 128-128S294.7 0 224 0 96 57.3 96 128s57.3 128 128 128zm89.6 32h-16.7c-22.2 10.2-46.9 16-72.9 16s-50.6-5.8-72.9-16h-16.7C60.2 288 0 348.2 0 422.4V464c0 26.5 21.5 48 48 48h352c26.5 0 48-21.5 48-48v-41.6c0-74.2-60.2-134.4-134.4-134.4z" />
+          </svg>
           {author}
         </li>
         <li class="post-date">
-          <svg viewBox="0 0 448 512" width="11" height="11" fill="currentColor" aria-hidden="true"><path d="M148 288h-40c-6.6 0-12-5.4-12-12v-40c0-6.6 5.4-12 12-12h40c6.6 0 12 5.4 12 12v40c0 6.6-5.4 12-12 12zm108-12v-40c0-6.6-5.4-12-12-12h-40c-6.6 0-12 5.4-12 12v40c0 6.6 5.4 12 12 12h40c6.6 0 12-5.4 12-12zm96 0v-40c0-6.6-5.4-12-12-12h-40c-6.6 0-12 5.4-12 12v40c0 6.6 5.4 12 12 12h40c6.6 0 12-5.4 12-12zm-96 96v-40c0-6.6-5.4-12-12-12h-40c-6.6 0-12 5.4-12 12v40c0 6.6 5.4 12 12 12h40c6.6 0 12-5.4 12-12zm-96 0v-40c0-6.6-5.4-12-12-12h-40c-6.6 0-12 5.4-12 12v40c0 6.6 5.4 12 12 12h40c6.6 0 12-5.4 12-12zm192 0v-40c0-6.6-5.4-12-12-12h-40c-6.6 0-12 5.4-12 12v40c0 6.6 5.4 12 12 12h40c6.6 0 12-5.4 12-12zm96-260v352c0 26.5-21.5 48-48 48H48c-26.5 0-48-21.5-48-48V112c0-26.5 21.5-48 48-48h48V12c0-6.6 5.4-12 12-12h40c6.6 0 12 5.4 12 12v52h128V12c0-6.6 5.4-12 12-12h40c6.6 0 12 5.4 12 12v52h48c26.5 0 48 21.5 48 48z"/></svg>
+          <svg
+            viewBox="0 0 448 512"
+            width="11"
+            height="11"
+            fill="currentColor"
+            aria-hidden="true"
+          >
+            <path d="M148 288h-40c-6.6 0-12-5.4-12-12v-40c0-6.6 5.4-12 12-12h40c6.6 0 12 5.4 12 12v40c0 6.6-5.4 12-12 12zm108-12v-40c0-6.6-5.4-12-12-12h-40c-6.6 0-12 5.4-12 12v40c0 6.6 5.4 12 12 12h40c6.6 0 12-5.4 12-12zm96 0v-40c0-6.6-5.4-12-12-12h-40c-6.6 0-12 5.4-12 12v40c0 6.6 5.4 12 12 12h40c6.6 0 12-5.4 12-12zm-96 96v-40c0-6.6-5.4-12-12-12h-40c-6.6 0-12 5.4-12 12v40c0 6.6 5.4 12 12 12h40c6.6 0 12-5.4 12-12zm-96 0v-40c0-6.6-5.4-12-12-12h-40c-6.6 0-12 5.4-12 12v40c0 6.6 5.4 12 12 12h40c6.6 0 12-5.4 12-12zm192 0v-40c0-6.6-5.4-12-12-12h-40c-6.6 0-12 5.4-12 12v40c0 6.6 5.4 12 12 12h40c6.6 0 12-5.4 12-12zm96-260v352c0 26.5-21.5 48-48 48H48c-26.5 0-48-21.5-48-48V112c0-26.5 21.5-48 48-48h48V12c0-6.6 5.4-12 12-12h40c6.6 0 12 5.4 12 12v52h128V12c0-6.6 5.4-12 12-12h40c6.6 0 12 5.4 12 12v52h48c26.5 0 48 21.5 48 48z" />
+          </svg>
           {dateStr}
         </li>
       </ul>
@@ -69,13 +128,30 @@ const heroStyle = heroPosition ? `object-position: ${heroPosition}` : undefined;
 </article>
 
 <style>
-  .post-item { transition: all 0.5s ease-in-out; }
+  .post-item {
+    transition: all 0.5s ease-in-out;
+  }
+
   /* Same outline as MediaText media and gallery plates (owner request);
      on the container so the hover zoom stays clipped inside it. */
-  .post-item-image { position: relative; overflow: hidden; border: var(--stroke) solid var(--rule); }
-  .post-item-image a { display: block; height: 100%; width: 100%; line-height: 0; }
+  .post-item-image {
+    position: relative;
+    overflow: hidden;
+    border: var(--stroke) solid var(--rule);
+  }
+
+  .post-item-image a {
+    display: block;
+    height: 100%;
+    width: 100%;
+    line-height: 0;
+  }
+
   /* The image box clips overflow, so the site-wide ring sits inside. */
-  .post-item-image a:focus-visible { outline-offset: -3px; }
+  .post-item-image a:focus-visible {
+    outline-offset: -3px;
+  }
+
   .post-item-image a :global(img) {
     width: 100%;
     height: 100%;
@@ -83,13 +159,18 @@ const heroStyle = heroPosition ? `object-position: ${heroPosition}` : undefined;
     object-fit: cover;
     transition: all 0.5s ease-in-out;
   }
-  .post-item:hover .post-item-image :global(img) { transform: scale(1.07); }
+
+  .post-item:hover .post-item-image :global(img) {
+    transform: scale(1.07);
+  }
+
   /* Stamp from the .draft-stamp pattern; the card's size and stacking
      (above the hover-zoomed image) are here. */
   .draft-stamp {
     z-index: 2;
     font-size: var(--font-size-xl);
   }
+
   /* Chip look comes from the .chip pattern; only placement is
      contextual. display: flex, not a plain block: a block wrapper
      gives the inline-flex chip a text line box whose descender gap
@@ -103,12 +184,18 @@ const heroStyle = heroPosition ? `object-position: ${heroPosition}` : undefined;
     z-index: 1;
     display: flex;
   }
-  .post-item-content { padding: 15px 0 0; padding-top: 10px; }
+
+  .post-item-content {
+    padding: 15px 0 0;
+    padding-top: 10px;
+  }
+
   .entry-cat .post-categories {
     display: block;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+
     /* The links' font box stands taller than this line-height:1 row, and
        overflow clips at the padding box, so without vertical breathing
        room the inset focus/hover ring loses its top and bottom bands.
@@ -123,16 +210,22 @@ const heroStyle = heroPosition ? `object-position: ${heroPosition}` : undefined;
     line-height: 1; /* carried over from the old li a rule; keeps card height */
     letter-spacing: 0.8px;
   }
+
   .entry-cat .post-categories a {
     color: inherit;
     text-decoration: none;
     transition: var(--transition);
   }
+
   .entry-cat .post-categories a:hover {
     outline: 2px solid currentColor;
     outline-offset: -2px; /* Draws outline inside link to avoid clipping by container overflow */
   }
-  .entry-cat .post-categories a:focus-visible { outline-offset: -2px; }
+
+  .entry-cat .post-categories a:focus-visible {
+    outline-offset: -2px;
+  }
+
   /* Owner-approved divergence from live (2026-07-26): the live theme
      word-breaks titles mid-word (word-break: break-all); ours wraps at
      word boundaries on purpose. Do not add break-all for fidelity. */
@@ -142,13 +235,18 @@ const heroStyle = heroPosition ? `object-position: ${heroPosition}` : undefined;
     font-size: var(--font-size-base);
     font-family: var(--font-body);
   }
+
   .entry-title a {
     color: var(--ink);
     display: inline;
     text-decoration-line: underline;
     transition: var(--transition);
   }
-  .entry-title a:hover { outline: 2px solid currentColor; }
+
+  .entry-title a:hover {
+    outline: 2px solid currentColor;
+  }
+
   .entry-meta {
     margin: 0 0 10px;
     padding: 0;
@@ -159,6 +257,7 @@ const heroStyle = heroPosition ? `object-position: ${heroPosition}` : undefined;
     column-gap: 10px;
     align-items: center;
   }
+
   .entry-meta li {
     margin-bottom: 0;
     font-size: var(--font-size-xs);
@@ -168,5 +267,8 @@ const heroStyle = heroPosition ? `object-position: ${heroPosition}` : undefined;
     align-items: center;
     gap: 5px;
   }
-  .post-content { font-size: var(--font-size-sm); }
+
+  .post-content {
+    font-size: var(--font-size-sm);
+  }
 </style>

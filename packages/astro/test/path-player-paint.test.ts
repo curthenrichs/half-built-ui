@@ -5,10 +5,22 @@
    derivation of it. */
 import { describe, it, expect } from "vitest";
 import {
-  strokeSeries, paintBand, paintLines, paintLabelChip, paintAxis,
-  PAPER, INK, ink, type Painter,
+  strokeSeries,
+  paintBand,
+  paintLines,
+  paintLabelChip,
+  paintAxis,
+  PAPER,
+  INK,
+  ink,
+  type Painter,
 } from "../src/scripts/path-player-paint";
-import { columnIndex, seriesY, playheadX, brightChannel } from "../src/scripts/path-player-math";
+import {
+  columnIndex,
+  seriesY,
+  playheadX,
+  brightChannel,
+} from "../src/scripts/path-player-math";
 import { recordingContext, type RecordingContext } from "./helpers";
 
 const WIDTH = 100;
@@ -16,12 +28,14 @@ const DURATION = 5;
 
 function painter(): { p: Painter; rec: RecordingContext } {
   const rec = recordingContext();
+
   const p: Painter = {
     ctx: rec.ctx,
     width: WIDTH,
     xAt: (t) => playheadX(t, DURATION, WIDTH),
     cssColor: (v) => (v === "--track-x" ? "#ff0000" : INK),
   };
+
   return { p, rec };
 }
 
@@ -35,12 +49,18 @@ describe("strokeSeries", () => {
     expect(moves).toHaveLength(1);
     expect(lines).toHaveLength(WIDTH - 1);
     expect(moves[0].args).toEqual([0, seriesY(0, 20, 40, 5)]);
-    expect(lines[lines.length - 1].args).toEqual([WIDTH - 1, seriesY(1, 20, 40, 5)]);
+
+    expect(lines[lines.length - 1].args).toEqual([
+      WIDTH - 1,
+      seriesY(1, 20, 40, 5),
+    ]);
+
     for (const c of lines) {
       const y = c.args[1] as number;
       expect(y).toBeGreaterThanOrEqual(20 + 5);
       expect(y).toBeLessThanOrEqual(20 + 40 - 5);
     }
+
     const stroke = rec.ops("stroke");
     expect(stroke).toHaveLength(1);
     expect(stroke[0].strokeStyle).toBe("#abcdef");
@@ -50,10 +70,14 @@ describe("strokeSeries", () => {
 
 describe("paintBand", () => {
   const colors = [
-    { r: 0, g: 0, b: 0 }, { r: 0.15, g: 0.075, b: 0 }, { r: 0.05, g: 0.05, b: 0.05 },
+    { r: 0, g: 0, b: 0 },
+    { r: 0.15, g: 0.075, b: 0 },
+    { r: 0.05, g: 0.05, b: 0.05 },
   ];
+
   const track = {
-    kind: "band" as const, height: 30,
+    kind: "band" as const,
+    height: 30,
     colorAt: (i: number) => colors[i],
     envelopeAt: (i: number) => [1, 3, 2][i],
   };
@@ -63,10 +87,14 @@ describe("paintBand", () => {
     paintBand(p, track, 10, colors.length);
     const rects = rec.ops("fillRect");
     expect(rects).toHaveLength(WIDTH);
+
     rects.forEach((c, px) => {
       const s = colors[columnIndex(px, WIDTH, colors.length)];
       expect(c.args).toEqual([px, 10, 1.5, 30]);
-      expect(c.fillStyle).toBe(`rgb(${brightChannel(s.r)}, ${brightChannel(s.g)}, ${brightChannel(s.b)})`);
+
+      expect(c.fillStyle).toBe(
+        `rgb(${brightChannel(s.r)}, ${brightChannel(s.g)}, ${brightChannel(s.b)})`,
+      );
     });
   });
 
@@ -82,13 +110,17 @@ describe("paintBand", () => {
 
 describe("paintLines", () => {
   const track = {
-    kind: "lines" as const, height: 60,
+    kind: "lines" as const,
+    height: 60,
     series: [
       { label: "x", values: [0, 1, 2], cssVar: "--track-x" },
       { label: "y", values: [2, 1, 0], cssVar: "--track-y" },
     ],
     regions: [{ t0: 1, t1: 2.5 }],
-    ticks: [{ t: 2, label: "2" }, { t: 4, label: "3" }],
+    ticks: [
+      { t: 2, label: "2" },
+      { t: 4, label: "3" },
+    ],
   };
 
   it("paper panel first, then a shaded rect per region", () => {
@@ -110,11 +142,20 @@ describe("paintLines", () => {
     const tickStrokes = rec.ops("stroke").filter((c) => c.lineWidth === 1);
     expect(tickStrokes).toHaveLength(track.ticks.length);
     const labels = rec.ops("fillText").filter((c) => c.textAlign === "center");
+
     expect(labels.map((c) => c.args)).toEqual(
-      track.ticks.map((t) => [t.label, playheadX(t.t, DURATION, WIDTH), 20 + 8]),
+      track.ticks.map((t) => [
+        t.label,
+        playheadX(t.t, DURATION, WIDTH),
+        20 + 8,
+      ]),
     );
+
     const rules = rec.ops("moveTo").filter((c) => c.args[1] === 20);
-    expect(rules.map((c) => c.args[0])).toEqual(track.ticks.map((t) => playheadX(t.t, DURATION, WIDTH)));
+
+    expect(rules.map((c) => c.args[0])).toEqual(
+      track.ticks.map((t) => playheadX(t.t, DURATION, WIDTH)),
+    );
   });
 
   it("one polyline per series in its CSS color, with the shared ink fallback", () => {
@@ -122,19 +163,24 @@ describe("paintLines", () => {
     paintLines(p, track, 20);
     const series = rec.ops("stroke").filter((c) => c.lineWidth === 1.5);
     expect(series.map((c) => c.strokeStyle)).toEqual(["#ff0000", INK]);
-    expect(rec.ops("lineTo").filter((c) => c.args[0] === WIDTH - 1)).toHaveLength(track.series.length);
+
+    expect(
+      rec.ops("lineTo").filter((c) => c.args[0] === WIDTH - 1),
+    ).toHaveLength(track.series.length);
   });
 
   it("series labels read left to right in series order, ending at the right edge, uppercased", () => {
     const { p, rec } = painter();
     paintLines(p, track, 20);
     const labels = rec.ops("fillText").filter((c) => c.textAlign === "right");
+
     /* Two series: X sits one slot left of the edge, Y at the edge, so
        the row reads X Y (owner call 2026-08-26). */
     expect(labels.map((c) => c.args)).toEqual([
       ["X", WIDTH - 4 - 14, 20 + 60 - 4],
       ["Y", WIDTH - 4, 20 + 60 - 4],
     ]);
+
     expect(labels.map((c) => c.fillStyle)).toEqual(["#ff0000", INK]);
   });
 });
@@ -161,11 +207,16 @@ describe("paintAxis", () => {
     const { p, rec } = painter();
     paintAxis(p, 100, DURATION);
     const ticks = rec.ops("moveTo");
-    expect(ticks.map((c) => c.args)).toEqual([0, 2, 4].map((t) => [playheadX(t, DURATION, WIDTH), 102]));
+
+    expect(ticks.map((c) => c.args)).toEqual(
+      [0, 2, 4].map((t) => [playheadX(t, DURATION, WIDTH), 102]),
+    );
+
     expect(rec.ops("fillText").map((c) => c.args)).toEqual(
       [0, 2, 4].map((t) => [`${t}s`, playheadX(t, DURATION, WIDTH) + 2, 111]),
     );
   });
+
   it("a label that would run off the right edge is dropped; its tick stays", () => {
     /* 19 s across 100 px: the 18 s tick lands at x = 94.7 and its 10 px
        label (5 px per character in the recording context) would end at
@@ -173,13 +224,21 @@ describe("paintAxis", () => {
        2026-08-27: the demo's "18s" clipped to "18"; the owner chose an
        empty end over a flipped label crowding its neighbor. */
     const rec = recordingContext();
-    const p: Painter = { ctx: rec.ctx, width: WIDTH, xAt: (t) => playheadX(t, 19, WIDTH), cssColor: () => INK };
+
+    const p: Painter = {
+      ctx: rec.ctx,
+      width: WIDTH,
+      xAt: (t) => playheadX(t, 19, WIDTH),
+      cssColor: () => INK,
+    };
+
     paintAxis(p, 100, 19);
     expect(rec.ops("moveTo")).toHaveLength(10);
     const labels = rec.ops("fillText").map((c) => c.args[0]);
     expect(labels).toEqual(["0s", "2s", "4s", "6s", "8s", "10s", "12s", "14s"]);
     for (const c of rec.ops("fillText")) expect(c.textAlign).toBe("left");
   });
+
   it("a two-second timeline gets only the origin tick", () => {
     const { p, rec } = painter();
     paintAxis(p, 100, 2);

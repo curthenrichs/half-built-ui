@@ -6,9 +6,15 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { mountSubscribe, MSG } from "../src/scripts/subscribe";
 import type { SubscribeOptions } from "../src/scripts/subscribe";
 
-const ACTION = "https://buttondown.com/api/emails/embed-subscribe/half-built-robots";
+const ACTION =
+  "https://buttondown.com/api/emails/embed-subscribe/half-built-robots";
 
-function mount(options?: SubscribeOptions): { form: HTMLFormElement; input: HTMLInputElement; button: HTMLButtonElement; status: HTMLElement } {
+function mount(options?: SubscribeOptions): {
+  form: HTMLFormElement;
+  input: HTMLInputElement;
+  button: HTMLButtonElement;
+  status: HTMLElement;
+} {
   document.body.innerHTML = `
     <section class="subscribe subscribe-post">
       <form class="subscribe-form field-join" method="post" action="${ACTION}" novalidate>
@@ -18,6 +24,7 @@ function mount(options?: SubscribeOptions): { form: HTMLFormElement; input: HTML
       </form>
       <p class="subscribe-status" role="status"></p>
     </section>`;
+
   mountSubscribe(document, options);
   return {
     // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
@@ -37,10 +44,12 @@ function submit(form: HTMLFormElement): void {
 
 describe("subscribe form (DOM runtime)", () => {
   let fetchMock: ReturnType<typeof vi.fn>;
+
   beforeEach(() => {
     fetchMock = vi.fn();
     vi.stubGlobal("fetch", fetchMock);
   });
+
   afterEach(() => {
     vi.unstubAllGlobals();
     vi.restoreAllMocks();
@@ -57,7 +66,13 @@ describe("subscribe form (DOM runtime)", () => {
   });
 
   it("a good address posts FormData to the form action and reports sent on 200", async () => {
-    fetchMock.mockResolvedValue({ ok: true, redirected: false, status: 200, type: "cors" });
+    fetchMock.mockResolvedValue({
+      ok: true,
+      redirected: false,
+      status: 200,
+      type: "cors",
+    });
+
     const { form, input, status, button } = mount();
     input.value = "  reader@example.com ";
     submit(form);
@@ -81,7 +96,13 @@ describe("subscribe form (DOM runtime)", () => {
   });
 
   it("an opaque redirect counts as sent", async () => {
-    fetchMock.mockResolvedValue({ ok: false, redirected: false, status: 0, type: "opaqueredirect" });
+    fetchMock.mockResolvedValue({
+      ok: false,
+      redirected: false,
+      status: 0,
+      type: "opaqueredirect",
+    });
+
     const { form, input, status, button } = mount();
     input.value = "reader@example.com";
     submit(form);
@@ -104,9 +125,17 @@ describe("subscribe form (DOM runtime)", () => {
   });
 
   it("a non-OK response falls back to a native submit", async () => {
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    const submitSpy = vi.spyOn(HTMLFormElement.prototype, "submit").mockImplementation(() => {});
-    fetchMock.mockResolvedValue({ ok: false, redirected: false, status: 400, type: "cors" });
+    const submitSpy = vi
+      .spyOn(HTMLFormElement.prototype, "submit")
+      .mockImplementation(() => undefined);
+
+    fetchMock.mockResolvedValue({
+      ok: false,
+      redirected: false,
+      status: 400,
+      type: "cors",
+    });
+
     const { form, input, status } = mount();
     input.value = "reader@example.com";
     submit(form);
@@ -128,7 +157,14 @@ describe("subscribe form (DOM runtime)", () => {
   it("mounting twice binds one submit handler, so one submit sends once", async () => {
     const { form, input } = mount();
     mountSubscribe(document);
-    fetchMock.mockResolvedValue({ ok: true, redirected: false, status: 200, type: "cors" });
+
+    fetchMock.mockResolvedValue({
+      ok: true,
+      redirected: false,
+      status: 200,
+      type: "cors",
+    });
+
     input.value = "reader@example.com";
     submit(form);
     // eslint-disable-next-line @typescript-eslint/no-confusing-void-expression
@@ -137,7 +173,10 @@ describe("subscribe form (DOM runtime)", () => {
   });
 
   it("a messages option overrides the default invalid-address line", () => {
-    const { form, input, status } = mount({ messages: { invalid: "Try a real address, please." } });
+    const { form, input, status } = mount({
+      messages: { invalid: "Try a real address, please." },
+    });
+
     input.value = "not-an-email";
     submit(form);
     expect(status.textContent).toBe("Try a real address, please.");
@@ -146,12 +185,23 @@ describe("subscribe form (DOM runtime)", () => {
 
   it("failedAt composes the with-url failure line and rides options.messages", async () => {
     fetchMock.mockRejectedValue(new TypeError("Failed to fetch"));
-    const { form, input, status } = mount({ messages: { failed: "The line is closed.", failedAt: (failed, url) => `${failed} The public window is ${url}.` } });
+
+    const { form, input, status } = mount({
+      messages: {
+        failed: "The line is closed.",
+        failedAt: (failed, url) => `${failed} The public window is ${url}.`,
+      },
+    });
+
     form.dataset.publicUrl = "example.com/signup";
     input.value = "reader@example.com";
     submit(form);
-    // eslint-disable-next-line @typescript-eslint/no-confusing-void-expression
-    await vi.waitFor(() => expect(status.textContent).toBe("The line is closed. The public window is example.com/signup."));
+
+    await vi.waitFor(() => {
+      expect(status.textContent).toBe(
+        "The line is closed. The public window is example.com/signup.",
+      );
+    });
   });
 
   it("the default failedAt keeps the current joiner", async () => {
@@ -160,7 +210,11 @@ describe("subscribe form (DOM runtime)", () => {
     form.dataset.publicUrl = "buttondown.com/half-built-robots";
     input.value = "reader@example.com";
     submit(form);
-    // eslint-disable-next-line @typescript-eslint/no-confusing-void-expression
-    await vi.waitFor(() => expect(status.textContent).toBe("Couldn't reach the list. Try again in a minute, or sign up at buttondown.com/half-built-robots."));
+
+    await vi.waitFor(() => {
+      expect(status.textContent).toBe(
+        "Couldn't reach the list. Try again in a minute, or sign up at buttondown.com/half-built-robots.",
+      );
+    });
   });
 });

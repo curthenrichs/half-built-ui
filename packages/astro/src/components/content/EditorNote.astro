@@ -13,14 +13,27 @@
 
 /* The label always reads "Editor's Note", with the title after a colon
    when one is given (owner call 2026-08-27). */
-interface Props { title?: string; shown?: boolean; class?: string }
-const { title, shown = import.meta.env.MODE === "development", class: className } = Astro.props;
+interface Props {
+  title?: string;
+  shown?: boolean;
+  class?: string;
+}
+
+const {
+  title,
+  shown = import.meta.env.MODE === "development",
+  class: className,
+} = Astro.props;
+
 const label = title ? `Editor's Note: ${title}` : "Editor's Note";
 ---
+
 {shown && (
   <div class:list={["editor-note", "rule-box", className]} role="note">
     <strong class="editor-note-label boxed-label">{label}</strong>
-    <div class="editor-note-body"><slot /></div>
+    <div class="editor-note-body">
+      <slot />
+    </div>
   </div>
 )}
 
@@ -32,10 +45,12 @@ const label = title ? `Editor's Note: ${title}` : "Editor's Note";
     border-color: var(--accent-1);
     margin: 30px 0;
   }
+
   .editor-note-label {
     position: absolute;
     top: 0;
     left: 20px;
+
     /* Center the label on the 2px top rule, not on the padding-box edge. */
     transform: translateY(calc(-50% - 2px));
     padding: 4px 10px;
@@ -47,11 +62,15 @@ const label = title ? `Editor's Note: ${title}` : "Editor's Note";
     color: var(--accent-1-ink);
     border-color: var(--accent-1);
   }
+
   /* Reads as an annotation, not a paragraph: a step smaller than prose. */
   .editor-note-body {
     position: relative;
     font-size: var(--font-size-sm);
     color: var(--accent-1-ink);
   }
-  .editor-note-body > :global(:last-child) { margin-bottom: 0; }
+
+  .editor-note-body > :global(:last-child) {
+    margin-bottom: 0;
+  }
 </style>

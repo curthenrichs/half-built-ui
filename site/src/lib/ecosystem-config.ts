@@ -12,4 +12,5 @@ export const ECOSYSTEM_SELF_KEY = "ui";
    the site makes no request, and the server-rendered baseline in
    data/site.ts is what ships. The same baseline stands whenever the
    fetch fails, so a bad day at the endpoint costs the site nothing. */
-export const ECOSYSTEM_ENDPOINT: string | null = "https://ecosystem.half-built-robots.com/ecosystem.json";
+export const ECOSYSTEM_ENDPOINT: string | null =
+  "https://ecosystem.half-built-robots.com/ecosystem.json";

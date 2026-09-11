@@ -11,8 +11,17 @@
    bare link to a draft is a consumer test on the built pages. */
 import { resolvePostHref, type Linkable } from "../../lib/drafts";
 
-interface Props { slug: string; posts: Linkable[]; tip?: string; class?: string }
+interface Props {
+  slug: string;
+  posts: Linkable[];
+  tip?: string;
+  class?: string;
+}
+
 const { slug, posts, tip, class: className } = Astro.props;
 const href = resolvePostHref(slug, posts);
 ---
-<a href={href} data-tooltip={tip} class={className}><slot /></a>
+
+<a href={href} data-tooltip={tip} class={className}>
+  <slot />
+</a>

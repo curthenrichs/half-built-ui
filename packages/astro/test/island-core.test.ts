@@ -10,11 +10,13 @@ describe("island claim", () => {
     expect(claim(div, "demo")).toBe(false);
     expect(div.hasAttribute("data-island-demo")).toBe(true);
   });
+
   it("claims are per island name", () => {
     const div = document.createElement("div");
     expect(claim(div, "one")).toBe(true);
     expect(claim(div, "two")).toBe(true);
   });
+
   it("release clears a claim so it can be retaken", () => {
     const div = document.createElement("div");
     expect(claim(div, "demo")).toBe(true);
@@ -30,13 +32,21 @@ describe("core dom builders", () => {
     expect(p.className).toBe("hit-meta");
     expect(p.textContent).toBe("text");
   });
+
   it("el omits absent class and text", () => {
     const s = el(document, "span");
     expect(s.hasAttribute("class")).toBe(false);
     expect(s.textContent).toBe("");
   });
+
   it("iconButton builds a labeled type=button with svg content", () => {
-    const b = iconButton(document, "lb-arrow icon-box", "Previous image", "<svg></svg>");
+    const b = iconButton(
+      document,
+      "lb-arrow icon-box",
+      "Previous image",
+      "<svg></svg>",
+    );
+
     expect(b.type).toBe("button");
     expect(b.className).toBe("lb-arrow icon-box");
     expect(b.getAttribute("aria-label")).toBe("Previous image");

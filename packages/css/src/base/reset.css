@@ -2,9 +2,13 @@
    the base layer any site keeps. Page containers are in shell.css.
    See docs/css-architecture.md. */
 @layer base {
-  * { box-sizing: border-box; }
+  * {
+    box-sizing: border-box;
+  }
 
-  html { scroll-behavior: smooth; }
+  html {
+    scroll-behavior: smooth;
+  }
 
   body {
     margin: 0;
@@ -22,7 +26,9 @@
     min-width: 360px;
   }
 
-  a { color: var(--ink); }
+  a {
+    color: var(--ink);
+  }
 
   /* Keyboard focus, one answer for the whole site (owner call
      2026-08-26): a 2px amber ring held 2px off the element, on
@@ -45,7 +51,10 @@
     padding: 8px 14px;
     z-index: var(--z-skip-link);
   }
-  .skip-link:focus { left: 10px; }
+
+  .skip-link:focus {
+    left: 10px;
+  }
 
   .screen-reader-text {
     position: absolute;
@@ -56,6 +65,9 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
-    * { animation: none !important; transition: none !important; }
+    * {
+      animation: none !important;
+      transition: none !important;
+    }
   }
 }

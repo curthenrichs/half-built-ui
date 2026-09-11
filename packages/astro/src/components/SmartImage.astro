@@ -21,14 +21,54 @@ interface Props {
   fetchpriority?: "high";
   style?: string;
 }
-const { src, alt, class: className, widths, sizes, loading = "lazy", fetchpriority, style } = Astro.props;
+
+const {
+  src,
+  alt,
+  class: className,
+  widths,
+  sizes,
+  loading = "lazy",
+  fetchpriority,
+  style,
+} = Astro.props;
+
 const passthrough = src.format === "gif" || src.format === "svg";
 /* eager is the img element's default; omitting it keeps the passthrough
    markup byte-compatible with the pre-step-5 sites. */
 const imgLoading = loading === "eager" ? undefined : loading;
 ---
-{passthrough
-  ? <img src={src.src} width={src.width} height={src.height} alt={alt} class={className} loading={imgLoading} style={style} fetchpriority={fetchpriority} />
-  : widths
-    ? <Image src={src} widths={widths} sizes={sizes} alt={alt} class={className} loading={loading} style={style} fetchpriority={fetchpriority} />
-    : <Image src={src} width={src.width} alt={alt} class={className} loading={loading} style={style} fetchpriority={fetchpriority} />}
+
+{passthrough ? (
+  <img
+    src={src.src}
+    width={src.width}
+    height={src.height}
+    alt={alt}
+    class={className}
+    loading={imgLoading}
+    style={style}
+    fetchpriority={fetchpriority}
+  />
+) : widths ? (
+  <Image
+    src={src}
+    widths={widths}
+    sizes={sizes}
+    alt={alt}
+    class={className}
+    loading={loading}
+    style={style}
+    fetchpriority={fetchpriority}
+  />
+) : (
+  <Image
+    src={src}
+    width={src.width}
+    alt={alt}
+    class={className}
+    loading={loading}
+    style={style}
+    fetchpriority={fetchpriority}
+  />
+)}

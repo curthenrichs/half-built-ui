@@ -18,7 +18,15 @@ interface Props {
   type?: "button" | "submit";
   class?: string;
 }
-const { variant = "plain", size = "md", href, type = "button", class: className } = Astro.props;
+
+const {
+  variant = "plain",
+  size = "md",
+  href,
+  type = "button",
+  class: className,
+} = Astro.props;
+
 const classes = [
   "button",
   "press-box",
@@ -29,10 +37,15 @@ const classes = [
   `button-${size}`,
 ];
 ---
+
 {href ? (
-  <a class:list={[...classes, className]} href={href}><slot /></a>
+  <a class:list={[...classes, className]} href={href}>
+    <slot />
+  </a>
 ) : (
-  <button class:list={[...classes, className]} type={type}><slot /></button>
+  <button class:list={[...classes, className]} type={type}>
+    <slot />
+  </button>
 )}
 
 <style>
@@ -41,17 +54,23 @@ const classes = [
     font-weight: 700;
     text-align: center;
   }
+
   .button-md {
     padding: 7px 15px;
     font-size: var(--font-size-sm);
     text-transform: uppercase;
   }
+
   .button-lg {
     padding: 10px 24px;
     font-size: var(--font-size-md);
     letter-spacing: 0.08em;
   }
+
   /* A leading icon sits on the text's baseline with a gap; the svg comes
      through the slot, hence :global. */
-  .button :global(svg:first-child) { vertical-align: -0.15em; margin-right: 8px; }
+  .button :global(svg:first-child) {
+    vertical-align: -0.15em;
+    margin-right: 8px;
+  }
 </style>

@@ -44,15 +44,29 @@ the extraction review in the blog repo
   Dependabot; consumers bump their exact pins by hand.
 - Consumers never patch `node_modules`: a defect found downstream is
   fixed here, released as a patch, and the consumer bumps its pin.
-- CI (`ci.yml`) runs tests, the tooling preset lint, and the site
-  build on branch pushes; tag pushes fire only `release.yml`.
+- CI (`ci.yml`) runs tests, `npm run lint` (eslint, stylelint, and the
+  Prettier check, all from the tooling presets), and the site build on
+  branch pushes; tag pushes fire only `release.yml`.
 
 ## House style
 
 - No em dashes anywhere: code comments, docs, READMEs.
-- eslint (the package's own preset, dogfooded via the root
-  `eslint.config.mjs`) forbids non-null assertions and String.match
-  where RegExp.exec works. `npx eslint .` must stay clean.
+- Formatting and whitespace are tooling's job, never a hand pass
+  (owner, 2026-09-10). Prettier (the tooling preset, defaults plus the
+  Astro plugin) settles line structure; eslint's padding rule and
+  stylelint's empty-line rules enforce the blank lines between blocks,
+  since Prettier keeps blank lines but never adds them. `npm run
+  lint:fix` applies all three in the order that converges (Prettier,
+  eslint, stylelint, Prettier again); `npm run lint` must stay clean.
+  A style you want enforced goes into the presets in
+  `packages/tooling/src/`, so every consumer gets it at the next pin.
+- The three presets are dogfooded by relative path from the root
+  `eslint.config.mjs`, `.stylelintrc.json`, and `prettier.config.mjs`,
+  since this repo cannot depend on its own package. eslint also forbids
+  non-null assertions and String.match where RegExp.exec works.
+- An `eslint-disable-next-line` above a statement Prettier may reflow
+  is fragile: the violation moves to a later line, the directive goes
+  unused, and `--fix` deletes it. Prefer code that needs no directive.
 - Package READMEs ship in the tarballs; keep them truthful, and
   remember edits reach npm only at the next publish.
 

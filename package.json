@@ -2,21 +2,33 @@
   "name": "half-built-ui-workspace",
   "private": true,
   "type": "module",
-  "workspaces": ["packages/*", "site"],
+  "workspaces": [
+    "packages/*",
+    "site"
+  ],
   "scripts": {
     "test": "vitest run --passWithNoTests",
     "test:browser": "npm run test:browser --workspace site",
     "build:site": "npm run build --workspace site",
-    "lint": "eslint ."
+    "lint:js": "eslint .",
+    "lint:css": "stylelint \"packages/*/src/**/*.{css,astro}\" \"site/src/**/*.{css,astro}\"",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "lint": "npm run lint:js && npm run lint:css && npm run format:check",
+    "lint:fix": "prettier --write . && eslint --fix . && stylelint --fix \"packages/*/src/**/*.{css,astro}\" \"site/src/**/*.{css,astro}\" && prettier --write ."
   },
   "devDependencies": {
-    "vitest": "^2.1.9",
-    "jsdom": "^29.1.1",
-    "typescript": "^5.9.3",
-    "@types/node": "^22.0.0",
-    "@types/culori": "^4.0.1",
-    "puppeteer-core": "^25.8.0",
     "@axe-core/puppeteer": "^4.13.0",
-    "axe-core": "^4.13.0"
+    "@types/culori": "^4.0.1",
+    "@types/node": "^22.0.0",
+    "axe-core": "^4.13.0",
+    "jsdom": "^29.1.1",
+    "postcss-html": "^2.0.0",
+    "prettier": "^3.9.6",
+    "puppeteer-core": "^25.8.0",
+    "stylelint": "^17.15.0",
+    "stylelint-config-standard": "^40.0.0",
+    "typescript": "^5.9.3",
+    "vitest": "^2.1.9"
   }
 }
