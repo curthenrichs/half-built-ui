@@ -15,8 +15,14 @@
    built pages, not this gate. */
 import { forwardLinkVisible, type ForwardLinkable } from "../../lib/drafts";
 
-interface Props { slug: string; posts: ForwardLinkable[]; showDrafts?: boolean }
+interface Props {
+  slug: string;
+  posts: ForwardLinkable[];
+  showDrafts?: boolean;
+}
+
 const { slug, posts, showDrafts = false } = Astro.props;
 const visible = forwardLinkVisible(slug, posts, showDrafts);
 ---
+
 {visible && <slot />}

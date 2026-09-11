@@ -10,6 +10,7 @@ import { mountFocusMode } from "../src/scripts/focus-mode";
 
 describe("focus-mode island (DOM runtime)", () => {
   let handles: IslandHandle[] = [];
+
   const mount = (): IslandHandle => {
     const h = mountFocusMode(document.documentElement);
     handles.push(h);
@@ -43,13 +44,21 @@ describe("focus-mode island (DOM runtime)", () => {
     window.dispatchEvent(new PointerEvent("pointerdown"));
     expect(document.documentElement.dataset.focus).toBe("pointer");
     handle.destroy();
-    expect(document.documentElement.hasAttribute("data-island-focus-mode")).toBe(false);
+
+    expect(
+      document.documentElement.hasAttribute("data-island-focus-mode"),
+    ).toBe(false);
+
     window.dispatchEvent(new KeyboardEvent("keydown"));
     /* Listeners are gone: the stamp stays at its last value, it does not
        flip back to keyboard. */
     expect(document.documentElement.dataset.focus).toBe("pointer");
     mount();
-    expect(document.documentElement.hasAttribute("data-island-focus-mode")).toBe(true);
+
+    expect(
+      document.documentElement.hasAttribute("data-island-focus-mode"),
+    ).toBe(true);
+
     window.dispatchEvent(new KeyboardEvent("keydown"));
     expect(document.documentElement.dataset.focus).toBe("keyboard");
   });

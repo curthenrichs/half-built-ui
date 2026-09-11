@@ -7,13 +7,23 @@
 import Widget from "./Widget.astro";
 import type { LinkListItem } from "./models";
 
-interface Props { title: string; items: LinkListItem[]; headingLevel?: 2 | 3 | 4; class?: string }
+interface Props {
+  title: string;
+  items: LinkListItem[];
+  headingLevel?: 2 | 3 | 4;
+  class?: string;
+}
+
 const { title, items, headingLevel = 2, class: className } = Astro.props;
 ---
+
 <Widget title={title} headingLevel={headingLevel} class={className}>
   <ul>
     {items.map((i) => (
-      <li><a href={i.href}>{i.label}</a>{i.count !== undefined && ` (${i.count})`}</li>
+      <li>
+        <a href={i.href}>{i.label}</a>
+        {i.count !== undefined && ` (${i.count})`}
+      </li>
     ))}
   </ul>
 </Widget>

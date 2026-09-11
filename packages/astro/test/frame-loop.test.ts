@@ -11,6 +11,7 @@ describe("createFrameLoop", () => {
     vi.useFakeTimers();
     stubRafOnFakeTimers();
   });
+
   afterEach(() => {
     vi.useRealTimers();
     vi.unstubAllGlobals();
@@ -23,11 +24,13 @@ describe("createFrameLoop", () => {
     vi.advanceTimersByTime(48);
     expect(dts.length).toBeGreaterThanOrEqual(2);
     expect(dts[0]).toBeCloseTo(0.016, 3);
+
     for (const dt of dts.slice(1)) {
       expect(dt).toBeGreaterThan(0);
       expect(dt).toBeLessThanOrEqual(0.05);
     }
   });
+
   it("firstDt: 0 reports no opening advance", () => {
     const dts: number[] = [];
     const loop = createFrameLoop(window, (dt) => dts.push(dt), { firstDt: 0 });
@@ -35,6 +38,7 @@ describe("createFrameLoop", () => {
     vi.advanceTimersByTime(32);
     expect(dts[0]).toBe(0);
   });
+
   it("stop() halts ticking and running() reflects state", () => {
     const dts: number[] = [];
     const loop = createFrameLoop(window, (dt) => dts.push(dt));
@@ -48,6 +52,7 @@ describe("createFrameLoop", () => {
     vi.advanceTimersByTime(160);
     expect(dts.length).toBe(n);
   });
+
   it("a stop/start gap does not leak into dt", () => {
     const dts: number[] = [];
     const loop = createFrameLoop(window, (dt) => dts.push(dt));
@@ -61,6 +66,7 @@ describe("createFrameLoop", () => {
     expect(dts[before]).toBeCloseTo(0.016, 3);
     for (const dt of dts.slice(before)) expect(dt).toBeLessThanOrEqual(0.05);
   });
+
   it("start() while running is a no-op (no double ticking)", () => {
     const dts: number[] = [];
     const loop = createFrameLoop(window, (dt) => dts.push(dt));

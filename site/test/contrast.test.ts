@@ -3,8 +3,19 @@ import { readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { dirname, join } from "node:path";
 import { contrastRatio } from "../src/lib/contrast";
-import { LIGHT_PAPER, DARK_GROUND, CODE_GROUND, CODE_LINE, CODE_FG, CODE_COMMENT } from "../src/lib/grounds";
-import { derivePalette, SHIPPED_B1, SHIPPED_B2 } from "../src/lib/derive-palette";
+import {
+  LIGHT_PAPER,
+  DARK_GROUND,
+  CODE_GROUND,
+  CODE_LINE,
+  CODE_FG,
+  CODE_COMMENT,
+} from "../src/lib/grounds";
+import {
+  derivePalette,
+  SHIPPED_B1,
+  SHIPPED_B2,
+} from "../src/lib/derive-palette";
 
 describe("contrastRatio", () => {
   it("matches WCAG reference values", () => {
@@ -21,9 +32,22 @@ describe("grounds", () => {
   it("match the installed css package's surface values", () => {
     const require = createRequire(import.meta.url);
     const pkgRoot = dirname(require.resolve("@half-built/css/package.json"));
-    const primitives = readFileSync(join(pkgRoot, "src/tokens/primitives.css"), "utf8");
-    const light = readFileSync(join(pkgRoot, "src/tokens/theme-light.css"), "utf8");
-    const dark = readFileSync(join(pkgRoot, "src/tokens/theme-dark.css"), "utf8");
+
+    const primitives = readFileSync(
+      join(pkgRoot, "src/tokens/primitives.css"),
+      "utf8",
+    );
+
+    const light = readFileSync(
+      join(pkgRoot, "src/tokens/theme-light.css"),
+      "utf8",
+    );
+
+    const dark = readFileSync(
+      join(pkgRoot, "src/tokens/theme-dark.css"),
+      "utf8",
+    );
+
     expect(light).toMatch(/--surface:\s*var\(--white\)/);
     expect(dark).toMatch(/--surface:\s*var\(--black-900\)/);
     expect(primitives).toContain(`--white: ${LIGHT_PAPER}`);
@@ -45,11 +69,20 @@ describe("grounds", () => {
        printing stale hexes while every suite stayed green. */
     const require = createRequire(import.meta.url);
     const pkgRoot = dirname(require.resolve("@half-built/css/package.json"));
-    const primitives = readFileSync(join(pkgRoot, "src/tokens/primitives.css"), "utf8");
+
+    const primitives = readFileSync(
+      join(pkgRoot, "src/tokens/primitives.css"),
+      "utf8",
+    );
+
     const anchor = derivePalette(SHIPPED_B1, SHIPPED_B2);
+
     for (const [key, value] of Object.entries(anchor)) {
       if (!key.startsWith("--brand-")) continue;
-      expect(primitives, `${key} drifted from the installed package`).toContain(`${key}: ${value}`);
+
+      expect(primitives, `${key} drifted from the installed package`).toContain(
+        `${key}: ${value}`,
+      );
     }
   });
 });

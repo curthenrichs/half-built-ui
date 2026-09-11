@@ -29,7 +29,10 @@ function menu(): HTMLElement {
 }
 
 function searchBtn(): HTMLButtonElement {
-  const el = document.querySelector<HTMLButtonElement>(".navigation-search-icon");
+  const el = document.querySelector<HTMLButtonElement>(
+    ".navigation-search-icon",
+  );
+
   if (!el) throw new Error("no search button");
   return el;
 }
@@ -53,7 +56,10 @@ describe("site header island (DOM runtime)", () => {
 
   it("refreshes the date box to today's formatted date", () => {
     mountSiteHeader(document);
-    expect(document.getElementById("header-date")?.textContent).toBe(formatHeaderDate(new Date()));
+
+    expect(document.getElementById("header-date")?.textContent).toBe(
+      formatHeaderDate(new Date()),
+    );
   });
 
   it("click toggles the open class and aria-expanded", () => {
@@ -100,7 +106,10 @@ describe("site header island (DOM runtime)", () => {
   it("mounting twice still refreshes the date box (unconditional, idempotent by nature)", () => {
     mountSiteHeader(document);
     mountSiteHeader(document);
-    expect(document.getElementById("header-date")?.textContent).toBe(formatHeaderDate(new Date()));
+
+    expect(document.getElementById("header-date")?.textContent).toBe(
+      formatHeaderDate(new Date()),
+    );
   });
 
   it("destroy stops the toggle", () => {
@@ -121,7 +130,10 @@ describe("site header island (DOM runtime)", () => {
   it("refreshes the date box even without a menu button present", () => {
     document.body.innerHTML = `<div id="header-date">stale</div>`;
     mountSiteHeader(document);
-    expect(document.getElementById("header-date")?.textContent).toBe(formatHeaderDate(new Date()));
+
+    expect(document.getElementById("header-date")?.textContent).toBe(
+      formatHeaderDate(new Date()),
+    );
   });
 
   it("a formatDate option overrides the date box's formatter", () => {
@@ -185,16 +197,34 @@ describe("site header island (DOM runtime)", () => {
     it("focus leaving the wrap closes it; focus moving within it does not", () => {
       mountSiteHeader(document);
       searchBtn().click();
-      searchField().dispatchEvent(new FocusEvent("focusout", { bubbles: true, relatedTarget: searchBtn() }));
+
+      searchField().dispatchEvent(
+        new FocusEvent("focusout", {
+          bubbles: true,
+          relatedTarget: searchBtn(),
+        }),
+      );
+
       expect(searchWrap().classList.contains("search-open")).toBe(true);
-      searchField().dispatchEvent(new FocusEvent("focusout", { bubbles: true, relatedTarget: document.getElementById("elsewhere") }));
+
+      searchField().dispatchEvent(
+        new FocusEvent("focusout", {
+          bubbles: true,
+          relatedTarget: document.getElementById("elsewhere"),
+        }),
+      );
+
       expect(searchWrap().classList.contains("search-open")).toBe(false);
     });
 
     it("a focusout with no destination is not a close (Safari blurs the field before a magnifier click lands)", () => {
       mountSiteHeader(document);
       searchBtn().click();
-      searchField().dispatchEvent(new FocusEvent("focusout", { bubbles: true, relatedTarget: null }));
+
+      searchField().dispatchEvent(
+        new FocusEvent("focusout", { bubbles: true, relatedTarget: null }),
+      );
+
       expect(searchWrap().classList.contains("search-open")).toBe(true);
     });
 
@@ -226,6 +256,7 @@ describe("site header island (DOM runtime)", () => {
       document.body.innerHTML = `
         <button type="button" class="menu-toggle" aria-controls="primary-menu" aria-expanded="false"></button>
         <ul id="primary-menu" class="menu"></ul>`;
+
       mountSiteHeader(document);
       btn().click();
       expect(menu().classList.contains("open")).toBe(true);

@@ -66,9 +66,11 @@ function fireInput(el: HTMLInputElement, value: string): void {
 
 function computedProps(): Record<string, string> {
   const out: Record<string, string> = {};
+
   for (const key of RAMP_KEYS) {
     out[key] = document.documentElement.style.getPropertyValue(key).trim();
   }
+
   return out;
 }
 
@@ -87,13 +89,21 @@ describe("palette editor", () => {
     const derived = derivePalette("#2f9e44", "#0ca678");
     expect(computedProps()).toEqual(derived);
 
-    const stored = JSON.parse(localStorage.getItem(KEY) ?? "null") as { b1: string; b2: string } | null;
+    const stored = JSON.parse(localStorage.getItem(KEY) ?? "null") as {
+      b1: string;
+      b2: string;
+    } | null;
+
     expect(stored).toEqual({ b1: "#2f9e44", b2: "#0ca678" });
   });
 
   it("a preset click routes through the same path", () => {
     mountPaletteEditor(document, { storageKey: KEY });
-    const preset = document.querySelector<HTMLButtonElement>('[data-palette-preset][data-base-1="#1890ff"]');
+
+    const preset = document.querySelector<HTMLButtonElement>(
+      '[data-palette-preset][data-base-1="#1890ff"]',
+    );
+
     if (!preset) throw new Error("no portfolio preset");
     preset.click();
 
@@ -101,7 +111,12 @@ describe("palette editor", () => {
     expect(computedProps()).toEqual(derived);
     expect(input("palette-base-1").value).toBe("#1890ff");
     expect(input("palette-base-2").value).toBe("#13c2c2");
-    const stored = JSON.parse(localStorage.getItem(KEY) ?? "null") as { b1: string; b2: string } | null;
+
+    const stored = JSON.parse(localStorage.getItem(KEY) ?? "null") as {
+      b1: string;
+      b2: string;
+    } | null;
+
     expect(stored).toEqual({ b1: "#1890ff", b2: "#13c2c2" });
   });
 
@@ -116,6 +131,7 @@ describe("palette editor", () => {
     for (const key of RAMP_KEYS) {
       expect(document.documentElement.style.getPropertyValue(key)).toBe("");
     }
+
     expect(localStorage.getItem(KEY)).toBeNull();
     expect(input("palette-base-1").value).toBe(AMBER_B1);
     expect(input("palette-base-2").value).toBe(AMBER_B2);
@@ -127,7 +143,10 @@ describe("palette editor", () => {
     fireInput(input("palette-base-2"), "#0ca678");
 
     const pre = document.querySelector("[data-palette-css]");
-    expect(pre?.textContent).toBe(overrideBlock(derivePalette("#2f9e44", "#0ca678")));
+
+    expect(pre?.textContent).toBe(
+      overrideBlock(derivePalette("#2f9e44", "#0ca678")),
+    );
   });
 
   it("readouts carry a warning sentence when a base fails darkTextPasses", () => {
@@ -136,6 +155,7 @@ describe("palette editor", () => {
     fireInput(input("palette-base-2"), "#3cc7dd");
 
     const readouts = document.querySelector("[data-palette-readouts]");
+
     expect(readouts?.textContent).toContain(
       "Accent 1 is too dark to read as text on the dark theme, consider a lighter shade.",
     );
@@ -156,7 +176,11 @@ describe("palette editor", () => {
 
   it("the corner X, an outside click, and Escape each close the panel", () => {
     mountPaletteEditor(document, { storageKey: KEY });
-    const details = document.querySelector<HTMLDetailsElement>("[data-palette-editor]");
+
+    const details = document.querySelector<HTMLDetailsElement>(
+      "[data-palette-editor]",
+    );
+
     if (!details) throw new Error("no editor details");
 
     details.open = true;
@@ -168,7 +192,11 @@ describe("palette editor", () => {
     expect(details.open).toBe(false);
 
     details.open = true;
-    document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+
+    document.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "Escape", bubbles: true }),
+    );
+
     expect(details.open).toBe(false);
 
     /* a click inside stays open */
@@ -182,11 +210,20 @@ describe("palette editor", () => {
     fireInput(input("palette-base-1"), "#1890ff");
     fireInput(input("palette-base-2"), "#13c2c2");
 
-    const flip = document.querySelector<HTMLButtonElement>("[data-palette-flip]");
+    const flip = document.querySelector<HTMLButtonElement>(
+      "[data-palette-flip]",
+    );
+
     flip?.click();
 
-    expect(document.documentElement.style.getPropertyValue("--brand-1-500")).toBe("#13c2c2");
-    expect(document.documentElement.style.getPropertyValue("--brand-2-500")).toBe("#1890ff");
+    expect(
+      document.documentElement.style.getPropertyValue("--brand-1-500"),
+    ).toBe("#13c2c2");
+
+    expect(
+      document.documentElement.style.getPropertyValue("--brand-2-500"),
+    ).toBe("#1890ff");
+
     expect(input("palette-base-1").value).toBe("#13c2c2");
     expect(input("palette-base-2").value).toBe("#1890ff");
   });
@@ -197,20 +234,36 @@ describe("palette editor", () => {
     fireInput(input("palette-base-2"), "#3cc7dd");
 
     const items = [...document.querySelectorAll("[data-palette-detail] li")];
-    expect(items.map((li) => li.classList.contains("site-toolbar-indent"))).toEqual([
-      false, true, true, true,
-      false, true, true,
-    ]);
+
+    expect(
+      items.map((li) => li.classList.contains("site-toolbar-indent")),
+    ).toEqual([false, true, true, true, false, true, true]);
+
     expect(items[0]?.textContent).toBe("Accent 1");
     expect(items[4]?.textContent).toBe("Accent 2");
+
     /* Each ratio is its own <code> chip on its own indented line, so a
        figure never wraps through its middle. Accent 1 carries the
        extra code-ground ratio because it is the code keyword ink. */
-    expect(items[1]?.querySelector("code")?.textContent).toMatch(/^text on dark \d+\.\d\d:1$/);
-    expect(items[2]?.querySelector("code")?.textContent).toMatch(/^fill on light \d+\.\d\d:1$/);
-    expect(items[3]?.querySelector("code")?.textContent).toMatch(/^code text \d+\.\d\d:1$/);
-    expect(items[5]?.querySelector("code")?.textContent).toMatch(/^text on dark \d+\.\d\d:1$/);
-    expect(items[6]?.querySelector("code")?.textContent).toMatch(/^fill on light \d+\.\d\d:1$/);
+    expect(items[1]?.querySelector("code")?.textContent).toMatch(
+      /^text on dark \d+\.\d\d:1$/,
+    );
+
+    expect(items[2]?.querySelector("code")?.textContent).toMatch(
+      /^fill on light \d+\.\d\d:1$/,
+    );
+
+    expect(items[3]?.querySelector("code")?.textContent).toMatch(
+      /^code text \d+\.\d\d:1$/,
+    );
+
+    expect(items[5]?.querySelector("code")?.textContent).toMatch(
+      /^text on dark \d+\.\d\d:1$/,
+    );
+
+    expect(items[6]?.querySelector("code")?.textContent).toMatch(
+      /^fill on light \d+\.\d\d:1$/,
+    );
   });
 
   it("warns when base 1 passes the dark ground but fails as code keyword ink", () => {
@@ -222,9 +275,11 @@ describe("palette editor", () => {
     fireInput(input("palette-base-2"), "#3cc7dd");
 
     const readouts = document.querySelector("[data-palette-readouts]");
+
     expect(readouts?.textContent).toContain(
       "Accent 1 is too dark to read as code on the code block, consider a lighter shade.",
     );
+
     expect(readouts?.textContent).not.toContain("dark theme");
   });
 
@@ -244,14 +299,21 @@ describe("palette editor", () => {
 
   it("the preset matching the current bases reads aria-pressed", () => {
     mountPaletteEditor(document, { storageKey: KEY });
+
     /* the amber defaults are live at mount, so the amber chip is on */
     const pressed = (): string[] =>
       [...document.querySelectorAll<HTMLButtonElement>("[data-palette-preset]")]
         .filter((b) => b.getAttribute("aria-pressed") === "true")
         .map((b) => b.textContent);
+
     expect(pressed()).toEqual(["Amber"]);
 
-    document.querySelector<HTMLButtonElement>('[data-palette-preset][data-base-1="#2f9e44"]')?.click();
+    document
+      .querySelector<HTMLButtonElement>(
+        '[data-palette-preset][data-base-1="#2f9e44"]',
+      )
+      ?.click();
+
     expect(pressed()).toEqual(["Greens"]);
 
     /* a manual pick that matches no preset clears every chip */
@@ -274,11 +336,16 @@ describe("palette editor", () => {
 
   it("a fresh mount with no storage renders the amber default but sets no override properties", () => {
     mountPaletteEditor(document, { storageKey: KEY });
+
     for (const key of RAMP_KEYS) {
       expect(document.documentElement.style.getPropertyValue(key)).toBe("");
     }
+
     const pre = document.querySelector("[data-palette-css]");
-    expect(pre?.textContent).toBe(overrideBlock(derivePalette(AMBER_B1, AMBER_B2)));
+
+    expect(pre?.textContent).toBe(
+      overrideBlock(derivePalette(AMBER_B1, AMBER_B2)),
+    );
   });
 
   it("copy sends the <pre> text through the clipboard and confirms on the button", async () => {
@@ -290,7 +357,11 @@ describe("palette editor", () => {
     fireInput(input("palette-base-2"), "#0ca678");
 
     const pre = document.querySelector("[data-palette-css]");
-    const copyBtn = document.querySelector<HTMLButtonElement>("[data-palette-copy]");
+
+    const copyBtn = document.querySelector<HTMLButtonElement>(
+      "[data-palette-copy]",
+    );
+
     if (!copyBtn) throw new Error("no copy button");
     copyBtn.click();
     expect(writeText).toHaveBeenCalledWith(pre?.textContent);

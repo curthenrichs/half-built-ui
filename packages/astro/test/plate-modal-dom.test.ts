@@ -24,7 +24,11 @@ describe("buildPlateModal", () => {
   });
 
   it("legacyPrefix doubles every skeleton class", () => {
-    const refs = buildPlateModal(document, { ariaLabel: "x", legacyPrefix: "lb" });
+    const refs = buildPlateModal(document, {
+      ariaLabel: "x",
+      legacyPrefix: "lb",
+    });
+
     expect(refs.dialog.classList.contains("pm-dialog")).toBe(true);
     expect(refs.dialog.classList.contains("lb-dialog")).toBe(true);
     expect(refs.zone.classList.contains("lb-zone")).toBe(true);
@@ -74,7 +78,11 @@ describe("buildPlateModal", () => {
     const btn = document.createElement("button");
     const inner = document.createElement("span");
     btn.append(inner);
-    btn.addEventListener("click", () => { btn.innerHTML = "swapped"; });
+
+    btn.addEventListener("click", () => {
+      btn.innerHTML = "swapped";
+    });
+
     refs.plate.append(btn);
     refs.open(null);
     inner.dispatchEvent(new MouseEvent("click", { bubbles: true }));

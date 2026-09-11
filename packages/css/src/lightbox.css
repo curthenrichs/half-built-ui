@@ -5,19 +5,32 @@
 @layer components.lightbox {
   /* Build-time anchors around content images. Positioned so a corner
      badge (CornerBadges.astro) pins to the image's corner. */
-  .lightbox-link { display: block; position: relative; line-height: 0; cursor: zoom-in; }
+  .lightbox-link {
+    display: block;
+    position: relative;
+    line-height: 0;
+    cursor: zoom-in;
+  }
 
-  .lb-main { display: flex; align-items: center; gap: 16px; }
+  .lb-main {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
 
   /* Arrows: ink on filled white squares (mockup v3 decision). .icon-box
      supplies the 30x30 bordered square and the button reset. */
-  .lb-arrow { font-size: var(--font-size-md); }
+  .lb-arrow {
+    font-size: var(--font-size-md);
+  }
 
   /* Desktop: bar and foot are pass-throughs; their children straddle the
      plate rules as boxed labels (counter top-left, close top-right, dims
      bottom-left, readout bottom-right). */
   .lb-bar,
-  .lb-foot { display: contents; }
+  .lb-foot {
+    display: contents;
+  }
 
   /* Normalized viewbox: constant viewport-derived size; fine-grid mat
      centered behind the image (also the ground under transparent
@@ -35,6 +48,7 @@
     background-position: center center;
     touch-action: none;
   }
+
   .lb-img {
     position: absolute;
     left: 50%;
@@ -67,6 +81,7 @@
     bottom: 10px;
     left: 50%;
     transform: translateX(-50%);
+
     /* .boxed-label gives border, ink, and surface; .micro-label the type;
        a <button> still needs the family reset. */
     font: inherit;
@@ -86,6 +101,7 @@
     max-width: 100%;
     gap: 8px;
     justify-content: safe center;
+
     /* A scrolling strip clips on every side, so the active and focus
        rings (2px, offset 2px) need 4px of room all round; the top margin
        gives up the same 4px so the thumbs do not move (owner report
@@ -93,6 +109,7 @@
     margin-top: 12px;
     padding: 4px;
   }
+
   .lb-thumb {
     flex: 0 0 auto;
     width: 44px;
@@ -103,6 +120,7 @@
     cursor: pointer;
     opacity: 0.65;
   }
+
   .lb-thumb img {
     width: 100%;
     height: 100%;
@@ -110,6 +128,7 @@
     display: block;
     border: 0;
   }
+
   .lb-thumb.active {
     opacity: 1;
     outline: 2px solid var(--accent-1);
@@ -120,7 +139,9 @@
      .icon-box and .lb-thumbs both set their own display: flex, which beats
      the UA [hidden] rule at equal specificity. Two simple selectors outrank
      one, so this wins without !important and stays scoped to the dialog. */
-  .lb-dialog [hidden] { display: none; }
+  .lb-dialog [hidden] {
+    display: none;
+  }
 
   /* Mobile (the gallery two-column breakpoint): no arrows, the counter
      takes a header row inside the plate, dims and readout collapse to one
@@ -130,7 +151,10 @@
      parked it in the header row and the owner asked for the corner back
      after launch (2026-08-27). */
   @media (--bp-phone) {
-    .lb-arrow { display: none; }
+    .lb-arrow {
+      display: none;
+    }
+
     /* The box caps against the plate: 86vw plus the plate and zone
        padding (72px) only fits above 514px, and below that the plate
        clamped and the box overflowed its right padding, reading as a mat
@@ -142,17 +166,32 @@
        its track canvas by accident. Above 514px the box is narrower
        than the plate it now fills, so it centers itself. */
     .lb-zone,
-    .lb-plate { width: 100%; }
-    .lb-viewbox { width: min(86vw, 100%); height: 52vh; margin-inline: auto; }
+    .lb-plate {
+      width: 100%;
+    }
+
+    .lb-viewbox {
+      width: min(86vw, 100%);
+      height: 52vh;
+      margin-inline: auto;
+    }
+
     .lb-bar {
       display: flex;
       justify-content: space-between;
       align-items: center;
       margin-bottom: 10px;
     }
+
     /* In flow on phones, no longer sharing the bottom rule: the label
        cap (plate-modal.css) does not apply. */
-    .lb-dialog .lb-counter { position: static; border: 0; padding: 0; max-width: none; }
+    .lb-dialog .lb-counter {
+      position: static;
+      border: 0;
+      padding: 0;
+      max-width: none;
+    }
+
     .lb-foot {
       display: flex;
       justify-content: space-between;
@@ -162,9 +201,16 @@
       font-size: var(--font-size-xs);
       letter-spacing: 0.1em;
     }
+
     /* In flow on phones, no longer sharing the bottom rule: the label
        cap (plate-modal.css) does not apply. */
     .lb-dialog .lb-dims,
-    .lb-dialog .lb-readout { position: static; border: 0; padding: 0; font-weight: 400; max-width: none; }
+    .lb-dialog .lb-readout {
+      position: static;
+      border: 0;
+      padding: 0;
+      font-weight: 400;
+      max-width: none;
+    }
   }
 }

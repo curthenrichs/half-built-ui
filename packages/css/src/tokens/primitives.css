@@ -61,6 +61,7 @@
     --brand-2-300: #8ee6f2;
     --brand-2-500: #3cc7dd;
     --brand-2-700: #1a7f90;
+
     /* Code-viewer kin of family 1 (spec 2026-09-06, live code colors):
        the values the Shiki theme has always baked, promoted to
        primitives so the code token roles below them can follow a
@@ -75,6 +76,7 @@
     --red-300: #ff8a7a;
     --violet-600: #7a5aa0;
     --violet-300: #b39ad6;
+
     /* Fixed system color like red and violet above, so it keeps a hue
        name: the code comment ink, a dim warm gray that stays put when
        the brand families are overridden. */
@@ -86,6 +88,7 @@
     --stroke-3: 3px;
     --frame-pad: 25px;
     --column-gap: 30px;
+
     /* The shell (step 11.1): --shell-max is the ONLY width authority on
        the page column (the never-cap-prose rule's positive statement);
        --shell-pad its gutter; --header-clear the content offset under
@@ -93,6 +96,7 @@
     --shell-max: 1380px;
     --shell-pad: 15px;
     --header-clear: 65px;
+
     /* Room for a viewport-bound bottom component (owner rule
        2026-09-09): a fixed control cluster in the bottom corner takes
        no room in flow, so the page's last lines end underneath it. A
@@ -101,7 +105,8 @@
        last line so the page scrolls on far enough to clear it. Zero
        when nothing is pinned. */
     --dock-bottom: 0px;
-    --shadow: 0 3px 12px -1px rgb(7 10 25 / 20%), 0 22px 27px -20px rgb(7 10 25 / 20%);
+    --shadow:
+      0 3px 12px -1px rgb(7 10 25 / 20%), 0 22px 27px -20px rgb(7 10 25 / 20%);
     --transition: all 0.1s ease;
 
     /* z ladder. Skip link above content, scroll-to-top above the
@@ -113,6 +118,7 @@
     --z-skip-link: 10;
     --z-scroll-top: 17;
     --z-tooltip: 20;
+
     /* 49 and 50 belong to loose Henry, defined blog-side in
        henry-loose.css (step 11.1). */
     --z-search-flyout: 99;
@@ -126,7 +132,6 @@
     --font-size-xl: clamp(1.95rem, 1.56vw + 1.56rem, 2.81rem);
     --font-size-xxl: clamp(2.44rem, 2.38vw + 1.85rem, 3.75rem);
     --font-size-xxxl: clamp(2.95rem, 3.54vw + 2.17rem, 5rem);
-
     --font-body: "Roboto Mono", ui-monospace, monospace;
   }
 }

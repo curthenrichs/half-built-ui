@@ -27,6 +27,7 @@ describe("scroll-top island (DOM runtime)", () => {
     FakeObserver.instances = [];
     vi.stubGlobal("IntersectionObserver", FakeObserver);
   });
+
   afterEach(() => {
     vi.unstubAllGlobals();
   });
@@ -34,11 +35,22 @@ describe("scroll-top island (DOM runtime)", () => {
   it("observes the masthead and toggles show as it leaves and re-enters the viewport", () => {
     mountScrollTop(document);
     const [observer] = FakeObserver.instances;
-    expect(observer.observe).toHaveBeenCalledWith(document.getElementById("masthead"));
+
+    expect(observer.observe).toHaveBeenCalledWith(
+      document.getElementById("masthead"),
+    );
+
     observer.callback([{ isIntersecting: false }]);
-    expect(document.getElementById("scroll-to-top")?.classList.contains("show")).toBe(true);
+
+    expect(
+      document.getElementById("scroll-to-top")?.classList.contains("show"),
+    ).toBe(true);
+
     observer.callback([{ isIntersecting: true }]);
-    expect(document.getElementById("scroll-to-top")?.classList.contains("show")).toBe(false);
+
+    expect(
+      document.getElementById("scroll-to-top")?.classList.contains("show"),
+    ).toBe(false);
   });
 
   it("mounting twice observes once (claim guards the second pass)", () => {
@@ -52,7 +64,12 @@ describe("scroll-top island (DOM runtime)", () => {
     const [observer] = FakeObserver.instances;
     handle.destroy();
     expect(observer.disconnect).toHaveBeenCalledOnce();
-    expect(document.getElementById("scroll-to-top")?.hasAttribute("data-island-scroll-top")).toBe(false);
+
+    expect(
+      document
+        .getElementById("scroll-to-top")
+        ?.hasAttribute("data-island-scroll-top"),
+    ).toBe(false);
   });
 
   it("does nothing when the button or masthead is missing", () => {
@@ -66,10 +83,21 @@ describe("scroll-top island (DOM runtime)", () => {
     const b = mountScrollTop(document);
     const [observer] = FakeObserver.instances;
     b.destroy();
-    expect(document.getElementById("scroll-to-top")?.hasAttribute("data-island-scroll-top")).toBe(true);
+
+    expect(
+      document
+        .getElementById("scroll-to-top")
+        ?.hasAttribute("data-island-scroll-top"),
+    ).toBe(true);
+
     expect(observer.disconnect).not.toHaveBeenCalled();
     a.destroy();
     expect(observer.disconnect).toHaveBeenCalledOnce();
-    expect(document.getElementById("scroll-to-top")?.hasAttribute("data-island-scroll-top")).toBe(false);
+
+    expect(
+      document
+        .getElementById("scroll-to-top")
+        ?.hasAttribute("data-island-scroll-top"),
+    ).toBe(false);
   });
 });

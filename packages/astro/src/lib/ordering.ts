@@ -5,7 +5,9 @@
    through these instead of picking fields ad hoc: hand-picked fields are how
    the same-day ordering bug shipped twice (audit A1/A2). */
 
-export interface Publishable { data: { date: Date; published?: Date } }
+export interface Publishable {
+  data: { date: Date; published?: Date };
+}
 
 export function publishedAt(p: Publishable): Date {
   return p.data.published ?? p.data.date;

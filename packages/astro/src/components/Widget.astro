@@ -3,19 +3,30 @@
    Gutenberg block widgets (which rendered h2.wp-block-heading inside
    .widget_block; renamed at extraction, step 11.1).
    List links keep their natural underline: they are proper links. */
-interface Props { title: string; headingLevel?: 2 | 3 | 4; class?: string }
+interface Props {
+  title: string;
+  headingLevel?: 2 | 3 | 4;
+  class?: string;
+}
+
 const { title, headingLevel = 2, class: className } = Astro.props;
 /* Annotated, not cast: an `as` cast in the frontmatter can make the Astro
    compiler drop the Props type (see PostCard.astro). */
 const Heading: "h2" | "h3" | "h4" = `h${headingLevel}`;
 ---
+
 <section class:list={["widget", className]}>
   <Heading class="widget-title">{title}</Heading>
-  <div class="widget-body"><slot /></div>
+  <div class="widget-body">
+    <slot />
+  </div>
 </section>
 
 <style>
-  .widget { margin: 0 0 2em; }
+  .widget {
+    margin: 0 0 2em;
+  }
+
   /* Owner ruling 2026-07-26 (diverges from live's larger headings):
      widget headers share the Subscribe panel's title scale. */
   .widget-title {
@@ -24,18 +35,34 @@ const Heading: "h2" | "h3" | "h4" = `h${headingLevel}`;
     line-height: 1.2;
     font-size: var(--font-size-base);
   }
-  .widget-body :global(ul) { list-style: none; padding: 0; margin: 0; }
+
+  .widget-body :global(ul) {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
   .widget-body :global(li) {
     margin-bottom: 7px;
     padding-bottom: 7px;
     font-size: var(--font-size-sm);
     border-bottom: 1px solid var(--divider-faint);
   }
-  .widget-body :global(li:last-child) { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
+
+  .widget-body :global(li:last-child) {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+  }
+
   .widget-body :global(a) {
     color: var(--ink);
     transition: var(--transition);
     text-decoration: underline;
   }
-  .widget-body :global(a:hover), .widget-body :global(a:focus) { color: var(--ink); }
+
+  .widget-body :global(a:hover),
+  .widget-body :global(a:focus) {
+    color: var(--ink);
+  }
 </style>

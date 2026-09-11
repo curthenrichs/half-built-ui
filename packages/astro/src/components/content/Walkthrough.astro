@@ -3,16 +3,24 @@
    docs/superpowers/specs/2026-08-15-walkthrough-steps-design.md): an ordered
    list of Step rows. Every photo inside forms one lightbox set; lightbox.ts
    setFor() keys on the .walkthrough class, so keep it on the <ol>. */
-interface Props { numbered?: boolean; class?: string }
+interface Props {
+  numbered?: boolean;
+  class?: string;
+}
+
 const { numbered = false, class: className } = Astro.props;
 ---
+
 {/* list-style: none drops the implicit list role in Safari/VoiceOver, so
    role="list" restores it. html-validate's no-redundant-role and
    prefer-native-element both flag that as unnecessary on a native <ol>,
    which is true generically but wrong for this specific case; disabled
    surgically for this element only. */}
 <!-- [html-validate-disable-next no-redundant-role, prefer-native-element] -->
-<ol class:list={["walkthrough", numbered && "walkthrough-numbered", className]} role="list">
+<ol
+  class:list={["walkthrough", numbered && "walkthrough-numbered", className]}
+  role="list"
+>
   <slot />
 </ol>
 

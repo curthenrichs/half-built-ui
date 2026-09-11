@@ -2,7 +2,12 @@
    content-inventory sample data, which is defined inline in
    index.astro, because Base.astro needs this on every page and the
    content data only on index.astro. */
-import type { NavItem, SocialItem, SitemapGroup, EcosystemEntry } from "@half-built/astro/components/models.ts";
+import type {
+  NavItem,
+  SocialItem,
+  SitemapGroup,
+  EcosystemEntry,
+} from "@half-built/astro/components/models.ts";
 import { ECOSYSTEM_SELF_KEY } from "../lib/ecosystem-config";
 
 export const SITE_NAME = "half-built-ui";
@@ -26,8 +31,16 @@ export const NAV: NavItem[] = [
 ];
 
 export const SOCIALS: SocialItem[] = [
-  { label: "Package source", href: "https://github.com/curthenrichs/half-built-ui", icon: ICON_EXTERNAL },
-  { label: "Placeholder link", href: "https://example.com", icon: ICON_EXTERNAL },
+  {
+    label: "Package source",
+    href: "https://github.com/curthenrichs/half-built-ui",
+    icon: ICON_EXTERNAL,
+  },
+  {
+    label: "Placeholder link",
+    href: "https://example.com",
+    icon: ICON_EXTERNAL,
+  },
 ];
 
 /* The same holder the blog's footer names; the two lines must match. */
@@ -53,10 +66,22 @@ export const FOOTER_SITEMAP: SitemapGroup[] = [
     title: "More",
     collapsible: true,
     links: [
-      { label: "Source on GitHub", href: "https://github.com/curthenrichs/half-built-ui" },
-      { label: "@half-built/css", href: "https://www.npmjs.com/package/@half-built/css" },
-      { label: "@half-built/astro", href: "https://www.npmjs.com/package/@half-built/astro" },
-      { label: "@half-built/tooling", href: "https://www.npmjs.com/package/@half-built/tooling" },
+      {
+        label: "Source on GitHub",
+        href: "https://github.com/curthenrichs/half-built-ui",
+      },
+      {
+        label: "@half-built/css",
+        href: "https://www.npmjs.com/package/@half-built/css",
+      },
+      {
+        label: "@half-built/astro",
+        href: "https://www.npmjs.com/package/@half-built/astro",
+      },
+      {
+        label: "@half-built/tooling",
+        href: "https://www.npmjs.com/package/@half-built/tooling",
+      },
     ],
   },
 ];
@@ -68,7 +93,11 @@ export const FOOTER_SITEMAP: SitemapGroup[] = [
    Two entries, so it cannot drift far from the truth. */
 export const ECOSYSTEM: EcosystemEntry[] = [
   { key: "ui", label: SITE_NAME, href: "/" },
-  { key: "blog", label: "Half-Built Robots", href: "https://half-built-robots.com/" },
+  {
+    key: "blog",
+    label: "Half-Built Robots",
+    href: "https://half-built-robots.com/",
+  },
 ];
 
 /* One definition, in lib/ecosystem-config.ts, which the client script

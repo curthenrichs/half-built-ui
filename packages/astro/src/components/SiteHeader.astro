@@ -7,6 +7,7 @@
    No logo image in the header: the live site renders text branding only. */
 import ThemeToggle from "./ThemeToggle.astro";
 import type { NavItem, SocialItem } from "./models";
+
 interface Props {
   siteName: string;
   tagline: string;
@@ -22,6 +23,7 @@ interface Props {
   searchParam?: string;
   searchLabels?: { prompt?: string; placeholder?: string; submit?: string };
 }
+
 const {
   siteName,
   tagline,
@@ -33,6 +35,7 @@ const {
   searchParam = "s",
   searchLabels = {},
 } = Astro.props;
+
 const {
   prompt: searchPrompt = "Search for:",
   /* The static markup this replaces wrote the placeholder as the HTML
@@ -47,104 +50,185 @@ const {
 } = searchLabels;
 
 const current = Astro.url.pathname;
+
 /* Home stays the current item on paginated index pages, like WordPress,
    the component's own documented opinion (not a prop). */
 const isCurrent = (href: string) =>
-  href === "/" ? current === "/" || current.startsWith("/page/") : current === href;
+  href === "/"
+    ? current === "/" || current.startsWith("/page/")
+    : current === href;
 ---
+
 <header id="masthead" class="site-header">
   <div class="shell">
     <div class="site-header-wrapper bracket-frame">
       <div class="masthead-top">
-        <slot name="band-top"><div class="header-tools">
-          <div class="date boxed-label" id="header-date">{dateStr}</div>
-          <ThemeToggle />
-        </div>
-        <div class="social-icons">
-          {/* Tips drop below and pin to the icon's right edge (scripts/link-tip.ts). */}
-          <ul class="social-links" data-tip-place="below" data-tip-align="end">
-            {socials.map((s) => (
-              <li>
-                <a class="icon-box" href={s.href}>
-                  <span class="screen-reader-text">{s.label}</span>
-                  <Fragment set:html={s.icon} />
-                </a>
-              </li>
-            ))}
-          </ul>
-        </div></slot>
+        <slot name="band-top">
+          <div class="header-tools">
+            <div class="date boxed-label" id="header-date">
+              {dateStr}
+            </div>
+            <ThemeToggle />
+          </div>
+          <div class="social-icons">
+            {/* Tips drop below and pin to the icon's right edge (scripts/link-tip.ts). */}
+            <ul
+              class="social-links"
+              data-tip-place="below"
+              data-tip-align="end"
+            >
+              {socials.map((s) => (
+                <li>
+                  <a class="icon-box" href={s.href}>
+                    <span class="screen-reader-text">{s.label}</span>
+                    <Fragment set:html={s.icon} />
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </slot>
       </div>
       <div class="masthead-brand">
-        <slot name="band-brand"><div class="site-branding">
-          <div class="site-identity">
-            {isHome
-              ? <h1 class="site-title"><a href="/" rel="home">{siteName}</a></h1>
-              : <p class="site-title"><a href="/" rel="home">{siteName}</a></p>}
-            <p class="site-description">{tagline}</p>
+        <slot name="band-brand">
+          <div class="site-branding">
+            <div class="site-identity">
+              {isHome ? (
+                <h1 class="site-title">
+                  <a href="/" rel="home">
+                    {siteName}
+                  </a>
+                </h1>
+              ) : (
+                <p class="site-title">
+                  <a href="/" rel="home">
+                    {siteName}
+                  </a>
+                </p>
+              )}
+              <p class="site-description">{tagline}</p>
+            </div>
           </div>
-        </div></slot>
+        </slot>
       </div>
       <div class="masthead-nav">
-        <slot name="band-nav"><div class="masthead-nav-inner">
-          <div class="header-nav-search">
-            <div class="header-navigation">
-              <nav id="site-navigation" class="main-navigation" aria-label="Primary">
-                <button type="button" class="menu-toggle" aria-controls="primary-menu" aria-expanded="false">
-                  <span></span><span></span><span></span>
-                  <span class="screen-reader-text">Menu</span>
-                </button>
-                <div class="menu-container">
-                  <ul id="primary-menu" class="menu">
-                    {nav.map((item) => (
-                      <li class={`menu-item${isCurrent(item.href) ? " current-menu-item" : ""}`}>
-                        <a class:list={["press-box", isCurrent(item.href) && "tint-overlay"]} href={item.href} aria-current={isCurrent(item.href) ? "page" : undefined}>{item.label}</a>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </nav>
-            </div>
-            <div class="header-end">
-              {/* Phones lose the top band, so the toggle sits beside the
+        <slot name="band-nav">
+          <div class="masthead-nav-inner">
+            <div class="header-nav-search">
+              <div class="header-navigation">
+                <nav
+                  id="site-navigation"
+                  class="main-navigation"
+                  aria-label="Primary"
+                >
+                  <button
+                    type="button"
+                    class="menu-toggle"
+                    aria-controls="primary-menu"
+                    aria-expanded="false"
+                  >
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                    <span class="screen-reader-text">Menu</span>
+                  </button>
+                  <div class="menu-container">
+                    <ul id="primary-menu" class="menu">
+                      {nav.map((item) => (
+                        <li
+                          class={`menu-item${isCurrent(item.href) ? " current-menu-item" : ""}`}
+                        >
+                          <a
+                            class:list={[
+                              "press-box",
+                              isCurrent(item.href) && "tint-overlay",
+                            ]}
+                            href={item.href}
+                            aria-current={
+                              isCurrent(item.href) ? "page" : undefined
+                            }
+                          >
+                            {item.label}
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </nav>
+              </div>
+              <div class="header-end">
+                {/* Phones lose the top band, so the toggle sits beside the
                   search there (owner request 2026-08-26). */}
-              <ThemeToggle placement="phone" />
-              <div class="navigation-search">
-                <div class="navigation-search-wrap">
-                  {/* A control that reveals UI is a button, not a link: a
+                <ThemeToggle placement="phone" />
+                <div class="navigation-search">
+                  <div class="navigation-search-wrap">
+                    {/* A control that reveals UI is a button, not a link: a
                       bare-hash anchor navigates (scroll jump + history
                       entry), audit finding A3. With the island mounted it
                       is the flyout's toggle (site-header.ts); without
                       JavaScript, focus-within still opens the flyout when
                       the button takes focus. */}
-                  <button type="button" title="Search" class="navigation-search-icon icon-box" aria-expanded="false">
-                    <svg viewBox="0 0 512 512" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M505 442.7L405.3 343c28.4-34.9 45.7-79 45.7-127C451 96.5 354.5 0 235.5 0S20 96.5 20 215.5 116.5 431 235.5 431c48 0 92.1-17.3 127-45.7L462.3 485c5.9 5.9 15.4 5.9 21.3 0l21.4-21.4c5.9-5.9 5.9-15.4 0-20.9zM235.5 371c-85.9 0-155.5-69.6-155.5-155.5S149.6 60 235.5 60 391 129.6 391 215.5 321.4 371 235.5 371z"/></svg>
-                    <span class="screen-reader-text">Search</span>
-                  </button>
-                  <div class="navigation-search-form">
-                    <form role="search" class="search-form field-join" action={searchAction} method="get">
-                      <label>
-                        <span class="screen-reader-text">{searchPrompt}</span>
-                        <input type="search" class="search-field field-join-input" placeholder={searchPlaceholder} name={searchParam} />
-                      </label>
-                      <input type="submit" class="search-submit field-join-button press-box press-box-shaded" value={searchSubmit} />
-                    </form>
+                    <button
+                      type="button"
+                      title="Search"
+                      class="navigation-search-icon icon-box"
+                      aria-expanded="false"
+                    >
+                      <svg
+                        viewBox="0 0 512 512"
+                        width="14"
+                        height="14"
+                        fill="currentColor"
+                        aria-hidden="true"
+                      >
+                        <path d="M505 442.7L405.3 343c28.4-34.9 45.7-79 45.7-127C451 96.5 354.5 0 235.5 0S20 96.5 20 215.5 116.5 431 235.5 431c48 0 92.1-17.3 127-45.7L462.3 485c5.9 5.9 15.4 5.9 21.3 0l21.4-21.4c5.9-5.9 5.9-15.4 0-20.9zM235.5 371c-85.9 0-155.5-69.6-155.5-155.5S149.6 60 235.5 60 391 129.6 391 215.5 321.4 371 235.5 371z" />
+                      </svg>
+                      <span class="screen-reader-text">Search</span>
+                    </button>
+                    <div class="navigation-search-form">
+                      <form
+                        role="search"
+                        class="search-form field-join"
+                        action={searchAction}
+                        method="get"
+                      >
+                        <label>
+                          <span class="screen-reader-text">{searchPrompt}</span>
+                          <input
+                            type="search"
+                            class="search-field field-join-input"
+                            placeholder={searchPlaceholder}
+                            name={searchParam}
+                          />
+                        </label>
+                        <input
+                          type="submit"
+                          class="search-submit field-join-button press-box press-box-shaded"
+                          value={searchSubmit}
+                        />
+                      </form>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-        </div></slot>
+        </slot>
       </div>
     </div>
   </div>
 </header>
 
 <style>
-  .site-header { margin-block: 30px 10px; }
+  .site-header {
+    margin-block: 30px 10px;
+  }
 
   /* Frame comes from the .bracket-frame pattern; only the stacking context
      is contextual here. */
-  .site-header-wrapper { z-index: 1; }
+  .site-header-wrapper {
+    z-index: 1;
+  }
 
   /* Top band straddles the top rule via the negative margin. */
   .masthead-top {
@@ -153,18 +237,30 @@ const isCurrent = (href: string) =>
     justify-content: space-between;
     margin-top: calc(-30px + (-12px));
   }
+
   .masthead-top .date {
     padding: 4px 10px;
     display: grid;
     place-items: center;
     font-size: var(--font-size-sm);
   }
+
   /* Date box and the day/night toggle sit together on the left of the
      top band, spaced like the social icons on the right. */
-  .header-tools { display: flex; align-items: center; gap: 10px; }
+  .header-tools {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
   /* Bottom band's right end: the phone toggle (hidden on desktop) beside
      the search icon, spaced like the top band's tools. */
-  .header-end { display: flex; align-items: center; gap: 10px; }
+  .header-end {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
   /* No background on the list itself: the header's top rule must stay
      visible in the gaps between the boxed icons. */
   ul.social-links {
@@ -174,20 +270,32 @@ const isCurrent = (href: string) =>
     display: flex;
     gap: 10px;
   }
+
   .masthead-brand {
     display: flex;
     align-items: center;
     justify-content: center;
     padding-block: 20px;
   }
-  .site-branding { padding-block: 10px; text-align: center; width: 100%; }
+
+  .site-branding {
+    padding-block: 10px;
+    text-align: center;
+    width: 100%;
+  }
+
   .site-title {
     font-size: var(--font-size-xl);
     line-height: 1.1;
     font-weight: 700;
     margin: 0;
   }
-  .site-title a { text-decoration: none; color: var(--ink); }
+
+  .site-title a {
+    text-decoration: none;
+    color: var(--ink);
+  }
+
   /* The tagline wears the accent box (owner call 2026-09-03): the
      callout's combination, the same one the press box and the demo
      launcher wear. Accent line, the accent's legible ink for the text,
@@ -196,6 +304,7 @@ const isCurrent = (href: string) =>
      white at 1.9:1 (test/a11y.test.ts). Static: no hover, no press. */
   .site-description {
     display: inline-block;
+
     /* 14 above, 8 below (owner pick 2026-09-03, option B of three):
        the box sits as its own element between the title and the nav
        band rather than as a subtitle stuck to the title. */
@@ -211,6 +320,7 @@ const isCurrent = (href: string) =>
     position: relative;
     margin-bottom: calc(-30px + (-17px));
   }
+
   .header-nav-search {
     width: 100%;
     display: flex;
@@ -218,6 +328,7 @@ const isCurrent = (href: string) =>
     align-items: center;
     justify-content: space-between;
   }
+
   .main-navigation .menu {
     list-style: none;
     padding: 0;
@@ -227,6 +338,7 @@ const isCurrent = (href: string) =>
     flex-wrap: wrap;
     font-size: var(--font-size-sm);
   }
+
   /* Box, ink, and press feedback from .press-box; the nav's own size,
      case, and hover ring are here. */
   .main-navigation .menu a {
@@ -235,11 +347,23 @@ const isCurrent = (href: string) =>
     font-weight: bold;
     display: block;
   }
-  .menu-item { position: relative; }
-  .current-menu-item > a { --tint-opacity: 0.2; }
-  .main-navigation .menu a:hover { outline: var(--stroke) solid var(--rule); }
 
-  .menu-toggle { display: none; }
+  .menu-item {
+    position: relative;
+  }
+
+  .current-menu-item > a {
+    --tint-opacity: 0.2;
+  }
+
+  .main-navigation .menu a:hover {
+    outline: var(--stroke) solid var(--rule);
+  }
+
+  .menu-toggle {
+    display: none;
+  }
+
   @media (--bp-sidebar) {
     .menu-toggle {
       display: block;
@@ -252,6 +376,7 @@ const isCurrent = (href: string) =>
       border: var(--stroke) solid var(--rule);
       background-color: var(--surface);
     }
+
     .menu-toggle span:not(.screen-reader-text) {
       display: block;
       position: absolute;
@@ -262,16 +387,29 @@ const isCurrent = (href: string) =>
       left: 50%;
       transform: translateX(-50%);
     }
-    .menu-toggle span:nth-child(1) { top: 7px; }
-    .menu-toggle span:nth-child(2) { top: 14px; }
-    .menu-toggle span:nth-child(3) { top: 21px; }
+
+    .menu-toggle span:nth-child(1) {
+      top: 7px;
+    }
+
+    .menu-toggle span:nth-child(2) {
+      top: 14px;
+    }
+
+    .menu-toggle span:nth-child(3) {
+      top: 21px;
+    }
+
     /* The open menu is a pop-out under the hamburger, floating over the
        page like the search flyout (same z tier), not a block that grows
        the header (owner request 2026-08-27, after launch). The header
        keeps its height, so the band keeps its desktop straddle of the
        bottom rule: hamburger, toggle, and magnifier hang off the rule
        instead of sitting inside the frame. */
-    .main-navigation { position: relative; }
+    .main-navigation {
+      position: relative;
+    }
+
     .main-navigation .menu {
       display: none;
       flex-direction: column;
@@ -285,14 +423,20 @@ const isCurrent = (href: string) =>
       border: var(--stroke) solid var(--rule);
       box-shadow: var(--shadow);
     }
-    .main-navigation .menu.open { display: flex; }
+
+    .main-navigation .menu.open {
+      display: flex;
+    }
   }
+
   /* Phone-width header simplification (owner call 2026-08-20): the
      date box competes for pixels a phone already spends on its own
      clock, and the social tray collided with it. Both retire; the
      socials' job moves to the Contact page, one hamburger tap away. */
   @media (--bp-phone) {
-    .masthead-top { display: none; }
+    .masthead-top {
+      display: none;
+    }
   }
 
   /* Search flyout: icon on a primary-filled box. The island
@@ -302,7 +446,13 @@ const isCurrent = (href: string) =>
      the button's own click, since the click leaves focus on the
      button). Without the island the focus-within rule stands, so the
      flyout still opens with no script. */
-  .navigation-search { width: 30px; position: relative; display: inline-block; text-align: center; }
+  .navigation-search {
+    width: 30px;
+    position: relative;
+    display: inline-block;
+    text-align: center;
+  }
+
   .navigation-search-form {
     position: absolute;
     right: 0;
@@ -314,23 +464,34 @@ const isCurrent = (href: string) =>
     z-index: var(--z-search-flyout);
     background-color: var(--surface);
     border: var(--stroke) solid var(--rule);
+
     /* Opacity fades both ways; visibility flips at once on open and
        waits out the fade on close. Under the house all-transition the
        visibility interpolation read hidden at the instant the open
        class landed, so the island's focus() on the field was refused. */
-    transition: opacity 0.1s ease, visibility 0s linear 0.1s;
+    transition:
+      opacity 0.1s ease,
+      visibility 0s linear 0.1s;
   }
-  .navigation-search-wrap:not([data-search-js]):focus-within .navigation-search-form,
+
+  .navigation-search-wrap:not([data-search-js]):focus-within
+    .navigation-search-form,
   .navigation-search-wrap.search-open .navigation-search-form {
     opacity: 1;
     visibility: visible;
     transition-delay: 0s;
   }
+
   /* Form anatomy comes from the .field-join house pattern (owner request
      2026-07-30, replacing the live theme's 75/25 split form). Only the
      label wrapper's sizing is contextual. */
-  .search-form label { flex: 1; }
-  .search-form .search-field { width: 100%; }
+  .search-form label {
+    flex: 1;
+  }
+
+  .search-form .search-field {
+    width: 100%;
+  }
 </style>
 
 <script>

@@ -3,7 +3,11 @@
    code-island-dom.test.ts. Fixture markup mirrors the built output of
    the content components (BlogImage, Gallery, Walkthrough/Step). */
 import { describe, it, expect, beforeEach } from "vitest";
-import { mountLightbox, swapToFull, FALLBACK_BOX } from "../src/scripts/lightbox";
+import {
+  mountLightbox,
+  swapToFull,
+  FALLBACK_BOX,
+} from "../src/scripts/lightbox";
 import { polyfillDialog } from "./helpers";
 
 const PAGE = `
@@ -48,7 +52,10 @@ const PAGE = `
 function openViaClick(selector: string): void {
   const link = document.querySelector<HTMLAnchorElement>(selector);
   if (!link) throw new Error(`no link for ${selector}`);
-  link.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+
+  link.dispatchEvent(
+    new MouseEvent("click", { bubbles: true, cancelable: true }),
+  );
 }
 
 const dialog = (): HTMLDialogElement => {
@@ -67,23 +74,34 @@ describe("open and close", () => {
   it("builds no dialog until first use", () => {
     expect(document.querySelector("dialog.lb-dialog")).toBeNull();
   });
+
   it("click opens the modal and prevents navigation", () => {
     openViaClick(".blog-image a.lightbox-link");
     expect(dialog().hasAttribute("open")).toBe(true);
   });
+
   it("close button closes and focus returns to the opening link", () => {
     openViaClick(".blog-image a.lightbox-link");
     dialog().querySelector<HTMLButtonElement>(".lb-close")?.click();
     expect(dialog().hasAttribute("open")).toBe(false);
-    expect(document.activeElement).toBe(document.querySelector(".blog-image a.lightbox-link"));
+
+    expect(document.activeElement).toBe(
+      document.querySelector(".blog-image a.lightbox-link"),
+    );
   });
+
   it("veil click closes; clicks inside the zone do not", () => {
     openViaClick(".blog-image a.lightbox-link");
-    dialog().querySelector(".lb-plate")?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+
+    dialog()
+      .querySelector(".lb-plate")
+      ?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+
     expect(dialog().hasAttribute("open")).toBe(true);
     dialog().dispatchEvent(new MouseEvent("click", { bubbles: true }));
     expect(dialog().hasAttribute("open")).toBe(false);
   });
+
   it("reuses one dialog across opens", () => {
     openViaClick(".blog-image a.lightbox-link");
     dialog().close();
@@ -104,11 +122,15 @@ describe("solo mode", () => {
     expect(d.querySelector<HTMLElement>(".lb-next")?.hidden).toBe(true);
     expect(d.querySelector<HTMLElement>(".lb-thumbs")?.hidden).toBe(true);
   });
+
   it("sizes the image from the fallback box when rects measure zero", () => {
     openViaClick(".blog-image a.lightbox-link");
     // 1600x1200 in the 800x600 fallback box: fit 0.5, so width 800px
     const img = dialog().querySelector<HTMLImageElement>(".lb-img");
-    expect(img?.style.width).toBe(`${String(1600 * (FALLBACK_BOX.w / 1600))}px`);
+
+    expect(img?.style.width).toBe(
+      `${String(1600 * (FALLBACK_BOX.w / 1600))}px`,
+    );
   });
 });
 
@@ -122,6 +144,7 @@ describe("full-resolution swap", () => {
     probe?.dispatchEvent(new Event("load"));
     expect(target.src).toContain("/full/solo.jpg");
   });
+
   it("ignores a stale load after navigating away", () => {
     const target = document.createElement("img");
     target.src = "/thumb/g1.jpg";
@@ -133,15 +156,21 @@ describe("full-resolution swap", () => {
 });
 
 describe("gallery sets", () => {
-  beforeEach(() => { openViaClick(".gallery-plates a.lightbox-link"); });
+  beforeEach(() => {
+    openViaClick(".gallery-plates a.lightbox-link");
+  });
 
   it("shows counter, arrows, and one thumb per plate", () => {
     const d = dialog();
     expect(d.querySelector(".lb-counter")?.textContent).toBe("01 / 03");
     expect(d.querySelector<HTMLElement>(".lb-prev")?.hidden).toBe(false);
     expect(d.querySelectorAll(".lb-thumb").length).toBe(3);
-    expect(d.querySelectorAll(".lb-thumb")[0].classList.contains("active")).toBe(true);
+
+    expect(
+      d.querySelectorAll(".lb-thumb")[0].classList.contains("active"),
+    ).toBe(true);
   });
+
   it("next advances with wrap-around and updates caption + active thumb", () => {
     const d = dialog();
     const next = d.querySelector<HTMLButtonElement>(".lb-next");
@@ -151,38 +180,70 @@ describe("gallery sets", () => {
     next?.click();
     next?.click();
     expect(d.querySelector(".lb-counter")?.textContent).toBe("01 / 03");
-    expect(d.querySelectorAll(".lb-thumb")[0].classList.contains("active")).toBe(true);
+
+    expect(
+      d.querySelectorAll(".lb-thumb")[0].classList.contains("active"),
+    ).toBe(true);
   });
+
   it("arrow keys navigate", () => {
     const d = dialog();
-    d.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true }));
+
+    d.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true }),
+    );
+
     expect(d.querySelector(".lb-counter")?.textContent).toBe("02 / 03");
-    d.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowLeft", bubbles: true }));
+
+    d.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "ArrowLeft", bubbles: true }),
+    );
+
     expect(d.querySelector(".lb-counter")?.textContent).toBe("01 / 03");
   });
+
   it("clicking a thumb jumps to that image", () => {
     const d = dialog();
     d.querySelectorAll<HTMLButtonElement>(".lb-thumb")[2].click();
     expect(d.querySelector(".lb-caption")?.textContent).toBe("Plate three");
   });
+
   it("solo images ignore arrow keys", () => {
     dialog().close();
     openViaClick(".blog-image a.lightbox-link");
     const d = dialog();
-    d.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true }));
+
+    d.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true }),
+    );
+
     expect(d.querySelector(".lb-caption")?.textContent).toBe("A solo figure");
   });
+
   it("a two-finger pinch does not trigger swipe navigation on release", () => {
     const d = dialog();
     const viewbox = d.querySelector(".lb-viewbox");
+
     /* jsdom lacks a PointerEvent constructor (see henry-loose-dom.test.ts);
        dispatch MouseEvents typed as pointer events and attach pointerId,
        the only pointer-specific field the listeners read. */
-    const pointer = (type: string, pointerId: number, x: number, y: number): Event => {
-      const ev = new MouseEvent(type, { bubbles: true, cancelable: true, clientX: x, clientY: y });
+    const pointer = (
+      type: string,
+      pointerId: number,
+      x: number,
+      y: number,
+    ): Event => {
+      const ev = new MouseEvent(type, {
+        bubbles: true,
+        cancelable: true,
+        clientX: x,
+        clientY: y,
+      });
+
       Object.defineProperty(ev, "pointerId", { value: pointerId });
       return ev;
     };
+
     viewbox?.dispatchEvent(pointer("pointerdown", 1, 300, 300));
     viewbox?.dispatchEvent(pointer("pointerdown", 2, 700, 300));
     viewbox?.dispatchEvent(pointer("pointermove", 1, 380, 300));
@@ -204,12 +265,14 @@ describe("walkthrough sets", () => {
     d.querySelector<HTMLButtonElement>(".lb-next")?.click();
     expect(d.querySelector(".lb-caption")?.textContent).toBe("Step two, back");
   });
+
   it("a second walkthrough is its own set, not chained to the first", () => {
     openViaClick('a.lightbox-link[href="/full/w3.jpg"]');
     const d = dialog();
     expect(d.querySelector<HTMLElement>(".lb-prev")?.hidden).toBe(true);
     expect(d.querySelector<HTMLElement>(".lb-next")?.hidden).toBe(true);
   });
+
   it("gallery and walkthrough sets do not see each other", () => {
     openViaClick(".gallery-plates a.lightbox-link");
     expect(dialog().querySelectorAll(".lb-thumb").length).toBe(3);
@@ -217,7 +280,9 @@ describe("walkthrough sets", () => {
 });
 
 describe("zoom and pan interactions", () => {
-  beforeEach(() => { openViaClick(".blog-image a.lightbox-link"); });
+  beforeEach(() => {
+    openViaClick(".blog-image a.lightbox-link");
+  });
 
   it("plus and minus keys zoom around center; 0 returns to fit", () => {
     const d = dialog();
@@ -232,23 +297,38 @@ describe("zoom and pan interactions", () => {
     // below fit: clamped pan keeps it centered on the mat
     expect(out()).toBe("42% · +0,+0");
   });
+
   it("double-click toggles between fit and 100%", () => {
     const d = dialog();
     const img = d.querySelector<HTMLImageElement>(".lb-img");
-    img?.dispatchEvent(new MouseEvent("dblclick", { bubbles: true, clientX: 0, clientY: 0 }));
+
+    img?.dispatchEvent(
+      new MouseEvent("dblclick", { bubbles: true, clientX: 0, clientY: 0 }),
+    );
+
     expect(d.querySelector(".lb-readout")?.textContent).toContain("100%");
-    img?.dispatchEvent(new MouseEvent("dblclick", { bubbles: true, clientX: 0, clientY: 0 }));
+
+    img?.dispatchEvent(
+      new MouseEvent("dblclick", { bubbles: true, clientX: 0, clientY: 0 }),
+    );
+
     expect(d.querySelector(".lb-readout")?.textContent).toBe("FIT · 0,0");
   });
+
   it("double-click from any non-initial state returns to fit, centered", () => {
     const d = dialog();
     const out = (): string => d.querySelector(".lb-readout")?.textContent ?? "";
     d.dispatchEvent(new KeyboardEvent("keydown", { key: "+", bubbles: true }));
     expect(out()).toBe("60% · +0,+0");
     const img = d.querySelector<HTMLImageElement>(".lb-img");
-    img?.dispatchEvent(new MouseEvent("dblclick", { bubbles: true, clientX: 0, clientY: 0 }));
+
+    img?.dispatchEvent(
+      new MouseEvent("dblclick", { bubbles: true, clientX: 0, clientY: 0 }),
+    );
+
     expect(out()).toBe("FIT · 0,0");
   });
+
   it("suppresses native image dragging so drag pans instead", () => {
     const d = dialog();
     const img = d.querySelector<HTMLImageElement>(".lb-img");
@@ -257,21 +337,39 @@ describe("zoom and pan interactions", () => {
     img?.dispatchEvent(drag);
     expect(drag.defaultPrevented).toBe(true);
   });
+
   it("wheel zooms in and updates the image size", () => {
     const d = dialog();
     const img = d.querySelector<HTMLImageElement>(".lb-img");
     const before = img?.style.width;
+
     d.querySelector(".lb-viewbox")?.dispatchEvent(
-      new WheelEvent("wheel", { deltaY: -100, bubbles: true, cancelable: true }),
+      new WheelEvent("wheel", {
+        deltaY: -100,
+        bubbles: true,
+        cancelable: true,
+      }),
     );
+
     expect(img?.style.width).not.toBe(before);
     expect(d.querySelector(".lb-readout")?.textContent).toContain("%");
   });
 });
 
 describe("pan on tall images", () => {
-  const pointer = (type: string, pointerId: number, x: number, y: number): Event => {
-    const ev = new MouseEvent(type, { bubbles: true, cancelable: true, clientX: x, clientY: y });
+  const pointer = (
+    type: string,
+    pointerId: number,
+    x: number,
+    y: number,
+  ): Event => {
+    const ev = new MouseEvent(type, {
+      bubbles: true,
+      cancelable: true,
+      clientX: x,
+      clientY: y,
+    });
+
     Object.defineProperty(ev, "pointerId", { value: pointerId });
     return ev;
   };
@@ -293,8 +391,19 @@ describe("pan on tall images", () => {
 });
 
 describe("free pan world", () => {
-  const pointer = (type: string, pointerId: number, x: number, y: number): Event => {
-    const ev = new MouseEvent(type, { bubbles: true, cancelable: true, clientX: x, clientY: y });
+  const pointer = (
+    type: string,
+    pointerId: number,
+    x: number,
+    y: number,
+  ): Event => {
+    const ev = new MouseEvent(type, {
+      bubbles: true,
+      cancelable: true,
+      clientX: x,
+      clientY: y,
+    });
+
     Object.defineProperty(ev, "pointerId", { value: pointerId });
     return ev;
   };
@@ -360,15 +469,33 @@ describe("free pan world", () => {
 
 describe("modified clicks fall through to the browser", () => {
   it("does not open the lightbox on a ctrl-click", () => {
-    const link = document.querySelector<HTMLAnchorElement>(".blog-image a.lightbox-link");
-    link?.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true, ctrlKey: true }));
+    const link = document.querySelector<HTMLAnchorElement>(
+      ".blog-image a.lightbox-link",
+    );
+
+    link?.dispatchEvent(
+      new MouseEvent("click", {
+        bubbles: true,
+        cancelable: true,
+        ctrlKey: true,
+      }),
+    );
+
     expect(document.querySelector("dialog.lb-dialog")).toBeNull();
   });
+
   it("does not open the lightbox on a non-primary-button click", () => {
-    const link = document.querySelector<HTMLAnchorElement>(".blog-image a.lightbox-link");
-    link?.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true, button: 1 }));
+    const link = document.querySelector<HTMLAnchorElement>(
+      ".blog-image a.lightbox-link",
+    );
+
+    link?.dispatchEvent(
+      new MouseEvent("click", { bubbles: true, cancelable: true, button: 1 }),
+    );
+
     expect(document.querySelector("dialog.lb-dialog")).toBeNull();
   });
+
   it("still opens on a plain primary click", () => {
     openViaClick(".blog-image a.lightbox-link");
     expect(dialog().hasAttribute("open")).toBe(true);
@@ -423,13 +550,24 @@ describe("custom selector grouping (step 9.5)", () => {
 
   it("an overridden selector still forms sets inside the default group containers", () => {
     openViaClick(".gallery-plates a.shot");
-    expect(dialog().querySelector<HTMLElement>(".lb-counter")?.hidden).toBe(false);
+
+    expect(dialog().querySelector<HTMLElement>(".lb-counter")?.hidden).toBe(
+      false,
+    );
   });
 
   it("groupSelector extends grouping to a container the defaults do not know", () => {
     document.body.innerHTML = CUSTOM;
-    mountLightbox(document, { selector: "a.shot", groupSelector: ".gallery-plates, .strip" });
+
+    mountLightbox(document, {
+      selector: "a.shot",
+      groupSelector: ".gallery-plates, .strip",
+    });
+
     openViaClick(".strip a.shot");
-    expect(dialog().querySelector<HTMLElement>(".lb-counter")?.hidden).toBe(false);
+
+    expect(dialog().querySelector<HTMLElement>(".lb-counter")?.hidden).toBe(
+      false,
+    );
   });
 });

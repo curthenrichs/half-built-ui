@@ -6,16 +6,26 @@
    surrounding prose stay bare markdown). The tilde prefix stands in for
    the traditional em dash, which is banned house-wide; the tilde is
    already the site's separator (post titles). */
-interface Props { by?: string; when?: string; class?: string }
+interface Props {
+  by?: string;
+  when?: string;
+  class?: string;
+}
+
 const { by, when, class: className } = Astro.props;
 const attribution = [by, when].filter(Boolean).join(", ");
 ---
+
 <blockquote class:list={[className]}>
   <slot />
-  {attribution && <footer class="quote-attribution caption">~ {attribution}</footer>}
+  {attribution && (
+    <footer class="quote-attribution caption">~ {attribution}</footer>
+  )}
 </blockquote>
 
 <style>
   /* Type from the .caption pattern, right-aligned under the quote. */
-  .quote-attribution { text-align: right; }
+  .quote-attribution {
+    text-align: right;
+  }
 </style>

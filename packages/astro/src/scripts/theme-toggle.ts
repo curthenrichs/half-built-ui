@@ -22,8 +22,12 @@ const LABEL: Record<Theme, string> = {
    every access is guarded and a bad value reads as no choice. With no
    storageKey there is nowhere to read from, so this reads as no choice
    too rather than guessing at a key. */
-export function readStored(storage: Storage | null, storageKey?: string): Theme | null {
+export function readStored(
+  storage: Storage | null,
+  storageKey?: string,
+): Theme | null {
   if (!storageKey) return null;
+
   try {
     const v = storage?.getItem(storageKey);
     return v === "light" || v === "dark" ? v : null;
@@ -36,8 +40,13 @@ export function readStored(storage: Storage | null, storageKey?: string): Theme 
    the page, it just does not persist the choice. That is a safe
    degradation for an adopter who forgot to pass one, not a broken
    toggle. */
-function writeStored(storage: Storage | null, storageKey: string | undefined, theme: Theme): void {
+function writeStored(
+  storage: Storage | null,
+  storageKey: string | undefined,
+  theme: Theme,
+): void {
   if (!storageKey) return;
+
   try {
     storage?.setItem(storageKey, theme);
   } catch {
@@ -56,7 +65,11 @@ export function apply(doc: Document, theme: Theme): void {
   else delete doc.documentElement.dataset.theme;
 }
 
-function reflect(btn: HTMLButtonElement, theme: Theme, labels: Record<Theme, string>): void {
+function reflect(
+  btn: HTMLButtonElement,
+  theme: Theme,
+  labels: Record<Theme, string>,
+): void {
   btn.setAttribute("aria-pressed", theme === "dark" ? "true" : "false");
   btn.setAttribute("aria-label", labels[theme]);
   btn.title = labels[theme];
@@ -79,23 +92,37 @@ export interface ThemeToggleOptions {
   labels?: Record<Theme, string>;
 }
 
-export const mountThemeToggle: Island<ThemeToggleOptions> = (root, options = {}): IslandHandle => {
+export const mountThemeToggle: Island<ThemeToggleOptions> = (
+  root,
+  options = {},
+): IslandHandle => {
   const doc = options.doc ?? docOf(root);
-  const { selector = ".theme-toggle", storage = safeStorage(doc), storageKey, labels = LABEL } = options;
+
+  const {
+    selector = ".theme-toggle",
+    storage = safeStorage(doc),
+    storageKey,
+    labels = LABEL,
+  } = options;
+
   const handlers: [HTMLButtonElement, () => void][] = [];
+
   for (const btn of root.querySelectorAll<HTMLButtonElement>(selector)) {
     if (mounted.has(btn)) continue;
     mounted.add(btn);
     reflect(btn, current(doc), labels);
+
     const onClick = () => {
       const next: Theme = current(doc) === "dark" ? "light" : "dark";
       apply(doc, next);
       writeStored(storage, storageKey, next);
       for (const b of mounted) reflect(b, next, labels);
     };
+
     btn.addEventListener("click", onClick);
     handlers.push([btn, onClick]);
   }
+
   return {
     destroy(): void {
       for (const [btn, onClick] of handlers) {

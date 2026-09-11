@@ -12,26 +12,45 @@ import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { BP_PHONE_MAX } from "../src/scripts/core/breakpoints";
 
-const cssRoot = (rel: string) => readFileSync(new URL(`../../css/src/${rel}`, import.meta.url), "utf-8");
+const cssRoot = (rel: string) =>
+  readFileSync(new URL(`../../css/src/${rel}`, import.meta.url), "utf-8");
+
 const css = () => cssRoot("tokens/breakpoints.css");
 
 describe("system breakpoints", () => {
   it("defines exactly the four custom-media names", () => {
-    const names = [...css().matchAll(/@custom-media (--bp-[a-z-]+)/g)].map((m) => m[1]);
-    expect(names).toEqual(["--bp-phone", "--bp-phone-up", "--bp-sidebar", "--bp-tablet"]);
+    const names = [...css().matchAll(/@custom-media (--bp-[a-z-]+)/g)].map(
+      (m) => m[1],
+    );
+
+    expect(names).toEqual([
+      "--bp-phone",
+      "--bp-phone-up",
+      "--bp-sidebar",
+      "--bp-tablet",
+    ]);
   });
+
   it("the JS mirror matches the CSS phone value", () => {
     const m = /--bp-phone \(max-width: (\d+)px\)/.exec(css());
     expect(m && Number(m[1])).toBe(BP_PHONE_MAX);
   });
+
   it("no system-breakpoint literal survives in styles or chrome components", () => {
     const files = [
-      "base/scroll-top.css", "base/shell.css", "lightbox.css",
-      "path-player.css", "plate-modal.css",
+      "base/scroll-top.css",
+      "base/shell.css",
+      "lightbox.css",
+      "path-player.css",
+      "plate-modal.css",
     ];
+
     for (const f of files) {
       const t = cssRoot(f);
-      expect(t, f).not.toMatch(/\((?:max|min)-width: *(?:768|769|991|1024)px\)/);
+
+      expect(t, f).not.toMatch(
+        /\((?:max|min)-width: *(?:768|769|991|1024)px\)/,
+      );
     }
   });
 });

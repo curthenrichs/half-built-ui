@@ -36,7 +36,11 @@ import Group from "@half-built/astro/content/Group.astro";
 import Spacer from "@half-built/astro/content/Spacer.astro";
 import codeTheme from "@half-built/astro/shiki/code-theme";
 import codeVars from "@half-built/astro/shiki/code-vars";
-import type { PostCardModel, PostRef, LinkListItem } from "@half-built/astro/components/models.ts";
+import type {
+  PostCardModel,
+  PostRef,
+  LinkListItem,
+} from "@half-built/astro/components/models.ts";
 import placeholderWide from "../assets/placeholder-wide.svg";
 import placeholderSquare from "../assets/placeholder-square.svg";
 import placeholderTall from "../assets/placeholder-tall.svg";
@@ -61,12 +65,16 @@ const posts: PostCardModel[] = [
     minutes: 6,
     hero: placeholderWide,
     draft: true,
-    categories: [{ name: "Sample", href: "#" }, { name: "Demo", href: "#" }],
+    categories: [
+      { name: "Sample", href: "#" },
+      { name: "Demo", href: "#" },
+    ],
   },
   {
     href: "#",
     title: "Sample post, with corner badges",
-    excerpt: "A third placeholder excerpt, showing the AI Art and Demo badges together.",
+    excerpt:
+      "A third placeholder excerpt, showing the AI Art and Demo badges together.",
     author: "Demo Author",
     dateStr: "3, Jan 2026",
     minutes: 3,
@@ -101,12 +109,32 @@ const tokenEntries = [
   { role: "--surface", token: "--surface", note: "The page ground" },
   { role: "--rule", token: "--rule", note: "Borders and frames" },
   { role: "--accent-1", token: "--accent-1", note: "Accent 1 lines and fills" },
-  { role: "--accent-1-ink", token: "--accent-1-ink", note: "Accent 1 as readable text" },
+  {
+    role: "--accent-1-ink",
+    token: "--accent-1-ink",
+    note: "Accent 1 as readable text",
+  },
   { role: "--accent-2", token: "--accent-2", note: "Accent 2 lines and fills" },
-  { role: "--accent-2-ink", token: "--accent-2-ink", note: "Accent 2 as readable text" },
-  { role: "--error-ink", token: "--error-ink", note: "The error callout's line and label" },
-  { role: "--code-token-function", token: "--code-token-function", note: "Function names in code" },
-  { role: "--code-token-string", token: "--code-token-string", note: "Strings and constants in code" },
+  {
+    role: "--accent-2-ink",
+    token: "--accent-2-ink",
+    note: "Accent 2 as readable text",
+  },
+  {
+    role: "--error-ink",
+    token: "--error-ink",
+    note: "The error callout's line and label",
+  },
+  {
+    role: "--code-token-function",
+    token: "--code-token-function",
+    note: "Function names in code",
+  },
+  {
+    role: "--code-token-string",
+    token: "--code-token-string",
+    note: "Strings and constants in code",
+  },
 ];
 
 /* The Table subsection's wide specimen: every color primitive in the
@@ -117,14 +145,24 @@ const tokenEntries = [
    "plain" column. Color values only: the sheet's strokes, spacing,
    and z ladder are not ramps. */
 import primitivesSheet from "@half-built/css/tokens/primitives.css?raw";
+
 const STOP = /^(\d+|a\d+|vivid|dim)$/;
+
 const stopOrder = (stop: string): number => {
   if (stop === "plain") return -1;
   if (/^\d+$/.test(stop)) return Number(stop);
-  return 1000 + ["vivid", "dim"].indexOf(stop) + (stop.startsWith("a") ? 100 + Number(stop.slice(1)) : 0);
+  return (
+    1000 +
+    ["vivid", "dim"].indexOf(stop) +
+    (stop.startsWith("a") ? 100 + Number(stop.slice(1)) : 0)
+  );
 };
+
 const ramps = new Map<string, Map<string, string>>();
-for (const m of primitivesSheet.matchAll(/--([a-z0-9-]+):\s*((?:#|rgba?\()[^;]+);/g)) {
+
+for (const m of primitivesSheet.matchAll(
+  /--([a-z0-9-]+):\s*((?:#|rgba?\()[^;]+);/g,
+)) {
   const [, name, value] = m;
   const parts = name.split("-");
   const last = parts[parts.length - 1];
@@ -134,14 +172,33 @@ for (const m of primitivesSheet.matchAll(/--([a-z0-9-]+):\s*((?:#|rgba?\()[^;]+)
   row.set(stop, value.trim());
   ramps.set(family, row);
 }
-const rampStops = [...new Set([...ramps.values()].flatMap((row) => [...row.keys()]))].sort((a, b) => stopOrder(a) - stopOrder(b));
-const rampRows = [...ramps.entries()].map(([family, row]) => ({ family, cells: rampStops.map((stop) => row.get(stop) ?? "") }));
+
+const rampStops = [
+  ...new Set([...ramps.values()].flatMap((row) => [...row.keys()])),
+].sort((a, b) => stopOrder(a) - stopOrder(b));
+
+const rampRows = [...ramps.entries()].map(([family, row]) => ({
+  family,
+  cells: rampStops.map((stop) => row.get(stop) ?? ""),
+}));
 
 /* Sample collection for the forward-link components: one published
    post and one draft, the two states the gate tells apart. */
 const samplePosts = [
-  { data: { slug: "sample-published", date: new Date("2026-09-01T00:00:00Z"), draft: false } },
-  { data: { slug: "sample-draft", date: new Date("2026-09-08T00:00:00Z"), draft: true } },
+  {
+    data: {
+      slug: "sample-published",
+      date: new Date("2026-09-01T00:00:00Z"),
+      draft: false,
+    },
+  },
+  {
+    data: {
+      slug: "sample-draft",
+      date: new Date("2026-09-08T00:00:00Z"),
+      draft: true,
+    },
+  },
 ];
 
 const codeSample = `def read_ir(code):
@@ -184,12 +241,25 @@ import "@half-built/css/patterns.css";
 import Palette from "@half-built/astro/content/Palette.astro";`;
 
 const npmPackages = [
-  { name: "@half-built/css", href: "https://www.npmjs.com/package/@half-built/css" },
-  { name: "@half-built/astro", href: "https://www.npmjs.com/package/@half-built/astro" },
-  { name: "@half-built/tooling", href: "https://www.npmjs.com/package/@half-built/tooling" },
+  {
+    name: "@half-built/css",
+    href: "https://www.npmjs.com/package/@half-built/css",
+  },
+  {
+    name: "@half-built/astro",
+    href: "https://www.npmjs.com/package/@half-built/astro",
+  },
+  {
+    name: "@half-built/tooling",
+    href: "https://www.npmjs.com/package/@half-built/tooling",
+  },
 ];
 ---
-<Base title="half-built-ui" description="The reference site for the @half-built packages, every component's variants rendered on one page.">
+
+<Base
+  title="half-built-ui"
+  description="The reference site for the @half-built packages, every component's variants rendered on one page."
+>
   <div class="site-layout">
     <Rail />
     <article class="static-page bracket-frame">
@@ -199,17 +269,41 @@ const npmPackages = [
         <div class="prose">
           <h2>About</h2>
           <div class="section-intro" data-section-intro="intro">
-            <p>This page renders every component in the half-built design system. The system was extracted from <a href="https://half-built-robots.com">half-built-robots.com</a>, which now references these packages. All three packages are published on npm under MIT.</p>
-            <p>The palette editor in the corner rewrites the theming variables live and prints a block ready to paste into a stylesheet. That block is the entire theming surface, eight brand stops plus the four values behind the code viewer. The viewer highlights through those variables, so syntax colors and the block they sit on follow the palette as well.</p>
+            <p>
+              This page renders every component in the half-built design system.
+              The system was extracted from{" "}
+              <a href="https://half-built-robots.com">half-built-robots.com</a>,
+              which now references these packages. All three packages are
+              published on npm under MIT.
+            </p>
+            <p>
+              The palette editor in the corner rewrites the theming variables
+              live and prints a block ready to paste into a stylesheet. That
+              block is the entire theming surface, eight brand stops plus the
+              four values behind the code viewer. The viewer highlights through
+              those variables, so syntax colors and the block they sit on follow
+              the palette as well.
+            </p>
           </div>
           <!-- A real CodeBlock, not an inline code span, so the code
                island mounts its COPY button on the install line (owner
                ask 2026-09-06). -->
           <CodeBlock>
-            <Code code="npm install @half-built/css @half-built/astro @half-built/tooling" lang="shellscript" theme={codeTheme} transformers={[codeVars]} />
+            <Code
+              code="npm install @half-built/css @half-built/astro @half-built/tooling"
+              lang="shellscript"
+              theme={codeTheme}
+              transformers={[codeVars]}
+            />
           </CodeBlock>
           <ul class="demo-npm-links">
-            {npmPackages.map((pkg) => <li><a href={pkg.href}><code>{pkg.name}</code></a></li>)}
+            {npmPackages.map((pkg) => (
+              <li>
+                <a href={pkg.href}>
+                  <code>{pkg.name}</code>
+                </a>
+              </li>
+            ))}
           </ul>
         </div>
       </section>
@@ -218,7 +312,14 @@ const npmPackages = [
         <div class="prose">
           <h2>Frame</h2>
           <div class="section-intro" data-section-intro="frame">
-            <p>The header and footer come from the package and know nothing about the site around them. The site name and the rest of the identity arrive as typed props. The theme toggle sits in the header, and the palette panel carries a second instance beside the color pickers. Every toggle on a page stays in step, so flipping either one moves the other.</p>
+            <p>
+              The header and footer come from the package and know nothing about
+              the site around them. The site name and the rest of the identity
+              arrive as typed props. The theme toggle sits in the header, and
+              the palette panel carries a second instance beside the color
+              pickers. Every toggle on a page stays in step, so flipping either
+              one moves the other.
+            </p>
           </div>
           <Imports code={frameImports} />
         </div>
@@ -228,19 +329,30 @@ const npmPackages = [
         <div class="prose">
           <h2>Cards</h2>
           <div class="section-intro" data-section-intro="cards">
-            <p>PostCard is the card an archive page is made of. The second one here is flagged as a draft, and that badge exists so an unfinished post can ship where people can see it. The third wears the corner badges, one for an AI-generated image and one for a post carrying an interactive demo. CategoryCard is the smaller tile, an image with the category name chipped over its bottom edge.</p>
+            <p>
+              PostCard is the card an archive page is made of. The second one
+              here is flagged as a draft, and that badge exists so an unfinished
+              post can ship where people can see it. The third wears the corner
+              badges, one for an AI-generated image and one for a post carrying
+              an interactive demo. CategoryCard is the smaller tile, an image
+              with the category name chipped over its bottom edge.
+            </p>
           </div>
           <Imports code={cardImports} />
         </div>
 
         <h3>Post cards</h3>
         <div class="demo-card-grid">
-          {posts.map((post) => <PostCard {...post} />)}
+          {posts.map((post) => (
+            <PostCard {...post} />
+          ))}
         </div>
 
         <h3>Category cards</h3>
         <div class="demo-card-grid demo-card-grid-narrow">
-          {categoryCards.map((c) => <CategoryCard name={c.name} href={c.href} image={c.image} />)}
+          {categoryCards.map((c) => (
+            <CategoryCard name={c.name} href={c.href} image={c.image} />
+          ))}
         </div>
       </section>
 
@@ -248,40 +360,71 @@ const npmPackages = [
         <div class="prose">
           <h2>Components</h2>
           <div class="section-intro" data-section-intro="components">
-            <p>The rest of the package, from the navigation rows to the blocks a post body is built from. Imports split between <code>components/</code> for page chrome and <code>content/</code> for post bodies. The split is only where the files live. Nothing in this system caps the width of text. The layout's column is the only width authority.</p>
+            <p>
+              The rest of the package, from the navigation rows to the blocks a
+              post body is built from. Imports split between{" "}
+              <code>components/</code> for page chrome and <code>content/</code>{" "}
+              for post bodies. The split is only where the files live. Nothing
+              in this system caps the width of text. The layout's column is the
+              only width authority.
+            </p>
           </div>
           <Imports code={componentImports} />
         </div>
 
         <div class="prose">
           <h3>Pagination</h3>
-          <p>The numbered row at the foot of an archive. It renders nothing when there is only one page.</p>
+          <p>
+            The numbered row at the foot of an archive. It renders nothing when
+            there is only one page.
+          </p>
         </div>
         <Pagination current={2} total={4} base="#" />
 
         <div class="prose">
           <h3>Post navigation</h3>
-          <p>The pair of links at the end of a post. The newer post sits on the left and the older one on the right, matching the newest-first order the archives read in.</p>
+          <p>
+            The pair of links at the end of a post. The newer post sits on the
+            left and the older one on the right, matching the newest-first order
+            the archives read in.
+          </p>
         </div>
         <PostNavigation prev={prevPost} next={nextPost} />
 
         <div class="prose">
           <h3>Link list widget and Widget</h3>
-          <p>Widget is a heading over whatever sits in its body. LinkListWidget is that same block filled with links and their counts.</p>
+          <p>
+            Widget is a heading over whatever sits in its body. LinkListWidget
+            is that same block filled with links and their counts.
+          </p>
         </div>
         <div class="demo-widget-row">
           <LinkListWidget title="Sample links" items={linkListItems} />
           <Widget title="Plain widget">
-            <p>A Widget with arbitrary content in its body, rather than the link-list shape above.</p>
+            <p>
+              A Widget with arbitrary content in its body, rather than the
+              link-list shape above.
+            </p>
           </Widget>
         </div>
 
         <div class="prose">
           <h3>Subscribe</h3>
-          <p>A real form with a method and an action, which submits with JavaScript turned off. Its copy sits in named slots, so the words can be overridden without forking the component.</p>
+          <p>
+            A real form with a method and an action, which submits with
+            JavaScript turned off. Its copy sits in named slots, so the words
+            can be overridden without forking the component.
+          </p>
         </div>
-        <Subscribe variant="page" action="https://example.com/subscribe" publicUrl="example.com/subscribe">
-          <Fragment slot="fine-print">Placeholder form. This demo does not send email. The action is not a real endpoint.</Fragment>
+        <Subscribe
+          variant="page"
+          action="https://example.com/subscribe"
+          publicUrl="example.com/subscribe"
+        >
+          <Fragment slot="fine-print">
+            Placeholder form. This demo does not send email. The action is not a
+            real endpoint.
+          </Fragment>
         </Subscribe>
 
         <div class="prose">
@@ -291,41 +434,95 @@ const npmPackages = [
             <Button variant="plain">Plain</Button>
             <Button variant="shaded">Shaded</Button>
             <Button variant="accent-1">Accent 1</Button>
-            <Button variant="accent-2" size="lg">Accent 2, large</Button>
+            <Button variant="accent-2" size="lg">
+              Accent 2, large
+            </Button>
           </p>
           <p>A lone call to action takes the centered row.</p>
           <p class="button-row button-row-center">
-            <Button variant="accent-2" href="#">Centered call to action</Button>
+            <Button variant="accent-2" href="#">
+              Centered call to action
+            </Button>
           </p>
 
           <h3>Callout</h3>
-          <p>An aside set apart from the body, for a caveat, a warning, or a result the reader should not skim past. The type sets the label and the line color.</p>
+          <p>
+            An aside set apart from the body, for a caveat, a warning, or a
+            result the reader should not skim past. The type sets the label and
+            the line color.
+          </p>
           <Callout type="note">A note callout, the default look.</Callout>
-          <Callout type="info">An info callout, graphite like the note. The label tells them apart.</Callout>
-          <Callout type="tip" title="Tip">A tip callout, wearing the first accent.</Callout>
-          <Callout type="warning">A warning callout, the first accent again.</Callout>
-          <Callout type="success">A success callout, wearing the second accent.</Callout>
+          <Callout type="info">
+            An info callout, graphite like the note. The label tells them apart.
+          </Callout>
+          <Callout type="tip" title="Tip">
+            A tip callout, wearing the first accent.
+          </Callout>
+          <Callout type="warning">
+            A warning callout, the first accent again.
+          </Callout>
+          <Callout type="success">
+            A success callout, wearing the second accent.
+          </Callout>
           <Callout type="error">An error callout, in the red family.</Callout>
 
           <h3>Editor's note</h3>
-          <p>A note to the author that renders only on a dev server. A deploy build emits nothing for it, so it can sit in published content as a standing to-do. This one is forced visible with the <code>shown</code> prop.</p>
-          <EditorNote title="Demo" shown={true}>A demo note, forced visible. The dashed rule is the tell. Nothing else in the system is dashed.</EditorNote>
+          <p>
+            A note to the author that renders only on a dev server. A deploy
+            build emits nothing for it, so it can sit in published content as a
+            standing to-do. This one is forced visible with the{" "}
+            <code>shown</code> prop.
+          </p>
+          <EditorNote title="Demo" shown={true}>
+            A demo note, forced visible. The dashed rule is the tell. Nothing
+            else in the system is dashed.
+          </EditorNote>
 
           <h3>When published and Post link</h3>
-          <p>Both take the consumer's post collection as a prop and read no content of their own. <code>PostLink</code> resolves a slug to the post's dated URL at build time. <code>WhenPublished</code> renders its passage only once the post it names is visible, so a draft can be teased before it ships. The sample collection here has one published post and one draft. The first passage shows, the second is absent from this page.</p>
+          <p>
+            Both take the consumer's post collection as a prop and read no
+            content of their own. <code>PostLink</code> resolves a slug to the
+            post's dated URL at build time. <code>WhenPublished</code> renders
+            its passage only once the post it names is visible, so a draft can
+            be teased before it ships. The sample collection here has one
+            published post and one draft. The first passage shows, the second is
+            absent from this page.
+          </p>
           <WhenPublished slug="sample-published" posts={samplePosts}>
-            <p>This passage is visible because its post is published. It links to <PostLink slug="sample-published" posts={samplePosts} tip="Sample post (September 1, 2026)">the sample post</PostLink>, whose URL was resolved from the slug.</p>
+            <p>
+              This passage is visible because its post is published. It links to{" "}
+              <PostLink
+                slug="sample-published"
+                posts={samplePosts}
+                tip="Sample post (September 1, 2026)"
+              >
+                the sample post
+              </PostLink>
+              , whose URL was resolved from the slug.
+            </p>
           </WhenPublished>
           <WhenPublished slug="sample-draft" posts={samplePosts}>
-            <p class="sample-draft-passage">This passage never renders, because its post is a draft.</p>
+            <p class="sample-draft-passage">
+              This passage never renders, because its post is a draft.
+            </p>
           </WhenPublished>
 
           <h3>Group</h3>
-          <Group><p>A boxed prose container, no label and no tint, the plain sibling of Callout's box.</p></Group>
+          <Group>
+            <p>
+              A boxed prose container, no label and no tint, the plain sibling
+              of Callout's box.
+            </p>
+          </Group>
 
           <h3>Code block</h3>
           <CodeBlock filename="example.py">
-            <Code code={codeSample} lang="python" theme={codeTheme} transformers={[codeVars]} />
+            <Code
+              code={codeSample}
+              lang="python"
+              theme={codeTheme}
+              transformers={[codeVars]}
+            />
           </CodeBlock>
 
           <h3>Spacer</h3>
@@ -334,29 +531,58 @@ const npmPackages = [
           <p>Normal flow resumes here, after the spacer.</p>
 
           <h3>Quote</h3>
-          <Quote by="Demo Author" when="2026">A quoted line, with an attribution footer.</Quote>
+          <Quote by="Demo Author" when="2026">
+            A quoted line, with an attribution footer.
+          </Quote>
 
           <h3>Walkthrough and Step</h3>
           <Walkthrough numbered>
-            <Step src={placeholderSquare} alt="Placeholder step photo, one">First step. One placeholder photo beside its text.</Step>
-            <Step src={placeholderSquare} alt="Placeholder step photo, two">Second step. Numbering runs down the media column's corner chip.</Step>
+            <Step src={placeholderSquare} alt="Placeholder step photo, one">
+              First step. One placeholder photo beside its text.
+            </Step>
+            <Step src={placeholderSquare} alt="Placeholder step photo, two">
+              Second step. Numbering runs down the media column's corner chip.
+            </Step>
           </Walkthrough>
 
           <h3>Gallery</h3>
-          <Gallery columns={3} caption="Three placeholder plates in a bracket frame.">
-            <GalleryImage src={placeholderSquare} alt="Placeholder gallery plate, one" caption="Plate one" />
-            <GalleryImage src={placeholderSquare} alt="Placeholder gallery plate, two" caption="Plate two" />
-            <GalleryImage src={placeholderSquare} alt="Placeholder gallery plate, three" caption="Plate three" />
+          <Gallery
+            columns={3}
+            caption="Three placeholder plates in a bracket frame."
+          >
+            <GalleryImage
+              src={placeholderSquare}
+              alt="Placeholder gallery plate, one"
+              caption="Plate one"
+            />
+            <GalleryImage
+              src={placeholderSquare}
+              alt="Placeholder gallery plate, two"
+              caption="Plate two"
+            />
+            <GalleryImage
+              src={placeholderSquare}
+              alt="Placeholder gallery plate, three"
+              caption="Plate three"
+            />
           </Gallery>
 
           <h3>Blog image</h3>
-          <BlogImage src={placeholderWide} alt="Wide placeholder image" caption="A full-width figure with a caption." />
+          <BlogImage
+            src={placeholderWide}
+            alt="Wide placeholder image"
+            caption="A full-width figure with a caption."
+          />
 
           <h3>Media text</h3>
           <MediaText src={placeholderTall} alt="Tall placeholder image">
-            <p>Media on one side, prose on the other. This is the caption slot, and it takes a short paragraph rather than a single line. On a phone the two stack, image first, and the prose centers under it like a figure caption.</p>
+            <p>
+              Media on one side, prose on the other. This is the caption slot,
+              and it takes a short paragraph rather than a single line. On a
+              phone the two stack, image first, and the prose centers under it
+              like a figure caption.
+            </p>
           </MediaText>
-
         </div>
       </section>
 
@@ -364,7 +590,13 @@ const npmPackages = [
         <div class="prose">
           <h2>CSS primitives</h2>
           <div class="section-intro" data-section-intro="css">
-            <p>The tokens are the variables everything else reads, and every color on this page resolves through them. The palette editor repaints the page by setting twelve. Each value is tuned to clear WCAG AA against the ground it sits on. The prose and pattern sheets carry the rest, the paragraph rhythm and the boxes.</p>
+            <p>
+              The tokens are the variables everything else reads, and every
+              color on this page resolves through them. The palette editor
+              repaints the page by setting twelve. Each value is tuned to clear
+              WCAG AA against the ground it sits on. The prose and pattern
+              sheets carry the rest, the paragraph rhythm and the boxes.
+            </p>
           </div>
           <Imports code={cssImports} />
         </div>
@@ -378,7 +610,10 @@ const npmPackages = [
             than filler; the token sheet and the Patterns ledger below
             wear the same treatment. */}
         <div class="prose">
-          <p>The boxed ledger every table in the system wears. Wide tables scroll inside their own box, so the page never scrolls sideways.</p>
+          <p>
+            The boxed ledger every table in the system wears. Wide tables scroll
+            inside their own box, so the page never scrolls sideways.
+          </p>
           {/* Scroll boxes are named sections, so tab stops with a
               landmark name: a region that scrolls sideways and a
               keyboard cannot reach fails WCAG 2.1.1 (axe
@@ -387,24 +622,72 @@ const npmPackages = [
           <section class="table-scroll" tabindex="0" aria-label="Breakpoints">
             <table>
               <thead>
-                <tr><th>Breakpoint</th><th>Query</th><th>What changes</th></tr>
+                <tr>
+                  <th>Breakpoint</th>
+                  <th>Query</th>
+                  <th>What changes</th>
+                </tr>
               </thead>
               <tbody>
-                <tr><td><code>--bp-phone</code></td><td><code>max-width: 768px</code></td><td>The header's top band retires and the footer groups collapse.</td></tr>
-                <tr><td><code>--bp-sidebar</code></td><td><code>max-width: 991px</code></td><td>The two-column row stacks.</td></tr>
-                <tr><td><code>--bp-tablet</code></td><td><code>max-width: 1024px</code></td><td>The wide-image step.</td></tr>
+                <tr>
+                  <td>
+                    <code>--bp-phone</code>
+                  </td>
+                  <td>
+                    <code>max-width: 768px</code>
+                  </td>
+                  <td>
+                    The header's top band retires and the footer groups
+                    collapse.
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <code>--bp-sidebar</code>
+                  </td>
+                  <td>
+                    <code>max-width: 991px</code>
+                  </td>
+                  <td>The two-column row stacks.</td>
+                </tr>
+                <tr>
+                  <td>
+                    <code>--bp-tablet</code>
+                  </td>
+                  <td>
+                    <code>max-width: 1024px</code>
+                  </td>
+                  <td>The wide-image step.</td>
+                </tr>
               </tbody>
             </table>
           </section>
-          <p>A wide one, scrolling in its own box. Every color primitive in the sheet, one row per family and one column per stop.</p>
-          <section class="table-scroll" tabindex="0" aria-label="Color primitives">
+          <p>
+            A wide one, scrolling in its own box. Every color primitive in the
+            sheet, one row per family and one column per stop.
+          </p>
+          <section
+            class="table-scroll"
+            tabindex="0"
+            aria-label="Color primitives"
+          >
             <table>
               <thead>
-                <tr><th>Family</th>{rampStops.map((stop) => <th>{stop}</th>)}</tr>
+                <tr>
+                  <th>Family</th>
+                  {rampStops.map((stop) => (
+                    <th>{stop}</th>
+                  ))}
+                </tr>
               </thead>
               <tbody>
                 {rampRows.map((row) => (
-                  <tr><td>{row.family}</td>{row.cells.map((cell) => <td>{cell ? <code>{cell}</code> : ""}</td>)}</tr>
+                  <tr>
+                    <td>{row.family}</td>
+                    {row.cells.map((cell) => (
+                      <td>{cell ? <code>{cell}</code> : ""}</td>
+                    ))}
+                  </tr>
                 ))}
               </tbody>
             </table>
@@ -413,14 +696,22 @@ const npmPackages = [
 
         <h3>Tokens</h3>
         <div class="prose">
-          <p>The roles components read, with the value each resolves to in the current theme and palette.</p>
+          <p>
+            The roles components read, with the value each resolves to in the
+            current theme and palette.
+          </p>
           <Palette entries={tokenEntries} label="Tokens" />
         </div>
 
         <h3>Prose specimen</h3>
         <div class="prose">
-          <p>Placeholder body copy, demonstrating paragraph rhythm, inline <code>code</code>, and a <a href="#">placeholder link</a>.</p>
-          <blockquote>A placeholder blockquote, boxed on the gray band.</blockquote>
+          <p>
+            Placeholder body copy, demonstrating paragraph rhythm, inline{" "}
+            <code>code</code>, and a <a href="#">placeholder link</a>.
+          </p>
+          <blockquote>
+            A placeholder blockquote, boxed on the gray band.
+          </blockquote>
           <ul>
             <li>Placeholder list item one</li>
             <li>Placeholder list item two</li>
@@ -431,12 +722,37 @@ const npmPackages = [
               link, the notes an ordered list under a heading, each with
               a return link. The heading shows on purpose: the system
               defines no .sr-only (prose.css, owner call 2026-09-09). */}
-          <p>A sentence with a footnote reference.<sup><a href="#user-content-fn-1" id="user-content-fnref-1" data-footnote-ref aria-describedby="footnote-label">1</a></sup></p>
+          <p>
+            A sentence with a footnote reference.
+            <sup>
+              <a
+                href="#user-content-fn-1"
+                id="user-content-fnref-1"
+                data-footnote-ref
+                aria-describedby="footnote-label"
+              >
+                1
+              </a>
+            </sup>
+          </p>
           <section data-footnotes class="footnotes">
-            <h2 class="sr-only" id="footnote-label">Footnotes</h2>
+            <h2 class="sr-only" id="footnote-label">
+              Footnotes
+            </h2>
             <ol>
               <li id="user-content-fn-1">
-                <p>A placeholder footnote, with the return link that Markdown footnotes get. <a href="#user-content-fnref-1" data-footnote-backref aria-label="Back to reference 1" class="data-footnote-backref">↩</a></p>
+                <p>
+                  A placeholder footnote, with the return link that Markdown
+                  footnotes get.{" "}
+                  <a
+                    href="#user-content-fnref-1"
+                    data-footnote-backref
+                    aria-label="Back to reference 1"
+                    class="data-footnote-backref"
+                  >
+                    ↩
+                  </a>
+                </p>
               </li>
             </ol>
           </section>
@@ -452,37 +768,90 @@ const npmPackages = [
           <section class="table-scroll" tabindex="0" aria-label="Patterns">
             <table class="demo-pattern-table">
               <thead>
-                <tr><th>Specimen</th><th>Class</th><th>Used for</th></tr>
+                <tr>
+                  <th>Specimen</th>
+                  <th>Class</th>
+                  <th>Used for</th>
+                </tr>
               </thead>
               <tbody>
                 <tr>
-                  <td><span class="chip">Chip</span></td>
-                  <td><code>.chip</code></td>
-                  <td>Filled label. The read-time chip and the category card's name.</td>
-                </tr>
-                <tr>
-                  <td><span class="boxed-label">Boxed label</span></td>
-                  <td><code>.boxed-label</code></td>
-                  <td>Bordered box, typically straddling a frame rule. The header's date box and widget titles.</td>
+                  <td>
+                    <span class="chip">Chip</span>
+                  </td>
+                  <td>
+                    <code>.chip</code>
+                  </td>
+                  <td>
+                    Filled label. The read-time chip and the category card's
+                    name.
+                  </td>
                 </tr>
                 <tr>
                   <td>
-                    <button type="button" class="icon-box" aria-label="Placeholder icon button">
-                      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9" /></svg>
+                    <span class="boxed-label">Boxed label</span>
+                  </td>
+                  <td>
+                    <code>.boxed-label</code>
+                  </td>
+                  <td>
+                    Bordered box, typically straddling a frame rule. The
+                    header's date box and widget titles.
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <button
+                      type="button"
+                      class="icon-box"
+                      aria-label="Placeholder icon button"
+                    >
+                      <svg
+                        viewBox="0 0 24 24"
+                        width="16"
+                        height="16"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                      >
+                        <circle cx="12" cy="12" r="9" />
+                      </svg>
                     </button>
                   </td>
-                  <td><code>.icon-box</code></td>
-                  <td>Bordered interactive square. Social icons, the search magnifier, the palette panel's close box.</td>
+                  <td>
+                    <code>.icon-box</code>
+                  </td>
+                  <td>
+                    Bordered interactive square. Social icons, the search
+                    magnifier, the palette panel's close box.
+                  </td>
                 </tr>
                 <tr>
-                  <td><span class="micro-label">Micro label</span></td>
-                  <td><code>.micro-label</code></td>
-                  <td>Small bold tracked line. Plate labels and the lightbox's HOME box.</td>
+                  <td>
+                    <span class="micro-label">Micro label</span>
+                  </td>
+                  <td>
+                    <code>.micro-label</code>
+                  </td>
+                  <td>
+                    Small bold tracked line. Plate labels and the lightbox's
+                    HOME box.
+                  </td>
                 </tr>
                 <tr>
-                  <td><span class="caption">Caption text, quiet and small.</span></td>
-                  <td><code>.caption</code></td>
-                  <td>The quiet line under an image, beside media text, or after a quote.</td>
+                  <td>
+                    <span class="caption">Caption text, quiet and small.</span>
+                  </td>
+                  <td>
+                    <code>.caption</code>
+                  </td>
+                  <td>
+                    The quiet line under an image, beside media text, or after a
+                    quote.
+                  </td>
                 </tr>
               </tbody>
             </table>
@@ -494,8 +863,15 @@ const npmPackages = [
 </Base>
 
 <style>
-  .static-page h1 { font-size: var(--font-size-lg); margin: 0 0 15px; }
-  section { margin-top: 40px; }
+  .static-page h1 {
+    font-size: var(--font-size-lg);
+    margin: 0 0 15px;
+  }
+
+  section {
+    margin-top: 40px;
+  }
+
   .demo-npm-links {
     list-style: none;
     margin: 0 0 1.5em;
@@ -504,13 +880,18 @@ const npmPackages = [
     flex-wrap: wrap;
     gap: 15px;
   }
+
   .demo-card-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
     gap: 20px;
     margin: 20px 0;
   }
-  .demo-card-grid-narrow { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
+
+  .demo-card-grid-narrow {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  }
+
   .demo-widget-row {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));

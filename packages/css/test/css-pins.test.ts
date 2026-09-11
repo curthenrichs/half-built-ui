@@ -5,7 +5,8 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 
-const read = (path: string) => readFileSync(new URL(path, import.meta.url), "utf-8");
+const read = (path: string) =>
+  readFileSync(new URL(path, import.meta.url), "utf-8");
 
 describe("css pins", () => {
   it("both themes define --focus-ring", () => {
@@ -21,7 +22,13 @@ describe("css pins", () => {
 
   it("breakpoints.css defines the four system breakpoint names", () => {
     const bp = read("../src/tokens/breakpoints.css");
-    for (const name of ["--bp-phone", "--bp-phone-up", "--bp-sidebar", "--bp-tablet"]) {
+
+    for (const name of [
+      "--bp-phone",
+      "--bp-phone-up",
+      "--bp-sidebar",
+      "--bp-tablet",
+    ]) {
       expect(bp, name).toMatch(new RegExp(`@custom-media ${name} `));
     }
   });
@@ -35,7 +42,12 @@ describe("css pins", () => {
 
   it("link-tip hides under the hover-none backstop", () => {
     const css = read("../src/base/link-tip.css");
-    const backstopMatch = /@media \(hover: none\) \{\s*\.link-tip \{ display: none; \}/.exec(css);
+
+    const backstopMatch =
+      /@media \(hover: none\) \{\s*\.link-tip \{\s*display: none;\s*\}/.exec(
+        css,
+      );
+
     expect(backstopMatch).not.toBeNull();
   });
 });

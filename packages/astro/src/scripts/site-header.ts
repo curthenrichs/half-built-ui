@@ -48,30 +48,45 @@ interface Popout {
   closeOnFocusLeave?: boolean;
 }
 
-function wirePopout(doc: Document, { btn, panel, openClass, onOpen, closeOnFocusLeave = false }: Popout): () => void {
+function wirePopout(
+  doc: Document,
+  { btn, panel, openClass, onOpen, closeOnFocusLeave = false }: Popout,
+): () => void {
   const isOpen = (): boolean => panel.classList.contains(openClass);
-  const inside = (t: EventTarget | null): boolean => t instanceof Node && (panel.contains(t) || btn.contains(t));
+
+  const inside = (t: EventTarget | null): boolean =>
+    t instanceof Node && (panel.contains(t) || btn.contains(t));
+
   const setOpen = (open: boolean): void => {
     panel.classList.toggle(openClass, open);
     btn.setAttribute("aria-expanded", String(open));
     if (open) onOpen?.();
   };
-  const onClick = (): void => { setOpen(!isOpen()); };
+
+  const onClick = (): void => {
+    setOpen(!isOpen());
+  };
+
   const onPointerdown = (ev: PointerEvent): void => {
     if (isOpen() && !inside(ev.target)) setOpen(false);
   };
+
   const onKeydown = (ev: KeyboardEvent): void => {
     if (ev.key !== "Escape" || !isOpen()) return;
     setOpen(false);
     btn.focus();
   };
+
   const onFocusout = (ev: FocusEvent): void => {
-    if (isOpen() && ev.relatedTarget !== null && !inside(ev.relatedTarget)) setOpen(false);
+    if (isOpen() && ev.relatedTarget !== null && !inside(ev.relatedTarget))
+      setOpen(false);
   };
+
   btn.addEventListener("click", onClick);
   doc.addEventListener("pointerdown", onPointerdown);
   doc.addEventListener("keydown", onKeydown);
   if (closeOnFocusLeave) panel.addEventListener("focusout", onFocusout);
+
   return () => {
     btn.removeEventListener("click", onClick);
     doc.removeEventListener("pointerdown", onPointerdown);
@@ -80,7 +95,10 @@ function wirePopout(doc: Document, { btn, panel, openClass, onOpen, closeOnFocus
   };
 }
 
-export const mountSiteHeader: Island<SiteHeaderOptions> = (root, options = {}): IslandHandle => {
+export const mountSiteHeader: Island<SiteHeaderOptions> = (
+  root,
+  options = {},
+): IslandHandle => {
   const {
     dateId = "header-date",
     menuButton = ".menu-toggle",
@@ -90,6 +108,7 @@ export const mountSiteHeader: Island<SiteHeaderOptions> = (root, options = {}): 
     searchField = ".search-field",
     formatDate = formatHeaderDate,
   } = options;
+
   const doc = docOf(root);
 
   // Header date: live like the WordPress original (build-time text is the
@@ -101,16 +120,23 @@ export const mountSiteHeader: Island<SiteHeaderOptions> = (root, options = {}): 
 
   const btn = root.querySelector<HTMLButtonElement>(menuButton);
   const menu = doc.getElementById(menuId);
+
   if (btn && menu && claim(btn, "site-header")) {
     const off = wirePopout(doc, { btn, panel: menu, openClass: "open" });
-    unwire.push(() => { off(); release(btn, "site-header"); });
+
+    unwire.push(() => {
+      off();
+      release(btn, "site-header");
+    });
   }
 
   const searchBtn = root.querySelector<HTMLButtonElement>(searchButton);
   const wrap = searchBtn?.closest<HTMLElement>(searchWrap) ?? null;
+
   if (searchBtn && wrap && claim(searchBtn, "site-header")) {
     const field = wrap.querySelector<HTMLInputElement>(searchField);
     wrap.setAttribute("data-search-js", "");
+
     const off = wirePopout(doc, {
       btn: searchBtn,
       panel: wrap,
@@ -118,6 +144,7 @@ export const mountSiteHeader: Island<SiteHeaderOptions> = (root, options = {}): 
       onOpen: () => field?.focus(),
       closeOnFocusLeave: true,
     });
+
     unwire.push(() => {
       off();
       wrap.removeAttribute("data-search-js");

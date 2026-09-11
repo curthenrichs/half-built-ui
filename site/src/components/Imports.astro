@@ -9,9 +9,13 @@ import CodeBlock from "@half-built/astro/content/CodeBlock.astro";
 import codeTheme from "@half-built/astro/shiki/code-theme";
 import codeVars from "@half-built/astro/shiki/code-vars";
 
-interface Props { code: string }
+interface Props {
+  code: string;
+}
+
 const { code } = Astro.props;
 ---
+
 <details class="demo-imports">
   <summary>Show imports</summary>
   <CodeBlock>
@@ -23,7 +27,10 @@ const { code } = Astro.props;
   /* The summary borrows the panel disclosures' quiet underline rather
      than a marker triangle, so it reads as a control and not a list
      item. The block below it is the code island's own furniture. */
-  .demo-imports { margin: 0 0 1.5em; }
+  .demo-imports {
+    margin: 0 0 1.5em;
+  }
+
   .demo-imports > summary {
     cursor: pointer;
     list-style: none;
@@ -32,6 +39,12 @@ const { code } = Astro.props;
     text-decoration: underline;
     text-underline-offset: 3px;
   }
-  .demo-imports > summary::-webkit-details-marker { display: none; }
-  .demo-imports[open] > summary { margin-bottom: 10px; }
+
+  .demo-imports > summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .demo-imports[open] > summary {
+    margin-bottom: 10px;
+  }
 </style>

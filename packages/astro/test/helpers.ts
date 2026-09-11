@@ -10,9 +10,19 @@ import { vi } from "vitest";
    Call after vi.useFakeTimers(); undone by vi.unstubAllGlobals(). */
 export function stubRafOnFakeTimers(): void {
   let frameNow = 0;
-  vi.stubGlobal("requestAnimationFrame", (cb: FrameRequestCallback) =>
-    setTimeout(() => { frameNow += 16; cb(frameNow); }, 16) as unknown as number);
-  vi.stubGlobal("cancelAnimationFrame", (id: number) => { clearTimeout(id); });
+
+  vi.stubGlobal(
+    "requestAnimationFrame",
+    (cb: FrameRequestCallback) =>
+      setTimeout(() => {
+        frameNow += 16;
+        cb(frameNow);
+      }, 16) as unknown as number,
+  );
+
+  vi.stubGlobal("cancelAnimationFrame", (id: number) => {
+    clearTimeout(id);
+  });
 }
 
 /* jsdom's <dialog> support has lagged the platform; polyfill the members
@@ -21,9 +31,13 @@ export function stubRafOnFakeTimers(): void {
    importing this module are unaffected. */
 export function polyfillDialog(): void {
   const p = HTMLDialogElement.prototype;
+
   if (typeof p.showModal !== "function") {
-    p.showModal = function (this: HTMLDialogElement) { this.setAttribute("open", ""); };
+    p.showModal = function (this: HTMLDialogElement) {
+      this.setAttribute("open", "");
+    };
   }
+
   if (typeof p.close !== "function") {
     p.close = function (this: HTMLDialogElement) {
       this.removeAttribute("open");
@@ -54,26 +68,51 @@ export interface RecordingContext {
 }
 export function recordingContext(): RecordingContext {
   const calls: CanvasCall[] = [];
+
   const ctx: Record<string, unknown> = {
-    fillStyle: "", strokeStyle: "", lineWidth: 1, font: "", textAlign: "start",
+    fillStyle: "",
+    strokeStyle: "",
+    lineWidth: 1,
+    font: "",
+    textAlign: "start",
   };
+
   const snap = (op: string, args: unknown[]): void => {
     calls.push({
-      op, args,
-      fillStyle: String(ctx.fillStyle), strokeStyle: String(ctx.strokeStyle),
-      lineWidth: Number(ctx.lineWidth), font: String(ctx.font), textAlign: String(ctx.textAlign),
+      op,
+      args,
+      fillStyle: String(ctx.fillStyle),
+      strokeStyle: String(ctx.strokeStyle),
+      lineWidth: Number(ctx.lineWidth),
+      font: String(ctx.font),
+      textAlign: String(ctx.textAlign),
     });
   };
+
   for (const op of [
-    "fillRect", "strokeRect", "beginPath", "moveTo", "lineTo", "stroke",
-    "fillText", "scale", "clearRect", "drawImage", "save", "restore",
+    "fillRect",
+    "strokeRect",
+    "beginPath",
+    "moveTo",
+    "lineTo",
+    "stroke",
+    "fillText",
+    "scale",
+    "clearRect",
+    "drawImage",
+    "save",
+    "restore",
   ]) {
-    ctx[op] = (...args: unknown[]): void => { snap(op, args); };
+    ctx[op] = (...args: unknown[]): void => {
+      snap(op, args);
+    };
   }
+
   ctx.measureText = (text: string): { width: number } => {
     snap("measureText", [text]);
     return { width: text.length * 5 };
   };
+
   return {
     calls,
     ops: (op) => calls.filter((c) => c.op === op),

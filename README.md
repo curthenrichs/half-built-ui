@@ -9,8 +9,8 @@ other sites can use them.
 - `@half-built/css` - design tokens, base styles, patterns, and prose
   CSS.
 - `@half-built/astro` - Astro components, islands, and helper functions.
-- `@half-built/tooling` - shared lint presets (ESLint, Stylelint,
-  html-validate) and a test kit.
+- `@half-built/tooling` - shared lint and format presets (ESLint,
+  Stylelint, Prettier, html-validate) and a test kit.
 
 `site/` is a kitchen-sink demo site, part of this workspace, that
 consumes only the published packages and builds with `npm run
