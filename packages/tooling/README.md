@@ -7,8 +7,9 @@ Lint presets and the test kit for half-built sites.
 - `@half-built/tooling/eslint`: flat config for JS, TS (type-checked
   strict tier), and Astro, plus the vertical-whitespace policy: a
   blank line after imports and around interfaces, types, classes,
-  functions, exports, and any statement that spans several lines.
-  Autofixable with `eslint --fix`.
+  functions, exports, and any statement that spans several lines, and
+  braces on any control-statement body that drops to its own line
+  (`curly: multi-line`). Autofixable with `eslint --fix`.
 - `@half-built/tooling/stylelint`: stylelint-config-standard tuned for
   the house CSS (no hex outside tokens, no `ch` widths), with the
   empty-line rules on so rules and comment groups get their own air.

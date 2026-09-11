@@ -213,10 +213,11 @@ describe("assertPageRoutable", () => {
   });
 
   it("rejects slugs that shadow real routes", () => {
-    for (const slug of ["page", "category", "search", "404", "2025"])
+    for (const slug of ["page", "category", "search", "404", "2025"]) {
       expect(() => {
         assertPageRoutable(page(slug), undefined);
       }).toThrow(/reserved route/);
+    }
   });
 });
 

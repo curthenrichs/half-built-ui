@@ -121,8 +121,10 @@ export function readout(view: ZoomView, fit: number, prefix = "FIT"): string {
     return r >= 0 ? `+${String(r)}` : String(r);
   };
 
-  if (view.zoom === fit && view.x === 0 && view.y === 0)
+  if (view.zoom === fit && view.x === 0 && view.y === 0) {
     return `${prefix} · 0,0`;
+  }
+
   if (view.zoom === fit) return `${prefix} · ${sign(view.x)},${sign(view.y)}`;
   return `${String(Math.round(view.zoom * 100))}% · ${sign(view.x)},${sign(view.y)}`;
 }
@@ -515,8 +517,10 @@ export const mountLightbox: Island<LightboxOptions> = (
          which is why only the browser showed this). */
       if (ev.target === r.homeBtn) return;
       pointers.set(ev.pointerId, { x: ev.clientX, y: ev.clientY });
-      if (typeof r.viewbox.setPointerCapture === "function")
+
+      if (typeof r.viewbox.setPointerCapture === "function") {
         r.viewbox.setPointerCapture(ev.pointerId);
+      }
     });
 
     r.viewbox.addEventListener("pointermove", (ev) => {
@@ -599,8 +603,10 @@ export const mountLightbox: Island<LightboxOptions> = (
         ev.metaKey ||
         ev.shiftKey ||
         ev.altKey
-      )
+      ) {
         return;
+      }
+
       ev.preventDefault();
       open(link);
     };

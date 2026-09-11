@@ -192,7 +192,9 @@ export function paintAxis(p: Painter, top: number, duration: number): void {
     ctx.lineTo(x, top + 6);
     ctx.stroke();
     const label = `${t}s`;
-    if (x + 2 + ctx.measureText(label).width <= width)
+
+    if (x + 2 + ctx.measureText(label).width <= width) {
       ctx.fillText(label, x + 2, top + 11);
+    }
   }
 }

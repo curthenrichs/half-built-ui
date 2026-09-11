@@ -285,9 +285,9 @@ export function createPathPlayer<S>(
     let top = 0;
 
     for (const track of config.tracks) {
-      if (track.kind === "band")
+      if (track.kind === "band") {
         paintBand(p, track, top, config.samples.length);
-      else paintLines(p, track, top);
+      } else paintLines(p, track, top);
       if (track.label) paintLabelChip(p, track.label, top);
       top += track.height + TRACK_GAP;
     }
@@ -406,8 +406,9 @@ export function createPathPlayer<S>(
     config.sink.pause?.();
   });
 
-  if (SCRUB)
+  if (SCRUB) {
     attachScrub(timeline, state, config.duration, applyCurrent, setPlaying);
+  }
 
   return {
     open: (opener) => {

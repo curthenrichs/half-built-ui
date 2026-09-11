@@ -309,8 +309,9 @@ export function mountPaletteEditor(
     !pre ||
     !copyBtn ||
     !resetBtn
-  )
+  ) {
     return;
+  }
 
   const els: EditorElements = {
     input1,

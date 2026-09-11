@@ -125,8 +125,11 @@ const SHIPPED_DEFAULTS: PaletteOverride = {
 function hueSwap(ref: string, base: string): string {
   const r = toOklch(ref);
   const b = toOklch(base);
-  if (r === undefined || b === undefined)
+
+  if (r === undefined || b === undefined) {
     throw new Error(`unparseable color ${ref} or ${base}`);
+  }
+
   return formatHex(clampChroma({ ...r, h: b.h ?? r.h }, "oklch"));
 }
 

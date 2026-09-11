@@ -117,11 +117,14 @@ export const mountSubscribe: Island<SubscribeOptions> = (
       const input = form.querySelector(".subscribe-email");
       const button = form.querySelector(".subscribe-submit");
       const status = form.parentElement?.querySelector(".subscribe-status");
+
       if (
         !(input instanceof HTMLInputElement) ||
         !(status instanceof HTMLElement)
-      )
+      ) {
         return;
+      }
+
       const value = input.value.trim();
       input.value = value;
 

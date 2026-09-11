@@ -555,8 +555,11 @@ describe.skipIf(!enabled)("browser suite", () => {
         });
 
         const rail = document.querySelector(".site-rail");
-        if (!rail || getComputedStyle(rail).position !== "fixed")
+
+        if (!rail || getComputedStyle(rail).position !== "fixed") {
           return ["(no fixed rail at this width)"];
+        }
+
         const r = rail.getBoundingClientRect();
         return (
           [

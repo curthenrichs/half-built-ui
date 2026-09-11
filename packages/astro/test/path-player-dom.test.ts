@@ -464,8 +464,11 @@ describe("createPathPlayer", () => {
     player.open(null);
     const caption = document.querySelector<HTMLElement>(".pp-caption");
     const toggle = document.querySelector(".pp-caption-toggle");
-    if (!caption || !toggle || !captured.cb)
+
+    if (!caption || !toggle || !captured.cb) {
       throw new Error("caption, toggle, or listener missing");
+    }
+
     expect(caption.hidden).toBe(true);
     captured.cb({ matches: false });
     expect(caption.hidden).toBe(false);

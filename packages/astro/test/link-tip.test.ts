@@ -78,8 +78,11 @@ function byId(id: string): HTMLElement {
 
 function tipEl(): HTMLElement {
   const el = document.querySelector(".link-tip");
-  if (!(el instanceof HTMLElement))
+
+  if (!(el instanceof HTMLElement)) {
     throw new Error("no .link-tip in the document");
+  }
+
   return el;
 }
 

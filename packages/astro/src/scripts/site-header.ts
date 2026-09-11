@@ -78,8 +78,9 @@ function wirePopout(
   };
 
   const onFocusout = (ev: FocusEvent): void => {
-    if (isOpen() && ev.relatedTarget !== null && !inside(ev.relatedTarget))
+    if (isOpen() && ev.relatedTarget !== null && !inside(ev.relatedTarget)) {
       setOpen(false);
+    }
   };
 
   btn.addEventListener("click", onClick);

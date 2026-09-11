@@ -68,6 +68,11 @@ export default tseslint.config(
     // reaches component frontmatter and <script> blocks as well.
     plugins: { "@stylistic": stylistic },
     rules: {
+      // A control statement's body may stay bare on the same line
+      // (`if (open) return;`); once it drops to the next line it takes
+      // braces, so the block's extent is never a matter of indentation
+      // (owner rule 2026-09-10). Fixable.
+      curly: ["error", "multi-line"],
       "@stylistic/padding-line-between-statements": [
         "error",
         { blankLine: "always", prev: "import", next: "*" },

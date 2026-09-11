@@ -46,10 +46,14 @@ export function placeTip(
   if (overRight > 0) x -= overRight;
   if (x < edge) x = edge;
   let finalPlace = place;
-  if (place === "above" && anchor.top - GAP - tip.height < 0)
+
+  if (place === "above" && anchor.top - GAP - tip.height < 0) {
     finalPlace = "below";
-  if (place === "below" && anchor.bottom + GAP + tip.height > viewport.height)
+  }
+
+  if (place === "below" && anchor.bottom + GAP + tip.height > viewport.height) {
     finalPlace = "above";
+  }
 
   const y =
     finalPlace === "above"
