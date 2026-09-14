@@ -594,4 +594,51 @@ describe.skipIf(!enabled)("browser suite", () => {
       page = undefined;
     }
   }, 30_000);
+
+  it("the footer's copyright stacks over the site name at every width", async () => {
+    /* Two lines by design (owner call 2026-09-13), not one line that
+       happens to wrap on phones: the copyright sits fully above the
+       site-name link on a wide desktop, where the old single line had
+       the room to stay one, as well as on a phone. Measured, since
+       jsdom cannot tell a block from an inline. */
+    if (!browser) throw new Error("no browser (beforeAll failed)");
+    const b = browser;
+
+    const viewports: { name: string; open: () => Promise<Page> }[] = [
+      { name: "phone", open: () => phonePage(b) },
+      { name: "desktop", open: () => desktopPage(b, 1400, 900) },
+    ];
+
+    for (const viewport of viewports) {
+      const p = await viewport.open();
+      page = p;
+      await p.goto(`${ORIGIN}/`, { waitUntil: "networkidle0" });
+
+      /* innerText, not textContent: it is a plain string in both type
+         worlds (see the ecosystem test's note), and this runs in a real
+         browser where it reads the rendered text. */
+      const lines = await p.$$eval("footer .site-info .site-info-line", (els) =>
+        els.map((el) => {
+          const r = el.getBoundingClientRect();
+          return {
+            top: r.top,
+            bottom: r.bottom,
+            text: (el as HTMLElement).innerText.trim(),
+          };
+        }),
+      );
+
+      expect(lines, `${viewport.name}: two footer lines`).toHaveLength(2);
+      expect(lines[0].text, viewport.name).toMatch(/^Copyright © \d{4} /);
+      expect(lines[1].text, viewport.name).toBe("half-built-ui");
+
+      expect(
+        lines[1].top,
+        `${viewport.name}: the site name starts below the copyright`,
+      ).toBeGreaterThanOrEqual(lines[0].bottom);
+
+      await p.close();
+      page = undefined;
+    }
+  }, 30_000);
 });

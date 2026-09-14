@@ -28,19 +28,18 @@ const year = new Date().getFullYear();
     <div class="shell">
       <div class="bottom-footer-info">
         <div class="site-info">
-          {/* Segments are unbreakable so narrow screens wrap only at
-              the sanctioned points: after the year and at the pipe,
-              which the line break replaces below the mobile breakpoint
-              (owner call 2026-08-20). Desktop and tablet render the
-              one line exactly as before. */}
-          <slot name="site-info"
-            ><span>
+          {/* Two lines at every width (owner call 2026-09-13): the
+              copyright over the site name, a real break rather than the
+              old pipe that retired on phones and left the wrap to do
+              the separating. The copyright's segments stay unbreakable
+              so a narrow screen wraps that line only after the year. */}
+          <slot name="site-info">
+            <span class="site-info-line">
               <span class="site-info-seg">Copyright © {year}</span>{" "}
-              <span class="site-info-seg">{legalHolder}</span>{" "}
-              <span class="site-info-sep" aria-hidden="true">|</span>{" "}
-              <a class="site-info-seg" href="/">{siteName}</a>
-            </span></slot
-          >
+              <span class="site-info-seg">{legalHolder}</span>
+            </span>
+            <span class="site-info-line"><a href="/">{siteName}</a></span>
+          </slot>
         </div>
       </div>
       <nav class="footer-sitemap" aria-label="Sitemap">
@@ -129,22 +128,17 @@ const year = new Date().getFullYear();
     font-size: var(--font-size-sm);
   }
 
-  /* The wrapped phone lines center under each other like the sitemap
-     below (owner report 2026-08-25); one line on desktop, as before. */
+  /* The two lines center under each other like the sitemap below
+     (owner report 2026-08-25). */
   .site-info { text-align: center; }
+  .site-info-line { display: block; }
 
   /* Underlined, unlike the sitemap links below: this one sits inside
-     running text (the copyright line), where the same ink at 0.8
+     running text (the copyright block), where the same ink at 0.8
      opacity is not a visible link mark (WCAG 1.4.1, axe
-     link-in-text-block; caught by test/a11y.test.ts at phone width,
-     where the pipe retires and the line break is all that frames it). */
+     link-in-text-block; the line break is all that frames it). */
   .site-info a { text-decoration: underline; opacity: 0.8; transition: var(--transition); color: var(--ink); }
   .site-info-seg { white-space: nowrap; }
-
-  /* The pipe's separating job is done by the line break when the
-     segments wrap; below the mobile breakpoint the break is expected,
-     so the pipe retires there. */
-  @media (--bp-phone) { .site-info-sep { display: none; } }
   .site-info a:hover { opacity: 1; }
 
   /* Sitemap columns under the copyright line, centered like it (owner
