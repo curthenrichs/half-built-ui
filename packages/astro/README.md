@@ -72,6 +72,27 @@ component that injects `getCollection` and its own gate, the way the
 blog does. The resolvers live in `lib/drafts.ts` for consumers that
 want the logic without the components.
 
+## Derived excerpts
+
+Posts carry no excerpt frontmatter. `lib/excerpt.ts` derives the card
+text from the post body at build time: the opening prose, consecutive
+paragraphs joined by a space, cut at a word boundary within
+`EXCERPT_LIMIT` (200 characters) and always ended with an ellipsis,
+the reader's cue that the post continues. The run stops at the first
+heading, list, blockquote, code fence, or image line, so a card never
+crosses into a later section; components and the lead-break are
+invisible to it. `content/ExcerptStart.astro` on its own line moves
+the start to the paragraph after it, for a post that opens on a TL;DR
+or an aside. `postExcerpt(entry)` is the policy: a published post
+with no prose fails the build naming the slug, a draft warns once per
+build and renders blank. It takes any entry shaped
+`{ body?, data: { slug, draft? } }`, so a `CollectionEntry` passes
+with no cast. A consumer calls `postExcerpt` from every place a
+summary renders (cards, meta description, feed, search index) and
+never stores the result. The blog is the reference consumer and
+derives all four from it. The rule was settled on the blog's 54 posts
+on 2026-09-13 and moved here on 2026-09-14.
+
 ## Live code colors
 
 `shiki/code-theme` bakes its amber values into every highlighted span
