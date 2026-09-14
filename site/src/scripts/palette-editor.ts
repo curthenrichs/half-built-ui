@@ -30,9 +30,17 @@ export interface PaletteEditorOptions {
   storageKey: string;
 }
 
+/* The bases are the state; the ramp beside them is a copy of what
+   derivePalette makes of them, kept so Base.astro's inline head stamp
+   can paint the override before this module has loaded (owner report
+   2026-09-13: a cold load over a slow network showed the shipped
+   amber until the bundle arrived and repainted). The stamp reads only
+   the ramp; this island reads only the bases and derives again, so a
+   value written before the ramp existed still mounts. */
 interface StoredPalette {
   b1: string;
   b2: string;
+  ramp?: PaletteOverride;
 }
 
 function isStoredPalette(v: unknown): v is StoredPalette {
@@ -70,11 +78,12 @@ function writeStored(
   key: string,
   b1: string,
   b2: string,
+  ramp: PaletteOverride,
 ): void {
   if (!storage) return;
 
   try {
-    storage.setItem(key, JSON.stringify({ b1, b2 }));
+    storage.setItem(key, JSON.stringify({ b1, b2, ramp }));
   } catch {
     /* the choice lives for this page only */
   }
@@ -259,7 +268,7 @@ function applyPalette(
     html.style.setProperty(key, derived[key]);
   }
 
-  writeStored(storage, storageKey, b1, b2);
+  writeStored(storage, storageKey, b1, b2, derived);
 }
 
 function setInputs(els: EditorElements, b1: string, b2: string): void {
