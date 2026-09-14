@@ -81,7 +81,7 @@ beforeEach(() => {
 });
 
 describe("palette editor", () => {
-  it("picking a base sets every override property and persists the pair", () => {
+  it("picking a base sets every override property and persists the pair with its ramp", () => {
     mountPaletteEditor(document, { storageKey: KEY });
     fireInput(input("palette-base-1"), "#2f9e44");
     fireInput(input("palette-base-2"), "#0ca678");
@@ -89,12 +89,22 @@ describe("palette editor", () => {
     const derived = derivePalette("#2f9e44", "#0ca678");
     expect(computedProps()).toEqual(derived);
 
+    /* The derived ramp rides along so Base.astro's first-paint stamp
+       can set the properties before this module loads (owner report
+       2026-09-13: the default colors showed for a beat on a cold
+       load). Every value is a six-digit hex, because that is all the
+       stamp will accept. */
     const stored = JSON.parse(localStorage.getItem(KEY) ?? "null") as {
       b1: string;
       b2: string;
+      ramp: Record<string, string>;
     } | null;
 
-    expect(stored).toEqual({ b1: "#2f9e44", b2: "#0ca678" });
+    expect(stored).toEqual({ b1: "#2f9e44", b2: "#0ca678", ramp: derived });
+
+    for (const key of RAMP_KEYS) {
+      expect(stored?.ramp[key], key).toMatch(/^#[0-9a-f]{6}$/i);
+    }
   });
 
   it("a preset click routes through the same path", () => {
@@ -115,9 +125,10 @@ describe("palette editor", () => {
     const stored = JSON.parse(localStorage.getItem(KEY) ?? "null") as {
       b1: string;
       b2: string;
+      ramp: Record<string, string>;
     } | null;
 
-    expect(stored).toEqual({ b1: "#1890ff", b2: "#13c2c2" });
+    expect(stored).toEqual({ b1: "#1890ff", b2: "#13c2c2", ramp: derived });
   });
 
   it("reset removes every override property and the storage key", () => {
