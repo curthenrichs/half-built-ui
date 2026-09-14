@@ -594,4 +594,114 @@ describe.skipIf(!enabled)("browser suite", () => {
       page = undefined;
     }
   }, 30_000);
+
+  it("the footer's copyright stacks over the site name at every width", async () => {
+    /* Two lines by design (owner call 2026-09-13), not one line that
+       happens to wrap on phones: the copyright sits fully above the
+       site-name link on a wide desktop, where the old single line had
+       the room to stay one, as well as on a phone. Measured, since
+       jsdom cannot tell a block from an inline. */
+    if (!browser) throw new Error("no browser (beforeAll failed)");
+    const b = browser;
+
+    const viewports: { name: string; open: () => Promise<Page> }[] = [
+      { name: "phone", open: () => phonePage(b) },
+      { name: "desktop", open: () => desktopPage(b, 1400, 900) },
+    ];
+
+    for (const viewport of viewports) {
+      const p = await viewport.open();
+      page = p;
+      await p.goto(`${ORIGIN}/`, { waitUntil: "networkidle0" });
+
+      /* innerText, not textContent: it is a plain string in both type
+         worlds (see the ecosystem test's note), and this runs in a real
+         browser where it reads the rendered text. */
+      const lines = await p.$$eval("footer .site-info .site-info-line", (els) =>
+        els.map((el) => {
+          const r = el.getBoundingClientRect();
+          return {
+            top: r.top,
+            bottom: r.bottom,
+            text: (el as HTMLElement).innerText.trim(),
+          };
+        }),
+      );
+
+      expect(lines, `${viewport.name}: two footer lines`).toHaveLength(2);
+      expect(lines[0].text, viewport.name).toMatch(/^Copyright © \d{4} /);
+      expect(lines[1].text, viewport.name).toBe("half-built-ui");
+
+      expect(
+        lines[1].top,
+        `${viewport.name}: the site name starts below the copyright`,
+      ).toBeGreaterThanOrEqual(lines[0].bottom);
+
+      await p.close();
+      page = undefined;
+    }
+  }, 30_000);
+
+  it("a saved palette paints from the head stamp, before any module script runs", async () => {
+    /* Owner report 2026-09-13: on a cold load over a slow network the
+       page showed the shipped amber until the bundle arrived, derived
+       the ramp, and repainted. The editor now stores the derived ramp
+       beside the bases and Base.astro sets those properties from an
+       inline head script, the same way Shell stamps the theme. Proven
+       here by seeding storage the way the editor writes it, then
+       blocking every module script: if the palette still lands, the
+       bundle was not what painted it. */
+    const p = await open();
+    await p.click("[data-palette-editor] summary");
+
+    await p.evaluate(() => {
+      const input = document.querySelector<HTMLInputElement>(
+        'input[data-palette-base="1"]',
+      );
+
+      if (!input) throw new Error("no base-1 input");
+      input.value = "#2f9e44";
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+
+    const saved = await p.evaluate(() => localStorage.getItem("hbui-palette"));
+    expect(saved, "the editor wrote nothing to storage").not.toBeNull();
+    await p.close();
+
+    if (!browser) throw new Error("no browser (beforeAll failed)");
+    const cold = await desktopPage(browser);
+    page = cold;
+
+    await cold.evaluateOnNewDocument((raw: string) => {
+      localStorage.clear();
+      localStorage.setItem("hbui-palette", raw);
+    }, saved ?? "");
+
+    await cold.setRequestInterception(true);
+    let blocked = 0;
+
+    cold.on("request", (req) => {
+      if (req.resourceType() === "script" && req.url().includes("/_astro/")) {
+        blocked += 1;
+        void req.abort();
+      } else {
+        void req.continue();
+      }
+    });
+
+    await cold.goto(`${ORIGIN}/`, { waitUntil: "networkidle0" });
+
+    const brand1500 = await cold.evaluate(() =>
+      getComputedStyle(document.documentElement)
+        .getPropertyValue("--brand-1-500")
+        .trim(),
+    );
+
+    expect(
+      blocked,
+      "no module script was requested, so nothing was proven",
+    ).toBeGreaterThan(0);
+
+    expect(brand1500).toBe("#2f9e44");
+  }, 30_000);
 });

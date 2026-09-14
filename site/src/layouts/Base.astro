@@ -23,6 +23,7 @@ import {
   ECOSYSTEM_SELF,
 } from "../data/site";
 import { THEME_STORAGE_KEY } from "../lib/theme-key";
+import { PALETTE_STORAGE_KEY } from "../lib/palette-key";
 
 interface Props {
   title?: string;
@@ -39,6 +40,32 @@ const {
   <Fragment slot="head">
     <title>{title}</title>
     <meta name="description" content={description} />
+    {/* First-paint palette, the same shape as Shell's theme stamp just
+        above this slot (owner report 2026-09-13: a cold load over a
+        slow network showed the shipped amber until the bundle arrived,
+        derived the ramp, and repainted). The palette editor stores the
+        derived ramp beside the bases; this sets those properties on
+        <html> before anything paints, no library and no derivation.
+        Only custom-property names with six-digit hex values pass, so a
+        hand-edited value cannot inject anything else. The editor still
+        owns the state: it re-derives from the bases at mount and lands
+        on the same values. */}
+    <script is:inline define:vars={{ paletteKey: PALETTE_STORAGE_KEY }}>
+      (function () {
+        var raw = null;
+        try { raw = localStorage.getItem(paletteKey); } catch (e) { return; }
+        if (!raw) return;
+        var ramp = null;
+        try { ramp = JSON.parse(raw).ramp; } catch (e) { return; }
+        if (!ramp || typeof ramp !== "object") return;
+        var hex = /^#[0-9a-f]{6}$/i;
+        for (var key in ramp) {
+          if (key.indexOf("--") === 0 && typeof ramp[key] === "string" && hex.test(ramp[key])) {
+            document.documentElement.style.setProperty(key, ramp[key]);
+          }
+        }
+      })();
+    </script>
     {/* The half-built gear (owner calls 2026-09-06): colorless on
         purpose, neutral ink that flips with the browser scheme; the
         raster fallbacks bake the neutral ink tile. No accent in any
