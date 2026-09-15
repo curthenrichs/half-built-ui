@@ -3,7 +3,6 @@ import type { SitemapGroup, EcosystemEntry } from "./models";
 import { BP_PHONE_MAX } from "../scripts/core/breakpoints";
 
 interface Props {
-  siteName: string;
   legalHolder: string;
   sitemap: SitemapGroup[];
   ecosystem: EcosystemEntry[];
@@ -12,7 +11,6 @@ interface Props {
 }
 
 const {
-  siteName,
   legalHolder,
   sitemap,
   ecosystem,
@@ -28,17 +26,15 @@ const year = new Date().getFullYear();
     <div class="shell">
       <div class="bottom-footer-info">
         <div class="site-info">
-          {/* Two lines at every width (owner call 2026-09-13): the
-              copyright over the site name, a real break rather than the
-              old pipe that retired on phones and left the wrap to do
-              the separating. The copyright's segments stay unbreakable
-              so a narrow screen wraps that line only after the year. */}
+          {/* The copyright line alone (owner call 2026-09-14). The
+              site-name home link that used to sit under it retired.
+              The masthead and the Ecosystem group's bold entry already
+              say where you are, and the notice is complete without it.
+              The segments stay unbreakable so a narrow screen wraps
+              only after the year. */}
           <slot name="site-info">
-            <span class="site-info-line">
-              <span class="site-info-seg">Copyright © {year}</span>{" "}
-              <span class="site-info-seg">{legalHolder}</span>
-            </span>
-            <span class="site-info-line"><a href="/">{siteName}</a></span>
+            <span class="site-info-seg">Copyright © {year}</span>{" "}
+            <span class="site-info-seg">{legalHolder}</span>
           </slot>
         </div>
       </div>
@@ -128,18 +124,9 @@ const year = new Date().getFullYear();
     font-size: var(--font-size-sm);
   }
 
-  /* The two lines center under each other like the sitemap below
-     (owner report 2026-08-25). */
+  /* Centered like the sitemap below (owner report 2026-08-25). */
   .site-info { text-align: center; }
-  .site-info-line { display: block; }
-
-  /* Underlined, unlike the sitemap links below: this one sits inside
-     running text (the copyright block), where the same ink at 0.8
-     opacity is not a visible link mark (WCAG 1.4.1, axe
-     link-in-text-block; the line break is all that frames it). */
-  .site-info a { text-decoration: underline; opacity: 0.8; transition: var(--transition); color: var(--ink); }
   .site-info-seg { white-space: nowrap; }
-  .site-info a:hover { opacity: 1; }
 
   /* Sitemap columns under the copyright line, centered like it (owner
      feedback 2026-08-01). position: relative lifts the content above the
