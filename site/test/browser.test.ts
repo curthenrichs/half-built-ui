@@ -595,51 +595,27 @@ describe.skipIf(!enabled)("browser suite", () => {
     }
   }, 30_000);
 
-  it("the footer's copyright stacks over the site name at every width", async () => {
-    /* Two lines by design (owner call 2026-09-13), not one line that
-       happens to wrap on phones: the copyright sits fully above the
-       site-name link on a wide desktop, where the old single line had
-       the room to stay one, as well as on a phone. Measured, since
-       jsdom cannot tell a block from an inline. */
+  it("the footer's site-info is the copyright line alone", async () => {
+    /* The site-name home link under the copyright retired (owner call
+       2026-09-14). The masthead and the Ecosystem group's bold entry
+       already say where you are. Read in the browser so the rendered
+       text, line breaks included, is the measure. */
     if (!browser) throw new Error("no browser (beforeAll failed)");
-    const b = browser;
+    const p = await desktopPage(browser, 1400, 900);
+    page = p;
+    await p.goto(`${ORIGIN}/`, { waitUntil: "networkidle0" });
 
-    const viewports: { name: string; open: () => Promise<Page> }[] = [
-      { name: "phone", open: () => phonePage(b) },
-      { name: "desktop", open: () => desktopPage(b, 1400, 900) },
-    ];
+    const info = await p.$eval("footer .site-info", (el) => ({
+      text: (el as HTMLElement).innerText.trim(),
+      links: el.querySelectorAll("a").length,
+    }));
 
-    for (const viewport of viewports) {
-      const p = await viewport.open();
-      page = p;
-      await p.goto(`${ORIGIN}/`, { waitUntil: "networkidle0" });
+    expect(info.text).toMatch(/^Copyright © \d{4} \S/);
+    expect(info.text, "one line, no site name under it").not.toContain("\n");
+    expect(info.links, "no home link in the copyright block").toBe(0);
 
-      /* innerText, not textContent: it is a plain string in both type
-         worlds (see the ecosystem test's note), and this runs in a real
-         browser where it reads the rendered text. */
-      const lines = await p.$$eval("footer .site-info .site-info-line", (els) =>
-        els.map((el) => {
-          const r = el.getBoundingClientRect();
-          return {
-            top: r.top,
-            bottom: r.bottom,
-            text: (el as HTMLElement).innerText.trim(),
-          };
-        }),
-      );
-
-      expect(lines, `${viewport.name}: two footer lines`).toHaveLength(2);
-      expect(lines[0].text, viewport.name).toMatch(/^Copyright © \d{4} /);
-      expect(lines[1].text, viewport.name).toBe("half-built-ui");
-
-      expect(
-        lines[1].top,
-        `${viewport.name}: the site name starts below the copyright`,
-      ).toBeGreaterThanOrEqual(lines[0].bottom);
-
-      await p.close();
-      page = undefined;
-    }
+    await p.close();
+    page = undefined;
   }, 30_000);
 
   it("a saved palette paints from the head stamp, before any module script runs", async () => {
