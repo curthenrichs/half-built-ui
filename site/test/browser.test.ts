@@ -306,6 +306,33 @@ describe.skipIf(!enabled)("browser suite", () => {
     expect(html).not.toContain("Curt fill in");
   }, 30_000);
 
+  it("a PostLink to a draft degrades to text and a fallback stands in", async () => {
+    const p = await open();
+    const html = await p.content();
+
+    /* The draft is never linked, and its tip never ships. */
+    expect(html).not.toMatch(/href="[^"]*sample-draft/);
+    expect(html).not.toContain('data-tooltip="Sample draft"');
+
+    /* The name stays in the sentence as plain text. */
+    const pending = await p.$eval(".sample-pending-link", (el) => ({
+      text: el.textContent || "",
+      links: el.querySelectorAll("a").length,
+    }));
+
+    expect(pending.text).toContain("the sample draft");
+    expect(pending.links).toBe(0);
+
+    /* A hidden passage shows its fallback; a visible one never does. */
+    expect(html).toContain(
+      "This fallback stands in while the draft is unpublished.",
+    );
+
+    expect(html).not.toContain("This passage waits for the draft.");
+    expect(html).not.toContain("This passage never renders");
+    expect(html).not.toContain("This fallback never renders");
+  }, 30_000);
+
   it("the icon set is wired in the head and every icon resolves", async () => {
     const p = await open();
 

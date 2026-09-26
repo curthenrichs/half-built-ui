@@ -1,15 +1,22 @@
 ---
-import { resolvePostHref, type Linkable } from "../../lib/drafts";
+import { postLinkHref, type Linkable } from "../../lib/drafts";
 
 interface Props {
   slug: string;
   posts: Linkable[];
+  showDrafts?: boolean;
   tip?: string;
   class?: string;
 }
 
-const { slug, posts, tip, class: className } = Astro.props;
-const href = resolvePostHref(slug, posts);
+const { slug, posts, showDrafts = false, tip, class: className } = Astro.props;
+const href = postLinkHref(slug, posts, showDrafts);
 ---
 
-<a href={href} data-tooltip={tip} class={className}><slot /></a>
+{href ? (
+  <a href={href} data-tooltip={tip} class={className}>
+    <slot />
+  </a>
+) : (
+  <slot />
+)}
