@@ -11,4 +11,4 @@ const { slug, posts, showDrafts = false } = Astro.props;
 const visible = forwardLinkVisible(slug, posts, showDrafts);
 ---
 
-{visible && <slot />}
+{visible ? <slot /> : <slot name="fallback" />}

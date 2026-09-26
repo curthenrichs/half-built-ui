@@ -452,11 +452,11 @@ const npmPackages = [
           <p>
             Both take the consumer's post collection as a prop and read no
             content of their own. <code>PostLink</code> resolves a slug to the
-            post's dated URL at build time. <code>WhenPublished</code> renders
-            its passage only once the post it names is visible, so a draft can
-            be teased before it ships. The sample collection here has one
-            published post and one draft. The first passage shows, the second is
-            absent from this page.
+            post's dated URL at build time, and renders plain text in place of a
+            link while the post is a draft. <code>WhenPublished</code> renders
+            its passage only once the post it names is visible, and its optional
+            <code>fallback</code> slot renders until then. The sample collection
+            here has one published post and one draft.
           </p>
           <WhenPublished slug="sample-published" posts={samplePosts}>
             <p>
@@ -468,10 +468,30 @@ const npmPackages = [
                 >the sample post</PostLink
               >, whose URL was resolved from the slug.
             </p>
+            <p slot="fallback">This fallback never renders.</p>
           </WhenPublished>
+          <p class="sample-pending-link">
+            This sentence names
+            <PostLink slug="sample-draft" posts={samplePosts} tip="Sample draft"
+              >the sample draft</PostLink
+            >
+            in plain text, because its post is still a draft. It becomes a link
+            when the post ships.
+          </p>
           <WhenPublished slug="sample-draft" posts={samplePosts}>
             <p class="sample-draft-passage">
               This passage never renders, because its post is a draft.
+            </p>
+          </WhenPublished>
+          <WhenPublished slug="sample-draft" posts={samplePosts}>
+            <p>
+              This passage waits for
+              <PostLink slug="sample-draft" posts={samplePosts}
+                >the draft</PostLink
+              >.
+            </p>
+            <p slot="fallback">
+              This fallback stands in while the draft is unpublished.
             </p>
           </WhenPublished>
 
