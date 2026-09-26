@@ -74,5 +74,5 @@ export function postLinkHref(
   const target = posts.find((p) => p.data.slug === slug);
   if (!target) throw new Error(`PostLink: no post has slug "${slug}"`);
   if (target.data.draft && !showDrafts) return null;
-  return postPath(target);
+  return resolvePostHref(slug, posts);
 }

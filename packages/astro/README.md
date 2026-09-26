@@ -79,7 +79,9 @@ slot renders while the target is hidden:
 Both take the consumer's collection as the `posts` prop (the full
 collection, drafts included, so an unknown slug can throw instead of
 hiding as "still a draft") and the consumer's draft gate as
-`showDrafts`. `PostLink` also accepts an optional `tip` carried as
+`showDrafts`. `showDrafts` defaults to false, so a preview build must
+pass its own draft gate through to `PostLink` to keep draft links
+live. `PostLink` also accepts an optional `tip` carried as
 `data-tooltip` for the link-tip island; a hidden `PostLink` drops it. A
 consumer wraps each in a one-line site component that injects
 `getCollection` and its own gate, the way the blog does. The resolvers

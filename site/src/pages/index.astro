@@ -484,7 +484,12 @@ const npmPackages = [
             </p>
           </WhenPublished>
           <WhenPublished slug="sample-draft" posts={samplePosts}>
-            <p>This passage waits for the draft.</p>
+            <p>
+              This passage waits for
+              <PostLink slug="sample-draft" posts={samplePosts}
+                >the draft</PostLink
+              >.
+            </p>
             <p slot="fallback">
               This fallback stands in while the draft is unpublished.
             </p>
