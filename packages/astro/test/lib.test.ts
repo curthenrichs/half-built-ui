@@ -4,6 +4,7 @@ import {
   visiblePosts,
   forwardLinkVisible,
   resolvePostHref,
+  postLinkHref,
 } from "../src/lib/drafts";
 import {
   slugifyCategory,
@@ -288,5 +289,47 @@ describe("pagePath", () => {
     expect(
       pagePath({ data: { slug: "privacy-policy", parent: "policies" } }),
     ).toBe("/policies/privacy-policy/");
+  });
+});
+
+describe("postLinkHref", () => {
+  const posts = [
+    {
+      data: {
+        slug: "live",
+        date: new Date("2026-09-01T00:00:00Z"),
+        draft: false,
+      },
+    },
+    {
+      data: {
+        slug: "soon",
+        date: new Date("2026-09-08T00:00:00Z"),
+        draft: true,
+      },
+    },
+    { data: { slug: "bare", date: new Date("2026-09-02T00:00:00Z") } },
+  ];
+
+  it("resolves a published target to its route", () => {
+    expect(postLinkHref("live", posts, false)).toBe("/2026/09/01/live/");
+  });
+
+  it("returns null for a draft so the link degrades to text", () => {
+    expect(postLinkHref("soon", posts, false)).toBeNull();
+  });
+
+  it("resolves a draft when drafts are shown", () => {
+    expect(postLinkHref("soon", posts, true)).toBe("/2026/09/08/soon/");
+  });
+
+  it("treats a missing draft field as published", () => {
+    expect(postLinkHref("bare", posts, false)).toBe("/2026/09/02/bare/");
+  });
+
+  it("throws on a slug no post has, so a typo cannot pass as a draft", () => {
+    expect(() => postLinkHref("typo", posts, false)).toThrow(
+      /PostLink: no post has slug "typo"/,
+    );
   });
 });
