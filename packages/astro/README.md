@@ -57,20 +57,35 @@ consumer config itself.
 
 ## WhenPublished and PostLink
 
-`content/WhenPublished.astro` renders its children only when the post
-at `slug` is visible, so a published post can tease one still in
-draft and the passage appears on its own when the target ships.
 `content/PostLink.astro` links to a post by slug and resolves the
 href at build time through `postPath`, so a re-dated post does not
-strand the links pointing at it. Both take the consumer's collection
-as the `posts` prop (the full collection, drafts included, so an
-unknown slug can throw instead of hiding as "still a draft");
-`WhenPublished` also takes the consumer's draft gate as `showDrafts`,
-and `PostLink` accepts an optional `tip` carried as `data-tooltip` for
-the link-tip island. A consumer wraps each in a one-line site
-component that injects `getCollection` and its own gate, the way the
-blog does. The resolvers live in `lib/drafts.ts` for consumers that
-want the logic without the components.
+strand the links pointing at it. While the target is hidden (a draft, with the
+draft gate off) it renders its text alone, with no element and no
+styling, and becomes a link on its own when the post ships. That makes
+it the right tool for a draft's name in published prose.
+
+`content/WhenPublished.astro` renders its children only when the post
+at `slug` is visible. Use it when a whole phrase only makes sense once
+the post exists ("its own post", "see it here"). An optional `fallback`
+slot renders while the target is hidden:
+
+```mdx
+<WhenPublished slug="my-draft">
+  It has <PostLink slug="my-draft">its own post</PostLink> now.
+  <Fragment slot="fallback">A post on it is coming.</Fragment>
+</WhenPublished>
+```
+
+Both take the consumer's collection as the `posts` prop (the full
+collection, drafts included, so an unknown slug can throw instead of
+hiding as "still a draft") and the consumer's draft gate as
+`showDrafts`. `PostLink` also accepts an optional `tip` carried as
+`data-tooltip` for the link-tip island; a hidden `PostLink` drops it. A
+consumer wraps each in a one-line site component that injects
+`getCollection` and its own gate, the way the blog does. The resolvers
+(`postLinkHref`, `resolvePostHref`, `forwardLinkVisible`) live in
+`lib/drafts.ts` for consumers that want the logic without the
+components.
 
 ## Derived excerpts
 
