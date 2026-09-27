@@ -25,10 +25,10 @@ import "@half-built/css/code.css";
 ```
 
 The island stylesheets (`lightbox.css`, `plate-modal.css`,
-`path-player.css`) load the same way, from whichever layout or
-component mounts their island. The `.` entry is the base layer (reset,
-shell, link-tip, scroll-top); it is not the whole system, which is why
-the explicit order above exists.
+`path-player.css`, `popout.css`) load the same way, from whichever
+layout or component mounts their island. The `.` entry is the base
+layer (reset, shell, link-tip, scroll-top); it is not the whole
+system, which is why the explicit order above exists.
 
 The breakpoints are `@custom-media` rules, so your build needs
 `postcss-custom-media` with `@csstools/postcss-global-data` fed the

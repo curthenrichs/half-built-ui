@@ -91,7 +91,8 @@ nothing: callers and tests import from core (no shim; the existing
 removes listeners and the surface and releases the claim.
 
 Options: `selector` (default `".popout-trigger"`), `edge` (default the
-placement `EDGE`), `closeLabel` (default `"Close"`).
+placement `EDGE` plus 18, the close box's straddle), `closeLabel`
+(default `"Close"`).
 
 The singleton surface, created once and appended to `<body>`:
 
@@ -123,12 +124,14 @@ Open (click on a trigger):
    plate-modal method (a class on `<html>`, here `popout-open`).
 6. Trigger gets `aria-expanded="true"` and `is-open`.
 
-Close paths, both modes: the ✕, Esc (the dialog's own `cancel`), and a
+Close paths, both modes: the ✕, Esc (a document `keydown` listener,
+since a non-modal `show()` dialog gets no cancel on Escape), and a
 click on another trigger (reopens there). Desktop adds a pointerdown
 outside the surface and its trigger. Phone adds a click on the backdrop
 (a click whose target is the dialog itself, outside the sheet box) and a
 downward swipe of at least 60px that starts on the sheet while its body
-is scrolled to the top.
+is scrolled to the top. Android Back on the sheet still arrives through
+the dialog's native close.
 
 On close: `dialog.close()`, clear modes and body, restore the trigger's
 `aria-expanded="false"`, remove `popout-open`, and return focus to the

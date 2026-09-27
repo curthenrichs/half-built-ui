@@ -179,6 +179,39 @@ marks the wrap `data-search-js`; without it, the stylesheet's
 focus-within rule opens the flyout on focus alone, so it still works
 with no script.
 
+## Popout
+
+`components/Popout.astro` puts a short note behind a table cell: detail
+worth keeping but not worth a column. It renders a trigger button and a
+template holding its slot; `scripts/popout` opens the note.
+
+```astro
+<Popout label="Sample row · Sample product">
+  A short note with a <a href="#">link</a> and <code>code</code>.
+</Popout>
+```
+
+```js
+import "@half-built/css/popout.css";
+import { mountPopouts } from "@half-built/astro/scripts/popout";
+
+mountPopouts(document);
+```
+
+`label` is required. It captions the open note and names the trigger
+for assistive tech (`Note: <label>`), so write it to identify the row.
+`trigger` changes the button text from `Note`. The slot takes inline
+markup: links, code, emphasis.
+
+Above the phone breakpoint the note opens beside its trigger and stays
+until Escape, the close box, a press outside, or another trigger. At
+phone width it opens as a modal bottom sheet that closes on the close
+box, Escape or Back, a tap on the backdrop, or a downward swipe. One
+note is open at a time. With JavaScript off the trigger does nothing.
+
+Not covered yet: structured content (lists, sub-tables, images),
+triggers on chart marks, and hover previews.
+
 ## Import notes
 
 Wildcard subpath imports need explicit file extensions under
