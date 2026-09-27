@@ -1,7 +1,7 @@
 /* Popout (spec docs/superpowers/specs/2026-09-26-popout-design.md):
    secondary context for tables and data viz. One island, one real
    <dialog> per page. A click on a trigger fills it from the template
-   right after that trigger and opens it anchored beside the trigger
+   right after that trigger and opens it anchored below the trigger
    (desktop) or as a modal bottom sheet (phone width, decided at each
    open). Chrome lives in @half-built/css popout.css. */
 
@@ -87,11 +87,13 @@ export const mountPopouts: Island<PopoutOptions> = (
 
   const surface = el(doc, "dialog", "popout");
   surface.setAttribute("aria-labelledby", "popout-label");
+  surface.setAttribute("aria-describedby", "popout-body");
   surface.tabIndex = -1;
   const label = el(doc, "span", "popout-label boxed-label micro-label");
   label.id = "popout-label";
   const closeBtn = iconButton(doc, "popout-close icon-box", closeLabel, ICON_X);
   const body = el(doc, "div", "popout-body");
+  body.id = "popout-body";
   surface.append(label, closeBtn, body);
   doc.body.append(surface);
 
@@ -99,6 +101,10 @@ export const mountPopouts: Island<PopoutOptions> = (
   let mode: PopoutMode = "anchored";
   let frame = 0;
   let swipeStart: number | null = null;
+  /* A press is under way between pointerdown and its click (or the
+     next key). Focus moves during it, sometimes to nothing (Safari does
+     not focus a pressed button); the pointer handlers own that close. */
+  let pressing = false;
 
   const viewport = (): ViewportSize => ({
     width: html.clientWidth,
@@ -114,8 +120,18 @@ export const mountPopouts: Island<PopoutOptions> = (
   /* Every way out lands here, synchronously. dialog.close() queues its
      close event in real browsers, so the listener below only acts when
      the dialog is actually shut: a late event after a reopen is
-     ignored. */
-  const finish = (): void => {
+     ignored.
+
+     A close the reader asked for (the close box, Escape, the open
+     trigger, the backdrop, a swipe) hands focus back to the trigger.
+     An automatic one (scroll-away, a breakpoint crossing, focus
+     leaving, a press outside) does not: the trigger may be off screen,
+     and a focused one reopens on Space against an anchor nobody can
+     see. Focus inside the box is dropped before close(), which would
+     otherwise restore it to the trigger itself (the dialog's own
+     previously-focused-element step; always so for the modal sheet,
+     hence the second check after). */
+  const finish = (restoreFocus = true): void => {
     const opener = current;
     if (!opener) return;
     current = null;
@@ -123,6 +139,16 @@ export const mountPopouts: Island<PopoutOptions> = (
     if (frame) {
       win?.cancelAnimationFrame(frame);
       frame = 0;
+    }
+
+    const active = doc.activeElement;
+
+    if (
+      !restoreFocus &&
+      active instanceof HTMLElement &&
+      surface.contains(active)
+    ) {
+      active.blur();
     }
 
     if (surface.open) surface.close();
@@ -133,7 +159,9 @@ export const mountPopouts: Island<PopoutOptions> = (
     html.classList.remove("popout-open");
     opener.setAttribute("aria-expanded", "false");
     opener.classList.remove("is-open");
-    opener.focus({ preventScroll: true });
+
+    if (restoreFocus) opener.focus({ preventScroll: true });
+    else if (doc.activeElement === opener && active !== opener) opener.blur();
   };
 
   const place = (): void => {
@@ -163,7 +191,7 @@ export const mountPopouts: Island<PopoutOptions> = (
   const open = (trigger: HTMLElement): void => {
     const tpl = trigger.nextElementSibling;
     if (!(tpl instanceof HTMLTemplateElement)) return;
-    finish();
+    finish(false);
     current = trigger;
     mode = popoutMode(media);
     label.textContent = trigger.dataset.popoutLabel ?? "";
@@ -185,6 +213,7 @@ export const mountPopouts: Island<PopoutOptions> = (
   };
 
   const onClick = (ev: MouseEvent): void => {
+    pressing = false;
     const trigger = triggerFor(ev.target);
 
     if (trigger) {
@@ -202,14 +231,44 @@ export const mountPopouts: Island<PopoutOptions> = (
      trigger is left to the click handler, or pressing the open trigger
      would close here and reopen on click. */
   const onPointerDown = (ev: Event): void => {
+    pressing = true;
     if (!current || mode !== "anchored") return;
     const t = ev.target;
     if (t instanceof Node && surface.contains(t)) return;
     if (triggerFor(t)) return;
-    finish();
+    finish(false);
+  };
+
+  const inside = (t: EventTarget | null): boolean =>
+    t instanceof Node &&
+    (surface.contains(t) || (current?.contains(t) ?? false));
+
+  /* Anchored only: the sheet is modal and keeps focus itself. Keyboard
+     focus leaving the box and its trigger closes it (the site-header
+     flyout's manner). With no destination, focus went to browser chrome
+     or another window, or a press is moving it; the check waits for the
+     move to settle, leaves a press to the pointer handlers, and keeps
+     the box open when focus is still inside it (a window switch leaves
+     the document's focus where it was). */
+  const onFocusOut = (ev: FocusEvent): void => {
+    if (!current || mode !== "anchored") return;
+
+    if (ev.relatedTarget !== null) {
+      if (!inside(ev.relatedTarget)) finish(false);
+      return;
+    }
+
+    if (pressing) return;
+
+    queueMicrotask(() => {
+      if (current && mode === "anchored" && !inside(doc.activeElement)) {
+        finish(false);
+      }
+    });
   };
 
   const onKey = (ev: KeyboardEvent): void => {
+    pressing = false;
     if (ev.key !== "Escape" || !current) return;
     ev.preventDefault();
     finish();
@@ -220,7 +279,7 @@ export const mountPopouts: Island<PopoutOptions> = (
     if (!current) return;
 
     if (offscreen(current.getBoundingClientRect(), viewport())) {
-      finish();
+      finish(false);
       return;
     }
 
@@ -236,7 +295,7 @@ export const mountPopouts: Island<PopoutOptions> = (
     if (!current) return;
 
     if (popoutMode(media) !== mode) {
-      finish();
+      finish(false);
       return;
     }
 
@@ -271,13 +330,14 @@ export const mountPopouts: Island<PopoutOptions> = (
   doc.addEventListener("scroll", onScroll, true);
   win?.addEventListener("resize", onResize);
   surface.addEventListener("close", onClose);
+  surface.addEventListener("focusout", onFocusOut);
   surface.addEventListener("touchstart", onTouchStart, { passive: true });
   surface.addEventListener("touchend", onTouchEnd, { passive: true });
   closeBtn.addEventListener("click", onCloseBtn);
 
   return {
     destroy(): void {
-      finish();
+      finish(false);
       doc.removeEventListener("click", onClick);
       doc.removeEventListener("pointerdown", onPointerDown);
       doc.removeEventListener("keydown", onKey);

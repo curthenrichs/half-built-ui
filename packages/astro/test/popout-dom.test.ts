@@ -52,6 +52,57 @@ function stubPhone(phone: boolean): void {
   });
 }
 
+/* A matchMedia that evaluates the island's max-width query against a
+   given viewport width, so the boundary is tested as the browser would
+   answer it rather than as a canned yes or no. */
+function stubWidth(width: number): void {
+  Object.defineProperty(view(), "matchMedia", {
+    configurable: true,
+    writable: true,
+    value: (q: string) => {
+      const m = /\(max-width:\s*(\d+)px\)/.exec(q);
+      return { matches: m ? width <= Number(m[1]) : false, media: q };
+    },
+  });
+}
+
+/* The island calls the document's own window's rAF, so the stub goes
+   there (not vi.stubGlobal), and the original is put back after. */
+async function withTimerRaf(run: () => Promise<void>): Promise<void> {
+  const saved = Object.getOwnPropertyDescriptor(
+    view(),
+    "requestAnimationFrame",
+  );
+
+  Object.defineProperty(view(), "requestAnimationFrame", {
+    configurable: true,
+    writable: true,
+    value: (cb: FrameRequestCallback) =>
+      setTimeout(() => {
+        cb(0);
+      }, 0),
+  });
+
+  try {
+    await run();
+  } finally {
+    if (saved) Object.defineProperty(view(), "requestAnimationFrame", saved);
+    else Reflect.deleteProperty(view(), "requestAnimationFrame");
+  }
+}
+
+function offTop(t: HTMLElement): void {
+  t.getBoundingClientRect = () =>
+    ({
+      left: 10,
+      right: 50,
+      top: -60,
+      bottom: -40,
+      width: 40,
+      height: 20,
+    }) as DOMRect;
+}
+
 function click(target: HTMLElement): void {
   target.dispatchEvent(new MouseEvent("click", { bubbles: true }));
 }
@@ -158,6 +209,8 @@ describe("popout island (DOM runtime)", () => {
     expect(byId("t1").classList.contains("is-open")).toBe(true);
     expect(document.activeElement).toBe(s);
     expect(s.getAttribute("aria-labelledby")).toBe("popout-label");
+    expect(s.getAttribute("aria-describedby")).toBe("popout-body");
+    expect(s.querySelector(".popout-body")?.id).toBe("popout-body");
   });
 
   it("at phone width it opens as the sheet and locks the page", () => {
@@ -211,7 +264,7 @@ describe("popout island (DOM runtime)", () => {
     );
   });
 
-  it("each close path closes and returns focus to the trigger", () => {
+  it("the close box and Escape close and return focus to the trigger", () => {
     handle = mountPopouts(document);
     const t1 = byId("t1");
 
@@ -224,11 +277,6 @@ describe("popout island (DOM runtime)", () => {
       () => {
         document.dispatchEvent(
           new KeyboardEvent("keydown", { key: "Escape", bubbles: true }),
-        );
-      },
-      () => {
-        byId("outside").dispatchEvent(
-          new Event("pointerdown", { bubbles: true }),
         );
       },
     ];
@@ -248,6 +296,99 @@ describe("popout island (DOM runtime)", () => {
     }
   });
 
+  it("automatic closes leave focus off the trigger", async () => {
+    const t1 = byId("t1");
+    const outside = byId("outside");
+    outside.tabIndex = -1;
+
+    const paths: [string, () => Promise<void>][] = [
+      [
+        "outside pointerdown",
+        () => {
+          outside.dispatchEvent(new Event("pointerdown", { bubbles: true }));
+          return Promise.resolve();
+        },
+      ],
+      [
+        "scroll-away",
+        async () => {
+          offTop(t1);
+          document.dispatchEvent(new Event("scroll"));
+          await new Promise((r) => setTimeout(r, 5));
+        },
+      ],
+      [
+        "breakpoint-crossing resize",
+        () => {
+          stubWidth(768);
+          view().dispatchEvent(new Event("resize"));
+          return Promise.resolve();
+        },
+      ],
+      [
+        "focusout to an outside element",
+        () => {
+          outside.focus();
+          return Promise.resolve();
+        },
+      ],
+    ];
+
+    await withTimerRaf(async () => {
+      handle = mountPopouts(document);
+
+      for (const [name, shut] of paths) {
+        stubWidth(1280);
+        Reflect.deleteProperty(t1, "getBoundingClientRect");
+        t1.focus();
+        click(t1);
+        expect(surface().open, name).toBe(true);
+        expect(document.activeElement, name).toBe(surface());
+        await shut();
+        expect(surface().open, name).toBe(false);
+        expect(t1.getAttribute("aria-expanded"), name).toBe("false");
+        expect(document.activeElement, name).not.toBe(t1);
+        expect(surface().contains(document.activeElement), name).toBe(false);
+      }
+    });
+  });
+
+  it("focus moving to the open trigger or within the box keeps it open", () => {
+    handle = mountPopouts(document);
+    const t1 = byId("t1");
+    click(t1);
+    const inner = surface().querySelector(".popout-body a");
+    if (!(inner instanceof HTMLElement)) throw new Error("no inner link");
+    inner.focus();
+    expect(surface().open).toBe(true);
+    t1.focus();
+    expect(surface().open).toBe(true);
+  });
+
+  it("a focusout with no destination closes, unless a press is under way", async () => {
+    handle = mountPopouts(document);
+    const t1 = byId("t1");
+
+    /* Mid-press (Safari blurs before the click on a button lands): the
+       pointer handlers own that close, so the focusout is ignored and
+       the click still toggles the box shut rather than reopening it. */
+    click(t1);
+    t1.dispatchEvent(new Event("pointerdown", { bubbles: true }));
+    surface().blur();
+    await Promise.resolve();
+    expect(surface().open).toBe(true);
+    click(t1);
+    expect(surface().open).toBe(false);
+
+    /* Keyboard focus leaving the document: close, focus not restored. */
+    click(t1);
+    document.dispatchEvent(new KeyboardEvent("keydown", { key: "Tab" }));
+    surface().blur();
+    await Promise.resolve();
+    expect(surface().open).toBe(false);
+    expect(document.activeElement).not.toBe(t1);
+  });
+
   it("a press inside the anchored box does not close it", () => {
     handle = mountPopouts(document);
     click(byId("t1"));
@@ -260,9 +401,11 @@ describe("popout island (DOM runtime)", () => {
   it("the sheet closes on a backdrop click and a 60px swipe from the top", () => {
     stubPhone(true);
     handle = mountPopouts(document);
-    click(byId("t1"));
+    const t1 = byId("t1");
+    click(t1);
     click(surface());
     expect(surface().open).toBe(false);
+    expect(document.activeElement).toBe(t1);
 
     expect(document.documentElement.classList.contains("popout-open")).toBe(
       false,
@@ -275,6 +418,7 @@ describe("popout island (DOM runtime)", () => {
     surface().dispatchEvent(touch("touchstart", 100));
     surface().dispatchEvent(touch("touchend", 170));
     expect(surface().open).toBe(false);
+    expect(document.activeElement).toBe(t1);
   });
 
   it("the sheet survives a resize that stays phone; a breakpoint crossing closes it", () => {
@@ -289,44 +433,39 @@ describe("popout island (DOM runtime)", () => {
   });
 
   it("scrolling the trigger wholly out of view closes the anchored box", async () => {
-    /* The island calls the document's own window's rAF, so the stub goes
-       there (not vi.stubGlobal), and the original is put back after. */
-    const saved = Object.getOwnPropertyDescriptor(
-      view(),
-      "requestAnimationFrame",
-    );
-
-    Object.defineProperty(view(), "requestAnimationFrame", {
-      configurable: true,
-      writable: true,
-      value: (cb: FrameRequestCallback) =>
-        setTimeout(() => {
-          cb(0);
-        }, 0),
-    });
-
-    try {
+    await withTimerRaf(async () => {
       handle = mountPopouts(document);
       const t1 = byId("t1");
       click(t1);
-
-      t1.getBoundingClientRect = () =>
-        ({
-          left: 10,
-          right: 50,
-          top: -60,
-          bottom: -40,
-          width: 40,
-          height: 20,
-        }) as DOMRect;
-
+      offTop(t1);
       document.dispatchEvent(new Event("scroll"));
       await new Promise((r) => setTimeout(r, 5));
       expect(surface().open).toBe(false);
-    } finally {
-      if (saved) Object.defineProperty(view(), "requestAnimationFrame", saved);
-      else Reflect.deleteProperty(view(), "requestAnimationFrame");
-    }
+    });
+  });
+
+  it("the mode flips at the phone breakpoint: 768 is the sheet, 769 anchored", () => {
+    handle = mountPopouts(document);
+    const t1 = byId("t1");
+
+    stubWidth(768);
+    click(t1);
+    expect(surface().classList.contains("is-sheet")).toBe(true);
+    expect(surface().classList.contains("is-anchored")).toBe(false);
+    click(t1);
+
+    stubWidth(769);
+    click(t1);
+    expect(surface().classList.contains("is-anchored")).toBe(true);
+    expect(surface().classList.contains("is-sheet")).toBe(false);
+  });
+
+  it("after destroy a trigger click changes nothing", () => {
+    handle = mountPopouts(document);
+    handle.destroy();
+    handle = undefined;
+    click(byId("t1"));
+    expect(byId("t1").getAttribute("aria-expanded")).toBe("false");
   });
 
   it("a trigger with no template does nothing", () => {
