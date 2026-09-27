@@ -32,6 +32,8 @@ import CodeBlock from "@half-built/astro/content/CodeBlock.astro";
 import Palette from "@half-built/astro/content/Palette.astro";
 import Group from "@half-built/astro/content/Group.astro";
 import Spacer from "@half-built/astro/content/Spacer.astro";
+import TwoColumn from "@half-built/astro/components/TwoColumn.astro";
+import { deriveExcerpt } from "@half-built/astro/lib/excerpt.ts";
 import codeTheme from "@half-built/astro/shiki/code-theme";
 import codeVars from "@half-built/astro/shiki/code-vars";
 import type {
@@ -81,6 +83,27 @@ const posts: PostCardModel[] = [
     categories: [{ name: "Demo", href: "#" }],
   },
 ];
+
+const excerptSampleBody = `A short aside that opens the sample post and
+should stay off the card.
+
+<ExcerptStart />
+
+The card text starts here, after the marker, and runs until
+the excerpt limit cuts it at a word boundary with an ellipsis.`;
+
+const excerptCard: PostCardModel = {
+  href: "#",
+  title: "Sample post, excerpt after a marker",
+  excerpt: deriveExcerpt(excerptSampleBody) ?? "",
+  author: "Demo Author",
+  dateStr: "4, Jan 2026",
+  minutes: 2,
+  hero: placeholderWide,
+  categories: [{ name: "Sample", href: "#" }],
+};
+
+const typeScale = ["xs", "sm", "base", "md", "lg", "xl", "xxl"];
 
 const categoryCards = [
   { name: "Sample", href: "#", image: placeholderSquare },
@@ -187,10 +210,13 @@ const codeSample = `def read_ir(code):
 
 const frameImports = `import Masthead from "@half-built/astro/components/Masthead.astro";
 import Footer from "@half-built/astro/components/Footer.astro";
-import ThemeToggle from "@half-built/astro/components/ThemeToggle.astro";`;
+import ThemeToggle from "@half-built/astro/components/ThemeToggle.astro";
+import TwoColumn from "@half-built/astro/components/TwoColumn.astro";`;
 
 const cardImports = `import PostCard from "@half-built/astro/components/PostCard.astro";
-import CategoryCard from "@half-built/astro/components/CategoryCard.astro";`;
+import CategoryCard from "@half-built/astro/components/CategoryCard.astro";
+import { deriveExcerpt } from "@half-built/astro/lib/excerpt.ts";
+import ExcerptStart from "@half-built/astro/content/ExcerptStart.astro";`;
 
 const componentImports = `import Pagination from "@half-built/astro/components/Pagination.astro";
 import PostNavigation from "@half-built/astro/components/PostNavigation.astro";
@@ -237,6 +263,23 @@ import Popout from "@half-built/astro/components/Popout.astro";
   A note can carry a <a href="#components">link</a> and
   <code>inline code</code>.
 </Popout>`;
+
+const pathPlayerSample = `---
+import "@half-built/css/plate-modal.css";
+import "@half-built/css/path-player.css";
+---
+
+<script>
+  import { createPathPlayer } from "@half-built/astro/scripts/path-player.ts";
+
+  const player = createPathPlayer(document, {
+    title, source, caption, duration, samples, tracks,
+    buildStage: (viewbox) => { /* append the stage, return true */ },
+    sink: { start, move, stop },
+  });
+
+  button.addEventListener("click", () => player.open(button));
+</script>`;
 
 const npmPackages = [
   {
@@ -317,6 +360,36 @@ const npmPackages = [
           </div>
           <Imports code={frameImports} />
         </div>
+
+        <h3>Two-column layout</h3>
+        <div class="prose">
+          <p>
+            TwoColumn is the page row: the main column and a sidebar beside it.
+            The sidebar takes 30% of the row and stacks under the main column
+            below 991px. The frame below stands in for the page.
+          </p>
+        </div>
+        <div class="demo-two-column">
+          <TwoColumn>
+            <div class="prose">
+              <p>
+                The main column. Post bodies, archives and static pages render
+                here, and it takes whatever width the sidebar leaves.
+              </p>
+              <p>
+                A second placeholder paragraph, to give the column some length
+                beside the sidebar.
+              </p>
+            </div>
+            <aside class="sidebar" slot="aside" aria-label="Sample sidebar">
+              <LinkListWidget
+                title="Sidebar links"
+                items={linkListItems}
+                headingLevel={4}
+              />
+            </aside>
+          </TwoColumn>
+        </div>
       </section>
 
       <section id="cards">
@@ -331,6 +404,11 @@ const npmPackages = [
               an interactive demo. CategoryCard is the smaller tile, an image
               with the category name chipped over its bottom edge.
             </p>
+            <p>
+              A card's text is derived from the post body. The card under
+              Derived excerpt starts after an <code>ExcerptStart</code> marker,
+              skipping the aside above it.
+            </p>
           </div>
           <Imports code={cardImports} />
         </div>
@@ -340,6 +418,29 @@ const npmPackages = [
           {posts.map((post) => (
             <PostCard {...post} />
           ))}
+        </div>
+
+        <h3>Derived excerpt</h3>
+        <div class="prose">
+          <p>
+            The sample post body runs through <code>deriveExcerpt</code> to make
+            the card's text. The text before the marker stays off the card.
+          </p>
+        </div>
+        <div class="demo-excerpt">
+          <div class="prose">
+            <CodeBlock filename="sample-post.mdx">
+              <Code
+                code={excerptSampleBody}
+                lang="mdx"
+                theme={codeTheme}
+                transformers={[codeVars]}
+              />
+            </CodeBlock>
+          </div>
+          <div class="demo-card-grid">
+            <PostCard {...excerptCard} />
+          </div>
         </div>
 
         <h3>Category cards</h3>
@@ -469,6 +570,29 @@ const npmPackages = [
               />
             </CodeBlock>
           </div>
+        </div>
+
+        <div class="prose">
+          <h3>Path player</h3>
+          <p>
+            A transport and timeline over a plate modal. The caller supplies the
+            samples, the tracks under the stage, and the stage itself. This
+            stage is a point on a closed curve. With reduced motion set, it
+            opens paused.
+          </p>
+          <p class="button-row">
+            <Button variant="accent-1" class="demo-path-player"
+              >Open the path player</Button
+            >
+          </p>
+          <CodeBlock>
+            <Code
+              code={pathPlayerSample}
+              lang="astro"
+              theme={codeTheme}
+              transformers={[codeVars]}
+            />
+          </CodeBlock>
         </div>
 
         <div class="prose">
@@ -650,7 +774,8 @@ const npmPackages = [
           <BlogImage
             src={placeholderWide}
             alt="Wide placeholder image"
-            caption="A full-width figure with a caption."
+            caption="A full-width figure with a caption, wearing the AI Art badge."
+            badges={[GENAI_BADGE]}
           />
 
           <h3>Media text</h3>
@@ -764,6 +889,19 @@ const npmPackages = [
             current theme and palette.
           </p>
           <Palette entries={tokenEntries} label="Tokens" />
+        </div>
+
+        <h3>Type scale</h3>
+        <div class="prose">
+          <p>
+            The fluid size stops. Each line renders at its own token and names
+            it.
+          </p>
+          <ul class="type-scale">
+            {typeScale.map((s) => <li data-size={s} class={`type-scale-${s}`}>
+              <code>--font-size-{s}</code> Sample text
+            </li>)}
+          </ul>
         </div>
 
         <h3>Prose specimen</h3>
@@ -913,6 +1051,34 @@ const npmPackages = [
     margin: 20px 0;
   }
   .demo-card-grid-narrow { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
+
+  /* The TwoColumn demo: a ruled frame standing in for the page the row
+     would fill. The trailing paragraph and widget margins would only
+     pad the frame's bottom edge, so they come off inside it. */
+  .demo-two-column {
+    border: var(--stroke) solid var(--rule);
+    padding: 20px;
+    margin: 20px 0;
+  }
+
+  .demo-two-column :global(.prose > p:last-child),
+  .demo-two-column :global(.widget) { margin-bottom: 0; }
+
+  /* The derived-excerpt demo: the sample body beside the card it
+     yields, the card column the same third a card takes in the grid
+     above; stacked where the sidebar row stacks. */
+  .demo-excerpt {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(260px, 1fr);
+    align-items: start;
+    gap: 20px;
+    margin: 20px 0;
+  }
+  .demo-excerpt > * { margin: 0; }
+
+  @media (--bp-sidebar) {
+    .demo-excerpt { grid-template-columns: minmax(0, 1fr); }
+  }
 
   .demo-widget-row {
     display: grid;

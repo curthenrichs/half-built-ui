@@ -5,6 +5,7 @@ import "@half-built/css";
 import "@half-built/css/patterns.css";
 import "@half-built/css/code.css";
 import "@half-built/css/plate-modal.css";
+import "@half-built/css/path-player.css";
 import "@half-built/css/lightbox.css";
 import "@half-built/css/popout.css";
 import "@half-built/css/prose.css";
@@ -29,11 +30,13 @@ import { PALETTE_STORAGE_KEY } from "../lib/palette-key";
 interface Props {
   title?: string;
   description?: string;
+  isHome?: boolean;
 }
 
 const {
   title = "half-built-ui",
   description = "The reference site for the @half-built packages, every component's variants rendered on one page.",
+  isHome = true,
 } = Astro.props;
 ---
 
@@ -113,7 +116,7 @@ const {
     nav={NAV}
     socials={SOCIALS}
     dateStr={formatHeaderDate(new Date())}
-    isHome={true}
+    isHome={isHome}
   />
   {/* The palette editor and TOC merged into Rail.astro (owner call
       2026-09-06), rendered by the page inside .site-layout's column
@@ -139,6 +142,7 @@ const {
       import { mountToc } from "../scripts/toc";
       import { mountPaletteEditor } from "../scripts/palette-editor";
       import { mountTokenHexes } from "../scripts/token-hexes";
+      import { mountPathDemo } from "../scripts/path-demo";
       import { THEME_STORAGE_KEY } from "../lib/theme-key";
       import { PALETTE_STORAGE_KEY } from "../lib/palette-key";
       import { ECOSYSTEM_SELF_KEY, ECOSYSTEM_ENDPOINT } from "../lib/ecosystem-config";
@@ -153,6 +157,7 @@ const {
       mountToc(document);
       mountPaletteEditor(document, { storageKey: PALETTE_STORAGE_KEY });
       mountTokenHexes(document);
+      mountPathDemo(document);
       /* Guarded, so a site with no endpoint configured makes no
          request at all. Bundlers drop the island entirely while the
          constant is null. */

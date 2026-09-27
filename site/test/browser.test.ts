@@ -801,6 +801,136 @@ describe.skipIf(!enabled)("browser suite", () => {
     }
   }, 120_000);
 
+  it("the PostLink demo's resolved link lands on a real page", async () => {
+    const p = await open();
+
+    const href = await p.$eval(
+      "#components a[href$='/sample-published/']",
+      (a) => a.getAttribute("href"),
+    );
+
+    const res = await p.goto(`${ORIGIN}${href ?? ""}`, {
+      waitUntil: "networkidle0",
+    });
+
+    expect(res?.status()).toBe(200);
+    expect(await p.$eval("h1", (h) => h.textContent)).toMatch(/sample post/i);
+
+    for (const theme of ["light", "dark"] as const) {
+      await p.evaluate((t) => {
+        if (t === "dark") document.documentElement.dataset.theme = "dark";
+        else delete document.documentElement.dataset.theme;
+      }, theme);
+
+      await settleFrames(p);
+      const violations = await runAxe(p);
+
+      expect(violations, report(`${theme}, sample post`, violations)).toEqual(
+        [],
+      );
+    }
+  }, 60_000);
+
+  it("the type scale specimen shows every size stop", async () => {
+    const p = await open();
+
+    const names = await p.$$eval(".type-scale [data-size]", (els) =>
+      els.map((e) => e.getAttribute("data-size")),
+    );
+
+    expect(names).toEqual(["xs", "sm", "base", "md", "lg", "xl", "xxl"]);
+
+    const sizes = await p.$$eval(".type-scale [data-size]", (els) =>
+      els.map((e) => parseFloat(getComputedStyle(e).fontSize)),
+    );
+
+    for (let i = 1; i < sizes.length; i++) {
+      expect(sizes[i]).toBeGreaterThan(sizes[i - 1]);
+    }
+  });
+
+  it("the blog image demo wears the AI Art badge", async () => {
+    const p = await open();
+    expect(await p.$("#components .blog-image .badge-genai")).not.toBeNull();
+  });
+
+  it("the TwoColumn demo renders its main column beside a sidebar", async () => {
+    const p = await open();
+    const demo = await p.$("#frame .two-column");
+    expect(demo).not.toBeNull();
+    expect(await p.$("#frame .two-column .sidebar .widget")).not.toBeNull();
+
+    const [mainBox, sideBox] = await p.$$eval(
+      "#frame .two-column > .site-main, #frame .two-column > .sidebar",
+      (els) => els.map((e) => e.getBoundingClientRect().left),
+    );
+
+    expect(sideBox).toBeGreaterThan(mainBox);
+  });
+
+  it("the ExcerptStart card's text starts after the marker", async () => {
+    const p = await open();
+
+    const texts = await p.$$eval("#cards .demo-card-grid .post-item", (cards) =>
+      cards.map((c) => c.textContent),
+    );
+
+    expect(texts.some((t) => t.includes("The card text starts here"))).toBe(
+      true,
+    );
+
+    expect(texts.some((t) => t.includes("A short aside that opens"))).toBe(
+      false,
+    );
+  });
+
+  it("the path player opens with a glyph in its play button and paints both tracks", async () => {
+    for (const theme of ["light", "dark"] as const) {
+      const p = await open();
+
+      await p.emulateMediaFeatures([
+        { name: "prefers-reduced-motion", value: "reduce" },
+      ]);
+
+      await p.evaluate((t) => {
+        if (t === "dark") document.documentElement.dataset.theme = "dark";
+        else delete document.documentElement.dataset.theme;
+      }, theme);
+
+      await p.click(".demo-path-player");
+      await settleFrames(p);
+      expect(await p.$(".pp-plate .pp-play svg")).not.toBeNull();
+
+      expect(
+        await p.$eval(".pp-tracks", (c) => (c as HTMLCanvasElement).width),
+      ).toBeGreaterThan(0);
+
+      const violations = await runAxe(p);
+
+      expect(
+        violations,
+        report(`${theme}, path player open`, violations),
+      ).toEqual([]);
+
+      await p.close();
+      page = undefined;
+    }
+  }, 120_000);
+
+  it("typing in a clicked joined field keeps the pointer stamp", async () => {
+    const p = await open();
+
+    /* The Subscribe demo's field, not the first match on the page: the
+       header's search field comes first in the DOM and is hidden until
+       the search box opens, so a click there focuses nothing. */
+    await p.click("#components .field-join-input");
+    await p.keyboard.type("a");
+
+    expect(await p.evaluate(() => document.documentElement.dataset.focus)).toBe(
+      "pointer",
+    );
+  });
+
   it("the icon set is wired in the head and every icon resolves", async () => {
     const p = await open();
 

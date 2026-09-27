@@ -54,6 +54,46 @@
     white-space: nowrap;
   }
 
+  /* The type scale specimen: one line per size stop, each set at its
+     own token. The token name inside keeps the code pattern's relative
+     size, so it scales with its line. */
+  .type-scale {
+    list-style: none;
+    padding: 0;
+  }
+
+  .type-scale li {
+    margin: 0 0 0.25em;
+  }
+
+  .type-scale-xs {
+    font-size: var(--font-size-xs);
+  }
+
+  .type-scale-sm {
+    font-size: var(--font-size-sm);
+  }
+
+  .type-scale-base {
+    font-size: var(--font-size-base);
+  }
+
+  .type-scale-md {
+    font-size: var(--font-size-md);
+  }
+
+  .type-scale-lg {
+    font-size: var(--font-size-lg);
+  }
+
+  .type-scale-xl {
+    font-size: var(--font-size-xl);
+  }
+
+  .type-scale-xxl {
+    font-size: var(--font-size-xxl);
+  }
+
   /* The patterns ledger: same rule for its class-name column, plus
      room to breathe (owner call 2026-09-06: more width). */
   .demo-pattern-table td:nth-child(2),
