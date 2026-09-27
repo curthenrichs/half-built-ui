@@ -3,7 +3,7 @@
    context for tables and data viz. One island-owned <dialog>
    (scripts/popout.ts) in the boxed grammar of the link tip and the
    search flyout. The island picks a mode per open: .is-anchored is a
-   non-modal box placed fixed beside its trigger (JS writes left and
+   non-modal box placed fixed below its trigger (JS writes left and
    top), .is-sheet a modal bottom sheet in the top layer. The dialog
    carries no padding of its own, so a click whose target is the
    dialog itself can only be a backdrop click. */
@@ -68,11 +68,14 @@
 
   /* A floating UI box, not text in the layout column: the no-prose-cap
      rule does not apply (spec, chrome section). 60px is both edges'
-     room plus the straddling close box. */
+     room plus the straddling close box. The floor keeps a short note's
+     caption from ellipsizing to a few letters, and never outgrows the
+     cap. */
   .popout.is-anchored {
     position: fixed;
     inset: auto;
     width: max-content;
+    min-width: min(14rem, calc(100vw - 60px));
     max-width: min(22rem, calc(100vw - 60px));
     z-index: var(--z-popout);
   }
@@ -88,6 +91,7 @@
 
   .popout.is-sheet .popout-body {
     max-height: 70vh;
+    max-height: 70dvh;
     overflow-y: auto;
     overscroll-behavior: contain;
     padding: 24px 16px 28px;
