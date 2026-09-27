@@ -874,6 +874,39 @@ describe.skipIf(!enabled)("browser suite", () => {
     expect(await p.$("main article.static-page")).not.toBeNull();
   });
 
+  it("a card's corner badges never overlap its reading-time chip", async () => {
+    const p = await open();
+
+    /* 900px is where the three-up card grid is narrowest: the reading
+       time plus AI Art plus Demo no longer fit on one line. */
+    for (const width of [900, 1280, 390]) {
+      await p.setViewport({ width, height: 900 });
+
+      const overlaps = await p.$$eval(
+        "#cards .demo-card-grid article",
+        (cards) =>
+          cards.map((card) => {
+            const time = card.querySelector(".reading-time");
+            const chips = [...card.querySelectorAll(".corner-badges .chip")];
+            if (!time) return false;
+            const t = time.getBoundingClientRect();
+
+            return chips.some((chip) => {
+              const c = chip.getBoundingClientRect();
+              return (
+                c.left < t.right &&
+                t.left < c.right &&
+                c.top < t.bottom &&
+                t.top < c.bottom
+              );
+            });
+          }),
+      );
+
+      expect(overlaps, `width ${String(width)}`).not.toContain(true);
+    }
+  });
+
   it("every post card leads to the sample post, which stays out of search", async () => {
     const p = await open();
 
