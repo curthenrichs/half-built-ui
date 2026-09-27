@@ -1,0 +1,127 @@
+/* Layer: components. The popout (spec
+   docs/superpowers/specs/2026-09-26-popout-design.md): secondary
+   context for tables and data viz. One island-owned <dialog>
+   (scripts/popout.ts) in the boxed grammar of the link tip and the
+   search flyout. The island picks a mode per open: .is-anchored is a
+   non-modal box placed fixed beside its trigger (JS writes left and
+   top), .is-sheet a modal bottom sheet in the top layer. The dialog
+   carries no padding of its own, so a click whose target is the
+   dialog itself can only be a backdrop click. */
+@layer components {
+  .popout-trigger {
+    padding: 0;
+    border: 0;
+    background: none;
+    color: inherit;
+    font: inherit;
+    font-size: var(--font-size-xs);
+    text-decoration: underline dotted;
+    text-underline-offset: 3px;
+    cursor: pointer;
+  }
+
+  .popout-trigger.is-open {
+    text-decoration-style: solid;
+  }
+
+  .popout {
+    box-sizing: border-box;
+    padding: 0;
+    margin: 0;
+    border: var(--stroke) solid var(--rule);
+    background: var(--surface);
+    color: var(--ink);
+    box-shadow: var(--shadow);
+    overflow: visible;
+  }
+
+  .popout::backdrop {
+    background: var(--veil);
+    backdrop-filter: blur(7px);
+  }
+
+  .popout-body {
+    padding: 20px 14px 12px;
+    font-size: var(--font-size-sm);
+    line-height: 1.5;
+  }
+
+  /* Plate-modal's label rule at popout scale: one line, ellipsis,
+     clear of the close box's corner. */
+  .popout-label {
+    position: absolute;
+    top: -12px;
+    left: 12px;
+    box-sizing: border-box;
+    max-width: calc(100% - 12px - 30px);
+    padding: 2px 8px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .popout-close {
+    position: absolute;
+    top: -17px;
+    right: -17px;
+  }
+
+  /* A floating UI box, not text in the layout column: the no-prose-cap
+     rule does not apply (spec, chrome section). 60px is both edges'
+     room plus the straddling close box. */
+  .popout.is-anchored {
+    position: fixed;
+    inset: auto;
+    width: max-content;
+    max-width: min(22rem, calc(100vw - 60px));
+    z-index: var(--z-popout);
+  }
+
+  .popout.is-sheet {
+    inset: auto 0 0;
+    width: 100%;
+    max-width: 100%;
+    max-height: none;
+    border-width: var(--stroke) 0 0;
+    animation: popout-rise 0.15s ease-out;
+  }
+
+  .popout.is-sheet .popout-body {
+    max-height: 70vh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 24px 16px 28px;
+  }
+
+  .popout.is-sheet .popout-label {
+    left: 16px;
+    max-width: calc(100% - 16px - 60px);
+  }
+
+  .popout.is-sheet .popout-close {
+    right: 14px;
+  }
+
+  @keyframes popout-rise {
+    from {
+      transform: translateY(100%);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .popout.is-sheet {
+      animation: none;
+    }
+  }
+
+  /* The page must not scroll under an open sheet; the plate-modal
+     lock, under its own class so the two never clear each other. */
+  html.popout-open,
+  html.popout-open body {
+    overflow: hidden;
+  }
+
+  html.popout-open {
+    scrollbar-gutter: stable;
+  }
+}
