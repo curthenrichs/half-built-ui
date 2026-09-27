@@ -393,6 +393,17 @@ export const mountLightbox: Island<LightboxOptions> = (
     r.homeBtn.hidden = !outOfWhack(view, item.w, item.h, boxW, boxH);
   };
 
+  /* fit and view must move together: readout's FIT/percent judgment is
+     view.zoom === fit, so any path that resets the view to fit (a new
+     item, HOME, 0, the double-click reset, or a resize) recomputes
+     both here rather than setting view alone and leaving fit stale. */
+  const resetToFit = (r: Refs): void => {
+    const item = items[index];
+    fit = fitZoom(item.w, item.h, boxW, boxH);
+    view = initialView(item.w, item.h, boxW, boxH);
+    applyView(r);
+  };
+
   const goTo = (r: Refs, i: number): void => {
     const n = items.length;
     show(r, ((i % n) + n) % n);
@@ -436,15 +447,13 @@ export const mountLightbox: Island<LightboxOptions> = (
   const show = (r: Refs, i: number): void => {
     index = i;
     const item = items[index];
-    fit = fitZoom(item.w, item.h, boxW, boxH);
-    view = initialView(item.w, item.h, boxW, boxH);
     r.caption.textContent = item.caption;
     r.img.alt = item.caption;
     r.dims.textContent = `${String(item.w)} × ${String(item.h)}`;
     r.counter.textContent = `${String(index + 1).padStart(2, "0")} / ${String(items.length).padStart(2, "0")}`;
     r.img.src = item.thumb;
     swapToFull(r.img, item.href, doc);
-    applyView(r);
+    resetToFit(r);
   };
 
   const ensureRefs = (): Refs => {
@@ -489,15 +498,11 @@ export const mountLightbox: Island<LightboxOptions> = (
       if (ev.key === "+" || ev.key === "=") rezoom(ZOOM_STEP, 0, 0);
       if (ev.key === "-") rezoom(1 / ZOOM_STEP, 0, 0);
 
-      if (ev.key === "0") {
-        view = initialView(item().w, item().h, boxW, boxH);
-        applyView(r);
-      }
+      if (ev.key === "0") resetToFit(r);
     });
 
     r.homeBtn.addEventListener("click", () => {
-      view = initialView(item().w, item().h, boxW, boxH);
-      applyView(r);
+      resetToFit(r);
     });
 
     r.viewbox.addEventListener(
@@ -528,8 +533,7 @@ export const mountLightbox: Island<LightboxOptions> = (
         const { cx, cy } = rel(ev);
         rezoom(1 / view.zoom, cx, cy);
       } else {
-        view = init;
-        applyView(r);
+        resetToFit(r);
       }
     });
 
@@ -630,8 +634,7 @@ export const mountLightbox: Island<LightboxOptions> = (
         const rr = r.viewbox.getBoundingClientRect();
         boxW = rr.width || FALLBACK_BOX.w;
         boxH = rr.height || FALLBACK_BOX.h;
-        view = initialView(items[index].w, items[index].h, boxW, boxH);
-        applyView(r);
+        resetToFit(r);
       };
 
       window.addEventListener("resize", onResize);

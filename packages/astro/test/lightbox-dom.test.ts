@@ -565,6 +565,11 @@ describe("island lifecycle (step 9)", () => {
     window.dispatchEvent(new Event("resize"));
     // 1600x1200 in the new 400x300 box: fit 0.25, width 400px.
     expect(img?.style.width).toBe("400px");
+
+    /* The resize left the view at fit for the new box; the readout's
+       stored fit anchor must have moved with it, or this reads as a
+       live percentage instead of FIT. */
+    expect(d.querySelector(".lb-readout")?.textContent).toBe("FIT · 0,0");
   });
 });
 
