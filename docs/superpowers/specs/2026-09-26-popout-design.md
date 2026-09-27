@@ -139,8 +139,10 @@ Desktop while open:
 - Scroll (captured, since table scrollers do not bubble) re-measures and
   re-places in the next animation frame. If the trigger's rect lies
   wholly outside the viewport, close.
-- Resize closes (it may cross the breakpoint; reopening picks the right
-  mode).
+- Resize re-places the box. A resize that crosses the phone breakpoint
+  closes it instead, in either mode (reopening picks the right mode). A
+  sheet stays open through resizes that do not cross, since phones
+  resize on URL-bar collapse and keyboard open.
 
 ### `@half-built/css`: `popout.css`
 
