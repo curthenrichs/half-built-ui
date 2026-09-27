@@ -445,6 +445,18 @@ describe.skipIf(!enabled)("browser suite", () => {
     expect(second).toEqual({ open: true, label: "Row one", hasLink: true });
   });
 
+  it("the Popout subsection ships a worked example matching the demo", async () => {
+    const p = await open();
+
+    const text = await p.$eval(
+      ".demo-popout-sample",
+      (el) => el.textContent || "",
+    );
+
+    expect(text).toContain("<Popout");
+    expect(text).toContain("mountPopouts");
+  });
+
   it("a popout inside a horizontally scrolled table follows the scroller, unclipped", async () => {
     const p = await open();
 

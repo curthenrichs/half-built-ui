@@ -389,6 +389,23 @@ describe("popout island (DOM runtime)", () => {
     expect(document.activeElement).not.toBe(t1);
   });
 
+  it("a pointercancel after pointerdown clears the press, so a later null-relatedTarget focusout still closes the box", async () => {
+    handle = mountPopouts(document);
+    const t1 = byId("t1");
+
+    /* A touch pan or a press dragged off its target ends in pointercancel,
+       never a click. If the press flag outlives it, the next
+       null-relatedTarget focusout (focus leaving to nowhere) is ignored
+       forever and the box is stuck open. */
+    click(t1);
+    t1.dispatchEvent(new Event("pointerdown", { bubbles: true }));
+    t1.dispatchEvent(new Event("pointercancel", { bubbles: true }));
+    surface().blur();
+    await Promise.resolve();
+    expect(surface().open).toBe(false);
+    expect(document.activeElement).not.toBe(t1);
+  });
+
   it("a press inside the anchored box does not close it", () => {
     handle = mountPopouts(document);
     click(byId("t1"));
@@ -428,6 +445,18 @@ describe("popout island (DOM runtime)", () => {
     view().dispatchEvent(new Event("resize"));
     expect(surface().open).toBe(true);
     stubPhone(false);
+    view().dispatchEvent(new Event("resize"));
+    expect(surface().open).toBe(false);
+  });
+
+  it("the anchored popout survives a resize that stays desktop; a breakpoint crossing to phone closes it", () => {
+    stubWidth(1280);
+    handle = mountPopouts(document);
+    click(byId("t1"));
+    expect(surface().classList.contains("is-anchored")).toBe(true);
+    view().dispatchEvent(new Event("resize"));
+    expect(surface().open).toBe(true);
+    stubWidth(700);
     view().dispatchEvent(new Event("resize"));
     expect(surface().open).toBe(false);
   });

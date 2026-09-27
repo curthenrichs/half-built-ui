@@ -219,6 +219,21 @@ import "@half-built/css/prose.css";
 import "@half-built/css/patterns.css";
 import Palette from "@half-built/astro/content/Palette.astro";`;
 
+const popoutLayoutSample = `---
+import "@half-built/css/popout.css";
+---
+
+<script>
+  import { mountPopouts } from "@half-built/astro/scripts/popout";
+
+  mountPopouts(document);
+</script>`;
+
+const popoutMarkupSample = `<Popout label="Row one">
+  A note can carry a <a href="#components">link</a> and
+  <code>inline code</code>.
+</Popout>`;
+
 const npmPackages = [
   {
     name: "@half-built/css",
@@ -387,9 +402,11 @@ const npmPackages = [
           <h3>Popout</h3>
           <p>
             A short note behind a cell in a data table, for detail worth keeping
-            but not worth a column. On a wide screen it opens beside its trigger
-            and stays until dismissed. On a phone it opens as a sheet from the
-            bottom edge, captioned with its row. The layout loads
+            but not worth a column. On a wide screen it opens below its trigger,
+            or above it when there is no room below. It closes on its own when
+            the trigger scrolls out of view, when keyboard focus leaves it, or
+            when the window crosses into phone width. On a phone it opens as a
+            sheet from the bottom edge, captioned with its row. The layout loads
             <code>popout.css</code> and mounts <code>mountPopouts</code> once.
           </p>
           <section class="table-scroll" tabindex="0" aria-label="Popout demo">
@@ -430,6 +447,24 @@ const npmPackages = [
               </tbody>
             </table>
           </section>
+          <div class="demo-popout-sample">
+            <CodeBlock>
+              <Code
+                code={popoutLayoutSample}
+                lang="astro"
+                theme={codeTheme}
+                transformers={[codeVars]}
+              />
+            </CodeBlock>
+            <CodeBlock>
+              <Code
+                code={popoutMarkupSample}
+                lang="astro"
+                theme={codeTheme}
+                transformers={[codeVars]}
+              />
+            </CodeBlock>
+          </div>
         </div>
 
         <div class="prose">

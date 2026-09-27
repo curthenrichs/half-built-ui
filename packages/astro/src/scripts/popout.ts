@@ -239,6 +239,15 @@ export const mountPopouts: Island<PopoutOptions> = (
     finish(false);
   };
 
+  /* A press that never reaches click: pointercancel (a touch pan) or
+     pointerup off its target (dragged clear before release). Either way
+     the press is over, so the flag must not outlive it, or a later
+     null-relatedTarget focusout is ignored forever and the box sticks
+     open. */
+  const onPointerEnd = (): void => {
+    pressing = false;
+  };
+
   const inside = (t: EventTarget | null): boolean =>
     t instanceof Node &&
     (surface.contains(t) || (current?.contains(t) ?? false));
@@ -325,6 +334,8 @@ export const mountPopouts: Island<PopoutOptions> = (
 
   doc.addEventListener("click", onClick);
   doc.addEventListener("pointerdown", onPointerDown);
+  doc.addEventListener("pointerup", onPointerEnd);
+  doc.addEventListener("pointercancel", onPointerEnd);
   doc.addEventListener("keydown", onKey);
   /* capture: scroll does not bubble from inner scrollers (.table-scroll) */
   doc.addEventListener("scroll", onScroll, true);
@@ -340,6 +351,8 @@ export const mountPopouts: Island<PopoutOptions> = (
       finish(false);
       doc.removeEventListener("click", onClick);
       doc.removeEventListener("pointerdown", onPointerDown);
+      doc.removeEventListener("pointerup", onPointerEnd);
+      doc.removeEventListener("pointercancel", onPointerEnd);
       doc.removeEventListener("keydown", onKey);
       doc.removeEventListener("scroll", onScroll, true);
       win?.removeEventListener("resize", onResize);
