@@ -522,6 +522,72 @@ describe("popout island (DOM runtime)", () => {
     expect(document.activeElement?.id).toBe("bare");
   });
 
+  it("Tab forward skips a candidate that matches FOCUSABLE but silently refuses focus (CSS-hidden, a closed details, a disabled fieldset)", () => {
+    handle = mountPopouts(document);
+    const t2 = byId("t2");
+
+    /* Stands in for a link inside display:none, a closed <details>, or
+       a disabled <fieldset>: it matches the FOCUSABLE selector but
+       .focus() is a no-op, same as jsdom already gives disabled
+       controls and hidden inputs (those are excluded by the selector
+       itself; this one is not, which is exactly the gap). Placed after
+       t2's <template>, not t2 itself, since open() finds the template
+       through trigger.nextElementSibling. */
+    const stubborn = document.createElement("a");
+    stubborn.href = "#";
+    stubborn.id = "stubborn";
+
+    stubborn.focus = (): void => {
+      /* refuses focus */
+    };
+
+    const t2Template = t2.nextElementSibling;
+    if (!t2Template) throw new Error("t2 has no template sibling");
+    t2Template.insertAdjacentElement("afterend", stubborn);
+
+    t2.click();
+    const close = surface().querySelector<HTMLButtonElement>(".popout-close");
+    close?.focus();
+
+    close?.dispatchEvent(
+      new KeyboardEvent("keydown", {
+        key: "Tab",
+        bubbles: true,
+        cancelable: true,
+      }),
+    );
+
+    expect(surface().open).toBe(false);
+    expect(document.activeElement?.id).toBe("bare");
+  });
+
+  it("Tab forward returns to the trigger when nothing after it takes real focus", () => {
+    handle = mountPopouts(document);
+    const t1 = byId("t1");
+
+    const noFocus = (): void => {
+      /* refuses focus */
+    };
+
+    byId("t2").focus = noFocus;
+    byId("bare").focus = noFocus;
+
+    t1.click();
+    const inner = surface().querySelector<HTMLAnchorElement>(".popout-body a");
+    inner?.focus();
+
+    inner?.dispatchEvent(
+      new KeyboardEvent("keydown", {
+        key: "Tab",
+        bubbles: true,
+        cancelable: true,
+      }),
+    );
+
+    expect(surface().open).toBe(false);
+    expect(document.activeElement?.id).toBe("t1");
+  });
+
   it("focus leaving the trigger for the page closes an open note", () => {
     handle = mountPopouts(document);
     byId("t1").click();

@@ -345,16 +345,34 @@ export const mountPopouts: Island<PopoutOptions> = (
     if (!ev.shiftKey && (active === last || stops.length === 0)) {
       ev.preventDefault();
       const trigger = current;
-      const next = nextFocusableAfter(doc, trigger, surface);
       finish(false);
-      (next ?? trigger).focus();
+
+      /* A candidate that matches FOCUSABLE can still silently refuse
+         focus: display:none or visibility:hidden by CSS, inside a
+         closed <details>, or inside a disabled <fieldset> all pass the
+         selector but leave .focus() a no-op. Walk forward from each
+         failed candidate (nextFocusableAfter takes it as the new
+         anchor) until one actually takes focus, and fall back to the
+         trigger when none does. */
+      let anchor: HTMLElement = trigger;
+      let candidate = nextFocusableAfter(doc, anchor, surface);
+
+      while (candidate) {
+        candidate.focus();
+        if (doc.activeElement === candidate) return;
+        anchor = candidate;
+        candidate = nextFocusableAfter(doc, anchor, surface);
+      }
+
+      trigger.focus();
     }
   };
 
   /* Anchored only: focus leaving the trigger itself for somewhere
-     outside both the trigger and the box closes it, so Tab forward
-     from the table row (never having entered the box) does not leave
-     a stale note open. */
+     outside both the trigger and the box closes it. Once open, focus
+     starts on the surface itself, so this only fires when focus has
+     come back to the trigger (Shift+Tab off the box's first stop, or
+     a script) and then moves on past it. */
   const onTriggerFocusOut = (ev: FocusEvent): void => {
     if (!current || mode !== "anchored" || ev.target !== current) return;
     if (ev.relatedTarget === null || inside(ev.relatedTarget)) return;
