@@ -9,7 +9,9 @@
    so the suite is not sensitive to whether vitest is invoked from
    packages/astro or the workspace root. */
 import { describe, it, expect } from "vitest";
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
+import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { BP_PHONE_MAX } from "../src/scripts/core/breakpoints";
 
 const cssRoot = (rel: string) =>
@@ -47,6 +49,22 @@ describe("system breakpoints", () => {
 
     for (const f of files) {
       const t = cssRoot(f);
+
+      expect(t, f).not.toMatch(
+        /\((?:max|min)-width: *(?:768|769|991|1024)px\)/,
+      );
+    }
+  });
+
+  it("no system-breakpoint literal survives in the island scripts", () => {
+    const dir = fileURLToPath(new URL("../src/scripts/", import.meta.url));
+
+    const files = readdirSync(dir, { recursive: true })
+      .map(String)
+      .filter((f) => f.endsWith(".ts"));
+
+    for (const f of files) {
+      const t = readFileSync(join(dir, f), "utf8");
 
       expect(t, f).not.toMatch(
         /\((?:max|min)-width: *(?:768|769|991|1024)px\)/,

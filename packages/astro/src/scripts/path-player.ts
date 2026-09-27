@@ -6,6 +6,7 @@
    2026-08-22); flip SCRUB to re-enable. */
 import { buildPlateModal } from "./plate-modal";
 import { createFrameLoop } from "./core/frame-loop";
+import { BP_PHONE_MAX } from "./core/breakpoints";
 import { ICON_PLAY, ICON_PAUSE, ICON_ROTATE_CCW } from "./core/icons";
 import { playheadX, formatReadout, columnIndex } from "./path-player-math";
 import {
@@ -161,6 +162,8 @@ export function createPathPlayer<S>(
   restartBtn.className = "pp-restart icon-box press-box";
   restartBtn.setAttribute("aria-label", restart);
   restartBtn.innerHTML = ICON_ROTATE_CCW;
+  playBtn.innerHTML = ICON_PLAY;
+  playBtn.setAttribute("aria-pressed", "false");
 
   if (!stageReady) {
     playBtn.disabled = true;
@@ -211,7 +214,7 @@ export function createPathPlayer<S>(
 
     if (!mediaQuery) return null;
 
-    return mediaQuery.call(globalThis, "(max-width: 768px)");
+    return mediaQuery.call(globalThis, `(max-width: ${BP_PHONE_MAX}px)`);
   };
 
   const phone = (): boolean => phoneQuery()?.matches ?? false;
@@ -304,6 +307,15 @@ export function createPathPlayer<S>(
     tracksCanvas.height = Math.floor(timelineHeight * scale);
     staticTracks = paintStatic(w, scale);
   }
+
+  /* The timeline canvas is CSS-width-driven, and its offscreen static
+     layer is baked at a fixed pixel width; a viewport resize while the
+     modal is open leaves it stale until the next close/open round trip
+     unless it re-lays here. */
+  const onResize = (): void => {
+    layoutTracks();
+    drawFrame();
+  };
 
   function drawFrame(): void {
     const ctx = tracksCanvas.getContext("2d");
@@ -404,6 +416,7 @@ export function createPathPlayer<S>(
     setPlaying(false);
     loop.stop();
     config.sink.pause?.();
+    win.removeEventListener("resize", onResize);
   });
 
   if (SCRUB) {
@@ -416,6 +429,7 @@ export function createPathPlayer<S>(
       pm.open(opener);
       setCaptionShown(!phone());
       layoutTracks();
+      win.addEventListener("resize", onResize);
       readout.textContent = formatReadout(state.t, config.duration);
       config.sink.resume?.();
 

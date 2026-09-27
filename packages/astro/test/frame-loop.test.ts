@@ -75,4 +75,25 @@ describe("createFrameLoop", () => {
     vi.advanceTimersByTime(64);
     expect(dts.length).toBeLessThanOrEqual(5);
   });
+
+  it("stop then start inside the callback keeps a single chain", () => {
+    let calls = 0;
+    let restarted = false;
+
+    const loop = createFrameLoop(window, () => {
+      calls++;
+
+      if (calls === 2 && !restarted) {
+        restarted = true;
+        loop.stop();
+        loop.start();
+      }
+    });
+
+    loop.start();
+    vi.advanceTimersByTime(16 * 2); // through the reentrant stop/start
+    const before = calls;
+    vi.advanceTimersByTime(16 * 3);
+    expect(calls).toBe(before + 3);
+  });
 });

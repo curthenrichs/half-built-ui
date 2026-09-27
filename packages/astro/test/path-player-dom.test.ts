@@ -142,6 +142,9 @@ describe("createPathPlayer", () => {
       player.open(null);
       expect(player.isPlaying()).toBe(false);
       expect(sink.start).not.toHaveBeenCalled();
+      const playBtn = document.querySelector(".pp-play");
+      expect(playBtn?.querySelector("svg")).not.toBeNull();
+      expect(playBtn?.getAttribute("aria-pressed")).toBe("false");
       const play = document.querySelector<HTMLButtonElement>(".pp-play");
       if (!play) throw new Error("no play button");
       play.dispatchEvent(new MouseEvent("click", { bubbles: true }));
@@ -149,6 +152,41 @@ describe("createPathPlayer", () => {
     } finally {
       vi.unstubAllGlobals();
     }
+  });
+
+  it("with no stage the disabled play button still shows its glyph", () => {
+    const player = createPathPlayer(document, {
+      title: "T",
+      source: "S",
+      caption: "C",
+      duration: 2,
+      samples: SAMPLES,
+      tracks: [],
+      buildStage: () => false,
+      sink,
+    });
+
+    player.open(null);
+    const playBtn = document.querySelector<HTMLButtonElement>(".pp-play");
+    expect(playBtn?.disabled).toBe(true);
+    expect(playBtn?.querySelector("svg")).not.toBeNull();
+  });
+
+  it("a resize while open re-lays the timeline to its new width", () => {
+    const player = makePlayer();
+    player.open(null);
+    const timeline = document.querySelector<HTMLElement>(".pp-timeline");
+    const canvas = document.querySelector<HTMLCanvasElement>(".pp-tracks");
+    if (!timeline || !canvas) throw new Error("no timeline");
+
+    Object.defineProperty(timeline, "clientWidth", {
+      configurable: true,
+      value: 300,
+    });
+
+    window.dispatchEvent(new Event("resize"));
+    expect(canvas.width).toBe(Math.floor(300 * (window.devicePixelRatio || 1)));
+    player.close();
   });
 
   it("Space toggles play only when not on a button", () => {
