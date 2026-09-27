@@ -136,6 +136,46 @@ describe.skipIf(!enabled)("browser suite", () => {
     return p;
   }
 
+  /* A phone-width page with the popout demo's first trigger centered.
+     Animations are off for the same settled-paint reason as open(): the
+     sheet's entrance (popout-rise, popout.css) slides up from
+     translateY(100%) over 150ms, and an unforced read lands
+     mid-animation. */
+  async function openPhone(): Promise<Page> {
+    if (!browser) throw new Error("no browser (beforeAll failed)");
+    const p = await phonePage(browser);
+    page = p;
+    await p.goto(`${ORIGIN}/`, { waitUntil: "networkidle0" });
+
+    await p.addStyleTag({
+      content:
+        "*, *::before, *::after { transition: none !important; animation: none !important; }",
+    });
+
+    await p.$eval("#demo-popout-1", (t) => {
+      t.scrollIntoView({ block: "center", behavior: "instant" });
+    });
+
+    return p;
+  }
+
+  async function settleFrames(p: Page): Promise<void> {
+    await p.evaluate(
+      () =>
+        new Promise((resolve) => {
+          requestAnimationFrame(() => requestAnimationFrame(resolve));
+        }),
+    );
+  }
+
+  async function popoutOpen(p: Page): Promise<boolean> {
+    return p.$eval("dialog.popout", (s) => s.open);
+  }
+
+  async function activeId(p: Page): Promise<string> {
+    return p.evaluate(() => document.activeElement?.id ?? "");
+  }
+
   it("has no WCAG 2.1 AA violations in the light theme", async () => {
     const p = await open();
 
@@ -485,28 +525,7 @@ describe.skipIf(!enabled)("browser suite", () => {
   });
 
   it("at phone width a popout is a modal sheet and the backdrop closes it", async () => {
-    if (!browser) throw new Error("no browser (beforeAll failed)");
-    const p = await phonePage(browser);
-    page = p;
-    await p.goto(`${ORIGIN}/`, { waitUntil: "networkidle0" });
-
-    /* Same settle as open()'s desktop pages: the sheet's entrance
-       (popout-rise, popout.css) slides up from translateY(100%) over
-       150ms, and an unforced read here landed mid-animation, at the
-       "from" keyframe (the sheet's own height below the viewport,
-       verified against the brief's plain click-then-read). Reading
-       computed layout while an entrance transform is still playing is
-       not a placement defect; it is the same settled-paint requirement
-       the axe tests already state for color. */
-    await p.addStyleTag({
-      content:
-        "*, *::before, *::after { transition: none !important; animation: none !important; }",
-    });
-
-    await p.$eval("#demo-popout-1", (t) => {
-      t.scrollIntoView({ block: "center" });
-    });
-
+    const p = await openPhone();
     await p.click("#demo-popout-1");
 
     const state = await p.evaluate(() => {
@@ -547,6 +566,183 @@ describe.skipIf(!enabled)("browser suite", () => {
 
     expect(after).toEqual({ open: false, locked: false });
   });
+
+  it("near the viewport bottom a popout flips above its trigger", async () => {
+    const p = await open();
+
+    await p.evaluate(() => {
+      const t = document.getElementById("demo-popout-2");
+      if (!t) throw new Error("missing");
+      const r = t.getBoundingClientRect();
+
+      window.scrollBy({
+        top: r.bottom - (window.innerHeight - 24),
+        behavior: "instant",
+      });
+    });
+
+    await p.click("#demo-popout-2");
+
+    const r = await p.evaluate(() => {
+      const s = document.querySelector("dialog.popout");
+      const t = document.getElementById("demo-popout-2");
+      if (!(s instanceof HTMLDialogElement) || !t) throw new Error("missing");
+
+      return {
+        open: s.open,
+        boxBottom: s.getBoundingClientRect().bottom,
+        triggerTop: t.getBoundingClientRect().top,
+        triggerBottom: t.getBoundingClientRect().bottom,
+        vh: window.innerHeight,
+      };
+    });
+
+    expect(r.open).toBe(true);
+    /* The setup held: no room for the box below the trigger. */
+    expect(r.triggerBottom).toBeGreaterThan(r.vh - 60);
+    expect(r.boxBottom).toBeLessThanOrEqual(r.triggerTop);
+  });
+
+  it("near the right edge a popout clamps inside the viewport", async () => {
+    const p = await open();
+
+    /* Pinned to the right edge in-test only (never the shipped demo
+       markup or CSS): the demo table sits at the left of the column. */
+    await p.$eval("#demo-popout-2", (t) => {
+      t.scrollIntoView({ block: "center", behavior: "instant" });
+      const top = t.getBoundingClientRect().top;
+      const b = t as HTMLElement;
+      b.style.position = "fixed";
+      b.style.right = "4px";
+      b.style.top = `${String(top)}px`;
+    });
+
+    await p.click("#demo-popout-2");
+
+    const r = await p.evaluate(() => {
+      const s = document.querySelector("dialog.popout");
+      const t = document.getElementById("demo-popout-2");
+      if (!(s instanceof HTMLDialogElement) || !t) throw new Error("missing");
+      const sr = s.getBoundingClientRect();
+
+      return {
+        open: s.open,
+        left: sr.left,
+        right: sr.right,
+        triggerLeft: t.getBoundingClientRect().left,
+        vw: window.innerWidth,
+      };
+    });
+
+    expect(r.open).toBe(true);
+    /* Left-aligned to the trigger it would have run off screen. */
+    expect(r.left).toBeLessThan(r.triggerLeft);
+    expect(r.left).toBeGreaterThanOrEqual(0);
+    expect(r.right).toBeLessThanOrEqual(r.vw - 30);
+  });
+
+  it("an anchored open, by click or by Enter, leaves the page scroll alone", async () => {
+    const p = await open();
+
+    await p.$eval("#demo-popout-1", (t) => {
+      t.scrollIntoView({ block: "center", behavior: "instant" });
+    });
+
+    const before = await p.evaluate(() => window.scrollY);
+    await p.click("#demo-popout-1");
+    await settleFrames(p);
+    expect(await popoutOpen(p)).toBe(true);
+    expect(await p.evaluate(() => window.scrollY)).toBe(before);
+
+    await p.keyboard.press("Escape");
+    expect(await popoutOpen(p)).toBe(false);
+    await p.keyboard.press("Enter");
+    await settleFrames(p);
+    expect(await popoutOpen(p)).toBe(true);
+    expect(await p.evaluate(() => window.scrollY)).toBe(before);
+  });
+
+  it("the keyboard opens the popout, reaches its link, and leaves it", async () => {
+    const p = await open();
+
+    await p.$eval("#demo-popout-1", (t) => {
+      t.scrollIntoView({ block: "center", behavior: "instant" });
+      (t as HTMLElement).focus();
+    });
+
+    await p.keyboard.press("Enter");
+    expect(await popoutOpen(p)).toBe(true);
+
+    let reached = false;
+
+    for (let i = 0; i < 4 && !reached; i++) {
+      await p.keyboard.press("Tab");
+
+      reached = await p.evaluate(
+        () =>
+          document.activeElement?.matches("dialog.popout .popout-body a") ??
+          false,
+      );
+    }
+
+    expect(reached).toBe(true);
+
+    await p.keyboard.press("Escape");
+    expect(await popoutOpen(p)).toBe(false);
+    expect(await activeId(p)).toBe("demo-popout-1");
+
+    /* Shift+Tab out of the box (it sits last in <body>, so this lands
+       on the page's last focusable) closes it and does not pull focus
+       back to the trigger. */
+    await p.keyboard.press("Enter");
+    expect(await popoutOpen(p)).toBe(true);
+    await p.keyboard.down("Shift");
+    await p.keyboard.press("Tab");
+    await p.keyboard.up("Shift");
+    await settleFrames(p);
+    expect(await popoutOpen(p)).toBe(false);
+    expect(await activeId(p)).not.toBe("demo-popout-1");
+
+    expect(
+      await p.evaluate(() => document.activeElement !== document.body),
+    ).toBe(true);
+  });
+
+  it("the sheet locks page scroll and hands it back where it was", async () => {
+    const p = await openPhone();
+    const before = await p.evaluate(() => window.scrollY);
+    await p.click("#demo-popout-1");
+    expect(await popoutOpen(p)).toBe(true);
+    expect(await p.evaluate(() => window.scrollY)).toBe(before);
+
+    /* A wheel over the backdrop would chain to the page if the lock
+       did not hold. */
+    await p.mouse.move(20, 20);
+    await p.mouse.wheel({ deltaY: 400 });
+    await new Promise((resolve) => setTimeout(resolve, 200));
+    expect(await popoutOpen(p)).toBe(true);
+    expect(await p.evaluate(() => window.scrollY)).toBe(before);
+
+    await p.keyboard.press("Escape");
+    await settleFrames(p);
+    expect(await popoutOpen(p)).toBe(false);
+    expect(await p.evaluate(() => window.scrollY)).toBe(before);
+
+    /* The same wheel scrolls the page once the sheet is gone, so the
+       held scroll above was the lock and not a dead gesture. */
+    await p.mouse.wheel({ deltaY: 400 });
+    await new Promise((resolve) => setTimeout(resolve, 400));
+    expect(await p.evaluate(() => window.scrollY)).toBeGreaterThan(before);
+  });
+
+  it("has no WCAG 2.1 AA violations with the sheet open at phone width", async () => {
+    const p = await openPhone();
+    await p.click("#demo-popout-1");
+    expect(await popoutOpen(p)).toBe(true);
+    const violations = await runAxe(p);
+
+    expect(violations, report("phone, sheet open", violations)).toEqual([]);
+  }, 60_000);
 
   it("has no WCAG 2.1 AA violations with a popout open, in both themes", async () => {
     for (const theme of ["light", "dark"] as const) {
