@@ -370,9 +370,11 @@ export const mountPopouts: Island<PopoutOptions> = (
 
   /* Anchored only: focus leaving the trigger itself for somewhere
      outside both the trigger and the box closes it. Once open, focus
-     starts on the surface itself, so this only fires when focus has
-     come back to the trigger (Shift+Tab off the box's first stop, or
-     a script) and then moves on past it. */
+     starts on the surface itself, so under normal tabbing this trigger
+     never holds focus while the box is open. This handler is a guard
+     for the case where focus reaches the trigger anyway while the box
+     is still open (a script, or assistive tech moving focus directly)
+     and then leaves for the rest of the page. */
   const onTriggerFocusOut = (ev: FocusEvent): void => {
     if (!current || mode !== "anchored" || ev.target !== current) return;
     if (ev.relatedTarget === null || inside(ev.relatedTarget)) return;

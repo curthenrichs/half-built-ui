@@ -84,6 +84,7 @@ describe("code island decorator (DOM runtime)", () => {
     clickCopy(0);
     await Promise.resolve();
     await Promise.resolve();
+    vi.advanceTimersByTime(0);
     expect(status?.textContent).toBe("COPIED");
     vi.advanceTimersByTime(1500);
     expect(status?.textContent).toBe("");
@@ -97,7 +98,31 @@ describe("code island decorator (DOM runtime)", () => {
     clickCopy(0);
     await Promise.resolve();
     await Promise.resolve();
+    vi.advanceTimersByTime(0);
     expect(status?.textContent).toBe("FAILED");
+  });
+
+  it("clears the status before re-announcing so a repeat copy is a fresh DOM change", async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    vi.stubGlobal("navigator", { clipboard: { writeText } });
+    mountCodeIslands(document);
+    const status = document.querySelector('.code-island-bar [role="status"]');
+    const btn = clickCopy(0);
+    await settle();
+    vi.advanceTimersByTime(0);
+    expect(status?.textContent).toBe("COPIED");
+
+    /* Second click inside the reset window. If the handler wrote "COPIED"
+       straight over the existing "COPIED" text, that is not a DOM change
+       and a screen reader would stay silent on the repeat copy. Clearing
+       first, synchronously, before the outcome is known makes the later
+       re-announcement an observable change. */
+    btn.click();
+    expect(status?.textContent).toBe("");
+
+    await settle();
+    vi.advanceTimersByTime(0);
+    expect(status?.textContent).toBe("COPIED");
   });
 
   it("mounting twice decorates each pre once (claim guards the second pass)", () => {

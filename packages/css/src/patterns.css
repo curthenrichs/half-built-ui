@@ -239,8 +239,8 @@
   }
 
   /* Micro label: the small bold tracked line on plate labels, the
-     lightbox HOME box, the player fallback, and the stasis tag. Case is
-     the caller's. */
+     lightbox HOME box, the player fallback, and a status tag on a
+     media card. Case is the caller's. */
   .micro-label {
     font-size: var(--font-size-xs);
     font-weight: 700;

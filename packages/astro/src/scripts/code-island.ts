@@ -68,14 +68,27 @@ export const mountCodeIslands: Island<CodeIslandOptions> = (
     };
 
     const doCopy = async (): Promise<void> => {
+      /* Cleared synchronously, before the outcome is known, so a repeat
+         copy inside the reset window is a real DOM change rather than
+         the same string written over itself. Setting the outcome text
+         itself waits one tick (below) so the clear is its own observable
+         step; a live region that never changes never gets announced. */
+      status.textContent = "";
+
+      let outcome: string;
+
       try {
         await navigator.clipboard.writeText(pre.textContent);
         btn.textContent = copy.copied;
-        status.textContent = copy.copied;
+        outcome = copy.copied;
       } catch {
         btn.textContent = copy.failed;
-        status.textContent = copy.failed;
+        outcome = copy.failed;
       }
+
+      setTimeout(() => {
+        status.textContent = outcome;
+      }, 0);
 
       clearTimeout(resetTimer.id);
 

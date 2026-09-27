@@ -1,6 +1,7 @@
 /* Layer: components. Path-player content inside a plate-modal. Values
-   echo the lightbox family; colors from tokens only. Imported by
-   FluidPathPlayer.astro so it ships only on pages that embed a player. */
+   echo the lightbox family; colors from tokens only. A consumer imports
+   this file on pages that mount the path player, so it ships only where
+   a player is embedded. */
 @layer components.player {
   /* Desktop: the plate is a wide instrument panel, not a sleeve around
      the window (owner call 2026-08-26). The square window centers in it

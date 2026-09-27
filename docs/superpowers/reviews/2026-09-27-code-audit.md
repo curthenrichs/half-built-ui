@@ -4,7 +4,7 @@ Owner: Curt. Status: batch 2 (package fixes) landed on dev 2026-09-27; pipeline,
 
 ## Fixed on dev for 0.11.0 (batch 2, 2026-09-27)
 
-All package-fix findings from the "Suggested order" batch 2 above, landed as ten
+All package-fix findings from the "Suggested order" batch 2 below, landed as ten
 commits on `dev` (unpushed, un-tagged; ride 0.11.0 if Curt tags after this
 lands):
 
@@ -28,7 +28,7 @@ Still open, not touched by this batch:
 ## Context for the session that picks this up
 
 - **Audited tree.** Branch `feat/popout` head `f1c55b7`, which is byte-identical to `dev` at `92859a3` (the no-ff merge of the Popout feature, 2026-09-27). `dev` is 16 commits ahead of `origin/dev` (`97446bc`) and unpushed. All three packages say `0.11.0`, which is **not yet on npm**: the release (push dev, PR to main, merge, tag `v0.11.0`, push the tag) is Curt's step.
-- **Consequence for fixes.** Anything that touches the Popout (ISL-2, CMP-2) or other package code can still ride 0.11.0 if it lands before Curt tags; otherwise it needs 0.11.1 or 0.12.0 under the bump guard. Ask Curt which before starting package work.
+- **Consequence for fixes.** Anything that touches the Popout (ISL-2, CMP-2) or other package code can still ride 0.11.0 if it lands before Curt tags; otherwise it needs 0.11.1 or 0.12.0 under the bump guard. Answered: the package fixes in this batch rode 0.11.0.
 - **Blog state that interacts with this.** The blog's `dev` tree holds uncommitted Bench Hardware edits (six posts, `tools.mdx`, `src/layouts/Base.astro`, three new photos) that are someone else's in-progress work: do not work over them without asking. The Popout blog adoption (plan `docs/superpowers/plans/2026-09-26-popout.md` Task 6) waits on npm 0.11.0 and on Curt's call about that tree.
 - **Method.** Five parallel read-only auditors, one per slice: client islands (`ISL`, `packages/astro/src/scripts`), components and lib (`CMP`), the css package (`CSS`), the tooling package (`TOOL`), and infra, CI, the site and the tests as a whole (`OPS`). Every High and most Medium findings were re-verified by the controller against the code; contrast ratios were recomputed from the hex values. Severities in the prioritized list below are the controller's and override the auditors' where they differ. The auditors' full reports, with every file:line, are the appendices.
 - **Settled decisions the auditors were told not to re-raise** (still binding): Astro stays on 5.18; the WhenPublished excerpt leak is parked; the 11.1/11.2 settled list (selector names, literal component breakpoints, `--bp-tablet` unused, CategoryCard image required, Masthead date band, style-guide Subscribe demo); dark theme values and the single `--shadow`; no Dependabot, version bots or changesets; prettier-plugin-astro dropping frontmatter comments; Popout Escape `preventDefault` scope, an anchored note covering the next row's trigger, and `pressing` not clearing on `pointerup`; no cookie banner; no prose width caps; no em dashes; formatting is tooling's job.

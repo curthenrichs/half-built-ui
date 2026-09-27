@@ -1,9 +1,8 @@
 // Flat ESLint config: JS/TS plus Astro component linting, shared across
-// half-built packages and any site that consumes them. Adapted from the
-// half-built-robots-blog repo's eslint.config.mjs (step 11.3 task 5):
-// the blog-only ignores (.superpowers/, .claude/, .visual-check/, the
-// vendored fluid-sim.js exemption) are gone, since none of that exists
-// outside the blog, and the file-scoped overrides below are widened from
+// half-built packages and any site that consumes them. Adapted from a
+// single-repo config (step 11.3 task 5): ignores and exemptions specific
+// to that repo's own tooling and content are gone, since none of that
+// exists here, and the file-scoped overrides below are widened from
 // root-anchored globs to "**/"-prefixed ones so they still find
 // scripts/, test/, and src/pages/ wherever a package or site nests them
 // in this monorepo, not only at repo root.
@@ -29,9 +28,10 @@ export default tseslint.config(
     languageOptions: {
       parserOptions: {
         projectService: true,
-        // Not import.meta.dirname: the blog's original pinned this to
-        // wherever eslint.config.mjs itself lived, which was correct for
-        // a single-repo config at the repo root but breaks the moment
+        // Not import.meta.dirname: the original single-repo config pinned
+        // this to wherever eslint.config.mjs itself lived, which was
+        // correct for a single-repo config at the repo root but breaks
+        // the moment
         // this config ships in a package. import.meta.dirname would then
         // resolve inside node_modules/@half-built/tooling/src, and
         // TypeScript's project service treats that as an upper bound: it

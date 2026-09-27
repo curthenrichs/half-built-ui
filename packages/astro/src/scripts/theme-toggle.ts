@@ -6,7 +6,7 @@
    theme; this island only wires the button. Shape follows the library's
    mount(root, options?) contract (step 9): idempotent, and it returns a
    destroy handle. The storage key is a mount option, not a package
-   literal (step 11.2); the blog passes it from lib/theme-key. */
+   literal (step 11.2); each consumer passes its own storage key. */
 
 import { claim, release, type Island, type IslandHandle } from "./core/island";
 import { docOf } from "./core/dom";
