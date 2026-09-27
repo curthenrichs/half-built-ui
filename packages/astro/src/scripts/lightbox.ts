@@ -116,6 +116,26 @@ export function outOfWhack(
   return overlap < WHACK_FRACTION * Math.min(w * h, boxW * boxH);
 }
 
+/* One mouse notch (100px) is about the old fixed 1.2x step; a
+   trackpad's many small deltas add up to the same total instead of
+   stepping 1.2x each. deltaMode 1 is lines, 2 is pages. */
+const WHEEL_K = Math.log(1.2) / 100;
+const LINE_PX = 16;
+
+export function wheelZoomFactor(
+  deltaY: number,
+  deltaMode: number,
+  pageHeight: number,
+): number {
+  if (deltaY === 0) return 1;
+
+  let px = deltaY;
+  if (deltaMode === 1) px = deltaY * LINE_PX;
+  else if (deltaMode === 2) px = deltaY * pageHeight;
+
+  return Math.exp(-px * WHEEL_K);
+}
+
 export function readout(view: ZoomView, fit: number, prefix = "FIT"): string {
   const sign = (n: number): string => {
     const r = Math.round(n);
@@ -359,6 +379,10 @@ export const mountLightbox: Island<LightboxOptions> = (
   let view: ZoomView = { zoom: 1, x: 0, y: 0 };
   let boxW = FALLBACK_BOX.w;
   let boxH = FALLBACK_BOX.h;
+  /* Registered while the dialog is open, one at a time: refit on
+     resize, torn down on close so a reopen registers a fresh one
+     rather than piling up. */
+  let onResize: (() => void) | null = null;
 
   const applyView = (r: Refs): void => {
     const item = items[index];
@@ -480,8 +504,10 @@ export const mountLightbox: Island<LightboxOptions> = (
       "wheel",
       (ev) => {
         ev.preventDefault();
+        const factor = wheelZoomFactor(ev.deltaY, ev.deltaMode, boxH);
+        if (factor === 1) return;
         const { cx, cy } = rel(ev);
-        rezoom(ev.deltaY < 0 ? ZOOM_STEP : 1 / ZOOM_STEP, cx, cy);
+        rezoom(factor, cx, cy);
       },
       { passive: false },
     );
@@ -569,6 +595,16 @@ export const mountLightbox: Island<LightboxOptions> = (
     r.viewbox.addEventListener("pointerup", lift);
     r.viewbox.addEventListener("pointercancel", lift);
 
+    /* Torn down here rather than in destroy(): every close (veil,
+       Escape, close box, or a consumer's own close()) fires this, so
+       the listener never outlives the open dialog. */
+    r.dialog.addEventListener("close", () => {
+      if (onResize) {
+        window.removeEventListener("resize", onResize);
+        onResize = null;
+      }
+    });
+
     refs = r;
     return r;
   };
@@ -588,6 +624,18 @@ export const mountLightbox: Island<LightboxOptions> = (
     boxW = rect.width || FALLBACK_BOX.w;
     boxH = rect.height || FALLBACK_BOX.h;
     goTo(r, Math.max(0, set.indexOf(link)));
+
+    if (!onResize) {
+      onResize = (): void => {
+        const rr = r.viewbox.getBoundingClientRect();
+        boxW = rr.width || FALLBACK_BOX.w;
+        boxH = rr.height || FALLBACK_BOX.h;
+        view = initialView(items[index].w, items[index].h, boxW, boxH);
+        applyView(r);
+      };
+
+      window.addEventListener("resize", onResize);
+    }
   };
 
   const mounted: {
@@ -624,6 +672,7 @@ export const mountLightbox: Island<LightboxOptions> = (
       }
 
       if (refs) {
+        if (refs.dialog.open) refs.dialog.close();
         refs.dialog.remove();
         refs = null;
       }
