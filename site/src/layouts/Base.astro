@@ -6,6 +6,7 @@ import "@half-built/css/patterns.css";
 import "@half-built/css/code.css";
 import "@half-built/css/plate-modal.css";
 import "@half-built/css/lightbox.css";
+import "@half-built/css/popout.css";
 import "@half-built/css/prose.css";
 import "../styles/site.css";
 import Shell from "@half-built/astro/components/Shell.astro";
@@ -129,6 +130,7 @@ const {
     <script>
       import { mountCodeIslands } from "@half-built/astro/scripts/code-island";
       import { mountLightbox } from "@half-built/astro/scripts/lightbox";
+      import { mountPopouts } from "@half-built/astro/scripts/popout";
       import { mountLinkTips } from "@half-built/astro/scripts/link-tip";
       import { mountThemeToggle } from "@half-built/astro/scripts/theme-toggle";
       import { mountFocusMode } from "@half-built/astro/scripts/focus-mode";
@@ -147,6 +149,7 @@ const {
       mountScrollTop(document);
       mountCodeIslands(document);
       mountLightbox(document);
+      mountPopouts(document);
       mountToc(document);
       mountPaletteEditor(document, { storageKey: PALETTE_STORAGE_KEY });
       mountTokenHexes(document);

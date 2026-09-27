@@ -113,10 +113,13 @@
        header's search flyout would be wrong, so the flyout tops the
        ladder; loose Henry's rungs sit under the flyout but over
        everything else, with his teleport hole one step under him, both
-       defined blog-side in henry-loose.css (step 11.1). */
+       defined blog-side in henry-loose.css (step 11.1). The popout's
+       anchored box sits under the tooltip so a link tip inside it still
+       draws on top. */
     --z-raised: 1;
     --z-skip-link: 10;
     --z-scroll-top: 17;
+    --z-popout: 19;
     --z-tooltip: 20;
 
     /* 49 and 50 belong to loose Henry, defined blog-side in

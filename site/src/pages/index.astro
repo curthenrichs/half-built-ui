@@ -17,6 +17,7 @@ import {
 import PostNavigation from "@half-built/astro/components/PostNavigation.astro";
 import LinkListWidget from "@half-built/astro/components/LinkListWidget.astro";
 import Widget from "@half-built/astro/components/Widget.astro";
+import Popout from "@half-built/astro/components/Popout.astro";
 import Subscribe from "@half-built/astro/components/Subscribe.astro";
 import Button from "@half-built/astro/content/Button.astro";
 import Callout from "@half-built/astro/content/Callout.astro";
@@ -210,12 +211,32 @@ import Step from "@half-built/astro/content/Step.astro";
 import Gallery from "@half-built/astro/content/Gallery.astro";
 import GalleryImage from "@half-built/astro/content/GalleryImage.astro";
 import BlogImage from "@half-built/astro/content/BlogImage.astro";
-import MediaText from "@half-built/astro/content/MediaText.astro";`;
+import MediaText from "@half-built/astro/content/MediaText.astro";
+import Popout from "@half-built/astro/components/Popout.astro";`;
 
 const cssImports = `import "@half-built/css/tokens";
 import "@half-built/css/prose.css";
 import "@half-built/css/patterns.css";
 import Palette from "@half-built/astro/content/Palette.astro";`;
+
+const popoutLayoutSample = `---
+import "@half-built/css/popout.css";
+---
+
+<script>
+  import { mountPopouts } from "@half-built/astro/scripts/popout";
+
+  mountPopouts(document);
+</script>`;
+
+const popoutMarkupSample = `---
+import Popout from "@half-built/astro/components/Popout.astro";
+---
+
+<Popout label="Row one">
+  A note can carry a <a href="#components">link</a> and
+  <code>inline code</code>.
+</Popout>`;
 
 const npmPackages = [
   {
@@ -379,6 +400,75 @@ const npmPackages = [
               link-list shape above.
             </p>
           </Widget>
+        </div>
+
+        <div class="prose">
+          <h3>Popout</h3>
+          <p>
+            A short note behind a cell in a data table, for detail worth keeping
+            but not worth a column. On a wide screen it opens below its trigger,
+            or above it when there is no room below. It closes on its own when
+            the trigger scrolls out of view, when keyboard focus leaves it, or
+            when the window crosses into phone width. On a phone it opens as a
+            sheet from the bottom edge, captioned with its row. The layout loads
+            <code>popout.css</code> and mounts <code>mountPopouts</code> once.
+          </p>
+          <section class="table-scroll" tabindex="0" aria-label="Popout demo">
+            <table>
+              <thead>
+                <tr>
+                  <th>Row</th>
+                  <th>Value</th>
+                  <th>Notes</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Row one</td>
+                  <td>42</td>
+                  <td>
+                    <Popout label="Row one" id="demo-popout-1">
+                      A note can carry a <a href="#components">link</a> and
+                      <code>inline code</code>.
+                    </Popout>
+                  </td>
+                </tr>
+                <tr>
+                  <td>Row two</td>
+                  <td>7</td>
+                  <td>
+                    <Popout label="Row two" id="demo-popout-2">
+                      One popout is open at a time. Opening this one closed the
+                      other.
+                    </Popout>
+                  </td>
+                </tr>
+                <tr>
+                  <td>Row three</td>
+                  <td>19</td>
+                  <td></td>
+                </tr>
+              </tbody>
+            </table>
+          </section>
+          <div class="demo-popout-sample">
+            <CodeBlock>
+              <Code
+                code={popoutLayoutSample}
+                lang="astro"
+                theme={codeTheme}
+                transformers={[codeVars]}
+              />
+            </CodeBlock>
+            <CodeBlock>
+              <Code
+                code={popoutMarkupSample}
+                lang="astro"
+                theme={codeTheme}
+                transformers={[codeVars]}
+              />
+            </CodeBlock>
+          </div>
         </div>
 
         <div class="prose">

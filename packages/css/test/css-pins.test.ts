@@ -50,4 +50,32 @@ describe("css pins", () => {
 
     expect(backstopMatch).not.toBeNull();
   });
+
+  it("the popout sits over scroll-top and under the link tip", () => {
+    const prims = read("../src/tokens/primitives.css");
+
+    const z = (name: string): number =>
+      Number(new RegExp(`--${name}: (\\d+);`).exec(prims)?.[1] ?? NaN);
+
+    expect(z("z-popout")).toBeGreaterThan(z("z-scroll-top"));
+    expect(z("z-popout")).toBeLessThan(z("z-tooltip"));
+  });
+
+  it("popout.css carries both modes, the scroll lock, and the reduced-motion guard", () => {
+    const css = read("../src/popout.css");
+    expect(css).toMatch(/@layer components \{/);
+
+    expect(css).toMatch(
+      /\.popout\.is-anchored \{[^}]*z-index: var\(--z-popout\);/,
+    );
+
+    expect(css).toMatch(/\.popout\.is-sheet \{/);
+    expect(css).toMatch(/\.popout::backdrop \{[^}]*var\(--veil\)/);
+
+    expect(css).toMatch(
+      /html\.popout-open,\s*html\.popout-open body \{\s*overflow: hidden;/,
+    );
+
+    expect(css).toMatch(/@media \(prefers-reduced-motion: reduce\)/);
+  });
 });

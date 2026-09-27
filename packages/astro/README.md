@@ -179,6 +179,48 @@ marks the wrap `data-search-js`; without it, the stylesheet's
 focus-within rule opens the flyout on focus alone, so it still works
 with no script.
 
+## Popout
+
+`components/Popout.astro` puts a short note behind a table cell: detail
+worth keeping but not worth a column. It renders a trigger button and a
+template holding its slot; `scripts/popout` opens the note.
+
+```astro
+<Popout label="Sample row · Sample product">
+  A short note with a <a href="#">link</a> and <code>code</code>.
+</Popout>
+```
+
+```js
+import "@half-built/css/popout.css";
+import { mountPopouts } from "@half-built/astro/scripts/popout";
+
+mountPopouts(document);
+```
+
+`label` is required. It captions the open note and names the trigger
+for assistive tech (`<trigger>: <label>`, so `Note: <label>` by
+default), so write it to identify the row. `trigger` changes the button
+text from `Note`. The slot takes inline markup: links, code, emphasis.
+
+Above the phone breakpoint the note opens below its trigger (above it
+when there is no room below) and stays until Escape, the close box, a
+press outside, or another trigger. It also closes by itself when its
+trigger scrolls out of view, when a resize crosses the phone
+breakpoint, or when keyboard focus leaves it. On a wide touch device a
+drag that starts outside the note closes it. At phone width it opens as
+a modal bottom sheet that closes on the close box, Escape or Back, a
+tap on the backdrop, or a downward swipe. One note is open at a time.
+With JavaScript off the trigger does nothing.
+
+`mountPopouts` takes options: `selector` (default `.popout-trigger`)
+picks the triggers, `edge` sets the anchored note's room against the
+viewport edges in px, and `closeLabel` (default `Close`) names the
+close box for a site that is not in English.
+
+Not covered yet: structured content (lists, sub-tables, images),
+triggers on chart marks, and hover previews.
+
 ## Import notes
 
 Wildcard subpath imports need explicit file extensions under
