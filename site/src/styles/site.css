@@ -62,16 +62,6 @@
     min-width: 11em;
   }
 
-  /* The Popout demo's rows sit taller than the ledger default so an
-     anchored popout opened on row one clears row two's own trigger
-     underneath it: the box opens "below" its trigger (mountPopouts'
-     placeTip call) and a compact row would leave it covering the very
-     next trigger, which no real click can then reach. Real content
-     tables give a note this much room; this demo does too. */
-  .demo-popout-table td {
-    padding-block: 64px;
-  }
-
   /* The rail's knobs (palette and sections details). All colors are
      theme tokens (var(--surface) and kin), so they follow day/night
      like the rest of the chrome. Each knob wears the accent-box

@@ -335,11 +335,16 @@ describe.skipIf(!enabled)("browser suite", () => {
 
   it("a popout opens below its trigger, outside the table scroller, and follows it", async () => {
     const p = await open();
-    await p.click("#demo-popout-1");
+    /* Row two, not row one: an anchored popout covering the next row's
+       own trigger is accepted desktop popover behavior (you press
+       outside or Esc, then open the next), so opening row one first
+       would leave row two unreachable by a real click. Row two has
+       nothing below it in this three-row demo to cover. */
+    await p.click("#demo-popout-2");
 
     const first = await p.evaluate(() => {
       const s = document.querySelector("dialog.popout");
-      const t = document.getElementById("demo-popout-1");
+      const t = document.getElementById("demo-popout-2");
       if (!(s instanceof HTMLDialogElement) || !t) throw new Error("missing");
       const sr = s.getBoundingClientRect();
       const tr = t.getBoundingClientRect();
@@ -351,7 +356,6 @@ describe.skipIf(!enabled)("browser suite", () => {
         gap: sr.top - tr.bottom,
         width: sr.width,
         label: s.querySelector(".popout-label")?.textContent ?? "",
-        hasLink: s.querySelector(".popout-body a") !== null,
       };
     });
 
@@ -360,8 +364,7 @@ describe.skipIf(!enabled)("browser suite", () => {
     expect(first.parentIsBody).toBe(true);
     expect(first.gap).toBeGreaterThan(0);
     expect(first.width).toBeGreaterThan(40);
-    expect(first.label).toBe("Row one");
-    expect(first.hasLink).toBe(true);
+    expect(first.label).toBe("Row two");
 
     /* Scroll the page; after a frame the box keeps the same gap.
        behavior: "instant" overrides the site's global smooth scroll
@@ -380,24 +383,105 @@ describe.skipIf(!enabled)("browser suite", () => {
       });
 
       const s = document.querySelector("dialog.popout");
-      const t = document.getElementById("demo-popout-1");
+      const t = document.getElementById("demo-popout-2");
       if (!s || !t) throw new Error("missing");
       return s.getBoundingClientRect().top - t.getBoundingClientRect().bottom;
     });
 
     expect(Math.abs(gapAfter - first.gap)).toBeLessThanOrEqual(1);
 
-    /* A second trigger swaps content and stays open past the queued
-       close event of the first. */
-    await p.click("#demo-popout-2");
+    /* The trigger in the row above swaps content and stays open past
+       the queued close event of the first, even though it sits under
+       where row two's popout was open a moment ago. */
+    await p.click("#demo-popout-1");
     await new Promise((resolve) => setTimeout(resolve, 50));
 
     const second = await p.$eval("dialog.popout", (s) => ({
       open: s.open,
       label: s.querySelector(".popout-label")?.textContent ?? "",
+      hasLink: s.querySelector(".popout-body a") !== null,
     }));
 
-    expect(second).toEqual({ open: true, label: "Row two" });
+    expect(second).toEqual({ open: true, label: "Row one", hasLink: true });
+  });
+
+  it("a popout inside a horizontally scrolled table follows the scroller, unclipped", async () => {
+    const p = await open();
+
+    /* The demo table is not wide enough to overflow .table-scroll on
+       its own; widen it only for this test (never the shipped demo
+       markup or CSS) so the scroller actually has somewhere to scroll
+       to. */
+    await p.evaluate(() => {
+      const table = document.getElementById("demo-popout-1")?.closest("table");
+      if (!(table instanceof HTMLElement)) throw new Error("missing table");
+      table.style.minWidth = "2000px";
+    });
+
+    await p.click("#demo-popout-1");
+
+    const before = await p.evaluate(() => {
+      const s = document.querySelector("dialog.popout");
+      const t = document.getElementById("demo-popout-1");
+      const scroller = t?.closest(".table-scroll");
+
+      if (!(s instanceof HTMLDialogElement) || !t || !scroller) {
+        throw new Error("missing");
+      }
+
+      return {
+        open: s.open,
+        parentIsBody: s.parentElement === document.body,
+        left: s.getBoundingClientRect().left,
+        width: s.getBoundingClientRect().width,
+        triggerLeft: t.getBoundingClientRect().left,
+        scrollLeftBefore: (scroller as HTMLElement).scrollLeft,
+      };
+    });
+
+    expect(before.open).toBe(true);
+    /* Not a descendant of the scroller, so nothing about it clips: the
+       surface sits on <body>, and its full width renders regardless of
+       the scroller's own overflow-x box. */
+    expect(before.parentIsBody).toBe(true);
+    expect(before.width).toBeGreaterThan(40);
+
+    /* Scroll the inner .table-scroll box, not the window: a capturing
+       document listener sees this even though the scroll event does
+       not bubble from the inner scroller. */
+    const after = await p.evaluate(async () => {
+      const t = document.getElementById("demo-popout-1");
+      const scroller = t?.closest(".table-scroll");
+      if (!t || !(scroller instanceof HTMLElement)) throw new Error("missing");
+      scroller.scrollBy({ left: 150, behavior: "instant" });
+
+      await new Promise((resolve) => {
+        requestAnimationFrame(() => requestAnimationFrame(resolve));
+      });
+
+      const s = document.querySelector("dialog.popout");
+      if (!(s instanceof HTMLDialogElement)) throw new Error("missing");
+
+      return {
+        open: s.open,
+        left: s.getBoundingClientRect().left,
+        width: s.getBoundingClientRect().width,
+        triggerLeft: t.getBoundingClientRect().left,
+        scrollLeftAfter: scroller.scrollLeft,
+      };
+    });
+
+    expect(after.open).toBe(true);
+    expect(after.scrollLeftAfter).toBeGreaterThan(before.scrollLeftBefore);
+    /* Still full width after the scroller moved: the box was never cut
+       down to whatever sliver of it the scroller's own box still
+       overlaps. */
+    expect(after.width).toBeGreaterThan(40);
+
+    const triggerDelta = before.triggerLeft - after.triggerLeft;
+    const surfaceDelta = before.left - after.left;
+    expect(triggerDelta).toBeGreaterThan(0);
+    expect(Math.abs(surfaceDelta - triggerDelta)).toBeLessThanOrEqual(1);
   });
 
   it("at phone width a popout is a modal sheet and the backdrop closes it", async () => {
