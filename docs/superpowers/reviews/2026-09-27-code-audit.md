@@ -1,6 +1,29 @@
 # half-built-ui code audit, 2026-09-27
 
-Owner: Curt. Status: findings delivered, nothing fixed yet. To be worked in a fresh session.
+Owner: Curt. Status: batch 2 (package fixes) landed on dev 2026-09-27; pipeline, test gaps remain.
+
+## Fixed on dev for 0.11.0 (batch 2, 2026-09-27)
+
+All package-fix findings from the "Suggested order" batch 2 above, landed as ten
+commits on `dev` (unpushed, un-tagged; ride 0.11.0 if Curt tags after this
+lands):
+
+- **CSS-1, CSS-2, CSS-3, CSS-6, CSS-7, CSS-8, CSS-9**: `a84fdc0`
+- **CSS-4, CSS-5, TOOL-4**: `6dcb107`, `fe0a05b`
+- **ISL-2, ISL-3 (popout sheet/veil), ISL-12 (popout `root`), CMP-2**: `11c0787`, `1547f94`
+- **ISL-3 (plate-modal), ISL-6, ISL-8 (lightbox), ISL-9, CMP-3**: `837ca06`, `2648014`
+- **ISL-1, ISL-8 (path player), ISL-10, ISL-13**: `7ecbbad`
+- **ISL-4, ISL-5, ISL-7, ISL-11, ISL-12 (theme-toggle, focus-mode)**: `7406ce1`
+- **CMP-1 (package README correction; the blog-side badge fix is blog `dev` 405e219), CMP-4, CMP-5, ISL-14**: `b3d527c`
+- **TOOL-1, TOOL-2, TOOL-3, TOOL-5, TOOL-6, TOOL-7, TOOL-9, TOOL-10, TOOL-11**: `3e2fe15`
+- **OPS-9, OPS-13, OPS-14, OPS-15** (plus demo coverage: type scale, content badge, TwoColumn's new `mainTag` prop, ExcerptStart, path player): `9b6b57d`, `2985ce6`
+
+Still open, not touched by this batch:
+
+- **Release pipeline (OPS-1, OPS-2, OPS-3, OPS-5, OPS-6, OPS-11)**: batch 3, its own reviewed change.
+- **Test gaps (OPS-7, OPS-8, OPS-10, OPS-16, TOOL-8)**: batch 4.
+- **OPS-4**: the packaging-defect half is fixed (TOOL-2, TOOL-3 now declare the missing deps); the pack-smoke CI suggestion is still open, folds into batch 3 or 4.
+- **OPS-12**: closed by owner ruling (decision 6), actions stay pinned by tag, no further work.
 
 ## Context for the session that picks this up
 
