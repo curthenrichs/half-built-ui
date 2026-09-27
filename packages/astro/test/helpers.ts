@@ -26,9 +26,9 @@ export function stubRafOnFakeTimers(): void {
 }
 
 /* jsdom's <dialog> support has lagged the platform; polyfill the members
-   the modal decorators use so tests exercise our logic, not jsdom's.
-   Touches HTMLDialogElement only when called, so node-env tests
-   importing this module are unaffected. */
+   the modal decorators and the popout use so tests exercise our logic,
+   not jsdom's. Touches HTMLDialogElement only when called, so node-env
+   tests importing this module are unaffected. */
 export function polyfillDialog(): void {
   const p = HTMLDialogElement.prototype;
 
@@ -42,6 +42,12 @@ export function polyfillDialog(): void {
     p.close = function (this: HTMLDialogElement) {
       this.removeAttribute("open");
       this.dispatchEvent(new Event("close"));
+    };
+  }
+
+  if (typeof p.show !== "function") {
+    p.show = function (this: HTMLDialogElement) {
+      this.setAttribute("open", "");
     };
   }
 }
