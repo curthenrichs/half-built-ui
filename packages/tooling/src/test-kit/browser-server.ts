@@ -5,10 +5,11 @@
    repo-wide scripts/ directory (visual-check.mjs used the same finder).
    The tooling package has no such directory of its own to point at, so
    findChrome is inlined below instead of adding a sixth file outside the
-   brief's five; its CHROME_CANDIDATES search order is preserved verbatim.
-   Everything else here is the blog's original: one definition of spawn,
-   wait, launch, and kill, so a consumer's suites do not each carry their
-   own drifted copy. */
+   brief's five; its CHROME_CANDIDATES search order carried over from the
+   blog, with the macOS paths added afterward for consumers off Windows
+   and Linux CI. Everything else here is the blog's original: one
+   definition of spawn, wait, launch, and kill, so a consumer's suites do
+   not each carry their own drifted copy. */
 import { existsSync } from "node:fs";
 import { spawn, spawnSync, type ChildProcess } from "node:child_process";
 import type { Browser, Page } from "puppeteer-core";
@@ -23,6 +24,9 @@ const CHROME_CANDIDATES = [
   "/usr/bin/google-chrome",
   "/usr/bin/chromium-browser",
   "/usr/bin/chromium",
+  /* macOS */
+  "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+  "/Applications/Chromium.app/Contents/MacOS/Chromium",
 ];
 
 /** Absolute path to a local Chrome; throws naming every path checked. */
@@ -110,7 +114,16 @@ export async function startPreview(
     detached: process.platform !== "win32",
   });
 
-  await waitForServer(`${origin}${readyPath}`, server);
+  try {
+    await waitForServer(`${origin}${readyPath}`, server);
+  } catch (err) {
+    /* A server that is up but wrong (404) or slow past the wait is
+       still running; the caller never receives it to stop, so stop it
+       here or it holds the port for the next run. */
+    stopPreview(server);
+    throw err;
+  }
+
   return server;
 }
 

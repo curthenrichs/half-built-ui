@@ -128,17 +128,19 @@ export default tseslint.config(
     languageOptions: { globals: { ...globals.node } },
   },
   {
-    files: ["**/test/**/*.ts"],
-    languageOptions: { globals: { ...globals.node } },
-  },
-  {
     // Astro endpoints run at build time in Node with the web Response global.
     files: ["**/src/pages/**/*.js"],
     languageOptions: { globals: { ...globals.node, Response: "readonly" } },
   },
   {
-    // Client-side <script> blocks inside Astro components run in the browser.
-    files: ["**/*.astro/*.js", "**/*.astro/*.ts", "**/src/pages/**/*.astro"],
+    // Client-side <script> blocks inside Astro components run in the
+    // browser. The virtual **/*.astro/*.ts scripts do not need a globals
+    // entry here: they also match the **/*.ts strict type-checked tier
+    // above, which turns no-undef off (checked with `eslint
+    // --print-config` against a virtual .astro/*.ts path), so this block
+    // only still does work for .js scripts and for .astro files
+    // themselves.
+    files: ["**/*.astro/*.js", "**/src/pages/**/*.astro"],
     languageOptions: { globals: { ...globals.browser } },
   },
 );
