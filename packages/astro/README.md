@@ -170,6 +170,12 @@ below the last link, so the page scrolls far enough to clear the
 cluster. The token is `0px` by default and can be set inside the same
 media block that pins the cluster.
 
+## TwoColumn
+
+`components/TwoColumn.astro` renders its main column as `<main>`; pass
+`mainTag="div"` for a demo or nested use where the page already has
+its own main.
+
 ## Search flyout
 
 `scripts/site-header` drives the masthead's search flyout as a

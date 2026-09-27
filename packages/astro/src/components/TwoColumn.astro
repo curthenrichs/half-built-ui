@@ -1,12 +1,14 @@
 ---
 interface Props {
   class?: string;
+  mainTag?: "main" | "div";
 }
 
-const { class: className } = Astro.props;
+const { class: className, mainTag = "main" } = Astro.props;
+const Main = mainTag;
 ---
 
 <div class:list={["two-column", className]}>
-  <main class="site-main"><slot /></main>
+  <Main class="site-main"><slot /></Main>
   <slot name="aside" />
 </div>

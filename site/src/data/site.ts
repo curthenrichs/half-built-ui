@@ -21,8 +21,9 @@ const ICON_EXTERNAL =
 
 /* "Frame", not "Chrome": the browser wears that word (owner call
    2026-09-06). Section links are rooted ("/#frame", not "#frame") so
-   they still reach the index from the sample post page. No Subscribe item: the widget renders in its own
-   section, and this site has nothing to subscribe to (same call). */
+   they still reach the index from the sample post page. No Subscribe
+   item: the widget renders in its own section, and this site has
+   nothing to subscribe to (same call). */
 export const NAV: NavItem[] = [
   { label: "Home", href: "/" },
   { label: "Frame", href: "/#frame" },

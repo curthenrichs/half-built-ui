@@ -854,6 +854,25 @@ describe.skipIf(!enabled)("browser suite", () => {
     expect(await p.$("#components .blog-image .badge-genai")).not.toBeNull();
   });
 
+  /* The page's own main landmark, not the TwoColumn demo's: the demo
+     passes mainTag="div", so "skip to main" and landmark navigation
+     land on the page content rather than on placeholder paragraphs. */
+  it("each page has exactly one main, and the TwoColumn demo holds none", async () => {
+    const p = await open();
+
+    expect(await p.$$eval("main", (els) => els.length)).toBe(1);
+    expect(await p.$("#frame .two-column main")).toBeNull();
+    expect(await p.$("main article.static-page")).not.toBeNull();
+
+    await p.goto(`${ORIGIN}/2026/09/01/sample-published/`, {
+      waitUntil: "networkidle0",
+    });
+
+    expect(await p.$$eval("main", (els) => els.length)).toBe(1);
+    expect(await p.$$eval("h1", (els) => els.length)).toBe(1);
+    expect(await p.$("main article.static-page")).not.toBeNull();
+  });
+
   it("the TwoColumn demo renders its main column beside a sidebar", async () => {
     const p = await open();
     const demo = await p.$("#frame .two-column");
