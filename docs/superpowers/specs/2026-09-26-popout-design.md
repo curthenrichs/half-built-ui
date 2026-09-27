@@ -97,10 +97,10 @@ placement `EDGE` plus 18, the close box's straddle), `closeLabel`
 The singleton surface, created once and appended to `<body>`:
 
 ```html
-<dialog class="popout" aria-labelledby="popout-label">
+<dialog class="popout" aria-labelledby="popout-label" aria-describedby="popout-body">
   <span class="popout-label boxed-label micro-label" id="popout-label"></span>
   <button class="popout-close icon-box" aria-label="Close">×icon</button>
-  <div class="popout-body"></div>
+  <div class="popout-body" id="popout-body"></div>
 </dialog>
 ```
 
@@ -127,7 +127,10 @@ Open (click on a trigger):
 Close paths, both modes: the ✕, Esc (a document `keydown` listener,
 since a non-modal `show()` dialog gets no cancel on Escape), and a
 click on another trigger (reopens there). Desktop adds a pointerdown
-outside the surface and its trigger. Phone adds a click on the backdrop
+outside the surface and its trigger, and keyboard focus leaving the
+surface for anywhere but its trigger (a `focusout` on the surface, the
+site-header flyout's manner). A focusout with no destination closes
+only when no press is under way and focus has not stayed inside. Phone adds a click on the backdrop
 (a click whose target is the dialog itself, outside the sheet box) and a
 downward swipe of at least 60px that starts on the sheet while its body
 is scrolled to the top. Android Back on the sheet still arrives through
@@ -135,7 +138,11 @@ the dialog's native close.
 
 On close: `dialog.close()`, clear modes and body, restore the trigger's
 `aria-expanded="false"`, remove `popout-open`, and return focus to the
-trigger.
+trigger. Only the closes the reader asks for return focus: the ✕, Esc,
+the open trigger, the backdrop, a swipe. The automatic ones
+(scroll-away, a breakpoint crossing, focus leaving, a press outside)
+and `destroy()` do not, since the trigger may be off screen; focus left
+inside the surface is dropped rather than stranded.
 
 Desktop while open:
 
