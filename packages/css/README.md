@@ -140,8 +140,9 @@ and `--brand-2-700` by default) are the first accent's complement,
 chosen so their contrast profile matches it on both grounds: the bright
 value is a line or fill, the dark one is text on the light ground.
 `.press-box-accent-2` is the only pattern that reaches for it directly;
-the chart tokens `--track-y` and `--track-z` draw on the same family
-independently. It is a reserved second voice for a consumer that needs
+the chart token `--track-y` draws on the same family independently
+(`--track-z` is a separate fixed violet primitive, not part of either
+brand family). It is a reserved second voice for a consumer that needs
 one, such as a success state or a second data series, not a link color
 and not a second brand identity.
 
