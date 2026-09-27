@@ -24,6 +24,21 @@ Owner: Curt. Status: findings delivered, nothing fixed yet. To be worked in a fr
 9. **Optional tooling peers (TOOL-11):** mark `html-validate` and `vitest` optional or not.
 10. **New z rung (CSS-7):** whether to add a public rung between scroll-top and popout for consumer chrome.
 
+### Owner rulings, 2026-09-27
+
+Package fixes ride 0.11.0; Curt holds the tag until they land on `dev`.
+
+1. CMP-1: no `genai` prop. The Okos Polip post uses `badges={[GENAI_BADGE]}` (blog `dev` 405e219, one badged figure of ten); the package README's Corner badges paragraph gets corrected.
+2. CSS-1: light `--focus-ring` becomes `--brand-1-700` (`#a36300`). The target is WCAG 2.1 AA (the blog's accessibility statement), where 1.4.11 covers focus indicators; axe does not check ring contrast.
+3. ISL-4: keep the action labels, drop `aria-pressed`.
+4. CSS-2: `--umber-500` retunes to `#8e7e67` (4.63:1 on `--code-bg`); the anchor test tightens to 4.5 and the live-code-colors spec's open decision closes.
+5. CSS-3: light `--track-y` points at `--brand-2-700`; no new stop.
+6. OPS-12: actions stay pinned by tag.
+7. OPS-13: a stub page at the sample post's resolved URL. OPS-14: the placeholder icon becomes "Packages on npm", `https://www.npmjs.com/org/half-built`.
+8. ISL-11: the self entry always survives the cap.
+9. TOOL-11: `html-validate` and `vitest` become optional peers.
+10. CSS-7: add `--z-panel: 18`; the site drops its `calc()`. `--z-raised` is removed as dead.
+
 ## Prioritized list
 
 ### Fix first
