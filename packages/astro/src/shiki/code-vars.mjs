@@ -11,7 +11,7 @@ const HEX_TO_VAR = {
   "#ffaa3c": "var(--code-token-keyword)",
   "#ffd18a": "var(--code-token-function)",
   "#e07c14": "var(--code-token-string)",
-  "#8a7a63": "var(--code-token-comment)",
+  "#8e7e67": "var(--code-token-comment)",
   "#e8d9c3": "var(--code-fg)",
   "#1b140c": "var(--code-bg)",
 };

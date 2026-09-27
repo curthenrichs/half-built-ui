@@ -63,12 +63,12 @@ families, three stops each. Override any or all of them in your
 
 | Variable | Default | Role |
 |---|---|---|
-| `--brand-1-500` | `#ffaa3c` | Base: lines and fills, dark-theme text ink, light-theme focus ring. |
+| `--brand-1-500` | `#ffaa3c` | Base: lines and fills, dark-theme text ink. |
 | `--brand-1-600` | `#d1820f` | Chart kin; light-theme track-x. |
-| `--brand-1-700` | `#a36300` | Text ink on the light paper. |
+| `--brand-1-700` | `#a36300` | Text ink on the light paper; light-theme focus ring. |
 | `--brand-2-300` | `#8ee6f2` | Light kin: dark-theme text ink and track-y. |
 | `--brand-2-500` | `#3cc7dd` | Base: lines and fills, dark-theme focus ring. |
-| `--brand-2-700` | `#1a7f90` | Text ink on the light paper. |
+| `--brand-2-700` | `#1a7f90` | Text ink on the light paper; light-theme track-y. |
 
 An override looks like this:
 
@@ -92,6 +92,14 @@ gate in 0.2.0). These are targets the derivation satisfies, not a
 floor the system enforces on your behalf. If
 you write your own six values instead of deriving them, you own their
 contrast.
+
+WCAG 1.4.11 covers non-text graphical objects (chart lines, focus
+indicators) at 3:1, not just body text, so the light theme's own
+roles use the 700 stops rather than the 500 base for the same reason
+the 600 stop exists: `--focus-ring` resolves to `--brand-1-700` and
+`--track-y` to `--brand-2-700`, and `--track-x` already used
+`--brand-1-600`. The dark theme keeps the 500 and 300 stops, which
+already clear the same gate on the dark ground.
 
 The reference site generates a compliant block for you: give it two
 base colors and its palette editor derives the other four stops and

@@ -26,7 +26,7 @@ export default {
     },
     {
       scope: ["comment", "punctuation.definition.comment"],
-      settings: { foreground: "#8a7a63", fontStyle: "italic" },
+      settings: { foreground: "#8e7e67", fontStyle: "italic" },
     },
     {
       scope: ["variable", "support.variable"],

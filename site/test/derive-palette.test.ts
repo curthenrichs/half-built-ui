@@ -26,7 +26,7 @@ describe("derivePalette", () => {
       "--code-bg": "#1b140c",
       "--code-line": "#3b2e1e",
       "--code-fg": "#e8d9c3",
-      "--code-token-comment": "#8a7a63",
+      "--code-token-comment": "#8e7e67",
     });
 
     expect(
@@ -58,13 +58,10 @@ describe("derivePalette", () => {
       contrastRatio(p["--code-fg"], p["--code-bg"]),
     ).toBeGreaterThanOrEqual(4.5);
 
-    /* the shipped comment ink is hand-tuned legacy at 4.38:1, under
-       the 4.5 gate the walk enforces for every derived palette; the
-       anchor keeps its bytes (parity), and the retune is an open
-       owner decision recorded in the live-code-colors spec. */
+    /* the shipped comment ink clears the same 4.5 gate (retuned 2026-09-27) */
     expect(
       contrastRatio(p["--code-token-comment"], p["--code-bg"]),
-    ).toBeGreaterThanOrEqual(4.3);
+    ).toBeGreaterThanOrEqual(4.5);
 
     /* the two 500 stops echo the inputs */
     expect(contrastRatio(p["--brand-1-500"], "#ffaa3c")).toBeCloseTo(1, 5);

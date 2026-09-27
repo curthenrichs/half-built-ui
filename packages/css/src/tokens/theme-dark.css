@@ -18,7 +18,6 @@
     --band: var(--black-850);
     --hairline: var(--gray-800);
     --divider-faint: var(--white-a10);
-    --input-border: var(--gray-750);
 
     /* One step up from the page so a field reads as a field, not a hole. */
     --well: var(--black-850);

@@ -78,4 +78,69 @@ describe("css pins", () => {
 
     expect(css).toMatch(/@media \(prefers-reduced-motion: reduce\)/);
   });
+
+  it("the light focus ring is the amber ink, which clears 3:1 on white", () => {
+    expect(read("../src/tokens/theme-light.css")).toMatch(
+      /--focus-ring: var\(--brand-1-700\);/,
+    );
+  });
+
+  it("the light Y track is the teal ink, which clears 3:1 on white", () => {
+    expect(read("../src/tokens/theme-light.css")).toMatch(
+      /--track-y: var\(--brand-2-700\);/,
+    );
+  });
+
+  it("the code comment ink clears 4.5:1 on the code ground", () => {
+    expect(read("../src/tokens/primitives.css")).toMatch(
+      /--umber-500: #8e7e67;/,
+    );
+  });
+
+  it("the z ladder has a panel rung between scroll-top and popout", () => {
+    const prims = read("../src/tokens/primitives.css");
+
+    const z = (name: string): number => {
+      const m = new RegExp(`--${name}: (\\d+);`).exec(prims);
+      if (!m) throw new Error(`--${name} missing`);
+      return Number(m[1]);
+    };
+
+    expect(z("z-panel")).toBeGreaterThan(z("z-scroll-top"));
+    expect(z("z-panel")).toBeLessThan(z("z-popout"));
+  });
+
+  it("retired tokens are gone from every css file", () => {
+    const retired = [
+      "--input-border",
+      "--z-raised",
+      "--font-size-xxxl",
+      "--ink-950",
+      "--ink-850",
+      "--ink-700",
+      "--parchment-dim",
+      "--stroke-1",
+    ];
+
+    const all = [
+      "../src/tokens/primitives.css",
+      "../src/tokens/theme-light.css",
+      "../src/tokens/theme-dark.css",
+    ]
+      .map(read)
+      .join("\n");
+
+    for (const t of retired) expect(all, t).not.toContain(`${t}:`);
+  });
+
+  it("reduced motion turns smooth scrolling off", () => {
+    const reset = read("../src/base/reset.css");
+
+    const block =
+      /@media \(prefers-reduced-motion: reduce\) \{[\s\S]*?\n {2}\}/.exec(
+        reset,
+      );
+
+    expect(block?.[0]).toMatch(/scroll-behavior: auto/);
+  });
 });

@@ -26,8 +26,8 @@
   /* The site rail (owner call 2026-09-06): palette knob and section
      TOC merged into one viewport-tracking stack. Desktop: the sticky
      left column, one offset for the whole stack (the old TOC needed
-     7.5rem just to duck the separate fixed button). One z step above
-     --z-scroll-top keeps an open panel over every page floater. The
+     7.5rem just to duck the separate fixed button). --z-panel keeps
+     an open panel over every page floater and under popouts. The
      tablet-and-down corner cluster lives in the media block below. */
   .site-rail {
     position: sticky;
@@ -39,7 +39,7 @@
     /* Clears the Sections label, which straddles the box's top rule
        and so reaches about 10px up into this gap. */
     gap: 28px;
-    z-index: calc(var(--z-scroll-top) + 1);
+    z-index: var(--z-panel);
   }
 
   /* The Sections knob exists for the corner cluster only. */

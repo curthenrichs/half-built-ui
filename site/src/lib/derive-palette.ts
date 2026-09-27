@@ -92,11 +92,11 @@ function shiftL(hex: string, dl: number): string {
 
 /* The shipped default pair, and every stop the package ships for it.
    These were hand-tuned rather than walked, and they clear the
-   thresholds below (one recorded exception: the comment ink sits at
-   4.38:1, an open owner decision in the live-code-colors spec), so
-   the default pair reproduces them exactly instead of returning a
-   near-miss derivation that would visibly differ from the tokens the
-   package actually ships. */
+   thresholds below (the comment ink retuned to 4.63:1, CLOSED
+   2026-09-27 in the live-code-colors spec), so the default pair
+   reproduces them exactly instead of returning a near-miss
+   derivation that would visibly differ from the tokens the package
+   actually ships. */
 /* Exported as the one definition of the anchor pair; the editor's
    reset and the toolbar's initial markup consume these rather than
    keeping copies that can drift. */
