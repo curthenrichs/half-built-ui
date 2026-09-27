@@ -393,10 +393,10 @@ describe("popout island (DOM runtime)", () => {
     handle = mountPopouts(document);
     const t1 = byId("t1");
 
-    /* A touch pan or a press dragged off its target ends in pointercancel,
-       never a click. If the press flag outlives it, the next
-       null-relatedTarget focusout (focus leaving to nowhere) is ignored
-       forever and the box is stuck open. */
+    /* A touch pan ends in pointercancel, never a click. If the press
+       flag outlives it, the next null-relatedTarget focusout (focus
+       leaving to nowhere) is ignored forever and the box is stuck
+       open. */
     click(t1);
     t1.dispatchEvent(new Event("pointerdown", { bubbles: true }));
     t1.dispatchEvent(new Event("pointercancel", { bubbles: true }));
@@ -404,6 +404,33 @@ describe("popout island (DOM runtime)", () => {
     await Promise.resolve();
     expect(surface().open).toBe(false);
     expect(document.activeElement).not.toBe(t1);
+  });
+
+  it("a tap that closes the open trigger is not undone by the focus dance in between", async () => {
+    handle = mountPopouts(document);
+    const t1 = byId("t1");
+
+    /* Real tap order on the trigger that already has the box open:
+       pointerdown, pointerup, then (a separate task) a focus change
+       with nowhere to land, then the click. The press flag must
+       survive pointerup here, or the queued focusout close beats the
+       click to the punch: it shuts the box first, and the click that
+       follows (seeing current === null) reopens it instead of closing
+       it. */
+    click(t1);
+    const inner = surface().querySelector(".popout-body a");
+    if (!(inner instanceof HTMLElement)) throw new Error("no inner link");
+    inner.focus();
+
+    t1.dispatchEvent(new Event("pointerdown", { bubbles: true }));
+    t1.dispatchEvent(new Event("pointerup", { bubbles: true }));
+    inner.blur();
+    await Promise.resolve();
+
+    click(t1);
+    expect(surface().open).toBe(false);
+    await Promise.resolve();
+    expect(surface().open).toBe(false);
   });
 
   it("a press inside the anchored box does not close it", () => {

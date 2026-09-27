@@ -229,7 +229,11 @@ import "@half-built/css/popout.css";
   mountPopouts(document);
 </script>`;
 
-const popoutMarkupSample = `<Popout label="Row one">
+const popoutMarkupSample = `---
+import Popout from "@half-built/astro/components/Popout.astro";
+---
+
+<Popout label="Row one">
   A note can carry a <a href="#components">link</a> and
   <code>inline code</code>.
 </Popout>`;

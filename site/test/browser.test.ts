@@ -455,6 +455,7 @@ describe.skipIf(!enabled)("browser suite", () => {
 
     expect(text).toContain("<Popout");
     expect(text).toContain("mountPopouts");
+    expect(text).toContain("components/Popout.astro");
   });
 
   it("a popout inside a horizontally scrolled table follows the scroller, unclipped", async () => {

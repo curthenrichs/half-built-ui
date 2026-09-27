@@ -239,12 +239,17 @@ export const mountPopouts: Island<PopoutOptions> = (
     finish(false);
   };
 
-  /* A press that never reaches click: pointercancel (a touch pan) or
-     pointerup off its target (dragged clear before release). Either way
-     the press is over, so the flag must not outlive it, or a later
-     null-relatedTarget focusout is ignored forever and the box sticks
-     open. */
-  const onPointerEnd = (): void => {
+  /* A touch pan ends in pointercancel, never a click; the press is over,
+     so the flag must not outlive it, or a later null-relatedTarget
+     focusout is ignored forever and the box sticks open. pointerup is
+     deliberately not one of these: a real tap can put pointerup, a focus
+     change, and the click in separate tasks, and clearing the flag at
+     pointerup lets the focus change's queued close beat the click, which
+     then reopens what the tap meant to close. A press dragged off its
+     target and released elsewhere is left holding the flag until the
+     next click, keydown, or pointerdown; that fails safe, leaving the
+     box open rather than closing and reopening it. */
+  const onPointerCancel = (): void => {
     pressing = false;
   };
 
@@ -334,8 +339,7 @@ export const mountPopouts: Island<PopoutOptions> = (
 
   doc.addEventListener("click", onClick);
   doc.addEventListener("pointerdown", onPointerDown);
-  doc.addEventListener("pointerup", onPointerEnd);
-  doc.addEventListener("pointercancel", onPointerEnd);
+  doc.addEventListener("pointercancel", onPointerCancel);
   doc.addEventListener("keydown", onKey);
   /* capture: scroll does not bubble from inner scrollers (.table-scroll) */
   doc.addEventListener("scroll", onScroll, true);
@@ -351,8 +355,7 @@ export const mountPopouts: Island<PopoutOptions> = (
       finish(false);
       doc.removeEventListener("click", onClick);
       doc.removeEventListener("pointerdown", onPointerDown);
-      doc.removeEventListener("pointerup", onPointerEnd);
-      doc.removeEventListener("pointercancel", onPointerEnd);
+      doc.removeEventListener("pointercancel", onPointerCancel);
       doc.removeEventListener("keydown", onKey);
       doc.removeEventListener("scroll", onScroll, true);
       win?.removeEventListener("resize", onResize);
