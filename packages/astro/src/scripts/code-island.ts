@@ -25,18 +25,22 @@ export const mountCodeIslands: Island<CodeIslandOptions> = (
 
   const doc = docOf(root);
 
-  /* resetTimer holds the copy-reset setTimeout id, one live per button at
-     most (a second click before the first reset overwrites it, dropping
-     the earlier timer's reference so it can no longer be cleared, which
-     is why doCopy clears the box before replacing it). A plain mutable
-     box, not a field on the mounted entry, so both doCopy and destroy()
-     close over the same cell. */
+  /* timers holds the two pending setTimeout ids per button: the queued
+     status announcement and the label reset, one live each at most (a
+     second click before either fires overwrites its id, dropping the
+     earlier reference so it can no longer be cleared, which is why doCopy
+     clears each before replacing it). A plain mutable box, not a field on
+     the mounted entry, so both doCopy and destroy() close over the same
+     cells and destroy() can cancel both. */
   const mounted: {
     pre: Element;
     bar: HTMLDivElement;
     btn: HTMLButtonElement;
     onClick: () => void;
-    resetTimer: { id: ReturnType<typeof setTimeout> | undefined };
+    timers: {
+      announce: ReturnType<typeof setTimeout> | undefined;
+      reset: ReturnType<typeof setTimeout> | undefined;
+    };
   }[] = [];
 
   for (const pre of root.querySelectorAll(selector)) {
@@ -63,9 +67,10 @@ export const mountCodeIslands: Island<CodeIslandOptions> = (
     btn.type = "button";
     btn.textContent = copy.copy;
 
-    const resetTimer: { id: ReturnType<typeof setTimeout> | undefined } = {
-      id: undefined,
-    };
+    const timers: {
+      announce: ReturnType<typeof setTimeout> | undefined;
+      reset: ReturnType<typeof setTimeout> | undefined;
+    } = { announce: undefined, reset: undefined };
 
     const doCopy = async (): Promise<void> => {
       /* Cleared synchronously, before the outcome is known, so a repeat
@@ -86,13 +91,15 @@ export const mountCodeIslands: Island<CodeIslandOptions> = (
         outcome = copy.failed;
       }
 
-      setTimeout(() => {
+      clearTimeout(timers.announce);
+
+      timers.announce = setTimeout(() => {
         status.textContent = outcome;
       }, 0);
 
-      clearTimeout(resetTimer.id);
+      clearTimeout(timers.reset);
 
-      resetTimer.id = setTimeout(() => {
+      timers.reset = setTimeout(() => {
         btn.textContent = copy.copy;
         status.textContent = "";
       }, resetMs);
@@ -105,14 +112,15 @@ export const mountCodeIslands: Island<CodeIslandOptions> = (
     btn.addEventListener("click", onClick);
     bar.append(label, btn, status);
     pre.before(bar);
-    mounted.push({ pre, bar, btn, onClick, resetTimer });
+    mounted.push({ pre, bar, btn, onClick, timers });
   }
 
   return {
     destroy(): void {
-      for (const { pre, bar, btn, onClick, resetTimer } of mounted) {
+      for (const { pre, bar, btn, onClick, timers } of mounted) {
         btn.removeEventListener("click", onClick);
-        clearTimeout(resetTimer.id);
+        clearTimeout(timers.announce);
+        clearTimeout(timers.reset);
         bar.remove();
         release(pre, "code");
       }

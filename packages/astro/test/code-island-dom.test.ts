@@ -125,6 +125,21 @@ describe("code island decorator (DOM runtime)", () => {
     expect(status?.textContent).toBe("COPIED");
   });
 
+  it("destroy mid-copy leaves no timer behind to write into the removed status", async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    vi.stubGlobal("navigator", { clipboard: { writeText } });
+    const handle = mountCodeIslands(document);
+    const status = document.querySelector('.code-island-bar [role="status"]');
+    clickCopy(0);
+    await settle();
+
+    /* The outcome is known but its announcement is still queued. */
+    handle.destroy();
+    expect(vi.getTimerCount()).toBe(0);
+    vi.advanceTimersByTime(1500);
+    expect(status?.textContent).toBe("");
+  });
+
   it("mounting twice decorates each pre once (claim guards the second pass)", () => {
     mountCodeIslands(document);
     mountCodeIslands(document);

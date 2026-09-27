@@ -28,18 +28,16 @@ export default tseslint.config(
     languageOptions: {
       parserOptions: {
         projectService: true,
-        // Not import.meta.dirname: the original single-repo config pinned
-        // this to wherever eslint.config.mjs itself lived, which was
-        // correct for a single-repo config at the repo root but breaks
-        // the moment
-        // this config ships in a package. import.meta.dirname would then
-        // resolve inside node_modules/@half-built/tooling/src, and
-        // TypeScript's project service treats that as an upper bound: it
-        // will not walk up past it looking for a consumer's tsconfig.json,
-        // so every consumer's typed linting would silently fail (and, in
-        // this repo, so does packages/tooling's own test-kit, since
-        // its tsconfig.json sits one directory above this file). cwd is
-        // wherever eslint was invoked from, which for a shared preset is
+        // Not import.meta.dirname: the original single-repo config pinned this
+        // to wherever eslint.config.mjs itself lived, which was correct for a
+        // single-repo config at the repo root but breaks the moment this config
+        // ships in a package. import.meta.dirname would then resolve inside
+        // node_modules/@half-built/tooling/src, and TypeScript's project service
+        // treats that as an upper bound: it will not walk up past it looking for
+        // a consumer's tsconfig.json, so every consumer's typed linting would
+        // silently fail (and, in this repo, so does packages/tooling's own
+        // test-kit, since its tsconfig.json sits one directory above this file).
+        // cwd is wherever eslint was invoked from, which for a shared preset is
         // the actual project root every time.
         tsconfigRootDir: process.cwd(),
       },

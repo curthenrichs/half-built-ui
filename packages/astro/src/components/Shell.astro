@@ -27,7 +27,7 @@ const {
         attribute. Kept tiny and dependency-free on purpose.
         The storage key rides define:vars from the required themeStorageKey
         prop (step 11.2), so the shell bakes in no brand of its own; the
-        caller (the consumer's layout) supplies it from lib/theme-key. */}
+        caller (the consumer's layout) supplies its own key. */}
     <script is:inline define:vars={{ themeKey: themeStorageKey }}>
       (function () {
         var t = null;

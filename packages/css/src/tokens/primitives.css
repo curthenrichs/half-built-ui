@@ -4,7 +4,7 @@
    (stylelint-enforced). See the @half-built/css README, Architecture. */
 @layer tokens {
   :root {
-    /* Neutrals (live-resolved Legacy Blog palette, handoff section 5.1) */
+    /* Neutrals */
     --white: #ffffff;
     --gray-075: #ececec;
     --gray-100: #efefef;
@@ -130,7 +130,7 @@
        defined consumer-side (step 11.1). */
     --z-search-flyout: 99;
 
-    /* Fluid type scale (handoff section 5.2, verbatim) */
+    /* Fluid type scale */
     --font-size-xs: clamp(0.7rem, 0.17vw + 0.76rem, 0.79rem);
     --font-size-sm: clamp(0.8rem, 0.17vw + 0.76rem, 0.89rem);
     --font-size-base: clamp(1rem, 0.34vw + 0.91rem, 1.19rem);
