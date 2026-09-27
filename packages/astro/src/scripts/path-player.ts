@@ -22,8 +22,8 @@ import {
    which no-inferrable-types rejects on a literal) so flipping this to
    re-enable scrubbing is a one-line change: a literal type here would
    make the `if (SCRUB)` below statically always-false and trip the
-   no-unnecessary-condition lint rule. Same widening idea as
-   src/scripts/henry-loose.ts's matchMedia guard. */
+   no-unnecessary-condition lint rule. Same widening idea as this
+   file's own matchMedia guard below. */
 const SCRUB = false as boolean;
 const AXIS_H = 14;
 const TRACK_GAP = 5;
@@ -195,10 +195,10 @@ export function createPathPlayer<S>(
   captionToggle.textContent = about;
   captionToggle.setAttribute("aria-controls", caption.id);
 
-  /* Same widening as henry-loose.ts: jsdom has no matchMedia, and a
-     bare typeof check reads as always-true to the lint. The query list
-     type is widened too so a test stub without addEventListener is
-     still valid. */
+  /* Same widening as the package's other matchMedia guards: jsdom has
+     no matchMedia, and a bare typeof check reads as always-true to the
+     lint. The query list type is widened too so a test stub without
+     addEventListener is still valid. */
   interface PhoneQuery {
     matches: boolean;
     addEventListener?: (
@@ -434,9 +434,9 @@ export function createPathPlayer<S>(
       config.sink.resume?.();
 
       /* Reduced motion: open paused; the transport still plays on demand.
-         jsdom has no matchMedia, hence the widened type (same guard as
-         henry-loose.ts). Kept separate from the frame loop's `win`,
-         which is cast non-null: this one must stay optional so a
+         jsdom has no matchMedia, hence the widened type (same guard used
+         elsewhere in this file). Kept separate from the frame loop's
+         `win`, which is cast non-null: this one must stay optional so a
          matchMedia-less jsdom does not throw. */
       const mmWin = doc.defaultView as {
         matchMedia?: typeof window.matchMedia;

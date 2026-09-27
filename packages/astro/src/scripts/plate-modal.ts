@@ -1,8 +1,8 @@
-/* Shared plate-window chrome (spec
-   docs/superpowers/specs/2026-08-22-fluid-path-player-design.md):
-   dialog + veil, corner-stroked zone, ink plate, boxed labels, close.
-   Consumers: the image lightbox (legacyPrefix "lb" keeps its old class
-   names alive) and the path player. */
+/* Shared plate-window chrome, built for the fluid path player and
+   generalized for shared use: dialog + veil, corner-stroked zone, ink
+   plate, boxed labels, close. Consumers: the image lightbox
+   (legacyPrefix "lb" keeps its old class names alive) and the path
+   player. */
 
 import { ICON_X } from "./core/icons";
 

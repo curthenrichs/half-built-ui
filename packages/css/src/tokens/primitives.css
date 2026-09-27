@@ -23,9 +23,9 @@
     --white-a10: rgba(255, 255, 255, 0.1);
     --black-a60: rgba(0, 0, 0, 0.6);
 
-    /* Neutral darks: the dark theme's ground. black-900 is Henry's amber
-       colorway ground (henry-mascot, the terminal aesthetic), so the
-       page and the mascot share one black. */
+    /* Neutral darks: the dark theme's ground. black-900 is a true
+       near-black tuned for the terminal aesthetic used across the dark
+       theme's other surfaces. */
     --black-900: #111111;
     --black-850: #1a1a1a;
     --gray-800: #2a2a2a;
@@ -112,9 +112,8 @@
 
     /* z ladder. Skip link above content, scroll-to-top above the
        header's search flyout would be wrong, so the flyout tops the
-       ladder; loose Henry's rungs sit under the flyout but over
-       everything else, with his teleport hole one step under him, both
-       defined blog-side in henry-loose.css (step 11.1). --z-panel is a
+       ladder; a gap below it is reserved for a consumer's own floating
+       elements, defined consumer-side (step 11.1). --z-panel is a
        consumer's own fixed panel rung: over every page floater
        (scroll-to-top included), under the popout and the tooltip. The
        popout's anchored box sits under the tooltip so a link tip
@@ -127,8 +126,8 @@
     --z-popout: 19;
     --z-tooltip: 20;
 
-    /* 49 and 50 belong to loose Henry, defined blog-side in
-       henry-loose.css (step 11.1). */
+    /* 49 and 50 are reserved for a consumer's own floating elements,
+       defined consumer-side (step 11.1). */
     --z-search-flyout: 99;
 
     /* Fluid type scale (handoff section 5.2, verbatim) */

@@ -1,4 +1,4 @@
-/* Layer: base. Entry point Base.astro imports; the rules live under
+/* Layer: base. Entry point the consumer's layout imports; the rules live under
    base/ in the order they had in this file (same-layer ties resolve by
    source order). reset: element defaults and a11y utilities. shell: the
    page grid. link-tip and scroll-top: site chrome with JS halves,

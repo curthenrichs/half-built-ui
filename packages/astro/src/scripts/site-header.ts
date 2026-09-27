@@ -24,10 +24,11 @@ export interface SiteHeaderOptions {
   searchButton?: string;
   searchWrap?: string;
   searchField?: string;
-  /* Defaults to formatHeaderDate, the same function Base.astro uses for
-     the server render. Its package-time home (staying in src/lib vs.
-     moving into the library) is an 11.3 decision; this option just
-     gives a second site a seam to override it without forking. */
+  /* Defaults to formatHeaderDate, the same function the consumer's
+     layout uses for the server render. Its package-time home (staying
+     in src/lib vs. moving into the library) is a settled decision;
+     this option just gives a second site a seam to override it without
+     forking. */
   formatDate?: (d: Date) => string;
 }
 
@@ -112,8 +113,9 @@ export const mountSiteHeader: Island<SiteHeaderOptions> = (
 
   const doc = docOf(root);
 
-  // Header date: live like the WordPress original (build-time text is the
-  // no-JS fallback), same format function as the server render.
+  // Header date: live, matching the consumer's original build-time
+  // behavior (build-time text is the no-JS fallback), same format
+  // function as the server render.
   const dateBox = doc.getElementById(dateId);
   if (dateBox) dateBox.textContent = formatDate(new Date());
 

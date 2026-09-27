@@ -1,8 +1,8 @@
-/* Image lightbox (spec docs/superpowers/specs/2026-07-30-image-lightbox-design.md).
-   Exported pure math plus mountLightbox, on the island contract (step 9):
-   mount(root, options?) returns a destroy handle; claim() makes a second
-   mount over an already-wired link a no-op. Called from Base.astro's
-   script block and testable under jsdom. */
+/* Image lightbox. Exported pure math plus mountLightbox, on the island
+   contract (step 9): mount(root, options?) returns a destroy handle;
+   claim() makes a second mount over an already-wired link a no-op.
+   Called from the consumer's layout script block and testable under
+   jsdom. */
 
 import { claim, release, type Island, type IslandHandle } from "./core/island";
 import { iconButton, docOf } from "./core/dom";

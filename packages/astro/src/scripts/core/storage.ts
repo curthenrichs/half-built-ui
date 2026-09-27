@@ -1,5 +1,6 @@
 /* The localStorage read/validate/write codec (step 10), one home for
-   the pattern henry-loose.ts and stasis-state.ts each carried: parse is
+   a pattern that used to be scattered across the site's own scripts:
+   parse is
    the validator (junk parses to null and read() then removes the key),
    and every storage touch sits inside try/catch so private mode or
    disabled storage degrades to in-page-only state, never a thrown

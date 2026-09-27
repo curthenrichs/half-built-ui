@@ -1,6 +1,6 @@
 /* Card text derived from a post body (owner call 2026-09-13; the rule
-   is recorded in the blog's docs/superpowers/specs/2026-09-13-derived-excerpts-design.md
-   and summarized in this package's README, "Derived excerpts"). The
+   was settled at the blog and is summarized in this package's README,
+   "Derived excerpts"). The
    card is the opening prose, consecutive paragraphs joined, cut at a
    word boundary within EXCERPT_LIMIT and always ended with an
    ellipsis, so every listing samples the post's own opening and the

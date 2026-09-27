@@ -3,8 +3,8 @@ import { docOf } from "./core/dom";
 
 /* Code island decorator: builds the header bar (filename/language label +
    copy button) above every fenced block in article content. Runs client-side
-   from Base.astro; extracted to a module so the DOM behavior is testable
-   under jsdom (a phase-1 carry-over closed 2026-07-28). */
+   from the consumer's layout; extracted to a module so the DOM behavior is
+   testable under jsdom (a phase-1 carry-over closed 2026-07-28). */
 /* Island contract (step 9): mount(root, options?) returns a destroy handle;
    claim() makes a second mount over the same pre a no-op. */
 export interface CodeIslandOptions {

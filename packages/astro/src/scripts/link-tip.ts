@@ -35,9 +35,10 @@ export const mountLinkTips: Island<LinkTipOptions> = (
   const win = doc.defaultView;
   /* Touch: claims (so double mounts stay no-ops) but attaches nothing;
      mobile browsers already show the URL themselves. jsdom has no
-     matchMedia at all (same widened-type guard as henry-loose.ts and
-     path-player.ts): the plain Window type always declares the method,
-     so an unwidened optional chain reads as always-true to the lint. */
+     matchMedia at all (same widened-type guard used elsewhere in the
+     package, path-player.ts included): the plain Window type always
+     declares the method, so an unwidened optional chain reads as
+     always-true to the lint. */
   const mmWin = win as { matchMedia?: typeof window.matchMedia } | null;
 
   if (mmWin?.matchMedia?.("(hover: none)").matches) {

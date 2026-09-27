@@ -31,8 +31,8 @@ const Heading: "h2" | "h3" | "h4" = `h${headingLevel}`;
 const heroStyle = heroPosition ? `object-position: ${heroPosition}` : undefined;
 ---
 
-{/* The mapper guarantees an image (Henry placeholder when no featured
-    image), so every card takes the thumbnail treatment. */}
+{/* The mapper guarantees an image (a consumer's own placeholder when no
+    featured image), so every card takes the thumbnail treatment. */}
 <article class:list={["has-post-thumbnail", className]}>
   <div class="post-item post-grid">
     <div class="post-item-image">

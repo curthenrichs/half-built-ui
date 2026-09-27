@@ -43,8 +43,9 @@ The two house conventions ship as `GENAI_BADGE` and `DEMO_BADGE`; a
 site's view-model lists the badges a post carries, in order, and can
 add its own without a package change. `PostCardModel.badges` carries
 them to the card. The content components (`BlogImage`, `GalleryImage`,
-`MediaText`) keep a `genai` boolean as authoring sugar for MDX and take
-`badges` for anything else.
+`MediaText`) take the same `badges` array, for example
+`badges={[GENAI_BADGE]}` with `GENAI_BADGE` imported from
+`@half-built/astro/scripts/core/badges.ts`.
 
 ## EditorNote
 
@@ -140,7 +141,7 @@ JSON document, so adding a property to a family of sites does not mean
 rebuilding every one of them.
 
 ```js
-import { mountEcosystem } from "@half-built/astro/scripts/ecosystem";
+import { mountEcosystem } from "@half-built/astro/scripts/ecosystem.ts";
 
 void mountEcosystem(document, {
   endpoint: "https://example.com/ecosystem.json",
@@ -195,7 +196,7 @@ names the document, and triggers anywhere in it share the one surface.
 
 ```js
 import "@half-built/css/popout.css";
-import { mountPopouts } from "@half-built/astro/scripts/popout";
+import { mountPopouts } from "@half-built/astro/scripts/popout.ts";
 
 mountPopouts(document);
 ```

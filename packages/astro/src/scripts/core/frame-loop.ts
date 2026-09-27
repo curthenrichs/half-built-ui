@@ -1,5 +1,6 @@
-/* The rAF loop with dt clamp (step 10), one home for the pattern
-   henry-loose.ts and path-player.ts each carried. now is the rAF
+/* The rAF loop with dt clamp (step 10), one home for a pattern that
+   used to be scattered across the site's own scripts and path-player.ts.
+   now is the rAF
    timestamp: monotonic in a real browser, unlike Date.now(), which a
    wall-clock adjustment can move backward; the max(0, ...) floor is
    cheap belt-and-suspenders against that case feeding an integrator a

@@ -36,8 +36,9 @@ export interface LinkListItem {
    config.ts's NAV already had; it moved here so the component and the
    site share one definition without the component importing site code.
    SocialItem carries its icon as inline SVG markup: the site's registry
-   (social-icons.ts, including the Henry portfolio glyph that stays out
-   of the package) is a lookup the caller performs, not the component. */
+   (social-icons.ts, including any site-specific brand glyphs that stay
+   out of the package) is a lookup the caller performs, not the
+   component. */
 export interface NavItem {
   label: string;
   href: string;
