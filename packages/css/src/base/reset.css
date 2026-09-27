@@ -1,6 +1,6 @@
 /* Layer: base. Element defaults and accessibility utilities: the part of
    the base layer any site keeps. Page containers are in shell.css.
-   See docs/css-architecture.md. */
+   See the @half-built/css README, Architecture. */
 @layer base {
   * {
     box-sizing: border-box;

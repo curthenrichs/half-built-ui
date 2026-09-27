@@ -3,7 +3,7 @@
    source order). reset: element defaults and a11y utilities. shell: the
    page grid. link-tip and scroll-top: site chrome with JS halves,
    kept in base so the patterns layer outranks them.
-   See docs/css-architecture.md. */
+   See the @half-built/css README, Architecture. */
 @import "./base/reset.css";
 @import "./base/shell.css";
 @import "./base/link-tip.css";

@@ -1,5 +1,5 @@
 /* Layer: components (content-domain stylesheet for .prose).
-   See docs/css-architecture.md. */
+   See the @half-built/css README, Architecture. */
 @layer components {
   /* Prose rhythm for .prose. Lists verified to 3+ depths (7 live posts
    nest, 3 go 3+ deep). Table treatment: boxed ledger (spec section 5). */
@@ -88,9 +88,8 @@
     margin: 4px 0 0 15px;
   }
 
-  /* Blockquote: boxed on the muted gray pattern (owner request 2026-08-14,
-   spec docs/superpowers/specs/2026-08-14-boxed-blockquotes-design.md), a
-   deliberate deviation from live, which ships only the indent (handoff 5.5).
+  /* Blockquote: boxed on the muted gray pattern (owner request 2026-08-14),
+   a deliberate deviation from live, which ships only the indent (handoff 5.5).
    Full column width; the box, not indentation, is the signal. Nested quotes
    get no special treatment: this rule cascades, so an inner quote sits on
    the same gray ground with only its own hairline marking it. */

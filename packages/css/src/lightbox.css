@@ -1,7 +1,6 @@
-﻿/* Layer: components. Image lightbox chrome (spec
-   docs/superpowers/specs/2026-07-30-image-lightbox-design.md). The plate
-   reuses .bracket-frame, badges reuse .boxed-label, buttons reuse
-   .icon-box; only offsets and modal-specific layout live here. */
+﻿/* Layer: components. Image lightbox chrome. The plate reuses
+   .bracket-frame, badges reuse .boxed-label, buttons reuse .icon-box;
+   only offsets and modal-specific layout live here. */
 @layer components.lightbox {
   /* Build-time anchors around content images. Positioned so a corner
      badge (CornerBadges.astro) pins to the image's corner. */

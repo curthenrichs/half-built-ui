@@ -1,5 +1,5 @@
 /* Layer: components (code island stylesheet).
-   See docs/css-architecture.md. */
+   See the @half-built/css README, Architecture. */
 @layer components {
   /* Terminal island (spec section 5): the one deliberate dark surface on the
    light page, in the parent theme's own palette. */

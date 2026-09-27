@@ -1,8 +1,8 @@
 /* Layer: patterns. The theme's visual grammar, each pattern defined exactly
    once. Components apply the class and add only contextual offsets/margins
-   in their scoped styles. See docs/css-architecture.md for the full grammar
-   description; these classes mirror the live site's look and are pinned by
-   the fidelity tests. */
+   in their scoped styles. See the @half-built/css README, Architecture, for
+   the full grammar description; these classes mirror the live site's look
+   and are pinned by the fidelity tests. */
 @layer patterns {
   /* Bracket frame: 2px top/bottom rules, 2px edge verticals fading through
      the middle. The site's signature enclosure (header, latest-posts wrap,

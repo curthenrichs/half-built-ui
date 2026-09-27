@@ -1,7 +1,7 @@
 /* Layer: tokens. Primitives: the raw palette and structural scales. No
    component reads these directly; the roles in theme-light.css and
    theme-dark.css do. Hex is permitted under tokens/ only
-   (stylelint-enforced). See docs/css-architecture.md. */
+   (stylelint-enforced). See the @half-built/css README, Architecture. */
 @layer tokens {
   :root {
     /* Neutrals (live-resolved Legacy Blog palette, handoff section 5.1) */

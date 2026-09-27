@@ -6,5 +6,5 @@
    by stylesheet import order. site is the blog's own layer (step 11.1):
    rules that never enter the package (Henry, WP-artifact prose
    overrides) and must outrank whatever the package layers say. See
-   docs/css-architecture.md. */
+   the @half-built/css README, Architecture. */
 @layer tokens, base, patterns, components, components.plate, components.lightbox, components.player, site;
