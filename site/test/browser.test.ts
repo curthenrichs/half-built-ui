@@ -861,6 +861,7 @@ describe.skipIf(!enabled)("browser suite", () => {
     const p = await open();
 
     expect(await p.$$eval("main", (els) => els.length)).toBe(1);
+    expect(await p.$$eval("h1", (els) => els.length)).toBe(1);
     expect(await p.$("#frame .two-column main")).toBeNull();
     expect(await p.$("main article.static-page")).not.toBeNull();
 
@@ -871,6 +872,32 @@ describe.skipIf(!enabled)("browser suite", () => {
     expect(await p.$$eval("main", (els) => els.length)).toBe(1);
     expect(await p.$$eval("h1", (els) => els.length)).toBe(1);
     expect(await p.$("main article.static-page")).not.toBeNull();
+  });
+
+  it("every post card leads to the sample post, which stays out of search", async () => {
+    const p = await open();
+
+    const hrefs = await p.$$eval("#cards .entry-title a", (links) =>
+      links.map((a) => a.getAttribute("href")),
+    );
+
+    expect(hrefs.length).toBeGreaterThan(0);
+
+    for (const href of hrefs) {
+      expect(href).toBe("/2026/09/01/sample-published/");
+    }
+
+    await p.goto(`${ORIGIN}/2026/09/01/sample-published/`, {
+      waitUntil: "networkidle0",
+    });
+
+    expect(
+      await p.$eval('meta[name="robots"]', (m) => m.getAttribute("content")),
+    ).toBe("noindex");
+
+    const sitemap = await (await fetch(`${ORIGIN}/sitemap-0.xml`)).text();
+    expect(sitemap).toContain("<loc>");
+    expect(sitemap).not.toContain("sample-published");
   });
 
   it("the TwoColumn demo renders its main column beside a sidebar", async () => {

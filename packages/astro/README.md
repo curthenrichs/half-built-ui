@@ -186,6 +186,40 @@ marks the wrap `data-search-js`; without it, the stylesheet's
 focus-within rule opens the flyout on focus alone, so it still works
 with no script.
 
+## Lightbox
+
+`scripts/lightbox` opens the images the content components link
+through `LightboxLink` (`BlogImage`, `GalleryImage`, `MediaText`,
+`Step`) in a full-window viewer. Links inside one `Gallery` or
+`Walkthrough` form a set with previous and next buttons, thumbnails,
+and the arrow keys.
+
+```js
+import "@half-built/css/plate-modal.css";
+import "@half-built/css/lightbox.css";
+import { mountLightbox } from "@half-built/astro/scripts/lightbox.ts";
+
+mountLightbox(document);
+```
+
+The image opens at fit: contained in the window, very tall images fit
+to width, and small images never scale past 100%. The wheel or a
+trackpad zooms under the pointer in proportion to the scroll; a
+sideways scroll does nothing. `+` and `-` step the zoom, `0` returns to fit, and a drag pans. Once
+the image is panned mostly out of view a HOME box appears that also
+returns to fit. Double-click at the fit view
+zooms to 100% under the cursor; anywhere else it returns to fit.
+
+A resize or rotation while the viewer is open refits the image to the
+new window. Any zoom and pan the reader had set is discarded, on
+purpose: the old view was measured against a window that no longer
+exists.
+
+`mountLightbox` takes options: `selector` (default `a.lightbox-link`)
+picks the links, `groupSelector` names the containers whose links form
+one set, and `labels` renames the viewer's controls for a site that is
+not in English.
+
 ## Popout
 
 `components/Popout.astro` puts a short note behind a table cell: detail

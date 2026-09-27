@@ -30,13 +30,13 @@ import { PALETTE_STORAGE_KEY } from "../lib/palette-key";
 interface Props {
   title?: string;
   description?: string;
-  isHome?: boolean;
+  noindex?: boolean;
 }
 
 const {
   title = "half-built-ui",
   description = "The reference site for the @half-built packages, every component's variants rendered on one page.",
-  isHome = false,
+  noindex = false,
 } = Astro.props;
 ---
 
@@ -44,6 +44,7 @@ const {
   <Fragment slot="head">
     <title>{title}</title>
     <meta name="description" content={description} />
+    {noindex && <meta name="robots" content="noindex" />}
     {/* First-paint palette, the same shape as Shell's theme stamp just
         above this slot (owner report 2026-09-13: a cold load over a
         slow network showed the shipped amber until the bundle arrived,
@@ -116,7 +117,6 @@ const {
     nav={NAV}
     socials={SOCIALS}
     dateStr={formatHeaderDate(new Date())}
-    isHome={isHome}
   />
   {/* The palette editor and TOC merged into Rail.astro (owner call
       2026-09-06), rendered by the page inside .site-layout's column

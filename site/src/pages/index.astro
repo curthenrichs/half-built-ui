@@ -6,6 +6,7 @@ import Imports from "../components/Imports.astro";
 import EditorNote from "@half-built/astro/content/EditorNote.astro";
 import WhenPublished from "@half-built/astro/content/WhenPublished.astro";
 import PostLink from "@half-built/astro/content/PostLink.astro";
+import { resolvePostHref } from "@half-built/astro/lib/drafts.ts";
 import PostCard from "@half-built/astro/components/PostCard.astro";
 import CategoryCard from "@half-built/astro/components/CategoryCard.astro";
 import Pagination from "@half-built/astro/components/Pagination.astro";
@@ -45,9 +46,28 @@ import placeholderWide from "../assets/placeholder-wide.svg";
 import placeholderSquare from "../assets/placeholder-square.svg";
 import placeholderTall from "../assets/placeholder-tall.svg";
 
+const samplePosts = [
+  {
+    data: {
+      slug: "sample-published",
+      date: new Date("2026-09-01T00:00:00Z"),
+      draft: false,
+    },
+  },
+  {
+    data: {
+      slug: "sample-draft",
+      date: new Date("2026-09-08T00:00:00Z"),
+      draft: true,
+    },
+  },
+];
+
+const samplePostHref = resolvePostHref("sample-published", samplePosts);
+
 const posts: PostCardModel[] = [
   {
-    href: "#",
+    href: samplePostHref,
     title: "Sample post, plain card",
     excerpt: "Placeholder excerpt text standing in for a real post summary.",
     author: "Demo Author",
@@ -57,7 +77,7 @@ const posts: PostCardModel[] = [
     categories: [{ name: "Sample", href: "#" }],
   },
   {
-    href: "#",
+    href: samplePostHref,
     title: "Sample post, marked draft",
     excerpt: "A second placeholder excerpt, this card flagged as a draft.",
     author: "Demo Author",
@@ -71,7 +91,7 @@ const posts: PostCardModel[] = [
     ],
   },
   {
-    href: "#",
+    href: samplePostHref,
     title: "Sample post, with corner badges",
     excerpt:
       "A third placeholder excerpt, showing the AI Art and Demo badges together.",
@@ -93,7 +113,7 @@ The card text starts here, after the marker, and runs until
 the excerpt limit cuts it at a word boundary with an ellipsis.`;
 
 const excerptCard: PostCardModel = {
-  href: "#",
+  href: samplePostHref,
   title: "Sample post, excerpt after a marker",
   excerpt: deriveExcerpt(excerptSampleBody) ?? "",
   author: "Demo Author",
@@ -188,23 +208,6 @@ const rampRows = [...ramps.entries()].map(([family, row]) => ({
   cells: rampStops.map((stop) => row.get(stop) ?? ""),
 }));
 
-const samplePosts = [
-  {
-    data: {
-      slug: "sample-published",
-      date: new Date("2026-09-01T00:00:00Z"),
-      draft: false,
-    },
-  },
-  {
-    data: {
-      slug: "sample-draft",
-      date: new Date("2026-09-08T00:00:00Z"),
-      draft: true,
-    },
-  },
-];
-
 const codeSample = `def read_ir(code):
     return "power" if code == 0x40BF else "unknown"`;
 
@@ -298,7 +301,6 @@ const npmPackages = [
 ---
 
 <Base
-  isHome
   title="half-built-ui"
   description="The reference site for the @half-built packages, every component's variants rendered on one page."
 >
