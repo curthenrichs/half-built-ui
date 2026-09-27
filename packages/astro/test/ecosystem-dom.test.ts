@@ -135,8 +135,20 @@ describe("sortEntries", () => {
     expect(keys(sortEntries(tied, "zeta", 6))).toEqual(["alpha", "zeta"]);
   });
 
-  it("caps at the limit", () => {
-    expect(keys(sortEntries(DOC.entries, "ui", 2))).toEqual(["blog", "beadz"]);
+  it("caps at the limit, the self entry included", () => {
+    expect(keys(sortEntries(DOC.entries, "ui", 2))).toEqual(["blog", "ui"]);
+  });
+
+  it("the self entry survives a cap it would otherwise fall past", () => {
+    const got = sortEntries(DOC.entries, "ui", 2)?.map((e) => e.key);
+    expect(got).toHaveLength(2);
+    expect(got).toContain("ui");
+  });
+
+  it("a cap of one is exactly the self entry", () => {
+    expect(sortEntries(DOC.entries, "ui", 1)?.map((e) => e.key)).toEqual([
+      "ui",
+    ]);
   });
 
   it("refuses when no entry matches the self key", () => {

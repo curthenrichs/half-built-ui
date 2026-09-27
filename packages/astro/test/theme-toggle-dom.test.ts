@@ -35,7 +35,7 @@ function fakeStorage(initial: Record<string, string> = {}): Storage {
 
 beforeEach(() => {
   document.documentElement.removeAttribute("data-theme");
-  document.body.innerHTML = `<button type="button" class="theme-toggle" aria-pressed="false" aria-label="Switch to dark mode"></button>`;
+  document.body.innerHTML = `<button type="button" class="theme-toggle" aria-label="Switch to dark mode"></button>`;
   localStorage.clear();
 });
 
@@ -62,12 +62,56 @@ describe("theme toggle", () => {
     btn.click();
     expect(document.documentElement.dataset.theme).toBe("dark");
     expect(storage.getItem(KEY)).toBe("dark");
-    expect(btn.getAttribute("aria-pressed")).toBe("true");
     expect(btn.getAttribute("aria-label")).toBe("Switch to light mode");
     btn.click();
     expect(document.documentElement.hasAttribute("data-theme")).toBe(false);
     expect(storage.getItem(KEY)).toBe("light");
-    expect(btn.getAttribute("aria-pressed")).toBe("false");
+    expect(btn.getAttribute("aria-label")).toBe("Switch to dark mode");
+  });
+
+  it("carries an action label and no aria-pressed, in both themes", () => {
+    mountThemeToggle(document, { storage: fakeStorage(), storageKey: KEY });
+    const btn = document.querySelector<HTMLButtonElement>(".theme-toggle");
+    expect(btn?.hasAttribute("aria-pressed")).toBe(false);
+    btn?.click();
+    expect(btn?.hasAttribute("aria-pressed")).toBe(false);
+    expect(btn?.getAttribute("aria-label")).toMatch(/Switch to/);
+  });
+
+  it("claims each button, and one mount's click keeps another mount's labels", () => {
+    document.body.innerHTML = `
+      <div id="root-a"><button type="button" class="theme-toggle" id="a"></button></div>
+      <div id="root-b"><button type="button" class="theme-toggle" id="b"></button></div>`;
+
+    const rootA = document.getElementById("root-a");
+    const rootB = document.getElementById("root-b");
+    if (!rootA || !rootB) throw new Error("fixture missing roots");
+
+    mountThemeToggle(rootA, {
+      storage: fakeStorage(),
+      storageKey: KEY,
+      labels: { light: "LA", dark: "DA" },
+    });
+
+    mountThemeToggle(rootB, {
+      storage: fakeStorage(),
+      storageKey: KEY,
+      labels: { light: "LB", dark: "DB" },
+    });
+
+    const a = document.getElementById("a") as HTMLButtonElement | null;
+    const b = document.getElementById("b") as HTMLButtonElement | null;
+    if (!a || !b) throw new Error("fixture missing buttons");
+
+    expect(a.hasAttribute("data-island-theme-toggle")).toBe(true);
+
+    a.click();
+
+    const theme =
+      document.documentElement.dataset.theme === "dark" ? "dark" : "light";
+
+    expect(a.getAttribute("aria-label")).toBe(theme === "dark" ? "DA" : "LA");
+    expect(b.getAttribute("aria-label")).toBe(theme === "dark" ? "DB" : "LB");
   });
 
   it("mount reflects a theme the head stamp already applied", () => {
@@ -79,7 +123,6 @@ describe("theme toggle", () => {
     });
 
     const btn = document.querySelector<HTMLButtonElement>(".theme-toggle");
-    expect(btn?.getAttribute("aria-pressed")).toBe("true");
     expect(btn?.getAttribute("aria-label")).toBe("Switch to light mode");
   });
 
@@ -96,8 +139,8 @@ describe("theme toggle", () => {
 
   it("two placements stay in step", () => {
     document.body.innerHTML = `
-      <button type="button" class="theme-toggle" aria-pressed="false" aria-label="Switch to dark mode"></button>
-      <button type="button" class="theme-toggle theme-toggle-phone" aria-pressed="false" aria-label="Switch to dark mode"></button>`;
+      <button type="button" class="theme-toggle" aria-label="Switch to dark mode"></button>
+      <button type="button" class="theme-toggle theme-toggle-phone" aria-label="Switch to dark mode"></button>`;
 
     mountThemeToggle(document, { storage: fakeStorage(), storageKey: KEY });
 
@@ -107,10 +150,9 @@ describe("theme toggle", () => {
 
     phone.click();
     expect(document.documentElement.dataset.theme).toBe("dark");
-    expect(band.getAttribute("aria-pressed")).toBe("true");
     expect(band.getAttribute("aria-label")).toBe("Switch to light mode");
     band.click();
-    expect(phone.getAttribute("aria-pressed")).toBe("false");
+    expect(phone.getAttribute("aria-label")).toBe("Switch to dark mode");
   });
 
   it("mounting twice binds once", () => {

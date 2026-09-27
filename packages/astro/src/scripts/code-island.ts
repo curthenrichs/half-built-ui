@@ -45,6 +45,13 @@ export const mountCodeIslands: Island<CodeIslandOptions> = (
     bar.className = "code-island-bar";
     const label = doc.createElement("span");
 
+    /* Visually the button's own text already shows the outcome, but a
+       screen reader is not sat watching the button: role="status" gets
+       the outcome announced as a live region without moving focus. */
+    const status = doc.createElement("span");
+    status.className = "screen-reader-text";
+    status.setAttribute("role", "status");
+
     const file = pre
       .closest("[data-code-filename]")
       ?.getAttribute("data-code-filename");
@@ -64,14 +71,17 @@ export const mountCodeIslands: Island<CodeIslandOptions> = (
       try {
         await navigator.clipboard.writeText(pre.textContent);
         btn.textContent = copy.copied;
+        status.textContent = copy.copied;
       } catch {
         btn.textContent = copy.failed;
+        status.textContent = copy.failed;
       }
 
       clearTimeout(resetTimer.id);
 
       resetTimer.id = setTimeout(() => {
         btn.textContent = copy.copy;
+        status.textContent = "";
       }, resetMs);
     };
 
@@ -80,7 +90,7 @@ export const mountCodeIslands: Island<CodeIslandOptions> = (
     };
 
     btn.addEventListener("click", onClick);
-    bar.append(label, btn);
+    bar.append(label, btn, status);
     pre.before(bar);
     mounted.push({ pre, bar, btn, onClick, resetTimer });
   }

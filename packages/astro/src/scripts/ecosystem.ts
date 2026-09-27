@@ -68,7 +68,12 @@ export function validateDocument(raw: unknown): EcosystemDocument | null {
 
 /** The self entry's family first, each group by ascending priority and
     then label, capped at limit. Null when selfKey is absent, which is
-    the refusal that keeps a site out of a list missing itself. */
+    the refusal that keeps a site out of a list missing itself.
+
+    The self entry always survives the cap: a footer that would render
+    the cap without the site's own entry is worse than one that swaps
+    out its lowest-priority stranger, so the self entry takes the last
+    slot when sorting alone would have dropped it past the limit. */
 export function sortEntries(
   entries: EcosystemDocEntry[],
   selfKey: string,
@@ -77,15 +82,18 @@ export function sortEntries(
   const self = entries.find((entry) => entry.key === selfKey);
   if (!self) return null;
   const own = self.family;
-  return [...entries]
-    .sort((a, b) => {
-      const aOwn = a.family === own ? 0 : 1;
-      const bOwn = b.family === own ? 0 : 1;
-      if (aOwn !== bOwn) return aOwn - bOwn;
-      if (a.priority !== b.priority) return a.priority - b.priority;
-      return a.label.localeCompare(b.label);
-    })
-    .slice(0, limit);
+
+  const sorted = [...entries].sort((a, b) => {
+    const aOwn = a.family === own ? 0 : 1;
+    const bOwn = b.family === own ? 0 : 1;
+    if (aOwn !== bOwn) return aOwn - bOwn;
+    if (a.priority !== b.priority) return a.priority - b.priority;
+    return a.label.localeCompare(b.label);
+  });
+
+  const capped = sorted.slice(0, limit);
+  if (limit > 0 && !capped.includes(self)) capped[capped.length - 1] = self;
+  return capped;
 }
 
 const CACHE_KEY = "half-built-ecosystem";

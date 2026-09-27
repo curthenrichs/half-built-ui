@@ -15,11 +15,41 @@ export interface FocusModeOptions {
   target?: EventTarget;
 }
 
+/* Text entry is not navigation: a reader who clicked into a field and
+   types keeps the click highlight. Tab always means keyboard. */
+function isTextEntry(t: EventTarget | null): boolean {
+  if (!(t instanceof HTMLElement)) return false;
+
+  if (
+    t.isContentEditable ||
+    t instanceof HTMLTextAreaElement ||
+    t instanceof HTMLSelectElement
+  ) {
+    return true;
+  }
+
+  if (!(t instanceof HTMLInputElement)) return false;
+
+  return ![
+    "checkbox",
+    "radio",
+    "button",
+    "submit",
+    "reset",
+    "range",
+    "color",
+    "file",
+    "image",
+  ].includes(t.type);
+}
+
 export const mountFocusMode: Island<FocusModeOptions> = (
   root,
   options = {},
 ): IslandHandle => {
-  const el = root as HTMLElement;
+  const el =
+    root instanceof Document ? root.documentElement : (root as HTMLElement);
+
   const target = options.target ?? window;
 
   if (!claim(el, "focus-mode")) {
@@ -31,7 +61,8 @@ export const mountFocusMode: Island<FocusModeOptions> = (
     };
   }
 
-  const onKeydown = (): void => {
+  const onKeydown = (ev: KeyboardEvent): void => {
+    if (ev.key !== "Tab" && isTextEntry(ev.target)) return;
     el.dataset.focus = "keyboard";
   };
 
