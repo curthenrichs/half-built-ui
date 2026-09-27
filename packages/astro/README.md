@@ -183,7 +183,9 @@ with no script.
 
 `components/Popout.astro` puts a short note behind a table cell: detail
 worth keeping but not worth a column. It renders a trigger button and a
-template holding its slot; `scripts/popout` opens the note.
+template holding its slot; `scripts/popout` opens the note. Like
+link-tip, the mounted island is a document-wide singleton: `root` only
+names the document, and triggers anywhere in it share the one surface.
 
 ```astro
 <Popout label="Sample row · Sample product">

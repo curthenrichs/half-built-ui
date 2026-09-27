@@ -704,9 +704,8 @@ describe.skipIf(!enabled)("browser suite", () => {
     expect(await popoutOpen(p)).toBe(false);
     expect(await activeId(p)).toBe("demo-popout-1");
 
-    /* Shift+Tab out of the box (it sits last in <body>, so this lands
-       on the page's last focusable) closes it and does not pull focus
-       back to the trigger. */
+    /* Shift+Tab off the box's first stop hands focus back to the
+       trigger; Tab off its last stop moves on past the trigger. */
     await p.keyboard.press("Enter");
     expect(await popoutOpen(p)).toBe(true);
     await p.keyboard.down("Shift");
@@ -714,11 +713,31 @@ describe.skipIf(!enabled)("browser suite", () => {
     await p.keyboard.up("Shift");
     await settleFrames(p);
     expect(await popoutOpen(p)).toBe(false);
-    expect(await activeId(p)).not.toBe("demo-popout-1");
+    expect(await activeId(p)).toBe("demo-popout-1");
 
-    expect(
-      await p.evaluate(() => document.activeElement !== document.body),
-    ).toBe(true);
+    await p.keyboard.press("Enter");
+    expect(await popoutOpen(p)).toBe(true);
+
+    for (let i = 0; i < 6 && (await popoutOpen(p)); i++) {
+      await p.keyboard.press("Tab");
+      await settleFrames(p);
+    }
+
+    expect(await popoutOpen(p)).toBe(false);
+
+    const landed = await p.evaluate(() => {
+      const t = document.getElementById("demo-popout-1");
+      const a = document.activeElement;
+      return Boolean(
+        t &&
+        a &&
+        a !== document.body &&
+        t.compareDocumentPosition(a) & Node.DOCUMENT_POSITION_FOLLOWING &&
+        !a.closest("footer"),
+      );
+    });
+
+    expect(landed).toBe(true);
   });
 
   it("the sheet locks page scroll and hands it back where it was", async () => {

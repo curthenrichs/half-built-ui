@@ -1,5 +1,16 @@
 ---
-interface Props extends Record<string, unknown> {
+import type { HTMLAttributes } from "astro/types";
+
+type Owned =
+  | "type"
+  | "aria-haspopup"
+  | "aria-expanded"
+  | "aria-label"
+  | "data-popout-label"
+  | "class"
+  | "class:list";
+
+interface Props extends Omit<HTMLAttributes<"button">, Owned> {
   label: string;
   trigger?: string;
   class?: string;
@@ -9,13 +20,13 @@ const { label, trigger = "Note", class: className, ...rest } = Astro.props;
 ---
 
 <button
+  {...rest}
   type="button"
   class:list={["popout-trigger", className]}
   aria-haspopup="dialog"
   aria-expanded="false"
   aria-label={`${trigger}: ${label}`}
   data-popout-label={label}
-  {...rest}
 >
   {trigger}
 </button

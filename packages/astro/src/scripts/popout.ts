@@ -3,7 +3,10 @@
    <dialog> per page. A click on a trigger fills it from the template
    right after that trigger and opens it anchored below the trigger
    (desktop) or as a modal bottom sheet (phone width, decided at each
-   open). Chrome lives in @half-built/css popout.css. */
+   open). Chrome lives in @half-built/css popout.css.
+
+   A document-wide singleton, like link-tip: root only names the
+   document; triggers anywhere in it open the one surface. */
 
 import { claim, release, type Island, type IslandHandle } from "./core/island";
 import { docOf, el, iconButton } from "./core/dom";
@@ -60,6 +63,30 @@ export function isSwipeClose(
   return startY !== null && endY - startY >= threshold;
 }
 
+const FOCUSABLE =
+  'a[href], button:not([disabled]), input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+/** The first element after anchor, in document order, that sequential
+    focus navigation would reach, ignoring anything inside skip. */
+export function nextFocusableAfter(
+  doc: Document,
+  anchor: Element,
+  skip: Element,
+): HTMLElement | null {
+  for (const node of doc.querySelectorAll<HTMLElement>(FOCUSABLE)) {
+    if (skip.contains(node) || anchor.contains(node)) continue;
+    if (node.getAttribute("tabindex") === "-1") continue;
+    if (node.closest("[hidden], [inert]")) continue;
+
+    const after =
+      anchor.compareDocumentPosition(node) & Node.DOCUMENT_POSITION_FOLLOWING;
+
+    if (after) return node;
+  }
+
+  return null;
+}
+
 export const mountPopouts: Island<PopoutOptions> = (
   root,
   options = {},
@@ -105,6 +132,11 @@ export const mountPopouts: Island<PopoutOptions> = (
      next key). Focus moves during it, sometimes to nothing (Safari does
      not focus a pressed button); the pointer handlers own that close. */
   let pressing = false;
+  /* Sheet only: whether the pointerdown that started the current press
+     landed on the dialog element itself (the backdrop), so a press that
+     starts inside and is dragged onto the backdrop before release does
+     not read as a backdrop click. */
+  let pressOnSurface = false;
 
   const viewport = (): ViewportSize => ({
     width: html.clientWidth,
@@ -223,14 +255,19 @@ export const mountPopouts: Island<PopoutOptions> = (
     }
 
     /* The dialog has no padding of its own (popout.css), so a click on
-       the element itself is a click on the sheet's backdrop. */
-    if (ev.target === surface && mode === "sheet") finish();
+       the element itself is a click on the sheet's backdrop, but only
+       when the press that produced this click also started there: a
+       press dragged from inside the sheet onto the backdrop must not
+       close it. */
+    if (ev.target === surface && mode === "sheet" && pressOnSurface) finish();
+    pressOnSurface = false;
   };
 
   /* Anchored only; the sheet's outside is its backdrop. A press on any
      trigger is left to the click handler, or pressing the open trigger
      would close here and reopen on click. */
   const onPointerDown = (ev: Event): void => {
+    pressOnSurface = ev.target === surface;
     pressing = true;
     if (!current || mode !== "anchored") return;
     const t = ev.target;
@@ -288,6 +325,42 @@ export const mountPopouts: Island<PopoutOptions> = (
     finish();
   };
 
+  /* Anchored only: the box sits last in <body>, so native Tab order
+     would carry focus to the footer or out of the page. Shift+Tab off
+     the first stop goes back to the trigger; Tab off the last stop
+     goes to whatever follows the trigger. */
+  const onSurfaceKey = (ev: KeyboardEvent): void => {
+    if (ev.key !== "Tab" || !current || mode !== "anchored") return;
+    const stops = [...surface.querySelectorAll<HTMLElement>(FOCUSABLE)];
+    const first = stops.at(0);
+    const last = stops.at(-1);
+    const active = doc.activeElement;
+
+    if (ev.shiftKey && (active === surface || active === first)) {
+      ev.preventDefault();
+      finish();
+      return;
+    }
+
+    if (!ev.shiftKey && (active === last || stops.length === 0)) {
+      ev.preventDefault();
+      const trigger = current;
+      const next = nextFocusableAfter(doc, trigger, surface);
+      finish(false);
+      (next ?? trigger).focus();
+    }
+  };
+
+  /* Anchored only: focus leaving the trigger itself for somewhere
+     outside both the trigger and the box closes it, so Tab forward
+     from the table row (never having entered the box) does not leave
+     a stale note open. */
+  const onTriggerFocusOut = (ev: FocusEvent): void => {
+    if (!current || mode !== "anchored" || ev.target !== current) return;
+    if (ev.relatedTarget === null || inside(ev.relatedTarget)) return;
+    finish(false);
+  };
+
   const settle = (): void => {
     frame = 0;
     if (!current) return;
@@ -341,11 +414,13 @@ export const mountPopouts: Island<PopoutOptions> = (
   doc.addEventListener("pointerdown", onPointerDown);
   doc.addEventListener("pointercancel", onPointerCancel);
   doc.addEventListener("keydown", onKey);
+  doc.addEventListener("focusout", onTriggerFocusOut);
   /* capture: scroll does not bubble from inner scrollers (.table-scroll) */
   doc.addEventListener("scroll", onScroll, true);
   win?.addEventListener("resize", onResize);
   surface.addEventListener("close", onClose);
   surface.addEventListener("focusout", onFocusOut);
+  surface.addEventListener("keydown", onSurfaceKey);
   surface.addEventListener("touchstart", onTouchStart, { passive: true });
   surface.addEventListener("touchend", onTouchEnd, { passive: true });
   closeBtn.addEventListener("click", onCloseBtn);
@@ -357,6 +432,7 @@ export const mountPopouts: Island<PopoutOptions> = (
       doc.removeEventListener("pointerdown", onPointerDown);
       doc.removeEventListener("pointercancel", onPointerCancel);
       doc.removeEventListener("keydown", onKey);
+      doc.removeEventListener("focusout", onTriggerFocusOut);
       doc.removeEventListener("scroll", onScroll, true);
       win?.removeEventListener("resize", onResize);
       surface.remove();

@@ -5,6 +5,7 @@ import {
   popoutMode,
   offscreen,
   isSwipeClose,
+  nextFocusableAfter,
 } from "../src/scripts/popout";
 import { polyfillDialog } from "./helpers";
 import type { IslandHandle } from "../src/scripts/core/island";
@@ -169,6 +170,30 @@ describe("popout pure helpers", () => {
     expect(isSwipeClose(100, 159)).toBe(false);
     expect(isSwipeClose(100, 40)).toBe(false);
     expect(isSwipeClose(null, 400)).toBe(false);
+  });
+});
+
+describe("nextFocusableAfter", () => {
+  it("returns the first focusable after the anchor, skipping the given subtree", () => {
+    document.body.innerHTML =
+      '<button id="a">A</button><div id="skip"><a id="in" href="#">x</a></div>' +
+      '<span>text</span><a id="b" href="#">B</a>';
+
+    const got = nextFocusableAfter(document, byId("a"), byId("skip"));
+    expect(got?.id).toBe("b");
+  });
+
+  it("returns null when nothing focusable follows", () => {
+    document.body.innerHTML = '<button id="a">A</button><p>end</p>';
+    expect(nextFocusableAfter(document, byId("a"), byId("a"))).toBeNull();
+  });
+
+  it("skips disabled, hidden and tabindex=-1 elements", () => {
+    document.body.innerHTML =
+      '<button id="a">A</button><button disabled>d</button>' +
+      '<a href="#" tabindex="-1">n</a><input type="hidden"><a id="b" href="#">B</a>';
+
+    expect(nextFocusableAfter(document, byId("a"), byId("a"))?.id).toBe("b");
   });
 });
 
@@ -442,11 +467,84 @@ describe("popout island (DOM runtime)", () => {
     expect(surface().open).toBe(true);
   });
 
+  it("Shift+Tab from the close button closes the note and focuses the trigger", () => {
+    handle = mountPopouts(document);
+    byId("t1").click();
+    const close = surface().querySelector<HTMLButtonElement>(".popout-close");
+    close?.focus();
+
+    close?.dispatchEvent(
+      new KeyboardEvent("keydown", {
+        key: "Tab",
+        shiftKey: true,
+        bubbles: true,
+        cancelable: true,
+      }),
+    );
+
+    expect(surface().open).toBe(false);
+    expect(document.activeElement?.id).toBe("t1");
+  });
+
+  it("Tab from the last link closes the note and focuses the next focusable after the trigger", () => {
+    handle = mountPopouts(document);
+    byId("t1").click();
+    const inner = surface().querySelector<HTMLAnchorElement>(".popout-body a");
+    inner?.focus();
+
+    inner?.dispatchEvent(
+      new KeyboardEvent("keydown", {
+        key: "Tab",
+        bubbles: true,
+        cancelable: true,
+      }),
+    );
+
+    expect(surface().open).toBe(false);
+    expect(document.activeElement?.id).toBe("t2");
+  });
+
+  it("Tab from the close button of a link-less note moves on past the trigger", () => {
+    handle = mountPopouts(document);
+    byId("t2").click();
+    const close = surface().querySelector<HTMLButtonElement>(".popout-close");
+    close?.focus();
+
+    close?.dispatchEvent(
+      new KeyboardEvent("keydown", {
+        key: "Tab",
+        bubbles: true,
+        cancelable: true,
+      }),
+    );
+
+    expect(surface().open).toBe(false);
+    expect(document.activeElement?.id).toBe("bare");
+  });
+
+  it("focus leaving the trigger for the page closes an open note", () => {
+    handle = mountPopouts(document);
+    byId("t1").click();
+    byId("t1").focus();
+
+    byId("t1").dispatchEvent(
+      new FocusEvent("focusout", {
+        relatedTarget: byId("outside"),
+        bubbles: true,
+      }),
+    );
+
+    expect(surface().open).toBe(false);
+  });
+
   it("the sheet closes on a backdrop click and a 60px swipe from the top", () => {
     stubPhone(true);
     handle = mountPopouts(document);
     const t1 = byId("t1");
     click(t1);
+    /* A real backdrop tap is a pointerdown followed by a click, both
+       targeting the dialog element itself. */
+    surface().dispatchEvent(new PointerEvent("pointerdown", { bubbles: true }));
     click(surface());
     expect(surface().open).toBe(false);
     expect(document.activeElement).toBe(t1);
@@ -463,6 +561,25 @@ describe("popout island (DOM runtime)", () => {
     surface().dispatchEvent(touch("touchend", 170));
     expect(surface().open).toBe(false);
     expect(document.activeElement).toBe(t1);
+  });
+
+  it("a press that starts inside the sheet and ends on the backdrop does not close it", () => {
+    stubPhone(true);
+    handle = mountPopouts(document);
+    byId("t1").click();
+    const body = surface().querySelector(".popout-body");
+    body?.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true }));
+    surface().dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    expect(surface().open).toBe(true);
+  });
+
+  it("a press and click both on the backdrop closes the sheet", () => {
+    stubPhone(true);
+    handle = mountPopouts(document);
+    byId("t1").click();
+    surface().dispatchEvent(new PointerEvent("pointerdown", { bubbles: true }));
+    surface().dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    expect(surface().open).toBe(false);
   });
 
   it("the sheet survives a resize that stays phone; a breakpoint crossing closes it", () => {
