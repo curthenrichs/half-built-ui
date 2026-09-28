@@ -112,7 +112,7 @@ interface Workflow {
   jobs: Record<string, Job>;
 }
 
-export const workflow = (name: string): Workflow =>
+const workflow = (name: string): Workflow =>
   load(
     readFileSync(
       new URL(`../../.github/workflows/${name}`, import.meta.url),
@@ -120,7 +120,7 @@ export const workflow = (name: string): Workflow =>
     ),
   ) as Workflow;
 
-export const runText = (job: Job): string =>
+const runText = (job: Job): string =>
   (job.steps ?? []).map((s) => s.run ?? "").join("\n");
 
 describe("ci workflow", () => {
@@ -142,5 +142,78 @@ describe("ci workflow", () => {
   it("bounds every job with a timeout", () => {
     expect(ci.jobs.test["timeout-minutes"]).toBe(15);
     expect(ci.jobs.browser["timeout-minutes"]).toBe(20);
+  });
+});
+
+describe("release workflow", () => {
+  const release = workflow("release.yml");
+  const { ci, verify, publish } = release.jobs;
+
+  it("runs on v* tags and never cancels a release in progress", () => {
+    expect(release.on).toEqual({ push: { tags: ["v*"] } });
+    expect(release.concurrency?.group).toBe("release-${{ github.ref }}");
+    expect(release.concurrency?.["cancel-in-progress"]).toBe(false);
+  });
+
+  it("gives id-token to the publish job alone", () => {
+    expect(release.permissions).toEqual({ contents: "read" });
+
+    for (const [name, job] of Object.entries(release.jobs)) {
+      if (name === "publish") {
+        expect(job.permissions).toEqual({
+          contents: "read",
+          "id-token": "write",
+        });
+      } else {
+        expect(job.permissions?.["id-token"], name).toBeUndefined();
+      }
+    }
+  });
+
+  it("chains ci, then verify, then publish", () => {
+    expect(ci.uses).toBe("./.github/workflows/ci.yml");
+    expect(ci.permissions).toEqual({ contents: "read" });
+    expect(verify.needs).toBe("ci");
+    expect(publish.needs).toBe("verify");
+    expect(verify["timeout-minutes"]).toBe(5);
+    expect(publish["timeout-minutes"]).toBe(10);
+  });
+
+  it("verifies the tag against every package version and main ancestry", () => {
+    const checkout = verify.steps?.find((s) =>
+      s.uses?.startsWith("actions/checkout"),
+    );
+
+    expect(checkout?.with?.["fetch-depth"]).toBe(0);
+    const run = runText(verify);
+    expect(run).toContain('"${GITHUB_REF_NAME#v}"');
+    expect(run).toContain("packages/css packages/astro packages/tooling");
+    expect(run).toContain('[ "$version" != "$tag_version" ]');
+    expect(run).toContain("git fetch --quiet origin main");
+
+    expect(run).toContain(
+      'git merge-base --is-ancestor "$GITHUB_SHA" origin/main',
+    );
+  });
+
+  it("publishes with pinned npm, no install scripts, resuming past published versions", () => {
+    const run = runText(publish);
+    expect(run).toContain("npm install -g npm@11");
+    expect(run).not.toMatch(/npm@latest/);
+    expect(run).toContain("for name in css astro tooling");
+
+    /* npm view can print nothing and exit 0 for a missing version, so
+       the guard compares the printed version, never the exit status. */
+    expect(run).toContain(
+      '[ "$(npm view "@half-built/$name@$version" version 2>/dev/null)" = "$version" ]',
+    );
+
+    const publishes = run.split("\n").filter((l) => l.includes("npm publish"));
+    expect(publishes.length).toBeGreaterThan(0);
+    for (const line of publishes) expect(line).toContain("--ignore-scripts");
+  });
+
+  it("publishes without installing the repo's dependencies", () => {
+    expect(runText(publish)).not.toMatch(/npm (ci|install)(?! -g npm@)/);
   });
 });
