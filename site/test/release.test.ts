@@ -58,6 +58,34 @@ describe("compareVersions", () => {
   });
 });
 
+/* Plain release tags only: a tag like v0.12.0-rehearsal still sorts
+   newest by git's --sort=-v:refname but is not a release, and letting
+   it through would make it the bump guard's comparison point. Version
+   order, not input order: the caller may hand these in any order. */
+function newestReleaseTag(tags: string[]): string | undefined {
+  const releases = tags.filter((t) => /^v\d+\.\d+\.\d+$/.test(t));
+
+  return releases.reduce<string | undefined>(
+    (newest, t) =>
+      newest === undefined || compareVersions(t.slice(1), newest.slice(1)) > 0
+        ? t
+        : newest,
+    undefined,
+  );
+}
+
+describe("newestReleaseTag", () => {
+  it("skips non-release tags and keeps version order", () => {
+    expect(
+      newestReleaseTag(["v0.10.0", "v0.12.0-rehearsal", "v0.9.0", "v0.11.0"]),
+    ).toBe("v0.11.0");
+  });
+
+  it("returns undefined for no tags", () => {
+    expect(newestReleaseTag([])).toBeUndefined();
+  });
+});
+
 /* Newest vX.Y.Z tag by version order. A shallow CI checkout may have
    none; one best-effort fetch fixes that, and an offline clone with
    no tags simply has nothing to compare against. */
@@ -77,7 +105,7 @@ function latestReleaseTag(): string | undefined {
     tags = list();
   }
 
-  return tags[0];
+  return newestReleaseTag(tags);
 }
 
 describe("release metadata", () => {
@@ -148,7 +176,7 @@ interface Step {
 interface Job {
   needs?: string | string[];
   uses?: string;
-  permissions?: Record<string, string>;
+  permissions?: Record<string, string> | string;
   "timeout-minutes"?: number;
   steps?: Step[];
 }
@@ -221,7 +249,13 @@ describe("release workflow", () => {
           "id-token": "write",
         });
       } else {
-        expect(job.permissions?.["id-token"], name).toBeUndefined();
+        const perms = job.permissions;
+
+        expect(
+          perms === undefined ||
+            (typeof perms === "object" && !("id-token" in perms)),
+          `${name} may not hold id-token (or write-all)`,
+        ).toBe(true);
       }
     }
   });
@@ -250,6 +284,9 @@ describe("release workflow", () => {
     expect(run).toContain(
       'git merge-base --is-ancestor "$GITHUB_SHA" origin/main',
     );
+
+    expect(run).toMatch(/!= "\$tag_version" \][\s\S]*?exit 1/);
+    expect(run).toMatch(/--is-ancestor[\s\S]*?exit 1/);
   });
 
   it("publishes with pinned npm, no install scripts, resuming past published versions", () => {
@@ -281,7 +318,30 @@ describe("release workflow", () => {
     expect(publish.needs).toEqual(["verify", "pack-smoke"]);
   });
 
+  it("pack-smoke cleans up junction-safe, never with rm -rf", () => {
+    const script = readFileSync(
+      new URL("../../scripts/pack-smoke.sh", import.meta.url),
+      "utf-8",
+    );
+
+    expect(script).not.toMatch(
+      /\brm\s+-[a-z]*r[a-z]*f|\brm\s+-[a-z]*f[a-z]*r/i,
+    );
+
+    expect(script).toContain("os.tmpdir()");
+    expect(script).toContain("fs.rmSync");
+  });
+
   it("publishes without installing the repo's dependencies", () => {
-    expect(runText(publish)).not.toMatch(/npm (ci|install)(?! -g npm@)/);
+    expect(runText(publish)).not.toMatch(
+      /npm (ci|i|install|it|install-test)\b(?! -g npm@)/,
+    );
+  });
+
+  it("fails a rerun whose published version came from another commit", () => {
+    const run = runText(publish);
+    expect(run).toContain('npm view "@half-built/$name@$version" gitHead');
+    expect(run).toContain('"$(git rev-parse HEAD)"');
+    expect(run).toMatch(/published_head[\s\S]*?exit 1/);
   });
 });

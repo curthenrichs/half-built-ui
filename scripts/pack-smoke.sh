@@ -7,6 +7,10 @@
 # declared ranges.
 set -euo pipefail
 
+# Independent of the caller's cwd: everything below reads relative
+# paths (packages/*, package.json) as if run from the repo root.
+cd "$(dirname "$0")/.."
+
 # Node creates and deletes the work dir, never mktemp or a recursive
 # rm: Git Bash's recursive rm follows Windows directory junctions out of
 # the tree it was given, and fs.rmSync removes a link without walking

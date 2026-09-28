@@ -86,7 +86,15 @@ jobs:
           for name in css astro tooling; do
             version=$(node -p "require('./packages/$name/package.json').version")
             if [ "$(npm view "@half-built/$name@$version" version 2>/dev/null)" = "$version" ]; then
-              echo "@half-built/$name@$version is already on npm; skipping"
+              # A resume skips only a version this commit published. npm
+              # records the publishing commit as gitHead; the checked-out
+              # commit, not GITHUB_SHA, which can name an annotated tag.
+              published_head="$(npm view "@half-built/$name@$version" gitHead 2>/dev/null)"
+              if [ "$published_head" != "$(git rev-parse HEAD)" ]; then
+                echo "::error::@half-built/$name@$version is on npm from $published_head, not this commit; the tag moved after a publish. Fix forward with the next patch version."
+                exit 1
+              fi
+              echo "@half-built/$name@$version is already on npm from this commit; skipping"
             else
               npm publish --workspace "packages/$name" --ignore-scripts
             fi
