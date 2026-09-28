@@ -199,6 +199,26 @@ const workflow = (name: string): Workflow =>
 const runText = (job: Job): string =>
   (job.steps ?? []).map((s) => s.run ?? "").join("\n");
 
+/* The body of an `if ... ; then` branch, up to (not including) its
+   own closing `fi` line: a lazy [\s\S]*?exit 1 regex can be satisfied
+   by an exit 1 in a LATER branch when the branch it is meant to
+   check has none of its own, so branch assertions scope to this
+   instead of matching across the whole run text. */
+function branchBody(run: string, ifLineMarker: string): string {
+  const lines = run.split("\n");
+  const start = lines.findIndex((l) => l.includes(ifLineMarker));
+  if (start === -1) return "";
+
+  const body: string[] = [];
+
+  for (let i = start + 1; i < lines.length; i++) {
+    if (/^\s*fi\b/.test(lines[i])) break;
+    body.push(lines[i]);
+  }
+
+  return body.join("\n");
+}
+
 describe("ci workflow", () => {
   const ci = workflow("ci.yml");
 
@@ -285,8 +305,8 @@ describe("release workflow", () => {
       'git merge-base --is-ancestor "$GITHUB_SHA" origin/main',
     );
 
-    expect(run).toMatch(/!= "\$tag_version" \][\s\S]*?exit 1/);
-    expect(run).toMatch(/--is-ancestor[\s\S]*?exit 1/);
+    expect(branchBody(run, '!= "$tag_version" ]')).toContain("exit 1");
+    expect(branchBody(run, "--is-ancestor")).toContain("exit 1");
   });
 
   it("publishes with pinned npm, no install scripts, resuming past published versions", () => {
