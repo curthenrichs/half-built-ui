@@ -16,6 +16,7 @@
    live) instead of the monorepo root. */
 import { describe, it, expect, beforeAll, afterAll, afterEach } from "vitest";
 import type { ChildProcess } from "node:child_process";
+import { readFileSync } from "node:fs";
 import type { Browser, Page } from "puppeteer-core";
 import { AxePuppeteer } from "@axe-core/puppeteer";
 import type { RunOptions } from "axe-core";
@@ -104,10 +105,77 @@ describe.skipIf(!enabled)("browser suite", () => {
     page = undefined;
   });
 
+  type EcosystemMode = "fixture" | "abort";
+
+  const ECOSYSTEM_FIXTURE = readFileSync(
+    new URL("./fixtures/ecosystem.json", import.meta.url),
+    "utf-8",
+  );
+
+  /* Aborted ecosystem requests on the current page, for the fallback
+     test to wait out the island's retries by count, not by clock. */
+  let ecosystemAborts = 0;
+  let onEcosystemAbort: (() => void) | undefined;
+
+  /* Resolves once the page has aborted n ecosystem requests; the timer
+     only bounds a hang, it is not a wait for time to pass. */
+  function ecosystemAborted(n: number): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const timer = setTimeout(() => {
+        reject(
+          new Error(
+            `only ${String(ecosystemAborts)} of ${String(n)} ecosystem requests arrived`,
+          ),
+        );
+      }, 10_000);
+
+      const check = (): void => {
+        if (ecosystemAborts < n) return;
+        clearTimeout(timer);
+        onEcosystemAbort = undefined;
+        resolve();
+      };
+
+      onEcosystemAbort = check;
+      check();
+    });
+  }
+
+  /* One handler per page: two handlers on one request throw "already
+     handled", so a test picks the mode through open() rather than
+     adding its own. */
+  async function routeEcosystem(p: Page, mode: EcosystemMode): Promise<void> {
+    ecosystemAborts = 0;
+    await p.setRequestInterception(true);
+
+    p.on("request", (req) => {
+      if (!req.url().includes("ecosystem.json")) {
+        void req.continue();
+        return;
+      }
+
+      if (mode === "abort") {
+        ecosystemAborts++;
+        onEcosystemAbort?.();
+        void req.abort();
+        return;
+      }
+
+      void req.respond({
+        status: 200,
+        contentType: "application/json",
+        headers: { "access-control-allow-origin": "*" },
+        body: ECOSYSTEM_FIXTURE,
+      });
+    });
+  }
+
   /* networkidle0, not domcontentloaded: the toc, theme toggle, and
      palette editor all mount from a module script with no DOM marker
      to wait on. */
-  async function open(): Promise<Page> {
+  async function open(
+    options: { ecosystem?: EcosystemMode } = {},
+  ): Promise<Page> {
     if (!browser) throw new Error("no browser (beforeAll failed)");
     const p = await desktopPage(browser);
     page = p;
@@ -124,6 +192,7 @@ describe.skipIf(!enabled)("browser suite", () => {
       }
     });
 
+    await routeEcosystem(p, options.ecosystem ?? "fixture");
     await p.goto(`${ORIGIN}/`, { waitUntil: "networkidle0" });
 
     /* Colors must be settled when axe reads them: a theme flip mid
@@ -141,10 +210,24 @@ describe.skipIf(!enabled)("browser suite", () => {
      sheet's entrance (popout-rise, popout.css) slides up from
      translateY(100%) over 150ms, and an unforced read lands
      mid-animation. */
-  async function openPhone(): Promise<Page> {
+  async function openPhone(
+    options: { ecosystem?: EcosystemMode } = {},
+  ): Promise<Page> {
     if (!browser) throw new Error("no browser (beforeAll failed)");
     const p = await phonePage(browser);
     page = p;
+
+    /* Same isolation as open(): no test inherits another's persisted
+       palette or theme. */
+    await p.evaluateOnNewDocument(() => {
+      try {
+        localStorage.clear();
+      } catch {
+        /* storage unavailable; nothing persisted to clear */
+      }
+    });
+
+    await routeEcosystem(p, options.ecosystem ?? "fixture");
     await p.goto(`${ORIGIN}/`, { waitUntil: "networkidle0" });
 
     await p.addStyleTag({
@@ -434,7 +517,19 @@ describe.skipIf(!enabled)("browser suite", () => {
        the queued close event of the first, even though it sits under
        where row two's popout was open a moment ago. */
     await p.click("#demo-popout-1");
-    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    await p.waitForFunction(
+      (label) => {
+        const s = document.querySelector("dialog.popout");
+        return (
+          s instanceof HTMLDialogElement &&
+          s.open &&
+          s.querySelector(".popout-label")?.textContent === label
+        );
+      },
+      {},
+      "Row one",
+    );
 
     const second = await p.$eval("dialog.popout", (s) => ({
       open: s.open,
@@ -565,7 +660,10 @@ describe.skipIf(!enabled)("browser suite", () => {
 
     /* A tap near the top of the viewport lands on the backdrop. */
     await p.mouse.click(20, 20);
-    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    await p.waitForFunction(
+      () => !document.querySelector("dialog.popout")?.open,
+    );
 
     const after = await p.evaluate(() => {
       const s = document.querySelector("dialog.popout");
@@ -751,7 +849,7 @@ describe.skipIf(!enabled)("browser suite", () => {
        did not hold. */
     await p.mouse.move(20, 20);
     await p.mouse.wheel({ deltaY: 400 });
-    await new Promise((resolve) => setTimeout(resolve, 200));
+    await settleFrames(p);
     expect(await popoutOpen(p)).toBe(true);
     expect(await p.evaluate(() => window.scrollY)).toBe(before);
 
@@ -763,7 +861,7 @@ describe.skipIf(!enabled)("browser suite", () => {
     /* The same wheel scrolls the page once the sheet is gone, so the
        held scroll above was the lock and not a dead gesture. */
     await p.mouse.wheel({ deltaY: 400 });
-    await new Promise((resolve) => setTimeout(resolve, 400));
+    await p.waitForFunction((y) => window.scrollY > y, {}, before);
     expect(await p.evaluate(() => window.scrollY)).toBeGreaterThan(before);
   });
 
@@ -1054,40 +1152,64 @@ describe.skipIf(!enabled)("browser suite", () => {
     }
   }, 60_000);
 
-  it("the footer's ecosystem list carries the island's hook and the baseline", async () => {
+  it("the footer renders the served fixture, not the live document", async () => {
     const p = await open();
+
+    await p.waitForFunction(() => {
+      const el = document.querySelector("footer [data-ecosystem]");
+      /* Same two-type-worlds note as palette-editor.ts's copy handler:
+         strict DOM sees string | null, the lint project sees string. */
+
+      return (el?.textContent ?? "").includes("Sample Alpha");
+    });
+
+    const labels = await p.$$eval("footer [data-ecosystem] li", (els) =>
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+      els.map((el) => el.textContent?.trim() ?? ""),
+    );
+
+    expect(labels).toContain("Sample UI");
+    expect(labels).toContain("Sample Alpha");
+  });
+
+  it("the footer's ecosystem list carries the island's hook and the baseline", async () => {
+    const p = await open({ ecosystem: "abort" });
     /* The hook is what mountEcosystem finds. The baseline is what
        renders with JavaScript off forever, and what stands whenever
        the endpoint cannot be reached: this site plus a pointer home
        to the blog.
 
-       The endpoint is blocked rather than fetched. Since it went live
-       the island would otherwise replace this list with the real
-       document, making the assertion depend on a third-party host
-       being up and on the contents of a file in another repo. Blocking
-       it tests the fallback path, which is the load-bearing promise,
-       and keeps the suite hermetic. The fetch-and-replace path is
-       covered against fixtures in ecosystem-dom.test.ts. */
-    await p.setRequestInterception(true);
+       The endpoint is blocked rather than fetched (open()'s abort
+       mode). Since it went live the island would otherwise replace
+       this list with the real document, making the assertion depend
+       on a third-party host being up and on the contents of a file in
+       another repo. Blocking it tests the fallback path, which is the
+       load-bearing promise, and keeps the suite hermetic. The
+       fetch-and-replace path is covered against the fixture in the
+       test below. */
 
-    p.on("request", (req) => {
-      void (req.url().includes("ecosystem.json")
-        ? req.abort()
-        : req.continue());
+    /* The island tries three times (the first fetch, then retries at
+       about 400ms and 1200ms plus jitter) before it falls back, so wait
+       for the third abort, then for the baseline list. */
+    await ecosystemAborted(3);
+
+    /* Same two-type-worlds note as palette-editor.ts's copy handler:
+       strict DOM sees string | null, the lint project sees string. */
+    await p.waitForFunction(() => {
+      const nodes = [
+        ...document.querySelectorAll("footer [data-ecosystem] li"),
+      ];
+
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+      const items = nodes.map((el) => el.textContent?.trim() ?? "");
+
+      return (
+        items.length === 2 &&
+        items[0] === "half-built-ui" &&
+        items[1] === "Half-Built Robots"
+      );
     });
 
-    await p.reload({ waitUntil: "networkidle0" });
-    /* The island keeps its last good document in localStorage for a
-       day and falls back to it once its retries (400ms, then 1200ms,
-       plus jitter) are spent. open()'s evaluateOnNewDocument clear
-       runs again on this reload, so the copy the first load cached is
-       gone before the island mounts; that is what makes the blocked
-       fetch land on the baseline rather than the cached document (the
-       blog's copy of this test learned that in CI on 2026-09-09).
-       networkidle0 fires between the retries, so wait the chain out
-       before asserting: "stands" means after the fallback ran, not
-       before it. */
-    await new Promise((r) => setTimeout(r, 2500));
     const list = await p.$("footer [data-ecosystem]");
     expect(list, "the footer has no data-ecosystem hook").not.toBeNull();
 
@@ -1112,62 +1234,24 @@ describe.skipIf(!enabled)("browser suite", () => {
 
   it("the swapped ecosystem list keeps the footer's own styling", async () => {
     /* The complement to the test above. That one blocks the endpoint
-       and checks the baseline; this one answers with a fixture and
-       checks what the island builds, so neither touches the network.
+       and checks the baseline; this one serves the fixture (open()'s
+       default mode) and checks what the island builds, so neither
+       touches the network.
 
        Computed styles, not classes: 0.3.0 shipped an island whose
        markup and classes were correct and whose rendering was not,
        because Astro scopes Footer.astro's rules to a data-astro-cid
        attribute that createElement nodes never carried. Asserting the
        class would have passed straight through the bug. */
-    const doc = JSON.stringify({
-      version: 1,
-      updated: "2026-09-07",
-      entries: [
-        {
-          key: "blog",
-          label: "Half-Built Robots",
-          href: "https://half-built-robots.com/",
-          priority: 0,
-          family: "half-built",
-        },
-        {
-          key: "beadz",
-          label: "The Bead Reserve",
-          href: null,
-          priority: 1,
-          family: "half-built",
-        },
-        {
-          key: "ui",
-          label: "half-built-ui",
-          href: null,
-          priority: 3,
-          family: "half-built",
-        },
-      ],
-    });
-
     const p = await open();
-    await p.setRequestInterception(true);
 
-    p.on("request", (req) => {
-      void (req.url().includes("ecosystem.json")
-        ? req.respond({
-            status: 200,
-            contentType: "application/json",
-            /* The stub is cross-origin exactly as the real endpoint is,
-               so it needs the same CORS header. Without it the fetch
-               fails and the island falls back to the baseline, which
-               made this test look like a swap bug rather than a stub
-               missing a header. */
-            headers: { "Access-Control-Allow-Origin": "*" },
-            body: doc,
-          })
-        : req.continue());
+    await p.waitForFunction(() => {
+      const el = document.querySelector("footer [data-ecosystem]");
+      /* Same two-type-worlds note as the baseline test above: strict
+         DOM sees string | null, the lint project sees string. */
+
+      return (el?.textContent ?? "").includes("Sample Gamma");
     });
-
-    await p.reload({ waitUntil: "networkidle0" });
 
     const rendered = await p.$$eval("footer [data-ecosystem] li > *", (els) =>
       els.map((el) => {
@@ -1184,19 +1268,23 @@ describe.skipIf(!enabled)("browser suite", () => {
       }),
     );
 
+    /* The fixture's own family sorts first (self is "ui"), then the
+       other family, each ascending by priority: ui, alpha, beta, gamma. */
     expect(rendered.map((r) => r.text)).toEqual([
-      "Half-Built Robots",
-      "The Bead Reserve",
-      "half-built-ui",
+      "Sample UI",
+      "Sample Alpha",
+      "Sample Beta",
+      "Sample Gamma",
     ]);
 
+    /* You are here, so bold. */
+    expect(rendered[0].weight).toBe("700");
     /* The link keeps the footer's underline-on-hover treatment rather
        than falling back to the browser's default underline. */
-    expect(rendered[0].deco).toBe("none");
+    expect(rendered[1].deco).toBe("none");
     /* Undeployed, so dimmed. */
-    expect(Number(rendered[1].opacity)).toBeLessThan(1);
-    /* You are here, so bold. */
-    expect(rendered[2].weight).toBe("700");
+    expect(Number(rendered[2].opacity)).toBeLessThan(1);
+    expect(rendered[3].deco).toBe("none");
   }, 30_000);
 
   it("the toc renders one link per section and every href target exists", async () => {
