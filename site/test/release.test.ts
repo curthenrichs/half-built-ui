@@ -344,9 +344,7 @@ describe("release workflow", () => {
       "utf-8",
     );
 
-    expect(script).not.toMatch(
-      /\brm\s+-[a-z]*r[a-z]*f|\brm\s+-[a-z]*f[a-z]*r/i,
-    );
+    expect(script).not.toMatch(/\brm\b[^\n]*\s(-[a-zA-Z]*[rR]|--recursive)/);
 
     expect(script).toContain("os.tmpdir()");
     expect(script).toContain("fs.rmSync");
@@ -362,6 +360,9 @@ describe("release workflow", () => {
     const run = runText(publish);
     expect(run).toContain('npm view "@half-built/$name@$version" gitHead');
     expect(run).toContain('"$(git rev-parse HEAD)"');
-    expect(run).toMatch(/published_head[\s\S]*?exit 1/);
+
+    const guardLine = 'if [ "$published_head" != "$(git rev-parse HEAD)" ]';
+    expect(run).toContain(guardLine);
+    expect(branchBody(run, guardLine)).toContain("exit 1");
   });
 });

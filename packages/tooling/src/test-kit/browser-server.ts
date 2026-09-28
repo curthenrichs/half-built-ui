@@ -152,7 +152,27 @@ export function stopPreview(server: ChildProcess | undefined): void {
    WebGL-heavy feature must, or a timeout there usually means the
    lighter path stopped engaging, not that the assertion is slow. */
 export async function launchChrome(): Promise<Browser> {
-  const puppeteer = await import("puppeteer-core");
+  /* puppeteer-core is a peer, not a dependency of this package: a
+     consumer who runs the browser suites without installing it hits a
+     bare "Cannot find module" from Node, several frames below their
+     own test. Naming the fix here only for the module-missing case;
+     anything else (a puppeteer-core that fails to load for its own
+     reasons) rethrows untouched. */
+  let puppeteer: typeof import("puppeteer-core");
+
+  try {
+    puppeteer = await import("puppeteer-core");
+  } catch (err) {
+    if ((err as { code?: string } | null)?.code !== "ERR_MODULE_NOT_FOUND") {
+      throw err;
+    }
+
+    throw new Error(
+      "the test kit's browser helpers need puppeteer-core installed by the consumer (tested with 25.x)",
+      { cause: err },
+    );
+  }
+
   return puppeteer.launch({
     executablePath: findChrome(),
     headless: true,

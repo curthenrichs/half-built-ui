@@ -56,16 +56,20 @@ version and that the tagged commit is on `main`, and only then
 publishes over OIDC, with no npm token stored anywhere. Before
 publishing it also packs the three tarballs and installs them in a
 clean consumer holding only what they declare; `bash
-scripts/pack-smoke.sh` runs the same check locally before a tag. Only the
-publish job can mint the credential, and it installs none of the
+scripts/pack-smoke.sh` runs the same check locally before a tag. Only
+the publish job can mint the credential, and it installs none of the
 repo's dependencies. A release that fails partway can be rerun: a
 version npm already has is skipped. There is no version automation.
-Bumping the version in each package's `package.json` is a manual
-step before tagging.
+Bumping the version in each package's `package.json` is a manual step
+before tagging. It also covers the three `@half-built` pins in
+`site/package.json` and the lockfile, refreshed with `npm install`
+after editing, since a test pins the site to the package version.
 
-A tag that fails verify (wrong version, or not on main) is deleted
-locally and on the remote, then the fix lands and the tag is pushed
-again. Once any package of a version is on npm, never move that
-version's tag: fix forward with the next patch version instead (npm
-keeps the first upload, and a moved tag would rerun green while
-publishing nothing new).
+A tag that fails verify (wrong version, or not on main) or fails the
+pack smoke is deleted locally and on the remote before the fix is
+pushed. Otherwise the fix's branch CI compares against the
+still-present tag. Once the fix lands, the tag is pushed again. Once
+any package of a version is on npm, never move that version's tag: fix
+forward with the next patch version instead (npm keeps the first
+upload, and the release refuses a rerun whose published version came
+from another commit).
