@@ -127,19 +127,19 @@ function statusLines(base1: Base1Readout, base2: BaseReadout): StatusLine[] {
 
   if (!base1.darkTextPasses) {
     warnings.push({
-      text: "Accent 1 is too dark to read as text on the dark theme, consider a lighter shade.",
+      text: "Accent 1 is too dark to read as text on the dark theme. Try a lighter shade.",
       warn: true,
     });
   } else if (!base1.codeTextPasses) {
     warnings.push({
-      text: "Accent 1 is too dark to read as code on the code block, consider a lighter shade.",
+      text: "Accent 1 is too dark to read in code blocks. Try a lighter shade.",
       warn: true,
     });
   }
 
   if (!base2.darkTextPasses) {
     warnings.push({
-      text: "Accent 2 is too dark to read as text on the dark theme, consider a lighter shade.",
+      text: "Accent 2 is too dark to read as text on the dark theme. Try a lighter shade.",
       warn: true,
     });
   }

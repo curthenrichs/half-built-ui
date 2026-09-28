@@ -133,7 +133,7 @@ export function mountPathDemo(doc: Document): void {
     title: "Sample path",
     source: "Generated sample",
     caption:
-      "A point tracing a closed curve. PATH plots its X and Y over one loop. MIX blends the two brand colors by X, and its line is the point's speed.",
+      "A point moving on a closed curve. PATH plots its X and Y position over one loop. MIX blends the two brand colors by X. The line on the MIX track shows the point's speed.",
     duration: DURATION,
     samples,
     tracks: [

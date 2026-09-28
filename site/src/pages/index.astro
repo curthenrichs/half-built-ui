@@ -79,7 +79,7 @@ const posts: PostCardModel[] = [
   {
     href: samplePostHref,
     title: "Sample post, marked draft",
-    excerpt: "A second placeholder excerpt, this card flagged as a draft.",
+    excerpt: "A second placeholder excerpt. This card is marked as a draft.",
     author: "Demo Author",
     dateStr: "2, Jan 2026",
     minutes: 6,
@@ -94,7 +94,7 @@ const posts: PostCardModel[] = [
     href: samplePostHref,
     title: "Sample post, with corner badges",
     excerpt:
-      "A third placeholder excerpt, showing the AI Art and Demo badges together.",
+      "A third placeholder excerpt. This card has both the AI Art and Demo badges.",
     author: "Demo Author",
     dateStr: "3, Jan 2026",
     minutes: 3,
@@ -109,8 +109,8 @@ should stay off the card.
 
 <ExcerptStart />
 
-The card text starts here, after the marker, and runs until
-the excerpt limit cuts it at a word boundary with an ellipsis.`;
+The card text starts here, after the marker. It runs until the
+excerpt limit, where it is cut at a word boundary with an ellipsis.`;
 
 const excerptCard: PostCardModel = {
   href: samplePostHref,
@@ -263,7 +263,7 @@ import Popout from "@half-built/astro/components/Popout.astro";
 ---
 
 <Popout label="Row one">
-  A note can carry a <a href="#components">link</a> and
+  A note can contain a <a href="#components">link</a> and
   <code>inline code</code>.
 </Popout>`;
 
@@ -302,7 +302,7 @@ const npmPackages = [
 
 <Base
   title="half-built-ui"
-  description="The reference site for the @half-built packages, every component's variants rendered on one page."
+  description="The reference site for the @half-built packages, with every component and its variants on one page."
 >
   <div class="site-layout">
     <Rail />
@@ -315,19 +315,19 @@ const npmPackages = [
             <h2>About</h2>
             <div class="section-intro" data-section-intro="intro">
               <p>
-                This page renders every component in the half-built design
-                system. The system was extracted from
+                This page shows every component in the half-built design system.
+                The system was extracted from
                 <a href="https://half-built-robots.com">half-built-robots.com</a
-                >, which now references these packages. All three packages are
-                published on npm under MIT.
+                >. That site uses these packages. All three packages are
+                published on npm under the MIT license.
               </p>
               <p>
-                The palette editor in the corner rewrites the theming variables
-                live and prints a block ready to paste into a stylesheet. That
-                block is the entire theming surface, eight brand stops plus the
-                four values behind the code viewer. The viewer highlights
-                through those variables, so syntax colors and the block they sit
-                on follow the palette as well.
+                The palette editor in the corner changes the theme variables
+                live. It also prints the current values as a block that can be
+                pasted into a stylesheet. The block holds every theme value.
+                Eight are brand colors and four are code viewer colors. Syntax
+                highlighting reads the same variables, so the code and its
+                background change with the palette.
               </p>
             </div>
             <!-- A real CodeBlock, not an inline code span, so the code
@@ -354,12 +354,11 @@ const npmPackages = [
             <h2>Frame</h2>
             <div class="section-intro" data-section-intro="frame">
               <p>
-                The header and footer come from the package and know nothing
-                about the site around them. The site name and the rest of the
-                identity arrive as typed props. The theme toggle sits in the
-                header, and the palette panel carries a second instance beside
-                the color pickers. Every toggle on a page stays in step, so
-                flipping either one moves the other.
+                The header and footer come from the package and contain no
+                site-specific values. The site name and other identity details
+                are passed in as typed props. The theme toggle is in the header,
+                and a second copy is in the palette panel next to the color
+                pickers. All toggles on a page stay in sync.
               </p>
             </div>
             <Imports code={frameImports} />
@@ -368,22 +367,21 @@ const npmPackages = [
           <h3>Two-column layout</h3>
           <div class="prose">
             <p>
-              TwoColumn is the page row: the main column and a sidebar beside
-              it. The sidebar takes 30% of the row and stacks under the main
-              column at the sidebar breakpoint. The frame below stands in for
-              the page.
+              TwoColumn is the page row. It holds the main column and a sidebar.
+              The sidebar takes 30% of the row and stacks under the main column
+              at the sidebar breakpoint. The frame below stands in for the page.
             </p>
           </div>
           <div class="demo-two-column">
             <TwoColumn mainTag="div">
               <div class="prose">
                 <p>
-                  The main column. Post bodies, archives and static pages render
-                  here, and it takes whatever width the sidebar leaves.
+                  This is the main column. It holds post bodies, archives and
+                  static pages. Its width is whatever the sidebar leaves.
                 </p>
                 <p>
-                  A second placeholder paragraph, to give the column some length
-                  beside the sidebar.
+                  A second placeholder paragraph gives the column some length
+                  next to the sidebar.
                 </p>
               </div>
               <aside class="sidebar" slot="aside" aria-label="Sample sidebar">
@@ -402,18 +400,19 @@ const npmPackages = [
             <h2>Cards</h2>
             <div class="section-intro" data-section-intro="cards">
               <p>
-                PostCard is the card an archive page is made of. The second one
-                here is flagged as a draft, and that badge exists so an
-                unfinished post can ship where people can see it. The third
-                wears the corner badges, one for an AI-generated image and one
-                for a post carrying an interactive demo. CategoryCard is the
-                smaller tile, an image with the category name chipped over its
-                bottom edge.
+                PostCard is the card used on archive pages. The second card here
+                is marked as a draft. The draft badge lets an unfinished post be
+                published while still labeled as unfinished. The third card has
+                both corner badges. One marks an AI-generated image and the
+                other marks a post with an interactive demo. CategoryCard is a
+                smaller tile. It shows an image with the category name on a chip
+                over its bottom edge.
               </p>
               <p>
-                A card's text is derived from the post body. The card under
-                Derived excerpt starts after an <code>ExcerptStart</code>
-                marker, skipping the aside above it.
+                A card's text is taken from the post body. In the Derived
+                excerpt example below, the text starts after an
+                <code>ExcerptStart</code> marker. The aside above the marker is
+                left out.
               </p>
             </div>
             <Imports code={cardImports} />
@@ -429,9 +428,9 @@ const npmPackages = [
           <h3>Derived excerpt</h3>
           <div class="prose">
             <p>
-              The sample post body runs through <code>deriveExcerpt</code> to
-              make the card's text. The text before the marker stays off the
-              card.
+              The sample post body is passed through <code>deriveExcerpt</code>
+              to produce the card's text. Text before the marker is not
+              included.
             </p>
           </div>
           <div class="demo-excerpt">
@@ -463,12 +462,12 @@ const npmPackages = [
             <h2>Components</h2>
             <div class="section-intro" data-section-intro="components">
               <p>
-                The rest of the package, from the navigation rows to the blocks
-                a post body is built from. Imports split between
-                <code>components/</code> for page chrome and
-                <code>content/</code> for post bodies. The split is only where
-                the files live. Nothing in this system caps the width of text.
-                The layout's column is the only width authority.
+                This section covers the rest of the package, including
+                navigation and the blocks used in post bodies. Page-level
+                components are imported from <code>components/</code> and post
+                body blocks from <code>content/</code>. The split only reflects
+                where the files live. No component in the system caps the width
+                of text. Text width comes from the layout's column.
               </p>
             </div>
             <Imports code={componentImports} />
@@ -477,8 +476,8 @@ const npmPackages = [
           <div class="prose">
             <h3>Pagination</h3>
             <p>
-              The numbered row at the foot of an archive. It renders nothing
-              when there is only one page.
+              Pagination is the numbered row at the bottom of an archive page.
+              It renders nothing when there is only one page.
             </p>
           </div>
           <Pagination current={2} total={4} base="#" />
@@ -486,9 +485,9 @@ const npmPackages = [
           <div class="prose">
             <h3>Post navigation</h3>
             <p>
-              The pair of links at the end of a post. The newer post sits on the
-              left and the older one on the right, matching the newest-first
-              order the archives read in.
+              PostNavigation is the pair of links at the end of a post. The
+              newer post is on the left and the older post is on the right. This
+              matches the newest-first order of the archives.
             </p>
           </div>
           <PostNavigation prev={prevPost} next={nextPost} />
@@ -496,16 +495,16 @@ const npmPackages = [
           <div class="prose">
             <h3>Link list widget and Widget</h3>
             <p>
-              Widget is a heading over whatever sits in its body. LinkListWidget
-              is that same block filled with links and their counts.
+              Widget is a heading above arbitrary content. LinkListWidget is a
+              Widget filled with a list of links and their counts.
             </p>
           </div>
           <div class="demo-widget-row">
             <LinkListWidget title="Sample links" items={linkListItems} />
             <Widget title="Plain widget">
               <p>
-                A Widget with arbitrary content in its body, rather than the
-                link-list shape above.
+                A Widget with arbitrary content in its body instead of a link
+                list.
               </p>
             </Widget>
           </div>
@@ -513,14 +512,15 @@ const npmPackages = [
           <div class="prose">
             <h3>Popout</h3>
             <p>
-              A short note behind a cell in a data table, for detail worth
-              keeping but not worth a column. On a wide screen it opens below
-              its trigger, or above it when there is no room below. It closes on
-              its own when the trigger scrolls out of view, when keyboard focus
-              leaves it, or when the window crosses into phone width. On a phone
-              it opens as a sheet from the bottom edge, captioned with its row.
-              The layout loads <code>popout.css</code> and mounts
-              <code>mountPopouts</code> once.
+              Popout holds a short note behind a cell in a data table. It is for
+              detail that is worth keeping but does not need its own column. On
+              a wide screen it opens below its trigger, or above it when there
+              is no room below. It closes automatically when the trigger scrolls
+              out of view, when keyboard focus leaves it, or when the window
+              crosses into phone width. On a phone it opens as a sheet from the
+              bottom of the screen, with the row name as its caption. The layout
+              loads <code>popout.css</code> and calls <code>mountPopouts</code>
+              once.
             </p>
             <section class="table-scroll" tabindex="0" aria-label="Popout demo">
               <table>
@@ -537,7 +537,7 @@ const npmPackages = [
                     <td>42</td>
                     <td>
                       <Popout label="Row one" id="demo-popout-1">
-                        A note can carry a <a href="#components">link</a> and
+                        A note can contain a <a href="#components">link</a> and
                         <code>inline code</code>.
                       </Popout>
                     </td>
@@ -547,8 +547,8 @@ const npmPackages = [
                     <td>7</td>
                     <td>
                       <Popout label="Row two" id="demo-popout-2">
-                        One popout is open at a time. Opening this one closed
-                        the other.
+                        Only one popout is open at a time. Opening this one
+                        closes the other.
                       </Popout>
                     </td>
                   </tr>
@@ -583,10 +583,11 @@ const npmPackages = [
           <div class="prose">
             <h3>Path player</h3>
             <p>
-              A transport and timeline over a plate modal. The caller supplies
-              the samples, the tracks under the stage, and the stage itself.
-              This stage is a point on a closed curve. With reduced motion set,
-              it opens paused.
+              The path player opens in the plate modal and adds playback
+              controls and a timeline. The caller supplies the samples, the
+              tracks under the stage, and the stage itself. The stage in this
+              demo is a point moving on a closed curve. When reduced motion is
+              set, the player opens paused.
             </p>
             <p class="button-row">
               <Button variant="accent-1" class="demo-path-player"
@@ -606,9 +607,9 @@ const npmPackages = [
           <div class="prose">
             <h3>Subscribe</h3>
             <p>
-              A real form with a method and an action, which submits with
-              JavaScript turned off. Its copy sits in named slots, so the words
-              can be overridden without forking the component.
+              Subscribe is a standard form with a method and an action, so it
+              submits with JavaScript turned off. Its text is in named slots and
+              can be replaced without forking the component.
             </p>
           </div>
           <Subscribe
@@ -624,14 +625,14 @@ const npmPackages = [
 
           <div class="prose">
             <h3>Button</h3>
-            <p>Four variants, two sizes.</p>
+            <p>Button has four variants and two sizes.</p>
             <p class="button-row">
               <Button variant="plain">Plain</Button>
               <Button variant="shaded">Shaded</Button>
               <Button variant="accent-1">Accent 1</Button>
               <Button variant="accent-2" size="lg">Accent 2, large</Button>
             </p>
-            <p>A lone call to action takes the centered row.</p>
+            <p>A single call to action uses the centered row.</p>
             <p class="button-row button-row-center">
               <Button variant="accent-2" href="#"
                 >Centered call to action</Button
@@ -640,47 +641,48 @@ const npmPackages = [
 
             <h3>Callout</h3>
             <p>
-              An aside set apart from the body, for a caveat, a warning, or a
-              result the reader should not skim past. The type sets the label
-              and the line color.
+              Callout sets a passage apart from the body text. It is used for
+              caveats and warnings the reader should not skip. The type sets the
+              label and the line color.
             </p>
-            <Callout type="note">A note callout, the default look.</Callout>
+            <Callout type="note">A note callout. This is the default.</Callout>
             <Callout type="info"
-              >An info callout, graphite like the note. The label tells them
-              apart.</Callout
+              >An info callout. It is graphite like the note. Only the label is
+              different.</Callout
             >
             <Callout type="tip" title="Tip"
-              >A tip callout, wearing the first accent.</Callout
+              >A tip callout in the first accent.</Callout
             >
             <Callout type="warning"
-              >A warning callout, the first accent again.</Callout
+              >A warning callout, also in the first accent.</Callout
             >
             <Callout type="success"
-              >A success callout, wearing the second accent.</Callout
+              >A success callout in the second accent.</Callout
             >
-            <Callout type="error">An error callout, in the red family.</Callout>
+            <Callout type="error">An error callout in red.</Callout>
 
             <h3>Editor's note</h3>
             <p>
-              A note to the author that renders only on a dev server. A deploy
-              build emits nothing for it, so it can sit in published content as
-              a standing to-do. This one is forced visible with the
-              <code>shown</code> prop.
+              EditorNote is a note to the author that only renders on a dev
+              server. A production build outputs nothing for it, so it can stay
+              in published content as a reminder. This one is forced visible
+              with the <code>shown</code> prop.
             </p>
             <EditorNote title="Demo" shown={true}
-              >A demo note, forced visible. The dashed rule is the tell. Nothing
-              else in the system is dashed.</EditorNote
+              >A demo note, forced visible. It is the only component in the
+              system with a dashed rule.</EditorNote
             >
 
             <h3>When published and Post link</h3>
             <p>
-              Both take the consumer's post collection as a prop and read no
-              content of their own. <code>PostLink</code> resolves a slug to the
-              post's dated URL at build time, and renders plain text in place of
-              a link while the post is a draft. <code>WhenPublished</code>
-              renders its passage only once the post it names is visible, and
-              its optional <code>fallback</code> slot renders until then. The
-              sample collection here has one published post and one draft.
+              Both components take the site's post collection as a prop and do
+              not read any content themselves. <code>PostLink</code> resolves a
+              slug to the post's dated URL at build time. While the post is a
+              draft, it renders plain text instead of a link.
+              <code>WhenPublished</code> renders its content only after the
+              named post is published. Its optional <code>fallback</code> slot
+              renders until then. The sample collection here has one published
+              post and one draft.
             </p>
             <WhenPublished slug="sample-published" posts={samplePosts}>
               <p>
@@ -691,7 +693,7 @@ const npmPackages = [
                   posts={samplePosts}
                   tip="Sample post (September 1, 2026)"
                   >the sample post</PostLink
-                >, whose URL was resolved from the slug.
+                >. The URL was resolved from the slug.
               </p>
               <p slot="fallback">This fallback never renders.</p>
             </WhenPublished>
@@ -703,8 +705,8 @@ const npmPackages = [
                 tip="Sample draft"
                 >the sample draft</PostLink
               >
-              in plain text, because its post is still a draft. It becomes a
-              link when the post ships.
+              in plain text because the post is still a draft. It becomes a link
+              when the post is published.
             </p>
             <WhenPublished slug="sample-draft" posts={samplePosts}>
               <p class="sample-draft-passage">
@@ -726,8 +728,8 @@ const npmPackages = [
             <h3>Group</h3>
             <Group
               ><p>
-                A boxed prose container, no label and no tint, the plain sibling
-                of Callout's box.
+                Group is a boxed prose container. It uses the same box as
+                Callout without the label or tint.
               </p></Group
             >
 
@@ -757,8 +759,8 @@ const npmPackages = [
                 >First step. One placeholder photo beside its text.</Step
               >
               <Step src={placeholderSquare} alt="Placeholder step photo, two"
-                >Second step. Numbering runs down the media column's corner
-                chip.</Step
+                >Second step. The step number is on a chip in the corner of the
+                image.</Step
               >
             </Walkthrough>
 
@@ -788,17 +790,17 @@ const npmPackages = [
             <BlogImage
               src={placeholderWide}
               alt="Wide placeholder image"
-              caption="A full-width figure with a caption, wearing the AI Art badge."
+              caption="A full-width figure with a caption and the AI Art badge."
               badges={[GENAI_BADGE]}
             />
 
             <h3>Media text</h3>
             <MediaText src={placeholderTall} alt="Tall placeholder image">
               <p>
-                Media on one side, prose on the other. This is the caption slot,
-                and it takes a short paragraph rather than a single line. On a
-                phone the two stack, image first, and the prose centers under it
-                like a figure caption.
+                MediaText puts media on one side and prose on the other. This is
+                the caption slot. It holds a short paragraph rather than a
+                single line. On a phone the image stacks above the prose, which
+                is centered like a figure caption.
               </p>
             </MediaText>
           </div>
@@ -809,12 +811,11 @@ const npmPackages = [
             <h2>CSS primitives</h2>
             <div class="section-intro" data-section-intro="css">
               <p>
-                The tokens are the variables everything else reads, and every
-                color on this page resolves through them. The palette editor
-                repaints the page by setting twelve. Each value is tuned to
-                clear WCAG AA against the ground it sits on. The prose and
-                pattern sheets carry the rest, the paragraph rhythm and the
-                boxes.
+                The tokens are the CSS variables that the rest of the system
+                reads. Every color on this page comes from them. The palette
+                editor changes the page by setting twelve of them. Each value is
+                tuned to pass WCAG AA against its background. The prose and
+                pattern sheets cover paragraph spacing and the boxed styles.
               </p>
             </div>
             <Imports code={cssImports} />
@@ -830,7 +831,7 @@ const npmPackages = [
             wear the same treatment. */}
           <div class="prose">
             <p>
-              The boxed ledger every table in the system wears. Wide tables
+              Every table in the system uses this boxed style. Wide tables
               scroll inside their own box, so the page never scrolls sideways.
             </p>
             {/* Scroll boxes are named sections, so tab stops with a
@@ -852,7 +853,7 @@ const npmPackages = [
                     <td><code>--bp-phone</code></td>
                     <td><code>max-width: 768px</code></td>
                     <td>
-                      The header's top band retires and the footer groups
+                      The header's top band is hidden and the footer groups
                       collapse.
                     </td>
                   </tr>
@@ -870,8 +871,9 @@ const npmPackages = [
               </table>
             </section>
             <p>
-              A wide one, scrolling in its own box. Every color primitive in the
-              sheet, one row per family and one column per stop.
+              This wider table scrolls in its own box. It lists every color
+              primitive in the sheet, with one row per family and one column per
+              stop.
             </p>
             <section
               class="table-scroll"
@@ -900,8 +902,8 @@ const npmPackages = [
           <h3>Tokens</h3>
           <div class="prose">
             <p>
-              The roles components read, with the value each resolves to in the
-              current theme and palette.
+              The token roles that components read, with the value of each in
+              the current theme and palette.
             </p>
             <Palette entries={tokenEntries} label="Tokens" />
           </div>
@@ -909,8 +911,8 @@ const npmPackages = [
           <h3>Type scale</h3>
           <div class="prose">
             <p>
-              The fluid size stops. Each line renders at its own token and names
-              it.
+              The fluid type sizes. Each line is set at its own size and shows
+              the token name.
             </p>
             <ul class="type-scale">
               {typeScale.map((s) => <li data-size={s} class={`type-scale-${s}`}>
@@ -922,12 +924,10 @@ const npmPackages = [
           <h3>Prose specimen</h3>
           <div class="prose">
             <p>
-              Placeholder body copy, demonstrating paragraph rhythm, inline
-              <code>code</code>, and a <a href="#">placeholder link</a>.
+              Placeholder body copy with inline <code>code</code> and a
+              <a href="#">placeholder link</a>.
             </p>
-            <blockquote>
-              A placeholder blockquote, boxed on the gray band.
-            </blockquote>
+            <blockquote>A placeholder blockquote in a gray box.</blockquote>
             <ul>
               <li>Placeholder list item one</li>
               <li>Placeholder list item two</li>
@@ -955,8 +955,8 @@ const npmPackages = [
               <ol>
                 <li id="user-content-fn-1">
                   <p>
-                    A placeholder footnote, with the return link that Markdown
-                    footnotes get.
+                    A placeholder footnote with the return link that Markdown
+                    footnotes include.
                     <a
                       href="#user-content-fnref-1"
                       data-footnote-backref
@@ -991,16 +991,16 @@ const npmPackages = [
                     <td><span class="chip">Chip</span></td>
                     <td><code>.chip</code></td>
                     <td>
-                      Filled label. The read-time chip and the category card's
-                      name.
+                      Filled label. Used for the read-time chip and the category
+                      card's name.
                     </td>
                   </tr>
                   <tr>
                     <td><span class="boxed-label">Boxed label</span></td>
                     <td><code>.boxed-label</code></td>
                     <td>
-                      Bordered box, typically straddling a frame rule. The
-                      header's date box and widget titles.
+                      Bordered box, usually placed across a frame rule. Used for
+                      the header's date box and widget titles.
                     </td>
                   </tr>
                   <tr>
@@ -1015,27 +1015,27 @@ const npmPackages = [
                     </td>
                     <td><code>.icon-box</code></td>
                     <td>
-                      Bordered interactive square. Social icons, the search
-                      magnifier, the palette panel's close box.
+                      Bordered square button. Used for social icons, the search
+                      button and the palette panel's close button.
                     </td>
                   </tr>
                   <tr>
                     <td><span class="micro-label">Micro label</span></td>
                     <td><code>.micro-label</code></td>
                     <td>
-                      Small bold tracked line. Plate labels and the lightbox's
-                      HOME box.
+                      Small bold text with wide letter spacing. Used for plate
+                      labels and the lightbox's HOME box.
                     </td>
                   </tr>
                   <tr>
                     <td>
                       <span class="caption"
-                        >Caption text, quiet and small.</span
+                        >Caption text, small and muted.</span
                       >
                     </td>
                     <td><code>.caption</code></td>
                     <td>
-                      The quiet line under an image, beside media text, or after
+                      The small line under an image, beside media text or after
                       a quote.
                     </td>
                   </tr>
