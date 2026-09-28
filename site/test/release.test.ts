@@ -230,7 +230,7 @@ describe("release workflow", () => {
     expect(ci.uses).toBe("./.github/workflows/ci.yml");
     expect(ci.permissions).toEqual({ contents: "read" });
     expect(verify.needs).toBe("ci");
-    expect(publish.needs).toBe("verify");
+    expect(publish.needs).toEqual(["verify", "pack-smoke"]);
     expect(verify["timeout-minutes"]).toBe(5);
     expect(publish["timeout-minutes"]).toBe(10);
   });
@@ -267,6 +267,18 @@ describe("release workflow", () => {
     const publishes = run.split("\n").filter((l) => l.includes("npm publish"));
     expect(publishes.length).toBeGreaterThan(0);
     for (const line of publishes) expect(line).toContain("--ignore-scripts");
+  });
+
+  it("smoke-tests the packed tarballs before publishing", () => {
+    /* Record indexing types every key as present; a missing job is
+       undefined at runtime, which is what the first assertion checks. */
+    const smoke = release.jobs["pack-smoke"] as Job | undefined;
+    expect(smoke).toBeDefined();
+    expect(smoke?.needs).toBe("ci");
+    expect(smoke?.permissions).toBeUndefined();
+    expect(smoke?.["timeout-minutes"]).toBe(10);
+    expect(runText(smoke ?? {})).toContain("bash scripts/pack-smoke.sh");
+    expect(publish.needs).toEqual(["verify", "pack-smoke"]);
   });
 
   it("publishes without installing the repo's dependencies", () => {

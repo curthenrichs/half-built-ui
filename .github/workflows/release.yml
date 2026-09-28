@@ -45,11 +45,25 @@ jobs:
             exit 1
           fi
 
+  # Packs the three tarballs and proves they install and run for a
+  # consumer holding only what they declare, before anything publishes.
+  pack-smoke:
+    needs: ci
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - run: bash scripts/pack-smoke.sh
+        env: { PUPPETEER_SKIP_DOWNLOAD: "1" }
+
   # The only job that can mint an npm credential, so it runs nothing but
   # the publish: no dependency install (the packages ship src as-is and
   # define no scripts) and --ignore-scripts on every publish.
   publish:
-    needs: verify
+    needs: [verify, pack-smoke]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:

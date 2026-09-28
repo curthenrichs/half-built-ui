@@ -53,7 +53,10 @@ publishing for this repository. Every release after that happens by
 pushing the tag. The `release` workflow runs the full CI, browser
 suite included, then checks that the tag equals every package's
 version and that the tagged commit is on `main`, and only then
-publishes over OIDC, with no npm token stored anywhere. Only the
+publishes over OIDC, with no npm token stored anywhere. Before
+publishing it also packs the three tarballs and installs them in a
+clean consumer holding only what they declare; `bash
+scripts/pack-smoke.sh` runs the same check locally before a tag. Only the
 publish job can mint the credential, and it installs none of the
 repo's dependencies. A release that fails partway can be rerun: a
 version npm already has is skipped. There is no version automation.

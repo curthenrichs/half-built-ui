@@ -75,7 +75,12 @@ From `test-kit/helpers.ts`:
 
 Node `^22.13.0 || >=24`. Required peers: `eslint`, `stylelint`,
 `prettier`. Optional peers: `html-validate` (the `htmlvalidate`
-preset), `vitest` and `puppeteer-core` (the test kit).
+preset) and `vitest` (the test kit). The test kit's browser helpers
+also need `puppeteer-core`, installed by the consumer and tested with
+25.x. It is not declared as a peer: npm walks optional peers when it
+resolves, and html-validate's chain (vitest, @vitest/browser,
+webdriverio) caps puppeteer-core at 24.x, so declaring 25.x made a
+fresh install fail with ERESOLVE.
 
 ## Provenance
 
