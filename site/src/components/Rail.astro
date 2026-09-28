@@ -5,7 +5,7 @@ import { SHIPPED_B1, SHIPPED_B2 } from "../lib/derive-palette";
 import { SECTIONS } from "../data/sections";
 ---
 
-<aside class="site-rail">
+<aside class="site-rail" aria-label="Page tools">
   <details data-palette-editor class="site-knob">
     <summary>
       <span
@@ -134,7 +134,7 @@ import { SECTIONS } from "../data/sections";
       >
         <Fragment set:html={ICON_X} />
       </button>
-      <nav aria-label="Sections">
+      <nav aria-label="Sections menu">
         <ul class="site-rail-links">
           {SECTIONS.map((section) => <li>
             <a href={`#${section.id}`}>{section.title}</a>

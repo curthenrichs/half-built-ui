@@ -121,7 +121,9 @@ palette override. The variables resolve to the same hexes the theme
 bakes, so adopting the transformer changes no rendered pixel on its
 own. Pass it beside the theme: the `transformers` prop of
 `astro:components`' `Code`, or `markdown.shikiConfig.transformers` in
-an Astro config.
+an Astro config. It also encodes the `>` that Shiki's HTML serializer
+leaves raw in `Code` output, so that output passes the tooling
+html-validate preset.
 
 ## Palette token entries
 
