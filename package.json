@@ -20,8 +20,10 @@
   "devDependencies": {
     "@axe-core/puppeteer": "^4.13.0",
     "@types/culori": "^4.0.1",
+    "@types/js-yaml": "^4.0.9",
     "@types/node": "^22.0.0",
     "axe-core": "^4.13.0",
+    "js-yaml": "^4.3.2",
     "jsdom": "^29.1.1",
     "prettier": "^3.9.6",
     "puppeteer-core": "^25.8.0",

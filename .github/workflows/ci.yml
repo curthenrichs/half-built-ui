@@ -1,13 +1,27 @@
 name: CI
 
+# Branch pushes only: PRs here come from dev in this repo, so the push
+# already tested the exact commit. release.yml calls this workflow on a
+# tag, so the release runs the same gates, browser suite included.
 on:
   push:
     branches: ["**"]
-  pull_request:
+  workflow_call:
+
+permissions:
+  contents: read
+
+# The prefix is a literal, never github.workflow: inside a called
+# workflow that expression names the caller, so a CI run called by
+# release.yml would join the release's own group and cancel or block it.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   test:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
         with:
@@ -26,6 +40,7 @@ jobs:
 
   browser:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

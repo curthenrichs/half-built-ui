@@ -11,6 +11,7 @@ import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
+import { load } from "js-yaml";
 
 const REPO = "git+https://github.com/curthenrichs/half-built-ui.git";
 const PACKAGES = ["packages/css", "packages/astro", "packages/tooling"];
@@ -86,5 +87,60 @@ describe("release metadata", () => {
   it("the three packages share one version", () => {
     const versions = new Set(PACKAGES.map((dir) => manifest(dir).version));
     expect([...versions]).toHaveLength(1);
+  });
+});
+
+interface Step {
+  uses?: string;
+  run?: string;
+  with?: Record<string, unknown>;
+  env?: Record<string, string>;
+}
+
+interface Job {
+  needs?: string | string[];
+  uses?: string;
+  permissions?: Record<string, string>;
+  "timeout-minutes"?: number;
+  steps?: Step[];
+}
+
+interface Workflow {
+  on: Record<string, unknown>;
+  permissions?: Record<string, string>;
+  concurrency?: { group: string; "cancel-in-progress": boolean };
+  jobs: Record<string, Job>;
+}
+
+export const workflow = (name: string): Workflow =>
+  load(
+    readFileSync(
+      new URL(`../../.github/workflows/${name}`, import.meta.url),
+      "utf-8",
+    ),
+  ) as Workflow;
+
+export const runText = (job: Job): string =>
+  (job.steps ?? []).map((s) => s.run ?? "").join("\n");
+
+describe("ci workflow", () => {
+  const ci = workflow("ci.yml");
+
+  it("runs on branch pushes and when called, never on pull_request", () => {
+    expect(Object.keys(ci.on).sort()).toEqual(["push", "workflow_call"]);
+  });
+
+  it("grants the token read-only contents and nothing else", () => {
+    expect(ci.permissions).toEqual({ contents: "read" });
+  });
+
+  it("cancels a superseded run under a literal ci- prefix", () => {
+    expect(ci.concurrency?.group).toBe("ci-${{ github.ref }}");
+    expect(ci.concurrency?.["cancel-in-progress"]).toBe(true);
+  });
+
+  it("bounds every job with a timeout", () => {
+    expect(ci.jobs.test["timeout-minutes"]).toBe(15);
+    expect(ci.jobs.browser["timeout-minutes"]).toBe(20);
   });
 });
