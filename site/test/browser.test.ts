@@ -17,7 +17,7 @@
 import { describe, it, expect, beforeAll, afterAll, afterEach } from "vitest";
 import type { ChildProcess } from "node:child_process";
 import { readFileSync } from "node:fs";
-import type { Browser, Page } from "puppeteer-core";
+import type { Browser, HTTPRequest, Page } from "puppeteer-core";
 import { AxePuppeteer } from "@axe-core/puppeteer";
 import type { RunOptions } from "axe-core";
 import {
@@ -122,6 +122,8 @@ describe.skipIf(!enabled)("browser suite", () => {
   function ecosystemAborted(n: number): Promise<void> {
     return new Promise((resolve, reject) => {
       const timer = setTimeout(() => {
+        onEcosystemAbort = undefined;
+
         reject(
           new Error(
             `only ${String(ecosystemAborts)} of ${String(n)} ecosystem requests arrived`,
@@ -143,13 +145,23 @@ describe.skipIf(!enabled)("browser suite", () => {
 
   /* One handler per page: two handlers on one request throw "already
      handled", so a test picks the mode through open() rather than
-     adding its own. */
-  async function routeEcosystem(p: Page, mode: EcosystemMode): Promise<void> {
+     adding its own. A test that needs to intercept something else on
+     the same page (the cold-load palette test blocks /_astro/
+     scripts) passes `extra`: it runs for every non-ecosystem request
+     and returns true once it has itself aborted or responded, so this
+     handler's own `req.continue()` is skipped rather than double-
+     handling the request. */
+  async function routeEcosystem(
+    p: Page,
+    mode: EcosystemMode,
+    extra?: (req: HTTPRequest) => boolean,
+  ): Promise<void> {
     ecosystemAborts = 0;
     await p.setRequestInterception(true);
 
     p.on("request", (req) => {
       if (!req.url().includes("ecosystem.json")) {
+        if (extra?.(req)) return;
         void req.continue();
         return;
       }
@@ -1329,6 +1341,7 @@ describe.skipIf(!enabled)("browser suite", () => {
     for (const viewport of viewports) {
       const p = await viewport.open();
       page = p;
+      await routeEcosystem(p, "fixture");
       await p.goto(`${ORIGIN}/`, { waitUntil: "networkidle0" });
 
       const covered = await p.evaluate(() => {
@@ -1395,6 +1408,7 @@ describe.skipIf(!enabled)("browser suite", () => {
     if (!browser) throw new Error("no browser (beforeAll failed)");
     const p = await desktopPage(browser, 1400, 900);
     page = p;
+    await routeEcosystem(p, "fixture");
     await p.goto(`${ORIGIN}/`, { waitUntil: "networkidle0" });
 
     const info = await p.$eval("footer .site-info", (el) => ({
@@ -1445,16 +1459,21 @@ describe.skipIf(!enabled)("browser suite", () => {
       localStorage.setItem("hbui-palette", raw);
     }, saved ?? "");
 
-    await cold.setRequestInterception(true);
+    /* Fixture mode for ecosystem.json (this test asserts nothing about
+       the footer, but the suite is hermetic end to end: nothing here
+       may reach the live endpoint), plus the /_astro/ script block
+       this test is actually about, both through routeEcosystem's one
+       handler. */
     let blocked = 0;
 
-    cold.on("request", (req) => {
-      if (req.resourceType() === "script" && req.url().includes("/_astro/")) {
-        blocked += 1;
-        void req.abort();
-      } else {
-        void req.continue();
+    await routeEcosystem(cold, "fixture", (req) => {
+      if (req.resourceType() !== "script" || !req.url().includes("/_astro/")) {
+        return false;
       }
+
+      blocked += 1;
+      void req.abort();
+      return true;
     });
 
     await cold.goto(`${ORIGIN}/`, { waitUntil: "networkidle0" });
