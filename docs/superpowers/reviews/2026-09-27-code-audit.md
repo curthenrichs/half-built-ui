@@ -1,12 +1,15 @@
 # half-built-ui code audit, 2026-09-27
 
-Owner: Curt. Status: batch 2 (package fixes) and batch 3 (release pipeline) landed on dev 2026-09-27; batch 4 (test gaps) remains.
+Owner: Curt. Status: batches 2, 3 and 4 (package fixes, release pipeline,
+test gaps) landed on dev; the audit is closed apart from the owner's
+release.
 
-## Fixed on dev for 0.11.0 (batches 2 and 3, 2026-09-27)
+## Fixed on dev for 0.11.0 (batches 2, 3 and 4, 2026-09-27 and 2026-09-28)
 
 All package-fix findings from the "Suggested order" batch 2 below, landed as ten
 commits on `dev` (unpushed, un-tagged; ride 0.11.0 if Curt tags after this
-lands), plus the release pipeline hardening (batch 3):
+lands), plus the release pipeline hardening (batch 3) and the test-gap
+closures (batch 4):
 
 - **CSS-1, CSS-2, CSS-3, CSS-6, CSS-7, CSS-8, CSS-9**: `a84fdc0`
 - **CSS-4, CSS-5, TOOL-4**: `6dcb107`, `fe0a05b`
@@ -20,11 +23,19 @@ lands), plus the release pipeline hardening (batch 3):
 - **OPS-3, OPS-11** (ci.yml: callable via `workflow_call` for release reuse, permissions, triggers, concurrency, timeouts): `408ca79`
 - **OPS-1, OPS-2, OPS-3, OPS-5, OPS-6** (release.yml: publish-only job scoped to `id-token: write`, tag-equals-version and main-ancestry checks, full CI including the browser suite gating publish, `npm@11` pinned with no install step, a rerun skips versions already on npm): `51040fe`
 - Docs for the release pipeline change: `7482e9b`, `d30bdae`
+- **OPS-7** (hermetic browser suite): `5655d61`, `bfd0f61`
+- **TOOL-8** (built site passes the html-validate preset; package code-vars
+  escapes ">" in Code output; Rail landmarks labeled): `a9ea3db`
+- **OPS-8, OPS-10** (numeric bump guard, site pins): `5bf1455`
+- **OPS-16** (type gate: tsc + astro check): `cb1c740`
+- **OPS-4** (pack smoke, release-only; also dropped tooling's puppeteer-core
+  peer, which made any clean consumer install fail with ERESOLVE): `1c84a31`
+- Batch 3 carryovers (workflow test hardening, moved-tag gitHead guard,
+  plain-tag filter in the bump guard, pack-smoke script safety pin):
+  `e4d95ec`, `0555e1e`
 
 Still open, not touched by these batches:
 
-- **Test gaps (OPS-7, OPS-8, OPS-10, OPS-16, TOOL-8)**: batch 4.
-- **OPS-4**: the packaging-defect half is fixed (TOOL-2, TOOL-3 now declare the missing deps); the pack-smoke CI suggestion is still open, folds into batch 4.
 - **OPS-12**: closed by owner ruling (decision 6), actions stay pinned by tag, no further work.
 
 ## Context for the session that picks this up
