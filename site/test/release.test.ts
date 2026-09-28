@@ -33,6 +33,31 @@ const manifest = (dir: string): Manifest =>
 const git = (...args: string[]): string =>
   execFileSync("git", args, { cwd: ROOT, encoding: "utf-8" }).trim();
 
+/* Numeric major.minor.patch order: a string compare ranks 0.9.0 above
+   0.10.0. The packages carry plain X.Y.Z versions (the fixed-version
+   rule), so no prerelease handling is needed. */
+function compareVersions(a: string, b: string): number {
+  const pa = a.split(".").map(Number);
+  const pb = b.split(".").map(Number);
+
+  for (let i = 0; i < 3; i++) {
+    const d = (pa[i] ?? 0) - (pb[i] ?? 0);
+    if (d !== 0) return d;
+  }
+
+  return 0;
+}
+
+describe("compareVersions", () => {
+  it("orders by number, not by string", () => {
+    expect(compareVersions("0.10.0", "0.9.0")).toBeGreaterThan(0);
+    expect(compareVersions("0.9.0", "0.10.0")).toBeLessThan(0);
+    expect(compareVersions("1.0.0", "0.99.99")).toBeGreaterThan(0);
+    expect(compareVersions("0.11.0", "0.11.0")).toBe(0);
+    expect(compareVersions("0.11.1", "0.11.0")).toBeGreaterThan(0);
+  });
+});
+
 /* Newest vX.Y.Z tag by version order. A shallow CI checkout may have
    none; one best-effort fetch fixes that, and an offline clone with
    no tags simply has nothing to compare against. */
@@ -70,9 +95,9 @@ describe("release metadata", () => {
 
       if (changed) {
         expect(
-          manifest(dir).version,
-          `${dir} changed since ${tag} but still says ${tagged}; bump all three`,
-        ).not.toBe(tagged);
+          compareVersions(manifest(dir).version, tagged),
+          `${dir} changed since ${tag} but ${manifest(dir).version} is not newer than ${tagged}; bump all three`,
+        ).toBeGreaterThan(0);
       }
     }
   });
@@ -87,6 +112,29 @@ describe("release metadata", () => {
   it("the three packages share one version", () => {
     const versions = new Set(PACKAGES.map((dir) => manifest(dir).version));
     expect([...versions]).toHaveLength(1);
+  });
+
+  it("the site pins every @half-built package at the shared version", () => {
+    const site = JSON.parse(
+      readFileSync(new URL("../package.json", import.meta.url), "utf-8"),
+    ) as {
+      dependencies?: Record<string, string>;
+      devDependencies?: Record<string, string>;
+    };
+
+    const pins = Object.entries({
+      ...site.dependencies,
+      ...site.devDependencies,
+    }).filter(([name]) => name.startsWith("@half-built/"));
+
+    expect(pins.map(([name]) => name).sort()).toEqual([
+      "@half-built/astro",
+      "@half-built/css",
+      "@half-built/tooling",
+    ]);
+
+    const version = manifest("packages/css").version;
+    for (const [name, pin] of pins) expect(pin, name).toBe(version);
   });
 });
 
