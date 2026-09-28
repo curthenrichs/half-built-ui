@@ -13,7 +13,7 @@ import "../styles/site.css";
 import Shell from "@half-built/astro/components/Shell.astro";
 import Masthead from "@half-built/astro/components/Masthead.astro";
 import Footer from "@half-built/astro/components/Footer.astro";
-import { formatHeaderDate } from "@half-built/astro/lib/header-date";
+import { formatHeaderDate } from "@half-built/astro/lib/header-date.ts";
 import {
   SITE_NAME,
   TAGLINE,
@@ -131,14 +131,14 @@ const {
   />
   <Fragment slot="scripts">
     <script>
-      import { mountCodeIslands } from "@half-built/astro/scripts/code-island";
-      import { mountLightbox } from "@half-built/astro/scripts/lightbox";
-      import { mountPopouts } from "@half-built/astro/scripts/popout";
-      import { mountLinkTips } from "@half-built/astro/scripts/link-tip";
-      import { mountThemeToggle } from "@half-built/astro/scripts/theme-toggle";
-      import { mountFocusMode } from "@half-built/astro/scripts/focus-mode";
-      import { mountScrollTop } from "@half-built/astro/scripts/scroll-top";
-      import { mountEcosystem } from "@half-built/astro/scripts/ecosystem";
+      import { mountCodeIslands } from "@half-built/astro/scripts/code-island.ts";
+      import { mountLightbox } from "@half-built/astro/scripts/lightbox.ts";
+      import { mountPopouts } from "@half-built/astro/scripts/popout.ts";
+      import { mountLinkTips } from "@half-built/astro/scripts/link-tip.ts";
+      import { mountThemeToggle } from "@half-built/astro/scripts/theme-toggle.ts";
+      import { mountFocusMode } from "@half-built/astro/scripts/focus-mode.ts";
+      import { mountScrollTop } from "@half-built/astro/scripts/scroll-top.ts";
+      import { mountEcosystem } from "@half-built/astro/scripts/ecosystem.ts";
       import { mountToc } from "../scripts/toc";
       import { mountPaletteEditor } from "../scripts/palette-editor";
       import { mountTokenHexes } from "../scripts/token-hexes";

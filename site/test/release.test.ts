@@ -191,6 +191,14 @@ describe("ci workflow", () => {
     expect(ci.jobs.test["timeout-minutes"]).toBe(15);
     expect(ci.jobs.browser["timeout-minutes"]).toBe(20);
   });
+
+  it("type-checks after the site builds", () => {
+    const runs = (ci.jobs.test.steps ?? []).map((s) => s.run ?? "");
+    const build = runs.indexOf("npm run build:site");
+    const typecheck = runs.indexOf("npm run typecheck");
+    expect(build).toBeGreaterThan(-1);
+    expect(typecheck).toBeGreaterThan(build);
+  });
 });
 
 describe("release workflow", () => {

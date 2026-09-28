@@ -14,7 +14,8 @@ other sites can use them.
 
 `site/` is a kitchen-sink demo site, part of this workspace, that
 consumes only the published packages and builds with `npm run
-build:site`.
+build:site`. `npm run typecheck` runs `tsc` over every project, then
+`astro check` on the site.
 
 ## Provenance
 

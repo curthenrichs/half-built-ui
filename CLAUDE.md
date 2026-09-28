@@ -48,9 +48,10 @@ the extraction review in the blog repo
 - Consumers never patch `node_modules`: a defect found downstream is
   fixed here, released as a patch, and the consumer bumps its pin.
 - CI (`ci.yml`) runs tests, `npm run lint` (eslint, stylelint, and the
-  Prettier check, all from the tooling presets), and the site build on
-  branch pushes (no `pull_request` trigger); a tag push fires only
-  `release.yml`, which calls CI itself.
+  Prettier check, all from the tooling presets), the site build, and
+  then the type gate (`tsc --noEmit` over every project, `astro
+  check` on the site) on branch pushes (no `pull_request` trigger);
+  a tag push fires only `release.yml`, which calls CI itself.
 
 ## House style
 

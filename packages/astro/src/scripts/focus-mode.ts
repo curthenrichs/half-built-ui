@@ -61,7 +61,8 @@ export const mountFocusMode: Island<FocusModeOptions> = (
     };
   }
 
-  const onKeydown = (ev: KeyboardEvent): void => {
+  const onKeydown = (ev: Event): void => {
+    if (!(ev instanceof KeyboardEvent)) return;
     if (ev.key !== "Tab" && isTextEntry(ev.target)) return;
     el.dataset.focus = "keyboard";
   };

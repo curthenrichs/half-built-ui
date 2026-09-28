@@ -37,6 +37,7 @@ jobs:
       - run: npm test
       - run: npm run lint
       - run: npm run build:site
+      - run: npm run typecheck
 
   browser:
     runs-on: ubuntu-latest

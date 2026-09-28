@@ -674,7 +674,7 @@ describe.skipIf(!enabled)("browser suite", () => {
     await p.mouse.click(20, 20);
 
     await p.waitForFunction(
-      () => !document.querySelector("dialog.popout")?.open,
+      () => !document.querySelector<HTMLDialogElement>("dialog.popout")?.open,
     );
 
     const after = await p.evaluate(() => {

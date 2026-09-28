@@ -8,7 +8,8 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "test:browser": "vitest run test/browser.test.ts test/html.test.ts"
+    "test:browser": "vitest run test/browser.test.ts test/html.test.ts",
+    "check": "astro check"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.4",

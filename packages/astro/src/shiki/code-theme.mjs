@@ -1,4 +1,5 @@
 // Custom TextMate theme: amber on the parent theme's dark brown.
+/** @type {import("shiki").ThemeRegistration} */
 export default {
   name: "terminal-amber",
   type: "dark",

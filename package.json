@@ -15,9 +15,11 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "npm run lint:js && npm run lint:css && npm run format:check",
-    "lint:fix": "prettier --write . && eslint --fix . && stylelint --fix \"packages/*/src/**/*.{css,astro}\" \"site/src/**/*.{css,astro}\" && prettier --write ."
+    "lint:fix": "prettier --write . && eslint --fix . && stylelint --fix \"packages/*/src/**/*.{css,astro}\" \"site/src/**/*.{css,astro}\" && prettier --write .",
+    "typecheck": "tsc --noEmit -p packages/css && tsc --noEmit -p packages/astro && tsc --noEmit -p packages/tooling && tsc --noEmit -p site && npm run check --workspace site"
   },
   "devDependencies": {
+    "@astrojs/check": "^0.9.10",
     "@axe-core/puppeteer": "^4.13.0",
     "@types/culori": "^4.0.1",
     "@types/js-yaml": "^4.0.9",
