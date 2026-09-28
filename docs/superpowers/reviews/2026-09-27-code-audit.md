@@ -1,12 +1,12 @@
 # half-built-ui code audit, 2026-09-27
 
-Owner: Curt. Status: batch 2 (package fixes) landed on dev 2026-09-27; pipeline, test gaps remain.
+Owner: Curt. Status: batch 2 (package fixes) and batch 3 (release pipeline) landed on dev 2026-09-27; batch 4 (test gaps) remains.
 
-## Fixed on dev for 0.11.0 (batch 2, 2026-09-27)
+## Fixed on dev for 0.11.0 (batches 2 and 3, 2026-09-27)
 
 All package-fix findings from the "Suggested order" batch 2 below, landed as ten
 commits on `dev` (unpushed, un-tagged; ride 0.11.0 if Curt tags after this
-lands):
+lands), plus the release pipeline hardening (batch 3):
 
 - **CSS-1, CSS-2, CSS-3, CSS-6, CSS-7, CSS-8, CSS-9**: `a84fdc0`
 - **CSS-4, CSS-5, TOOL-4**: `6dcb107`, `fe0a05b`
@@ -17,10 +17,12 @@ lands):
 - **CMP-1 (package README correction; the blog-side badge fix is blog `dev` 405e219), CMP-4, CMP-5, ISL-14**: `b3d527c`
 - **TOOL-1, TOOL-2, TOOL-3, TOOL-5, TOOL-6, TOOL-7, TOOL-9, TOOL-10, TOOL-11**: `3e2fe15`
 - **OPS-9, OPS-13, OPS-14, OPS-15** (plus demo coverage: type scale, content badge, TwoColumn's new `mainTag` prop, ExcerptStart, path player): `9b6b57d`, `2985ce6`
+- **OPS-3, OPS-11** (ci.yml: callable via `workflow_call` for release reuse, permissions, triggers, concurrency, timeouts): `408ca79`
+- **OPS-1, OPS-2, OPS-3, OPS-5, OPS-6** (release.yml: publish-only job scoped to `id-token: write`, tag-equals-version and main-ancestry checks, full CI including the browser suite gating publish, `npm@11` pinned with no install step, a rerun skips versions already on npm): `51040fe`
+- Docs for the release pipeline change: `7482e9b`, `d30bdae`
 
-Still open, not touched by this batch:
+Still open, not touched by these batches:
 
-- **Release pipeline (OPS-1, OPS-2, OPS-3, OPS-5, OPS-6, OPS-11)**: batch 3, its own reviewed change.
 - **Test gaps (OPS-7, OPS-8, OPS-10, OPS-16, TOOL-8)**: batch 4.
 - **OPS-4**: the packaging-defect half is fixed (TOOL-2, TOOL-3 now declare the missing deps); the pack-smoke CI suggestion is still open, folds into batch 3 or 4.
 - **OPS-12**: closed by owner ruling (decision 6), actions stay pinned by tag, no further work.
