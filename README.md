@@ -53,7 +53,15 @@ pushing the tag. The `release` workflow runs the full CI, browser
 suite included, then checks that the tag equals every package's
 version and that the tagged commit is on `main`, and only then
 publishes over OIDC, with no npm token stored anywhere. Only the
-publish job can mint the credential, and it installs nothing. A
-release that fails partway can be rerun: a version npm already has
-is skipped. There is no version automation. Bumping the version in
-each package's `package.json` is a manual step before tagging.
+publish job can mint the credential, and it installs none of the
+repo's dependencies. A release that fails partway can be rerun: a
+version npm already has is skipped. There is no version automation.
+Bumping the version in each package's `package.json` is a manual
+step before tagging.
+
+A tag that fails verify (wrong version, or not on main) is deleted
+locally and on the remote, then the fix lands and the tag is pushed
+again. Once any package of a version is on npm, never move that
+version's tag: fix forward with the next patch version instead (npm
+keeps the first upload, and a moved tag would rerun green while
+publishing nothing new).

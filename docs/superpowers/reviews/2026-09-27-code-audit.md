@@ -24,7 +24,7 @@ lands), plus the release pipeline hardening (batch 3):
 Still open, not touched by these batches:
 
 - **Test gaps (OPS-7, OPS-8, OPS-10, OPS-16, TOOL-8)**: batch 4.
-- **OPS-4**: the packaging-defect half is fixed (TOOL-2, TOOL-3 now declare the missing deps); the pack-smoke CI suggestion is still open, folds into batch 3 or 4.
+- **OPS-4**: the packaging-defect half is fixed (TOOL-2, TOOL-3 now declare the missing deps); the pack-smoke CI suggestion is still open, folds into batch 4.
 - **OPS-12**: closed by owner ruling (decision 6), actions stay pinned by tag, no further work.
 
 ## Context for the session that picks this up

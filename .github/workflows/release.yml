@@ -38,7 +38,7 @@ jobs:
               exit 1
             fi
           done
-          # A tag checkout has no origin/main ref; fetch it first.
+          # Refresh origin/main so ancestry is checked against the current tip.
           git fetch --quiet origin main
           if ! git merge-base --is-ancestor "$GITHUB_SHA" origin/main; then
             echo "::error::$GITHUB_SHA is not on main; releases publish from main only"
