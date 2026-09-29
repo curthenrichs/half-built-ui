@@ -31,8 +31,8 @@ const Heading: "h2" | "h3" | "h4" = `h${headingLevel}`;
 const heroStyle = heroPosition ? `object-position: ${heroPosition}` : undefined;
 ---
 
-{/* The mapper guarantees an image (Henry placeholder when no featured
-    image), so every card takes the thumbnail treatment. */}
+{/* The mapper guarantees an image (a consumer's own placeholder when no
+    featured image), so every card takes the thumbnail treatment. */}
 <article class:list={["has-post-thumbnail", className]}>
   <div class="post-item post-grid">
     <div class="post-item-image">
@@ -47,12 +47,14 @@ const heroStyle = heroPosition ? `object-position: ${heroPosition}` : undefined;
         />
       </a>
       {draft && <span class="draft-stamp">DRAFT</span>}
-      <div class="read-time-comment">
-        <span class="reading-time chip">
-          <Icon name="clock" size={12} />
-          {`${minutes} ${minReadLabel}`}</span>
+      <div class="card-chips">
+        <div class="read-time-comment">
+          <span class="reading-time chip">
+            <Icon name="clock" size={12} />
+            {`${minutes} ${minReadLabel}`}</span>
+        </div>
+        <CornerBadges badges={badges} />
       </div>
-      <CornerBadges badges={badges} />
     </div>
     <div class="post-item-content">
       <div class="entry-cat">
@@ -114,17 +116,37 @@ const heroStyle = heroPosition ? `object-position: ${heroPosition}` : undefined;
     font-size: var(--font-size-xl);
   }
 
-  /* Chip look comes from the .chip pattern; only placement is
-     contextual. display: flex, not a plain block: a block wrapper
-     gives the inline-flex chip a text line box whose descender gap
-     floats it off the true bottom, so this chip and the corner badges
-     (already a flex container) sat at different offsets (owner catch
-     2026-09-06). */
-  .read-time-comment {
+  /* One row along the image's bottom edge: the read-time chip at the
+     left, the corner badges pushed right. wrap-reverse keeps the read
+     time on the bottom line and lifts the badges to a line above it
+     when a narrow card cannot fit both, instead of overlapping (owner
+     catch 2026-09-28). pointer-events: none lets a press fall through
+     to the thumbnail link. */
+  .card-chips {
     position: absolute;
+    right: 10px;
     bottom: 10px;
     left: 10px;
     z-index: 1;
+    display: flex;
+    flex-wrap: wrap-reverse;
+    gap: 6px;
+    align-items: flex-end;
+    pointer-events: none;
+  }
+
+  /* In the row, CornerBadges gives up its own corner placement. */
+  .card-chips :global(.corner-badges) {
+    position: static;
+    margin-left: auto;
+  }
+
+  /* Chip look comes from the .chip pattern. display: flex, not a plain
+     block: a block wrapper gives the inline-flex chip a text line box
+     whose descender gap floats it off the true bottom, so this chip and
+     the corner badges (already a flex container) sat at different
+     offsets (owner catch 2026-09-06). */
+  .read-time-comment {
     display: flex;
   }
   .post-item-content { padding: 15px 0 0; padding-top: 10px; }

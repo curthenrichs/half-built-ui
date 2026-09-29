@@ -6,9 +6,9 @@
    theme; this island only wires the button. Shape follows the library's
    mount(root, options?) contract (step 9): idempotent, and it returns a
    destroy handle. The storage key is a mount option, not a package
-   literal (step 11.2); the blog passes it from lib/theme-key. */
+   literal (step 11.2); each consumer passes its own storage key. */
 
-import { type Island, type IslandHandle } from "./core/island";
+import { claim, release, type Island, type IslandHandle } from "./core/island";
 import { docOf } from "./core/dom";
 
 export type Theme = "light" | "dark";
@@ -65,19 +65,26 @@ export function apply(doc: Document, theme: Theme): void {
   else delete doc.documentElement.dataset.theme;
 }
 
+/* An action label describes what the button does next ("Switch to dark
+   mode"); aria-pressed describes what the button currently is. Carrying
+   both means a screen reader in dark mode announces "Switch to light
+   mode, pressed", where "pressed" reads as dark mode and the label
+   describes turning it off (owner ruling: keep the action label, drop
+   aria-pressed). */
 function reflect(
   btn: HTMLButtonElement,
   theme: Theme,
   labels: Record<Theme, string>,
 ): void {
-  btn.setAttribute("aria-pressed", theme === "dark" ? "true" : "false");
   btn.setAttribute("aria-label", labels[theme]);
   btn.title = labels[theme];
 }
 
-/* Every mounted button, so a click on one (the top band's, or the
-   phone placement beside the search) updates the state of all. */
-const mounted = new Set<HTMLButtonElement>();
+/* Each claimed button's own label pair, keyed by element rather than
+   read from one mount's closure: a click anywhere reflects every
+   claimed button in the document, and a button mounted with its own
+   labels keeps them regardless of which mount's listener fired. */
+const labelsOf = new WeakMap<HTMLButtonElement, Record<Theme, string>>();
 
 export interface ThemeToggleOptions {
   selector?: string;
@@ -108,15 +115,19 @@ export const mountThemeToggle: Island<ThemeToggleOptions> = (
   const handlers: [HTMLButtonElement, () => void][] = [];
 
   for (const btn of root.querySelectorAll<HTMLButtonElement>(selector)) {
-    if (mounted.has(btn)) continue;
-    mounted.add(btn);
+    if (!claim(btn, "theme-toggle")) continue;
+    labelsOf.set(btn, labels);
     reflect(btn, current(doc), labels);
 
     const onClick = () => {
       const next: Theme = current(doc) === "dark" ? "light" : "dark";
       apply(doc, next);
       writeStored(storage, storageKey, next);
-      for (const b of mounted) reflect(b, next, labels);
+
+      for (const b of doc.querySelectorAll<HTMLButtonElement>(selector)) {
+        const bLabels = labelsOf.get(b);
+        if (bLabels) reflect(b, next, bLabels);
+      }
     };
 
     btn.addEventListener("click", onClick);
@@ -127,7 +138,8 @@ export const mountThemeToggle: Island<ThemeToggleOptions> = (
     destroy(): void {
       for (const [btn, onClick] of handlers) {
         btn.removeEventListener("click", onClick);
-        mounted.delete(btn);
+        labelsOf.delete(btn);
+        release(btn, "theme-toggle");
       }
     },
   };

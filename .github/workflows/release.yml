@@ -1,25 +1,101 @@
 name: release
+
 on:
   push:
     tags: ["v*"]
+
 permissions:
   contents: read
-  id-token: write
+
+# Literal prefix (ci.yml uses ci-): a release is never cancelled midway.
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
-  publish:
+  # The same gates CI runs on a branch push, browser suite included,
+  # read-only. Publishing waits on all of them.
+  ci:
+    uses: ./.github/workflows/ci.yml
+    permissions:
+      contents: read
+
+  verify:
+    needs: ci
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - name: The tag names every package's version, and the commit is on main
+        run: |
+          tag_version="${GITHUB_REF_NAME#v}"
+          for dir in packages/css packages/astro packages/tooling; do
+            version=$(node -p "require('./$dir/package.json').version")
+            if [ "$version" != "$tag_version" ]; then
+              echo "::error::$dir says $version but the tag says $tag_version"
+              exit 1
+            fi
+          done
+          # Refresh origin/main so ancestry is checked against the current tip.
+          git fetch --quiet origin main
+          if ! git merge-base --is-ancestor "$GITHUB_SHA" origin/main; then
+            echo "::error::$GITHUB_SHA is not on main; releases publish from main only"
+            exit 1
+          fi
+
+  # Packs the three tarballs and proves they install and run for a
+  # consumer holding only what they declare, before anything publishes.
+  pack-smoke:
+    needs: ci
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
           node-version: 22
-          cache: npm
+      - run: bash scripts/pack-smoke.sh
+        env: { PUPPETEER_SKIP_DOWNLOAD: "1" }
+
+  # The only job that can mint an npm credential, so it runs nothing but
+  # the publish: no dependency install (the packages ship src as-is and
+  # define no scripts) and --ignore-scripts on every publish.
+  publish:
+    needs: [verify, pack-smoke]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
           registry-url: https://registry.npmjs.org
-      - run: npm install -g npm@latest
-      - run: npm ci
-      - run: npm test
-      - run: npm run lint
-      - run: npm run build:site
-      - run: npm publish --workspace packages/css
-      - run: npm publish --workspace packages/astro
-      - run: npm publish --workspace packages/tooling
+      # Trusted publishing needs npm 11.5.1 or newer; pinned to the major
+      # so a new npm cannot change publish behavior on release day.
+      - run: npm install -g npm@11
+      - name: Publish each package, skipping a version npm already has
+        run: |
+          # A rerun after a partial publish resumes here: npm view can
+          # print nothing and exit 0 for a missing version, so compare
+          # the printed version rather than trusting the exit status.
+          for name in css astro tooling; do
+            version=$(node -p "require('./packages/$name/package.json').version")
+            if [ "$(npm view "@half-built/$name@$version" version 2>/dev/null)" = "$version" ]; then
+              # A resume skips only a version this commit published. npm
+              # records the publishing commit as gitHead; the checked-out
+              # commit, not GITHUB_SHA, which can name an annotated tag.
+              published_head="$(npm view "@half-built/$name@$version" gitHead 2>/dev/null)"
+              if [ "$published_head" != "$(git rev-parse HEAD)" ]; then
+                echo "::error::@half-built/$name@$version is on npm from $published_head, not this commit; the tag moved after a publish. Fix forward with the next patch version."
+                exit 1
+              fi
+              echo "@half-built/$name@$version is already on npm from this commit; skipping"
+            else
+              npm publish --workspace "packages/$name" --ignore-scripts
+            fi
+          done

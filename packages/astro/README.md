@@ -43,8 +43,9 @@ The two house conventions ship as `GENAI_BADGE` and `DEMO_BADGE`; a
 site's view-model lists the badges a post carries, in order, and can
 add its own without a package change. `PostCardModel.badges` carries
 them to the card. The content components (`BlogImage`, `GalleryImage`,
-`MediaText`) keep a `genai` boolean as authoring sugar for MDX and take
-`badges` for anything else.
+`MediaText`) take the same `badges` array, for example
+`badges={[GENAI_BADGE]}` with `GENAI_BADGE` imported from
+`@half-built/astro/scripts/core/badges.ts`.
 
 ## EditorNote
 
@@ -120,7 +121,9 @@ palette override. The variables resolve to the same hexes the theme
 bakes, so adopting the transformer changes no rendered pixel on its
 own. Pass it beside the theme: the `transformers` prop of
 `astro:components`' `Code`, or `markdown.shikiConfig.transformers` in
-an Astro config.
+an Astro config. It also encodes the `>` that Shiki's HTML serializer
+leaves raw in `Code` output, so that output passes the tooling
+html-validate preset.
 
 ## Palette token entries
 
@@ -140,7 +143,7 @@ JSON document, so adding a property to a family of sites does not mean
 rebuilding every one of them.
 
 ```js
-import { mountEcosystem } from "@half-built/astro/scripts/ecosystem";
+import { mountEcosystem } from "@half-built/astro/scripts/ecosystem.ts";
 
 void mountEcosystem(document, {
   endpoint: "https://example.com/ecosystem.json",
@@ -169,6 +172,12 @@ below the last link, so the page scrolls far enough to clear the
 cluster. The token is `0px` by default and can be set inside the same
 media block that pins the cluster.
 
+## TwoColumn
+
+`components/TwoColumn.astro` renders its main column as `<main>`; pass
+`mainTag="div"` for a demo or nested use where the page already has
+its own main.
+
 ## Search flyout
 
 `scripts/site-header` drives the masthead's search flyout as a
@@ -178,6 +187,93 @@ and a press or keyboard focus leaving the flyout closes it. The island
 marks the wrap `data-search-js`; without it, the stylesheet's
 focus-within rule opens the flyout on focus alone, so it still works
 with no script.
+
+## Lightbox
+
+`scripts/lightbox` opens the images the content components link
+through `LightboxLink` (`BlogImage`, `GalleryImage`, `MediaText`,
+`Step`) in a full-window viewer. Links inside one `Gallery` or
+`Walkthrough` form a set with previous and next buttons, thumbnails,
+and the arrow keys.
+
+```js
+import "@half-built/css/plate-modal.css";
+import "@half-built/css/lightbox.css";
+import { mountLightbox } from "@half-built/astro/scripts/lightbox.ts";
+
+mountLightbox(document);
+```
+
+The image opens at fit: contained in the window, very tall images fit
+to width, and small images never scale past 100%. The wheel or a
+trackpad zooms under the pointer in proportion to the scroll; a
+sideways scroll does nothing. `+` and `-` step the zoom, `0` returns to fit, and a drag pans. Once
+the image is panned mostly out of view a HOME box appears that also
+returns to fit. Double-click at the fit view
+zooms to 100% under the cursor; anywhere else it returns to fit.
+
+A resize or rotation while the viewer is open refits the image to the
+new window. Any zoom and pan the reader had set is discarded, on
+purpose: the old view was measured against a window that no longer
+exists.
+
+`mountLightbox` takes options: `selector` (default `a.lightbox-link`)
+picks the links, `groupSelector` names the containers whose links form
+one set, and `labels` renames the viewer's controls for a site that is
+not in English.
+
+## Popout
+
+`components/Popout.astro` puts a short note behind a table cell: detail
+worth keeping but not worth a column. It renders a trigger button and a
+template holding its slot; `scripts/popout` opens the note. Like
+link-tip, the mounted island is a document-wide singleton: `root` only
+names the document, and triggers anywhere in it share the one surface.
+
+```astro
+<Popout label="Sample row · Sample product">
+  A short note with a <a href="#">link</a> and <code>code</code>.
+</Popout>
+```
+
+```js
+import "@half-built/css/popout.css";
+import { mountPopouts } from "@half-built/astro/scripts/popout.ts";
+
+mountPopouts(document);
+```
+
+`label` is required. It captions the open note and names the trigger
+for assistive tech (`<trigger>: <label>`, so `Note: <label>` by
+default), so write it to identify the row. `trigger` changes the button
+text from `Note`. The slot takes inline markup: links, code, emphasis.
+
+Above the phone breakpoint the note opens below its trigger (above it
+when there is no room below) and stays until Escape, the close box, a
+press outside, or another trigger. It also closes by itself when its
+trigger scrolls out of view or when keyboard focus leaves it. Shift+Tab
+off its first stop returns to the trigger; Tab off its last stop moves
+on to whatever follows the trigger. On a wide touch device a
+drag that starts outside the note closes it. At phone width it opens as
+a modal bottom sheet that closes on the close box, Escape or Back, a
+tap on the backdrop, or a downward swipe. One note is open at a time.
+With JavaScript off the trigger does nothing.
+
+A resize or rotation that crosses the phone breakpoint, in either
+direction, closes an open note instead of turning the box into a sheet
+or the sheet into a box. The reader reopens it and it opens in the mode
+for the new width. Focus is not moved back to the trigger, which may
+have scrolled away in the new layout. Resizes that stay on one side of
+the breakpoint keep the note open: the box re-places itself, and the
+sheet rides out the URL bar collapsing and the keyboard opening.
+
+`mountPopouts` takes options: `selector` (default `.popout-trigger`)
+picks the triggers, `edge` sets the anchored note's room against the
+viewport edges in px, and `closeLabel` (default `Close`) names the
+close box for a site that is not in English.
+
+Not covered yet: structured content (lists, sub-tables, images),
+triggers on chart marks, and hover previews.
 
 ## Import notes
 

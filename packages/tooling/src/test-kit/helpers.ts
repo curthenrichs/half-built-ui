@@ -1,10 +1,10 @@
 /* Shared test utilities for consumers of @half-built/tooling. Adapted from
-   half-built-robots-blog's test/helpers.ts (step 11.3 task 5): the two
-   blog-content exports are dropped since neither means anything outside
-   that repo. FLUID_ART_POST was a post slug shared by three of the blog's
-   own suites; allHtml() walked a built dist/ tree looking for that blog's
-   post pages. What is left is generic: DOM and canvas test scaffolding
-   any consumer's suite can use. (packages/astro/test/helpers.ts made the
+   a single-repo test helper (step 11.3 task 5): two content-specific
+   exports were dropped since neither means anything outside that repo.
+   One was a post slug shared by a few of that repo's own suites; the
+   other walked a built dist/ tree looking for that repo's own content
+   pages. What is left is generic: DOM and canvas test scaffolding any
+   consumer's suite can use. (packages/astro/test/helpers.ts made the
    same two drops independently for the package's own tests; this file
    serves outside consumers instead, so the overlap is expected, not
    duplication to dedupe.) */

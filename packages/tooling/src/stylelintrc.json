@@ -5,7 +5,7 @@
     "color-no-hex": [
       true,
       {
-        "message": "Hex colors live in tokens.css only; use var(--...) (docs/css-architecture.md)"
+        "message": "Hex colors live in the token files only; use var(--...) (see the @half-built/css README, Architecture)"
       }
     ],
     "media-feature-range-notation": null,
@@ -33,7 +33,7 @@
         "/^(width|min-width|max-width)$/": ["/ch$/"]
       },
       {
-        "message": "never-cap-prose (step 11.1): a ch measure exists to cap prose width and has no legitimate non-prose use, so this half of the guard is safe as a blanket, selector-blind rule. The other half, that a prose stylesheet's only max-width is the 100% image-fit exception, needs to know which selectors are prose and which are not; stylelint's property/value rules cannot see selector context, so that half stays a consumer's own test (see half-built-robots-blog/test/tokens.test.ts, \"prose never caps width\", which reads the prose stylesheet directly and asserts its max-width declarations are exactly [\"max-width: 100%;\"])."
+        "message": "never-cap-prose (step 11.1): a ch measure exists to cap prose width and has no legitimate non-prose use, so this half of the guard is safe as a blanket, selector-blind rule. The other half, that a prose stylesheet's only max-width is the 100% image-fit exception, needs to know which selectors are prose and which are not; stylelint's property/value rules cannot see selector context, so that half stays a consumer's own test: read the prose stylesheet directly and assert its max-width declarations are exactly [\"max-width: 100%;\"] (see the @half-built/css README for the prose-width rule)."
       }
     ]
   },

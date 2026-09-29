@@ -1,10 +1,10 @@
 /* Layer: tokens. Primitives: the raw palette and structural scales. No
    component reads these directly; the roles in theme-light.css and
    theme-dark.css do. Hex is permitted under tokens/ only
-   (stylelint-enforced). See docs/css-architecture.md. */
+   (stylelint-enforced). See the @half-built/css README, Architecture. */
 @layer tokens {
   :root {
-    /* Neutrals (live-resolved Legacy Blog palette, handoff section 5.1) */
+    /* Neutrals */
     --white: #ffffff;
     --gray-075: #ececec;
     --gray-100: #efefef;
@@ -17,19 +17,15 @@
 
     /* Warm darks: the parent theme's dark palette, shared with BEADZ
        (ink-900 is BEADZ --line, ink-800 is BEADZ --monitor-line). */
-    --ink-950: #110d08;
     --ink-900: #1b140c;
-    --ink-850: #2a2016;
     --ink-800: #3b2e1e;
-    --ink-700: #5a4630;
     --parchment: #e8d9c3;
-    --parchment-dim: #b09a7c;
     --white-a10: rgba(255, 255, 255, 0.1);
     --black-a60: rgba(0, 0, 0, 0.6);
 
-    /* Neutral darks: the dark theme's ground. black-900 is Henry's amber
-       colorway ground (henry-mascot, the terminal aesthetic), so the
-       page and the mascot share one black. */
+    /* Neutral darks: the dark theme's ground. black-900 is a true
+       near-black tuned for the terminal aesthetic used across the dark
+       theme's other surfaces. */
     --black-900: #111111;
     --black-850: #1a1a1a;
     --gray-800: #2a2a2a;
@@ -42,9 +38,15 @@
        (spec: docs/superpowers/specs/2026-09-05-reference-site-design.md).
        500 is the base, 700 its AA text ink on the light paper, 600 the
        chart kin, 300 the light kin legible as text on the dark ground.
-       Brand-1-700 is tuned here for this site the way brand-2-700 was:
-       the amber hue at full saturation, taken down until it clears WCAG
-       AA (4.5:1) as body text on the white surface (4.84) and on the
+       The 700 stops also carry the light theme's non-text graphical
+       roles: WCAG 1.4.11 covers chart lines and focus indicators at
+       3:1, not just body text, so the light theme's --focus-ring
+       resolves to brand-1-700 and --track-y to brand-2-700 rather than
+       the 500 base, the same gate --track-x already clears with the
+       600 stop (retuned 2026-09-27). Brand-1-700 is tuned here for this
+       site the way brand-2-700 was: the amber hue at full saturation,
+       taken down until it clears WCAG AA (4.5:1) as body text on the
+       white surface (4.84) and on the
        accent's 6% tint (4.66). It replaced #b5680c, a value borrowed
        from BEADZ that sat at 4.24:1 on white (owner call 2026-09-03;
        BEADZ is not a source of values). Family 2 (owner request
@@ -80,10 +82,9 @@
     /* Fixed system color like red and violet above, so it keeps a hue
        name: the code comment ink, a dim warm gray that stays put when
        the brand families are overridden. */
-    --umber-500: #8a7a63;
+    --umber-500: #8e7e67;
 
     /* Strokes, spacing, elevation, motion */
-    --stroke-1: 1px;
     --stroke-2: 2px;
     --stroke-3: 3px;
     --frame-pad: 25px;
@@ -111,19 +112,25 @@
 
     /* z ladder. Skip link above content, scroll-to-top above the
        header's search flyout would be wrong, so the flyout tops the
-       ladder; loose Henry's rungs sit under the flyout but over
-       everything else, with his teleport hole one step under him, both
-       defined blog-side in henry-loose.css (step 11.1). */
-    --z-raised: 1;
+       ladder; a gap below it is reserved for a consumer's own floating
+       elements, defined consumer-side (step 11.1). --z-panel is a
+       consumer's own fixed panel rung: over every page floater
+       (scroll-to-top included), under the popout and the tooltip. The
+       popout's anchored box sits under the tooltip so a link tip
+       inside it still draws on top. */
     --z-skip-link: 10;
     --z-scroll-top: 17;
+
+    /* Consumer fixed panels: over page floaters, under popouts and tips. */
+    --z-panel: 18;
+    --z-popout: 19;
     --z-tooltip: 20;
 
-    /* 49 and 50 belong to loose Henry, defined blog-side in
-       henry-loose.css (step 11.1). */
+    /* 49 and 50 are reserved for a consumer's own floating elements,
+       defined consumer-side (step 11.1). */
     --z-search-flyout: 99;
 
-    /* Fluid type scale (handoff section 5.2, verbatim) */
+    /* Fluid type scale */
     --font-size-xs: clamp(0.7rem, 0.17vw + 0.76rem, 0.79rem);
     --font-size-sm: clamp(0.8rem, 0.17vw + 0.76rem, 0.89rem);
     --font-size-base: clamp(1rem, 0.34vw + 0.91rem, 1.19rem);
@@ -131,7 +138,6 @@
     --font-size-lg: clamp(1.56rem, 1vw + 1.31rem, 2.11rem);
     --font-size-xl: clamp(1.95rem, 1.56vw + 1.56rem, 2.81rem);
     --font-size-xxl: clamp(2.44rem, 2.38vw + 1.85rem, 3.75rem);
-    --font-size-xxxl: clamp(2.95rem, 3.54vw + 2.17rem, 5rem);
     --font-body: "Roboto Mono", ui-monospace, monospace;
   }
 }

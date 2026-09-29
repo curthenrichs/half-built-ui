@@ -32,12 +32,13 @@ export interface LinkListItem {
 }
 
 /* Chrome view-models (step 9.5, 2026-08-31): the header renders site
-   identity it is handed, never the blog's config. NavItem is the shape
-   config.ts's NAV already had; it moved here so the component and the
-   site share one definition without the component importing site code.
-   SocialItem carries its icon as inline SVG markup: the site's registry
-   (social-icons.ts, including the Henry portfolio glyph that stays out
-   of the package) is a lookup the caller performs, not the component. */
+   identity it is handed, never a consumer's own config. NavItem is the
+   shape a consumer's own site navigation config already used; it moved
+   here so the component and the site share one definition without the
+   component importing site code. SocialItem carries its icon as inline
+   SVG markup: a site's own icon registry (including any site-specific
+   brand glyphs that stay out of the package) is a lookup the caller
+   performs, not the component. */
 export interface NavItem {
   label: string;
   href: string;
@@ -51,10 +52,10 @@ export interface SocialItem {
   icon: string;
 }
 
-/* Footer view-models (step 9.5). These are the interfaces config.ts's
-   footer-sitemap comment always called "the future component-library
-   schema"; this is that move. The blog's data (FOOTER_SITEMAP,
-   ECOSYSTEM) stays in config.ts. */
+/* Footer view-models (step 9.5). These are the interfaces a consumer's
+   own footer-sitemap comment called "the future component-library
+   schema"; this is that move. A consumer's own footer data stays in its
+   own config, not here. */
 export interface SitemapLink {
   label: string;
   href: string;

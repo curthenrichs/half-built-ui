@@ -1,6 +1,6 @@
 /* Layer: base. Floating scroll-to-top, matching the live button: fixed
    bottom-right, 40x40, hidden until the header scrolls out of the
-   viewport. The JS half (the .show toggle) lives in Base.astro. */
+   viewport. The JS half (the .show toggle) lives in scripts/scroll-top.ts. */
 @layer base {
   a.scroll-top {
     position: fixed;

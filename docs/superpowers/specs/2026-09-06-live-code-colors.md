@@ -165,10 +165,10 @@ review, verified findings, not release blockers):
   difference can be parity-checked calmly rather than on release
   night.
 
-OPEN owner decision, found by the new gate: the shipped comment ink
-#8a7a63 sits at 4.38:1 on #1b140c, under the 4.5:1 text gate every
-derived palette clears (the amber-700 pattern again). Options: retune
-it upward slightly to clear the gate, riding a release as a
-sanctioned rendered change beside the chart track, or leave the
-shipped bytes and accept the anchor as legacy. The anchor test pins
-4.3 with a comment until the call is made.
+CLOSED 2026-09-27 (owner): retuned to #8e7e67, 4.63:1; the anchor test
+gates 4.5. Found by the new gate: the shipped comment ink #8a7a63 sat
+at 4.38:1 on #1b140c, under the 4.5:1 text gate every derived palette
+clears (the amber-700 pattern again). Options were retuning it upward
+slightly to clear the gate, riding a release as a sanctioned rendered
+change beside the chart track, or leaving the shipped bytes and
+accepting the anchor as legacy; the owner chose the retune.

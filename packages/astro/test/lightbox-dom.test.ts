@@ -98,6 +98,8 @@ describe("open and close", () => {
       ?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
 
     expect(dialog().hasAttribute("open")).toBe(true);
+    /* A real tap produces a pointerdown before its click. */
+    dialog().dispatchEvent(new PointerEvent("pointerdown", { bubbles: true }));
     dialog().dispatchEvent(new MouseEvent("click", { bubbles: true }));
     expect(dialog().hasAttribute("open")).toBe(false);
   });
@@ -527,6 +529,47 @@ describe("island lifecycle (step 9)", () => {
     mountLightbox(document, { labels: { viewer: "Custom viewer" } });
     openViaClick(".blog-image a.lightbox-link");
     expect(dialog().getAttribute("aria-label")).toBe("Custom viewer");
+  });
+
+  it("destroy while open clears the scroll lock", () => {
+    document.body.innerHTML = PAGE;
+    const handle = mountLightbox(document);
+    openViaClick(".blog-image a.lightbox-link");
+    expect(document.documentElement.classList.contains("pm-open")).toBe(true);
+    handle.destroy();
+    expect(document.documentElement.classList.contains("pm-open")).toBe(false);
+  });
+
+  it("a resize while open re-measures the box", () => {
+    document.body.innerHTML = PAGE;
+    mountLightbox(document);
+    openViaClick(".blog-image a.lightbox-link");
+    const d = dialog();
+    const viewbox = d.querySelector<HTMLElement>(".lb-viewbox");
+    if (!viewbox) throw new Error("no viewbox");
+
+    // 1600x1200 in the fallback 800x600 box: fit 0.5, width 800px.
+    const img = d.querySelector<HTMLImageElement>(".lb-img");
+    expect(img?.style.width).toBe("800px");
+
+    viewbox.getBoundingClientRect = () =>
+      ({
+        left: 0,
+        right: 400,
+        top: 0,
+        bottom: 300,
+        width: 400,
+        height: 300,
+      }) as DOMRect;
+
+    window.dispatchEvent(new Event("resize"));
+    // 1600x1200 in the new 400x300 box: fit 0.25, width 400px.
+    expect(img?.style.width).toBe("400px");
+
+    /* The resize left the view at fit for the new box; the readout's
+       stored fit anchor must have moved with it, or this reads as a
+       live percentage instead of FIT. */
+    expect(d.querySelector(".lb-readout")?.textContent).toBe("FIT · 0,0");
   });
 });
 

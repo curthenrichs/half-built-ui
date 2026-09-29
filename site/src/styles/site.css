@@ -26,8 +26,8 @@
   /* The site rail (owner call 2026-09-06): palette knob and section
      TOC merged into one viewport-tracking stack. Desktop: the sticky
      left column, one offset for the whole stack (the old TOC needed
-     7.5rem just to duck the separate fixed button). One z step above
-     --z-scroll-top keeps an open panel over every page floater. The
+     7.5rem just to duck the separate fixed button). --z-panel keeps
+     an open panel over every page floater and under popouts. The
      tablet-and-down corner cluster lives in the media block below. */
   .site-rail {
     position: sticky;
@@ -39,7 +39,7 @@
     /* Clears the Sections label, which straddles the box's top rule
        and so reaches about 10px up into this gap. */
     gap: 28px;
-    z-index: calc(var(--z-scroll-top) + 1);
+    z-index: var(--z-panel);
   }
 
   /* The Sections knob exists for the corner cluster only. */
@@ -52,6 +52,46 @@
      overflow. The note column keeps wrapping. */
   .palette td:nth-child(-n + 3) {
     white-space: nowrap;
+  }
+
+  /* The type scale specimen: one line per size stop, each set at its
+     own token. The token name inside keeps the code pattern's relative
+     size, so it scales with its line. */
+  .type-scale {
+    list-style: none;
+    padding: 0;
+  }
+
+  .type-scale li {
+    margin: 0 0 0.25em;
+  }
+
+  .type-scale-xs {
+    font-size: var(--font-size-xs);
+  }
+
+  .type-scale-sm {
+    font-size: var(--font-size-sm);
+  }
+
+  .type-scale-base {
+    font-size: var(--font-size-base);
+  }
+
+  .type-scale-md {
+    font-size: var(--font-size-md);
+  }
+
+  .type-scale-lg {
+    font-size: var(--font-size-lg);
+  }
+
+  .type-scale-xl {
+    font-size: var(--font-size-xl);
+  }
+
+  .type-scale-xxl {
+    font-size: var(--font-size-xxl);
   }
 
   /* The patterns ledger: same rule for its class-name column, plus

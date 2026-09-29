@@ -3,8 +3,8 @@ import { docOf } from "./core/dom";
 
 /* Code island decorator: builds the header bar (filename/language label +
    copy button) above every fenced block in article content. Runs client-side
-   from Base.astro; extracted to a module so the DOM behavior is testable
-   under jsdom (a phase-1 carry-over closed 2026-07-28). */
+   from the consumer's layout; extracted to a module so the DOM behavior is
+   testable under jsdom (a phase-1 carry-over closed 2026-07-28). */
 /* Island contract (step 9): mount(root, options?) returns a destroy handle;
    claim() makes a second mount over the same pre a no-op. */
 export interface CodeIslandOptions {
@@ -25,18 +25,22 @@ export const mountCodeIslands: Island<CodeIslandOptions> = (
 
   const doc = docOf(root);
 
-  /* resetTimer holds the copy-reset setTimeout id, one live per button at
-     most (a second click before the first reset overwrites it, dropping
-     the earlier timer's reference so it can no longer be cleared, which
-     is why doCopy clears the box before replacing it). A plain mutable
-     box, not a field on the mounted entry, so both doCopy and destroy()
-     close over the same cell. */
+  /* timers holds the two pending setTimeout ids per button: the queued
+     status announcement and the label reset, one live each at most (a
+     second click before either fires overwrites its id, dropping the
+     earlier reference so it can no longer be cleared, which is why doCopy
+     clears each before replacing it). A plain mutable box, not a field on
+     the mounted entry, so both doCopy and destroy() close over the same
+     cells and destroy() can cancel both. */
   const mounted: {
     pre: Element;
     bar: HTMLDivElement;
     btn: HTMLButtonElement;
     onClick: () => void;
-    resetTimer: { id: ReturnType<typeof setTimeout> | undefined };
+    timers: {
+      announce: ReturnType<typeof setTimeout> | undefined;
+      reset: ReturnType<typeof setTimeout> | undefined;
+    };
   }[] = [];
 
   for (const pre of root.querySelectorAll(selector)) {
@@ -44,6 +48,13 @@ export const mountCodeIslands: Island<CodeIslandOptions> = (
     const bar = doc.createElement("div");
     bar.className = "code-island-bar";
     const label = doc.createElement("span");
+
+    /* Visually the button's own text already shows the outcome, but a
+       screen reader is not sat watching the button: role="status" gets
+       the outcome announced as a live region without moving focus. */
+    const status = doc.createElement("span");
+    status.className = "screen-reader-text";
+    status.setAttribute("role", "status");
 
     const file = pre
       .closest("[data-code-filename]")
@@ -56,22 +67,41 @@ export const mountCodeIslands: Island<CodeIslandOptions> = (
     btn.type = "button";
     btn.textContent = copy.copy;
 
-    const resetTimer: { id: ReturnType<typeof setTimeout> | undefined } = {
-      id: undefined,
-    };
+    const timers: {
+      announce: ReturnType<typeof setTimeout> | undefined;
+      reset: ReturnType<typeof setTimeout> | undefined;
+    } = { announce: undefined, reset: undefined };
 
     const doCopy = async (): Promise<void> => {
+      /* Cleared synchronously, before the outcome is known, so a repeat
+         copy inside the reset window is a real DOM change rather than
+         the same string written over itself. Setting the outcome text
+         itself waits one tick (below) so the clear is its own observable
+         step; a live region that never changes never gets announced. */
+      status.textContent = "";
+
+      let outcome: string;
+
       try {
         await navigator.clipboard.writeText(pre.textContent);
         btn.textContent = copy.copied;
+        outcome = copy.copied;
       } catch {
         btn.textContent = copy.failed;
+        outcome = copy.failed;
       }
 
-      clearTimeout(resetTimer.id);
+      clearTimeout(timers.announce);
 
-      resetTimer.id = setTimeout(() => {
+      timers.announce = setTimeout(() => {
+        status.textContent = outcome;
+      }, 0);
+
+      clearTimeout(timers.reset);
+
+      timers.reset = setTimeout(() => {
         btn.textContent = copy.copy;
+        status.textContent = "";
       }, resetMs);
     };
 
@@ -80,16 +110,17 @@ export const mountCodeIslands: Island<CodeIslandOptions> = (
     };
 
     btn.addEventListener("click", onClick);
-    bar.append(label, btn);
+    bar.append(label, btn, status);
     pre.before(bar);
-    mounted.push({ pre, bar, btn, onClick, resetTimer });
+    mounted.push({ pre, bar, btn, onClick, timers });
   }
 
   return {
     destroy(): void {
-      for (const { pre, bar, btn, onClick, resetTimer } of mounted) {
+      for (const { pre, bar, btn, onClick, timers } of mounted) {
         btn.removeEventListener("click", onClick);
-        clearTimeout(resetTimer.id);
+        clearTimeout(timers.announce);
+        clearTimeout(timers.reset);
         bar.remove();
         release(pre, "code");
       }

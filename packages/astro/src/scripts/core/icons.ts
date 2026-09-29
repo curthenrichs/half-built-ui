@@ -1,7 +1,7 @@
 /* Inline icon markup, vendored from Lucide (https://lucide.dev, ISC
    license), replacing the Unicode glyphs whose rendering varied by
    platform font. Same line style as the site's existing inline SVGs
-   (the to-top chevron in Base.astro). Buttons carry their own
+   (the to-top chevron in the consumer's layout). Buttons carry their own
    aria-labels; the svg itself is decorative and aria-hidden.
    Home: the js package's core (owner decision 1, 2026-08-31); Lucide,
    ISC license, attribution retained. */
@@ -98,7 +98,6 @@ export function iconMarkup(
 
 export const ICON_X = iconMarkup("x");
 export const ICON_PLAY = iconMarkup("play");
-export const ICON_SPARKLES = iconMarkup("sparkles");
 export const ICON_PAUSE = iconMarkup("pause");
 export const ICON_ROTATE_CCW = iconMarkup("rotate-ccw");
 export const ICON_CHEVRON_LEFT = iconMarkup("chevron-left");

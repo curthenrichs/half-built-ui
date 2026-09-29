@@ -1,5 +1,16 @@
 ---
-interface Props extends Record<string, unknown> {
+import type { HTMLAttributes } from "astro/types";
+
+type Owned =
+  | "href"
+  | "aria-label"
+  | "data-lb-w"
+  | "data-lb-h"
+  | "data-lb-caption"
+  | "class"
+  | "class:list";
+
+interface Props extends Omit<HTMLAttributes<"a">, Owned> {
   href: string;
   w: number;
   h: number;
@@ -11,12 +22,12 @@ const { href, w, h, caption = "", class: className, ...rest } = Astro.props;
 ---
 
 <a
+  {...rest}
   class:list={["lightbox-link", className]}
   href={href}
   data-lb-w={w}
   data-lb-h={h}
   data-lb-caption={caption}
   aria-label={`View full-size image${caption ? `: ${caption}` : ""}`}
-  {...rest}
   ><slot
 /></a>

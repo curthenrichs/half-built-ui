@@ -46,9 +46,9 @@ describe("code island decorator (DOM runtime)", () => {
   it("labels carry filename and language when present, language alone otherwise", () => {
     mountCodeIslands(document);
 
-    const labels = [...document.querySelectorAll(".code-island-bar span")].map(
-      (s) => s.textContent,
-    );
+    const labels = [
+      ...document.querySelectorAll(".code-island-bar span:first-child"),
+    ].map((s) => s.textContent);
 
     expect(labels[0]).toBe("demo.py · python");
     expect(labels[1]).toBe("basic");
@@ -73,6 +73,71 @@ describe("code island decorator (DOM runtime)", () => {
     const btn = clickCopy(0);
     await settle();
     expect(btn.textContent).toBe("FAILED");
+  });
+
+  it("announces the copy outcome through a status region", async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    vi.stubGlobal("navigator", { clipboard: { writeText } });
+    mountCodeIslands(document);
+    const status = document.querySelector('.code-island-bar [role="status"]');
+    expect(status?.classList.contains("screen-reader-text")).toBe(true);
+    clickCopy(0);
+    await Promise.resolve();
+    await Promise.resolve();
+    vi.advanceTimersByTime(0);
+    expect(status?.textContent).toBe("COPIED");
+    vi.advanceTimersByTime(1500);
+    expect(status?.textContent).toBe("");
+  });
+
+  it("announces a failed copy through the same status region", async () => {
+    const writeText = vi.fn().mockRejectedValue(new Error("denied"));
+    vi.stubGlobal("navigator", { clipboard: { writeText } });
+    mountCodeIslands(document);
+    const status = document.querySelector('.code-island-bar [role="status"]');
+    clickCopy(0);
+    await Promise.resolve();
+    await Promise.resolve();
+    vi.advanceTimersByTime(0);
+    expect(status?.textContent).toBe("FAILED");
+  });
+
+  it("clears the status before re-announcing so a repeat copy is a fresh DOM change", async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    vi.stubGlobal("navigator", { clipboard: { writeText } });
+    mountCodeIslands(document);
+    const status = document.querySelector('.code-island-bar [role="status"]');
+    const btn = clickCopy(0);
+    await settle();
+    vi.advanceTimersByTime(0);
+    expect(status?.textContent).toBe("COPIED");
+
+    /* Second click inside the reset window. If the handler wrote "COPIED"
+       straight over the existing "COPIED" text, that is not a DOM change
+       and a screen reader would stay silent on the repeat copy. Clearing
+       first, synchronously, before the outcome is known makes the later
+       re-announcement an observable change. */
+    btn.click();
+    expect(status?.textContent).toBe("");
+
+    await settle();
+    vi.advanceTimersByTime(0);
+    expect(status?.textContent).toBe("COPIED");
+  });
+
+  it("destroy mid-copy leaves no timer behind to write into the removed status", async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    vi.stubGlobal("navigator", { clipboard: { writeText } });
+    const handle = mountCodeIslands(document);
+    const status = document.querySelector('.code-island-bar [role="status"]');
+    clickCopy(0);
+    await settle();
+
+    /* The outcome is known but its announcement is still queued. */
+    handle.destroy();
+    expect(vi.getTimerCount()).toBe(0);
+    vi.advanceTimersByTime(1500);
+    expect(status?.textContent).toBe("");
   });
 
   it("mounting twice decorates each pre once (claim guards the second pass)", () => {

@@ -1,5 +1,5 @@
 /* Layer: components (content-domain stylesheet for .prose).
-   See docs/css-architecture.md. */
+   See the @half-built/css README, Architecture. */
 @layer components {
   /* Prose rhythm for .prose. Lists verified to 3+ depths (7 live posts
    nest, 3 go 3+ deep). Table treatment: boxed ledger (spec section 5). */
@@ -7,9 +7,8 @@
     margin-top: 0;
   }
 
-  /* p margin fidelity-corrected to the live 1.5em (handoff 5.5); heading
-   sizes/margins are kept on our fluid type scale rather than reverted to
-   bare browser defaults, recorded as a deliberate deviation in the handoff. */
+  /* Paragraphs take a 1.5em bottom margin; heading sizes and margins stay
+   on the fluid type scale rather than browser defaults. */
   .prose p {
     margin: 0 0 1.5em;
   }
@@ -88,9 +87,8 @@
     margin: 4px 0 0 15px;
   }
 
-  /* Blockquote: boxed on the muted gray pattern (owner request 2026-08-14,
-   spec docs/superpowers/specs/2026-08-14-boxed-blockquotes-design.md), a
-   deliberate deviation from live, which ships only the indent (handoff 5.5).
+  /* Blockquote: boxed on the muted gray pattern (owner request 2026-08-14),
+   rather than a bare indent.
    Full column width; the box, not indentation, is the signal. Nested quotes
    get no special treatment: this rule cascades, so an inner quote sits on
    the same gray ground with only its own hairline marking it. */

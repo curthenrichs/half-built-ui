@@ -1,11 +1,11 @@
 /* Layer: tokens. Dark roles, applied through data-theme="dark" on <html>
-   (the toggle and the head stamp in Base.astro set it; nothing in CSS
-   reads the media query). The ground is Henry's amber-colorway black
-   (owner call 2026-08-26: the warm ink-900 read too brown as a page
-   ground), with neutral bands and hairlines; the ink stays parchment and
-   the accent amber, so the type reads as the terminal aesthetic the
-   mascot already uses. The code island keeps its warm block, the same
-   one it has by day. Every value is a primitive. */
+   (the toggle and the consumer's layout head stamp set it; nothing in
+   CSS reads the media query). The ground is a true near-black tuned for
+   a terminal aesthetic (owner call 2026-08-26: the warm ink-900 read too
+   brown as a page ground), with neutral bands and hairlines; the ink
+   stays parchment and the accent amber, so the type reads with that
+   terminal aesthetic throughout. The code island keeps its warm block,
+   the same one it has by day. Every value is a primitive. */
 @layer tokens {
   :root[data-theme="dark"] {
     color-scheme: dark;
@@ -18,7 +18,6 @@
     --band: var(--black-850);
     --hairline: var(--gray-800);
     --divider-faint: var(--white-a10);
-    --input-border: var(--gray-750);
 
     /* One step up from the page so a field reads as a field, not a hole. */
     --well: var(--black-850);

@@ -1,8 +1,8 @@
-/* Image lightbox (spec docs/superpowers/specs/2026-07-30-image-lightbox-design.md).
-   Exported pure math plus mountLightbox, on the island contract (step 9):
-   mount(root, options?) returns a destroy handle; claim() makes a second
-   mount over an already-wired link a no-op. Called from Base.astro's
-   script block and testable under jsdom. */
+/* Image lightbox. Exported pure math plus mountLightbox, on the island
+   contract (step 9): mount(root, options?) returns a destroy handle;
+   claim() makes a second mount over an already-wired link a no-op.
+   Called from the consumer's layout script block and testable under
+   jsdom. */
 
 import { claim, release, type Island, type IslandHandle } from "./core/island";
 import { iconButton, docOf } from "./core/dom";
@@ -114,6 +114,26 @@ export function outOfWhack(
 
   const overlap = Math.max(0, overlapW) * Math.max(0, overlapH);
   return overlap < WHACK_FRACTION * Math.min(w * h, boxW * boxH);
+}
+
+/* One mouse notch (100px) is about the old fixed 1.2x step; a
+   trackpad's many small deltas add up to the same total instead of
+   stepping 1.2x each. deltaMode 1 is lines, 2 is pages. */
+const WHEEL_K = Math.log(1.2) / 100;
+const LINE_PX = 16;
+
+export function wheelZoomFactor(
+  deltaY: number,
+  deltaMode: number,
+  pageHeight: number,
+): number {
+  if (deltaY === 0) return 1;
+
+  let px = deltaY;
+  if (deltaMode === 1) px = deltaY * LINE_PX;
+  else if (deltaMode === 2) px = deltaY * pageHeight;
+
+  return Math.exp(-px * WHEEL_K);
 }
 
 export function readout(view: ZoomView, fit: number, prefix = "FIT"): string {
@@ -359,6 +379,10 @@ export const mountLightbox: Island<LightboxOptions> = (
   let view: ZoomView = { zoom: 1, x: 0, y: 0 };
   let boxW = FALLBACK_BOX.w;
   let boxH = FALLBACK_BOX.h;
+  /* Registered while the dialog is open, one at a time: refit on
+     resize, torn down on close so a reopen registers a fresh one
+     rather than piling up. */
+  let onResize: (() => void) | null = null;
 
   const applyView = (r: Refs): void => {
     const item = items[index];
@@ -367,6 +391,17 @@ export const mountLightbox: Island<LightboxOptions> = (
     r.img.style.transform = `translate(calc(-50% + ${String(view.x)}px), calc(-50% + ${String(view.y)}px))`;
     r.readoutEl.textContent = readout(view, fit);
     r.homeBtn.hidden = !outOfWhack(view, item.w, item.h, boxW, boxH);
+  };
+
+  /* fit and view must move together: readout's FIT/percent judgment is
+     view.zoom === fit, so any path that resets the view to fit (a new
+     item, HOME, 0, the double-click reset, or a resize) recomputes
+     both here rather than setting view alone and leaving fit stale. */
+  const resetToFit = (r: Refs): void => {
+    const item = items[index];
+    fit = fitZoom(item.w, item.h, boxW, boxH);
+    view = initialView(item.w, item.h, boxW, boxH);
+    applyView(r);
   };
 
   const goTo = (r: Refs, i: number): void => {
@@ -412,15 +447,13 @@ export const mountLightbox: Island<LightboxOptions> = (
   const show = (r: Refs, i: number): void => {
     index = i;
     const item = items[index];
-    fit = fitZoom(item.w, item.h, boxW, boxH);
-    view = initialView(item.w, item.h, boxW, boxH);
     r.caption.textContent = item.caption;
     r.img.alt = item.caption;
     r.dims.textContent = `${String(item.w)} × ${String(item.h)}`;
     r.counter.textContent = `${String(index + 1).padStart(2, "0")} / ${String(items.length).padStart(2, "0")}`;
     r.img.src = item.thumb;
     swapToFull(r.img, item.href, doc);
-    applyView(r);
+    resetToFit(r);
   };
 
   const ensureRefs = (): Refs => {
@@ -465,23 +498,21 @@ export const mountLightbox: Island<LightboxOptions> = (
       if (ev.key === "+" || ev.key === "=") rezoom(ZOOM_STEP, 0, 0);
       if (ev.key === "-") rezoom(1 / ZOOM_STEP, 0, 0);
 
-      if (ev.key === "0") {
-        view = initialView(item().w, item().h, boxW, boxH);
-        applyView(r);
-      }
+      if (ev.key === "0") resetToFit(r);
     });
 
     r.homeBtn.addEventListener("click", () => {
-      view = initialView(item().w, item().h, boxW, boxH);
-      applyView(r);
+      resetToFit(r);
     });
 
     r.viewbox.addEventListener(
       "wheel",
       (ev) => {
         ev.preventDefault();
+        const factor = wheelZoomFactor(ev.deltaY, ev.deltaMode, boxH);
+        if (factor === 1) return;
         const { cx, cy } = rel(ev);
-        rezoom(ev.deltaY < 0 ? ZOOM_STEP : 1 / ZOOM_STEP, cx, cy);
+        rezoom(factor, cx, cy);
       },
       { passive: false },
     );
@@ -502,8 +533,7 @@ export const mountLightbox: Island<LightboxOptions> = (
         const { cx, cy } = rel(ev);
         rezoom(1 / view.zoom, cx, cy);
       } else {
-        view = init;
-        applyView(r);
+        resetToFit(r);
       }
     });
 
@@ -569,6 +599,16 @@ export const mountLightbox: Island<LightboxOptions> = (
     r.viewbox.addEventListener("pointerup", lift);
     r.viewbox.addEventListener("pointercancel", lift);
 
+    /* Torn down here rather than in destroy(): every close (veil,
+       Escape, close box, or a consumer's own close()) fires this, so
+       the listener never outlives the open dialog. */
+    r.dialog.addEventListener("close", () => {
+      if (onResize) {
+        window.removeEventListener("resize", onResize);
+        onResize = null;
+      }
+    });
+
     refs = r;
     return r;
   };
@@ -588,6 +628,17 @@ export const mountLightbox: Island<LightboxOptions> = (
     boxW = rect.width || FALLBACK_BOX.w;
     boxH = rect.height || FALLBACK_BOX.h;
     goTo(r, Math.max(0, set.indexOf(link)));
+
+    if (!onResize) {
+      onResize = (): void => {
+        const rr = r.viewbox.getBoundingClientRect();
+        boxW = rr.width || FALLBACK_BOX.w;
+        boxH = rr.height || FALLBACK_BOX.h;
+        resetToFit(r);
+      };
+
+      window.addEventListener("resize", onResize);
+    }
   };
 
   const mounted: {
@@ -624,6 +675,7 @@ export const mountLightbox: Island<LightboxOptions> = (
       }
 
       if (refs) {
+        if (refs.dialog.open) refs.dialog.close();
         refs.dialog.remove();
         refs = null;
       }

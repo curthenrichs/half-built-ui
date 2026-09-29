@@ -1,0 +1,25 @@
+---
+import Base from "../../../../layouts/Base.astro";
+---
+
+<Base
+  noindex
+  title="The sample post"
+  description="A stand-in page at the URL the PostLink demo resolves its published sample post to."
+>
+  <main>
+    <article class="static-page bracket-frame">
+      <h1>The sample post</h1>
+      <div class="prose">
+        <p>
+          This page stands in for the published sample post that the PostLink
+          demo resolves to. <a href="/#components">Back to the components</a>.
+        </p>
+      </div>
+    </article>
+  </main>
+</Base>
+
+<style>
+  .static-page h1 { font-size: var(--font-size-lg); margin: 0 0 15px; }
+</style>

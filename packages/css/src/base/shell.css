@@ -1,7 +1,7 @@
-/* Layer: base. The page shell (handoff section 5.3): sticky-footer frame,
+/* Layer: base. The page shell: sticky-footer frame,
    the 1380px wrapper, the two-column row, the content column, and the
    sidebar width with its collapse. The grid is defined here and nowhere
-   else. See docs/css-architecture.md. */
+   else. See the @half-built/css README, Architecture. */
 @layer base {
   /* Sticky footer: the page shell fills the viewport and the content region
      absorbs the slack, so short pages (404, search, thin archives) keep the

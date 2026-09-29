@@ -1,8 +1,8 @@
-/* Layer: tokens. Entry point Base.astro imports; the values live under
+/* Layer: tokens. Entry point the consumer's layout imports; the values live under
    tokens/ (primitives, then the light roles, then the opt-in dark roles).
    Custom properties only, no selectors or element styles. Hex is
    permitted under tokens/ alone (stylelint-enforced).
-   See docs/css-architecture.md. */
+   See the @half-built/css README, Architecture. */
 @import "@fontsource/roboto-mono/400.css";
 @import "@fontsource/roboto-mono/700.css";
 @import "./tokens/primitives.css";

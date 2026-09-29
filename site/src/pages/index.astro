@@ -6,6 +6,7 @@ import Imports from "../components/Imports.astro";
 import EditorNote from "@half-built/astro/content/EditorNote.astro";
 import WhenPublished from "@half-built/astro/content/WhenPublished.astro";
 import PostLink from "@half-built/astro/content/PostLink.astro";
+import { resolvePostHref } from "@half-built/astro/lib/drafts.ts";
 import PostCard from "@half-built/astro/components/PostCard.astro";
 import CategoryCard from "@half-built/astro/components/CategoryCard.astro";
 import Pagination from "@half-built/astro/components/Pagination.astro";
@@ -17,6 +18,7 @@ import {
 import PostNavigation from "@half-built/astro/components/PostNavigation.astro";
 import LinkListWidget from "@half-built/astro/components/LinkListWidget.astro";
 import Widget from "@half-built/astro/components/Widget.astro";
+import Popout from "@half-built/astro/components/Popout.astro";
 import Subscribe from "@half-built/astro/components/Subscribe.astro";
 import Button from "@half-built/astro/content/Button.astro";
 import Callout from "@half-built/astro/content/Callout.astro";
@@ -31,6 +33,8 @@ import CodeBlock from "@half-built/astro/content/CodeBlock.astro";
 import Palette from "@half-built/astro/content/Palette.astro";
 import Group from "@half-built/astro/content/Group.astro";
 import Spacer from "@half-built/astro/content/Spacer.astro";
+import TwoColumn from "@half-built/astro/components/TwoColumn.astro";
+import { deriveExcerpt } from "@half-built/astro/lib/excerpt.ts";
 import codeTheme from "@half-built/astro/shiki/code-theme";
 import codeVars from "@half-built/astro/shiki/code-vars";
 import type {
@@ -42,9 +46,28 @@ import placeholderWide from "../assets/placeholder-wide.svg";
 import placeholderSquare from "../assets/placeholder-square.svg";
 import placeholderTall from "../assets/placeholder-tall.svg";
 
+const samplePosts = [
+  {
+    data: {
+      slug: "sample-published",
+      date: new Date("2026-09-01T00:00:00Z"),
+      draft: false,
+    },
+  },
+  {
+    data: {
+      slug: "sample-draft",
+      date: new Date("2026-09-08T00:00:00Z"),
+      draft: true,
+    },
+  },
+];
+
+const samplePostHref = resolvePostHref("sample-published", samplePosts);
+
 const posts: PostCardModel[] = [
   {
-    href: "#",
+    href: samplePostHref,
     title: "Sample post, plain card",
     excerpt: "Placeholder excerpt text standing in for a real post summary.",
     author: "Demo Author",
@@ -54,9 +77,9 @@ const posts: PostCardModel[] = [
     categories: [{ name: "Sample", href: "#" }],
   },
   {
-    href: "#",
+    href: samplePostHref,
     title: "Sample post, marked draft",
-    excerpt: "A second placeholder excerpt, this card flagged as a draft.",
+    excerpt: "A second placeholder excerpt. This card is marked as a draft.",
     author: "Demo Author",
     dateStr: "2, Jan 2026",
     minutes: 6,
@@ -68,10 +91,10 @@ const posts: PostCardModel[] = [
     ],
   },
   {
-    href: "#",
+    href: samplePostHref,
     title: "Sample post, with corner badges",
     excerpt:
-      "A third placeholder excerpt, showing the AI Art and Demo badges together.",
+      "A third placeholder excerpt. This card has both the AI Art and Demo badges.",
     author: "Demo Author",
     dateStr: "3, Jan 2026",
     minutes: 3,
@@ -80,6 +103,27 @@ const posts: PostCardModel[] = [
     categories: [{ name: "Demo", href: "#" }],
   },
 ];
+
+const excerptSampleBody = `A short aside that opens the sample post and
+should stay off the card.
+
+<ExcerptStart />
+
+The card text starts here, after the marker. It runs until the
+excerpt limit, where it is cut at a word boundary with an ellipsis.`;
+
+const excerptCard: PostCardModel = {
+  href: samplePostHref,
+  title: "Sample post, excerpt after a marker",
+  excerpt: deriveExcerpt(excerptSampleBody) ?? "",
+  author: "Demo Author",
+  dateStr: "4, Jan 2026",
+  minutes: 2,
+  hero: placeholderWide,
+  categories: [{ name: "Sample", href: "#" }],
+};
+
+const typeScale = ["xs", "sm", "base", "md", "lg", "xl", "xxl"];
 
 const categoryCards = [
   { name: "Sample", href: "#", image: placeholderSquare },
@@ -164,32 +208,18 @@ const rampRows = [...ramps.entries()].map(([family, row]) => ({
   cells: rampStops.map((stop) => row.get(stop) ?? ""),
 }));
 
-const samplePosts = [
-  {
-    data: {
-      slug: "sample-published",
-      date: new Date("2026-09-01T00:00:00Z"),
-      draft: false,
-    },
-  },
-  {
-    data: {
-      slug: "sample-draft",
-      date: new Date("2026-09-08T00:00:00Z"),
-      draft: true,
-    },
-  },
-];
-
 const codeSample = `def read_ir(code):
     return "power" if code == 0x40BF else "unknown"`;
 
 const frameImports = `import Masthead from "@half-built/astro/components/Masthead.astro";
 import Footer from "@half-built/astro/components/Footer.astro";
-import ThemeToggle from "@half-built/astro/components/ThemeToggle.astro";`;
+import ThemeToggle from "@half-built/astro/components/ThemeToggle.astro";
+import TwoColumn from "@half-built/astro/components/TwoColumn.astro";`;
 
 const cardImports = `import PostCard from "@half-built/astro/components/PostCard.astro";
-import CategoryCard from "@half-built/astro/components/CategoryCard.astro";`;
+import CategoryCard from "@half-built/astro/components/CategoryCard.astro";
+import { deriveExcerpt } from "@half-built/astro/lib/excerpt.ts";
+import ExcerptStart from "@half-built/astro/content/ExcerptStart.astro";`;
 
 const componentImports = `import Pagination from "@half-built/astro/components/Pagination.astro";
 import PostNavigation from "@half-built/astro/components/PostNavigation.astro";
@@ -210,12 +240,49 @@ import Step from "@half-built/astro/content/Step.astro";
 import Gallery from "@half-built/astro/content/Gallery.astro";
 import GalleryImage from "@half-built/astro/content/GalleryImage.astro";
 import BlogImage from "@half-built/astro/content/BlogImage.astro";
-import MediaText from "@half-built/astro/content/MediaText.astro";`;
+import MediaText from "@half-built/astro/content/MediaText.astro";
+import Popout from "@half-built/astro/components/Popout.astro";`;
 
 const cssImports = `import "@half-built/css/tokens";
 import "@half-built/css/prose.css";
 import "@half-built/css/patterns.css";
 import Palette from "@half-built/astro/content/Palette.astro";`;
+
+const popoutLayoutSample = `---
+import "@half-built/css/popout.css";
+---
+
+<script>
+  import { mountPopouts } from "@half-built/astro/scripts/popout.ts";
+
+  mountPopouts(document);
+</script>`;
+
+const popoutMarkupSample = `---
+import Popout from "@half-built/astro/components/Popout.astro";
+---
+
+<Popout label="Row one">
+  A note can contain a <a href="#components">link</a> and
+  <code>inline code</code>.
+</Popout>`;
+
+const pathPlayerSample = `---
+import "@half-built/css/plate-modal.css";
+import "@half-built/css/path-player.css";
+---
+
+<script>
+  import { createPathPlayer } from "@half-built/astro/scripts/path-player.ts";
+
+  const player = createPathPlayer(document, {
+    title, source, caption, duration, samples, tracks,
+    buildStage: (viewbox) => { /* append the stage, return true */ },
+    sink: { start, move, stop },
+  });
+
+  button.addEventListener("click", () => player.open(button));
+</script>`;
 
 const npmPackages = [
   {
@@ -235,571 +302,753 @@ const npmPackages = [
 
 <Base
   title="half-built-ui"
-  description="The reference site for the @half-built packages, every component's variants rendered on one page."
+  description="The reference site for the @half-built packages, with every component and its variants on one page."
 >
   <div class="site-layout">
     <Rail />
-    <article class="static-page bracket-frame">
-      <h1>half-built-ui</h1>
+    <main>
+      <article class="static-page bracket-frame">
+        <h1>half-built-ui</h1>
 
-      <section id="intro">
-        <div class="prose">
-          <h2>About</h2>
-          <div class="section-intro" data-section-intro="intro">
-            <p>
-              This page renders every component in the half-built design system.
-              The system was extracted from
-              <a href="https://half-built-robots.com">half-built-robots.com</a>,
-              which now references these packages. All three packages are
-              published on npm under MIT.
-            </p>
-            <p>
-              The palette editor in the corner rewrites the theming variables
-              live and prints a block ready to paste into a stylesheet. That
-              block is the entire theming surface, eight brand stops plus the
-              four values behind the code viewer. The viewer highlights through
-              those variables, so syntax colors and the block they sit on follow
-              the palette as well.
-            </p>
-          </div>
-          <!-- A real CodeBlock, not an inline code span, so the code
+        <section id="intro">
+          <div class="prose">
+            <h2>About</h2>
+            <div class="section-intro" data-section-intro="intro">
+              <p>
+                This page shows every component in the half-built design system.
+                The system was extracted from
+                <a href="https://half-built-robots.com">half-built-robots.com</a
+                >. That site uses these packages. All three packages are
+                published on npm under the MIT license.
+              </p>
+              <p>
+                The palette editor in the corner changes the theme variables
+                live. It also prints the current values as a block that can be
+                pasted into a stylesheet. The block holds every theme value.
+                Eight are brand colors and four are code viewer colors. Syntax
+                highlighting reads the same variables, so the code and its
+                background change with the palette.
+              </p>
+            </div>
+            <!-- A real CodeBlock, not an inline code span, so the code
                island mounts its COPY button on the install line (owner
                ask 2026-09-06). -->
-          <CodeBlock>
-            <Code
-              code="npm install @half-built/css @half-built/astro @half-built/tooling"
-              lang="shellscript"
-              theme={codeTheme}
-              transformers={[codeVars]}
-            />
-          </CodeBlock>
-          <ul class="demo-npm-links">
-            {npmPackages.map((pkg) => <li>
-              <a href={pkg.href}><code>{pkg.name}</code></a>
-            </li>)}
-          </ul>
-        </div>
-      </section>
+            <CodeBlock>
+              <Code
+                code="npm install @half-built/css @half-built/astro @half-built/tooling"
+                lang="shellscript"
+                theme={codeTheme}
+                transformers={[codeVars]}
+              />
+            </CodeBlock>
+            <ul class="demo-npm-links">
+              {npmPackages.map((pkg) => <li>
+                <a href={pkg.href}><code>{pkg.name}</code></a>
+              </li>)}
+            </ul>
+          </div>
+        </section>
 
-      <section id="frame">
-        <div class="prose">
-          <h2>Frame</h2>
-          <div class="section-intro" data-section-intro="frame">
+        <section id="frame">
+          <div class="prose">
+            <h2>Frame</h2>
+            <div class="section-intro" data-section-intro="frame">
+              <p>
+                The header and footer come from the package and contain no
+                site-specific values. The site name and other identity details
+                are passed in as typed props. The theme toggle is in the header,
+                and a second copy is in the palette panel next to the color
+                pickers. All toggles on a page stay in sync.
+              </p>
+            </div>
+            <Imports code={frameImports} />
+          </div>
+
+          <h3>Two-column layout</h3>
+          <div class="prose">
             <p>
-              The header and footer come from the package and know nothing about
-              the site around them. The site name and the rest of the identity
-              arrive as typed props. The theme toggle sits in the header, and
-              the palette panel carries a second instance beside the color
-              pickers. Every toggle on a page stays in step, so flipping either
-              one moves the other.
+              TwoColumn is the page row. It holds the main column and a sidebar.
+              The sidebar takes 30% of the row and stacks under the main column
+              at the sidebar breakpoint. The frame below stands in for the page.
             </p>
           </div>
-          <Imports code={frameImports} />
-        </div>
-      </section>
+          <div class="demo-two-column">
+            <TwoColumn mainTag="div">
+              <div class="prose">
+                <p>
+                  This is the main column. It holds post bodies, archives and
+                  static pages. Its width is whatever the sidebar leaves.
+                </p>
+                <p>
+                  A second placeholder paragraph gives the column some length
+                  next to the sidebar.
+                </p>
+              </div>
+              <aside class="sidebar" slot="aside" aria-label="Sample sidebar">
+                <LinkListWidget
+                  title="Sidebar links"
+                  items={linkListItems}
+                  headingLevel={4}
+                />
+              </aside>
+            </TwoColumn>
+          </div>
+        </section>
 
-      <section id="cards">
-        <div class="prose">
-          <h2>Cards</h2>
-          <div class="section-intro" data-section-intro="cards">
+        <section id="cards">
+          <div class="prose">
+            <h2>Cards</h2>
+            <div class="section-intro" data-section-intro="cards">
+              <p>
+                PostCard is the card used on archive pages. The second card here
+                is marked as a draft. The draft badge lets an unfinished post be
+                published while still labeled as unfinished. The third card has
+                both corner badges. One marks an AI-generated image and the
+                other marks a post with an interactive demo. CategoryCard is a
+                smaller tile. It shows an image with the category name on a chip
+                over its bottom edge.
+              </p>
+              <p>
+                A card's text is taken from the post body. In the Derived
+                excerpt example below, the text starts after an
+                <code>ExcerptStart</code> marker. The aside above the marker is
+                left out.
+              </p>
+            </div>
+            <Imports code={cardImports} />
+          </div>
+
+          <h3>Post cards</h3>
+          <div class="demo-card-grid">
+            {posts.map((post) => (
+              <PostCard {...post} />
+            ))}
+          </div>
+
+          <h3>Derived excerpt</h3>
+          <div class="prose">
             <p>
-              PostCard is the card an archive page is made of. The second one
-              here is flagged as a draft, and that badge exists so an unfinished
-              post can ship where people can see it. The third wears the corner
-              badges, one for an AI-generated image and one for a post carrying
-              an interactive demo. CategoryCard is the smaller tile, an image
-              with the category name chipped over its bottom edge.
+              The sample post body is passed through <code>deriveExcerpt</code>
+              to produce the card's text. Text before the marker is not
+              included.
             </p>
           </div>
-          <Imports code={cardImports} />
-        </div>
+          <div class="demo-excerpt">
+            <div class="prose">
+              <CodeBlock filename="sample-post.mdx">
+                <Code
+                  code={excerptSampleBody}
+                  lang="mdx"
+                  theme={codeTheme}
+                  transformers={[codeVars]}
+                />
+              </CodeBlock>
+            </div>
+            <div class="demo-card-grid">
+              <PostCard {...excerptCard} />
+            </div>
+          </div>
 
-        <h3>Post cards</h3>
-        <div class="demo-card-grid">
-          {posts.map((post) => (
-            <PostCard {...post} />
-          ))}
-        </div>
+          <h3>Category cards</h3>
+          <div class="demo-card-grid demo-card-grid-narrow">
+            {categoryCards.map((c) => (
+              <CategoryCard name={c.name} href={c.href} image={c.image} />
+            ))}
+          </div>
+        </section>
 
-        <h3>Category cards</h3>
-        <div class="demo-card-grid demo-card-grid-narrow">
-          {categoryCards.map((c) => (
-            <CategoryCard name={c.name} href={c.href} image={c.image} />
-          ))}
-        </div>
-      </section>
+        <section id="components">
+          <div class="prose">
+            <h2>Components</h2>
+            <div class="section-intro" data-section-intro="components">
+              <p>
+                This section covers the rest of the package, including
+                navigation and the blocks used in post bodies. Page-level
+                components are imported from <code>components/</code> and post
+                body blocks from <code>content/</code>. The split only reflects
+                where the files live. No component in the system caps the width
+                of text. Text width comes from the layout's column.
+              </p>
+            </div>
+            <Imports code={componentImports} />
+          </div>
 
-      <section id="components">
-        <div class="prose">
-          <h2>Components</h2>
-          <div class="section-intro" data-section-intro="components">
+          <div class="prose">
+            <h3>Pagination</h3>
             <p>
-              The rest of the package, from the navigation rows to the blocks a
-              post body is built from. Imports split between
-              <code>components/</code> for page chrome and <code>content/</code>
-              for post bodies. The split is only where the files live. Nothing
-              in this system caps the width of text. The layout's column is the
-              only width authority.
+              Pagination is the numbered row at the bottom of an archive page.
+              It renders nothing when there is only one page.
             </p>
           </div>
-          <Imports code={componentImports} />
-        </div>
+          <Pagination current={2} total={4} base="#" />
 
-        <div class="prose">
-          <h3>Pagination</h3>
-          <p>
-            The numbered row at the foot of an archive. It renders nothing when
-            there is only one page.
-          </p>
-        </div>
-        <Pagination current={2} total={4} base="#" />
-
-        <div class="prose">
-          <h3>Post navigation</h3>
-          <p>
-            The pair of links at the end of a post. The newer post sits on the
-            left and the older one on the right, matching the newest-first order
-            the archives read in.
-          </p>
-        </div>
-        <PostNavigation prev={prevPost} next={nextPost} />
-
-        <div class="prose">
-          <h3>Link list widget and Widget</h3>
-          <p>
-            Widget is a heading over whatever sits in its body. LinkListWidget
-            is that same block filled with links and their counts.
-          </p>
-        </div>
-        <div class="demo-widget-row">
-          <LinkListWidget title="Sample links" items={linkListItems} />
-          <Widget title="Plain widget">
+          <div class="prose">
+            <h3>Post navigation</h3>
             <p>
-              A Widget with arbitrary content in its body, rather than the
-              link-list shape above.
+              PostNavigation is the pair of links at the end of a post. The
+              newer post is on the left and the older post is on the right. This
+              matches the newest-first order of the archives.
             </p>
-          </Widget>
-        </div>
+          </div>
+          <PostNavigation prev={prevPost} next={nextPost} />
 
-        <div class="prose">
-          <h3>Subscribe</h3>
-          <p>
-            A real form with a method and an action, which submits with
-            JavaScript turned off. Its copy sits in named slots, so the words
-            can be overridden without forking the component.
-          </p>
-        </div>
-        <Subscribe
-          variant="page"
-          action="https://example.com/subscribe"
-          publicUrl="example.com/subscribe"
-        >
-          <Fragment slot="fine-print"
-            >Placeholder form. This demo does not send email. The action is not
-            a real endpoint.</Fragment
-          >
-        </Subscribe>
-
-        <div class="prose">
-          <h3>Button</h3>
-          <p>Four variants, two sizes.</p>
-          <p class="button-row">
-            <Button variant="plain">Plain</Button>
-            <Button variant="shaded">Shaded</Button>
-            <Button variant="accent-1">Accent 1</Button>
-            <Button variant="accent-2" size="lg">Accent 2, large</Button>
-          </p>
-          <p>A lone call to action takes the centered row.</p>
-          <p class="button-row button-row-center">
-            <Button variant="accent-2" href="#">Centered call to action</Button>
-          </p>
-
-          <h3>Callout</h3>
-          <p>
-            An aside set apart from the body, for a caveat, a warning, or a
-            result the reader should not skim past. The type sets the label and
-            the line color.
-          </p>
-          <Callout type="note">A note callout, the default look.</Callout>
-          <Callout type="info"
-            >An info callout, graphite like the note. The label tells them
-            apart.</Callout
-          >
-          <Callout type="tip" title="Tip"
-            >A tip callout, wearing the first accent.</Callout
-          >
-          <Callout type="warning"
-            >A warning callout, the first accent again.</Callout
-          >
-          <Callout type="success"
-            >A success callout, wearing the second accent.</Callout
-          >
-          <Callout type="error">An error callout, in the red family.</Callout>
-
-          <h3>Editor's note</h3>
-          <p>
-            A note to the author that renders only on a dev server. A deploy
-            build emits nothing for it, so it can sit in published content as a
-            standing to-do. This one is forced visible with the
-            <code>shown</code> prop.
-          </p>
-          <EditorNote title="Demo" shown={true}
-            >A demo note, forced visible. The dashed rule is the tell. Nothing
-            else in the system is dashed.</EditorNote
-          >
-
-          <h3>When published and Post link</h3>
-          <p>
-            Both take the consumer's post collection as a prop and read no
-            content of their own. <code>PostLink</code> resolves a slug to the
-            post's dated URL at build time, and renders plain text in place of a
-            link while the post is a draft. <code>WhenPublished</code> renders
-            its passage only once the post it names is visible, and its optional
-            <code>fallback</code> slot renders until then. The sample collection
-            here has one published post and one draft.
-          </p>
-          <WhenPublished slug="sample-published" posts={samplePosts}>
+          <div class="prose">
+            <h3>Link list widget and Widget</h3>
             <p>
-              This passage is visible because its post is published. It links to
+              Widget is a heading above arbitrary content. LinkListWidget is a
+              Widget filled with a list of links and their counts.
+            </p>
+          </div>
+          <div class="demo-widget-row">
+            <LinkListWidget title="Sample links" items={linkListItems} />
+            <Widget title="Plain widget">
+              <p>
+                A Widget with arbitrary content in its body instead of a link
+                list.
+              </p>
+            </Widget>
+          </div>
+
+          <div class="prose">
+            <h3>Popout</h3>
+            <p>
+              Popout holds a short note behind a cell in a data table. It is for
+              detail that is worth keeping but does not need its own column. On
+              a wide screen it opens below its trigger, or above it when there
+              is no room below. It closes automatically when the trigger scrolls
+              out of view, when keyboard focus leaves it, or when the window
+              crosses into phone width. On a phone it opens as a sheet from the
+              bottom of the screen, with the row name as its caption. The layout
+              loads <code>popout.css</code> and calls <code>mountPopouts</code>
+              once.
+            </p>
+            <section class="table-scroll" tabindex="0" aria-label="Popout demo">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Row</th>
+                    <th>Value</th>
+                    <th>Notes</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Row one</td>
+                    <td>42</td>
+                    <td>
+                      <Popout label="Row one" id="demo-popout-1">
+                        A note can contain a <a href="#components">link</a> and
+                        <code>inline code</code>.
+                      </Popout>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>Row two</td>
+                    <td>7</td>
+                    <td>
+                      <Popout label="Row two" id="demo-popout-2">
+                        Only one popout is open at a time. Opening this one
+                        closes the other.
+                      </Popout>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>Row three</td>
+                    <td>19</td>
+                    <td></td>
+                  </tr>
+                </tbody>
+              </table>
+            </section>
+            <div class="demo-popout-sample">
+              <CodeBlock>
+                <Code
+                  code={popoutLayoutSample}
+                  lang="astro"
+                  theme={codeTheme}
+                  transformers={[codeVars]}
+                />
+              </CodeBlock>
+              <CodeBlock>
+                <Code
+                  code={popoutMarkupSample}
+                  lang="astro"
+                  theme={codeTheme}
+                  transformers={[codeVars]}
+                />
+              </CodeBlock>
+            </div>
+          </div>
+
+          <div class="prose">
+            <h3>Path player</h3>
+            <p>
+              The path player opens in the plate modal and adds playback
+              controls and a timeline. The caller supplies the samples, the
+              tracks under the stage, and the stage itself. The stage in this
+              demo is a point moving on a closed curve. When reduced motion is
+              set, the player opens paused.
+            </p>
+            <p class="button-row">
+              <Button variant="accent-1" class="demo-path-player"
+                >Open the path player</Button
+              >
+            </p>
+            <CodeBlock>
+              <Code
+                code={pathPlayerSample}
+                lang="astro"
+                theme={codeTheme}
+                transformers={[codeVars]}
+              />
+            </CodeBlock>
+          </div>
+
+          <div class="prose">
+            <h3>Subscribe</h3>
+            <p>
+              Subscribe is a standard form with a method and an action, so it
+              submits with JavaScript turned off. Its text is in named slots and
+              can be replaced without forking the component.
+            </p>
+          </div>
+          <Subscribe
+            variant="page"
+            action="https://example.com/subscribe"
+            publicUrl="example.com/subscribe"
+          >
+            <Fragment slot="fine-print"
+              >Placeholder form. This demo does not send email. The action is
+              not a real endpoint.</Fragment
+            >
+          </Subscribe>
+
+          <div class="prose">
+            <h3>Button</h3>
+            <p>Button has four variants and two sizes.</p>
+            <p class="button-row">
+              <Button variant="plain">Plain</Button>
+              <Button variant="shaded">Shaded</Button>
+              <Button variant="accent-1">Accent 1</Button>
+              <Button variant="accent-2" size="lg">Accent 2, large</Button>
+            </p>
+            <p>A single call to action uses the centered row.</p>
+            <p class="button-row button-row-center">
+              <Button variant="accent-2" href="#"
+                >Centered call to action</Button
+              >
+            </p>
+
+            <h3>Callout</h3>
+            <p>
+              Callout sets a passage apart from the body text. It is used for
+              caveats and warnings the reader should not skip. The type sets the
+              label and the line color.
+            </p>
+            <Callout type="note">A note callout. This is the default.</Callout>
+            <Callout type="info"
+              >An info callout. It is graphite like the note. Only the label is
+              different.</Callout
+            >
+            <Callout type="tip" title="Tip"
+              >A tip callout in the first accent.</Callout
+            >
+            <Callout type="warning"
+              >A warning callout, also in the first accent.</Callout
+            >
+            <Callout type="success"
+              >A success callout in the second accent.</Callout
+            >
+            <Callout type="error">An error callout in red.</Callout>
+
+            <h3>Editor's note</h3>
+            <p>
+              EditorNote is a note to the author that only renders on a dev
+              server. A production build outputs nothing for it, so it can stay
+              in published content as a reminder. This one is forced visible
+              with the <code>shown</code> prop.
+            </p>
+            <EditorNote title="Demo" shown={true}
+              >A demo note, forced visible. It is the only component in the
+              system with a dashed rule.</EditorNote
+            >
+
+            <h3>When published and Post link</h3>
+            <p>
+              Both components take the site's post collection as a prop and do
+              not read any content themselves. <code>PostLink</code> resolves a
+              slug to the post's dated URL at build time. While the post is a
+              draft, it renders plain text instead of a link.
+              <code>WhenPublished</code> renders its content only after the
+              named post is published. Its optional <code>fallback</code> slot
+              renders until then. The sample collection here has one published
+              post and one draft.
+            </p>
+            <WhenPublished slug="sample-published" posts={samplePosts}>
+              <p>
+                This passage is visible because its post is published. It links
+                to
+                <PostLink
+                  slug="sample-published"
+                  posts={samplePosts}
+                  tip="Sample post (September 1, 2026)"
+                  >the sample post</PostLink
+                >. The URL was resolved from the slug.
+              </p>
+              <p slot="fallback">This fallback never renders.</p>
+            </WhenPublished>
+            <p class="sample-pending-link">
+              This sentence names
               <PostLink
-                slug="sample-published"
+                slug="sample-draft"
                 posts={samplePosts}
-                tip="Sample post (September 1, 2026)"
-                >the sample post</PostLink
-              >, whose URL was resolved from the slug.
+                tip="Sample draft"
+                >the sample draft</PostLink
+              >
+              in plain text because the post is still a draft. It becomes a link
+              when the post is published.
             </p>
-            <p slot="fallback">This fallback never renders.</p>
-          </WhenPublished>
-          <p class="sample-pending-link">
-            This sentence names
-            <PostLink slug="sample-draft" posts={samplePosts} tip="Sample draft"
-              >the sample draft</PostLink
+            <WhenPublished slug="sample-draft" posts={samplePosts}>
+              <p class="sample-draft-passage">
+                This passage never renders, because its post is a draft.
+              </p>
+            </WhenPublished>
+            <WhenPublished slug="sample-draft" posts={samplePosts}>
+              <p>
+                This passage waits for
+                <PostLink slug="sample-draft" posts={samplePosts}
+                  >the draft</PostLink
+                >.
+              </p>
+              <p slot="fallback">
+                This fallback stands in while the draft is unpublished.
+              </p>
+            </WhenPublished>
+
+            <h3>Group</h3>
+            <Group
+              ><p>
+                Group is a boxed prose container. It uses the same box as
+                Callout without the label or tint.
+              </p></Group
             >
-            in plain text, because its post is still a draft. It becomes a link
-            when the post ships.
-          </p>
-          <WhenPublished slug="sample-draft" posts={samplePosts}>
-            <p class="sample-draft-passage">
-              This passage never renders, because its post is a draft.
-            </p>
-          </WhenPublished>
-          <WhenPublished slug="sample-draft" posts={samplePosts}>
-            <p>
-              This passage waits for
-              <PostLink slug="sample-draft" posts={samplePosts}
-                >the draft</PostLink
-              >.
-            </p>
-            <p slot="fallback">
-              This fallback stands in while the draft is unpublished.
-            </p>
-          </WhenPublished>
 
-          <h3>Group</h3>
-          <Group
-            ><p>
-              A boxed prose container, no label and no tint, the plain sibling
-              of Callout's box.
-            </p></Group
-          >
+            <h3>Code block</h3>
+            <CodeBlock filename="example.py">
+              <Code
+                code={codeSample}
+                lang="python"
+                theme={codeTheme}
+                transformers={[codeVars]}
+              />
+            </CodeBlock>
 
-          <h3>Code block</h3>
-          <CodeBlock filename="example.py">
-            <Code
-              code={codeSample}
-              lang="python"
-              theme={codeTheme}
-              transformers={[codeVars]}
-            />
-          </CodeBlock>
+            <h3>Spacer</h3>
+            <p>A fixed-height spacer sits below this paragraph.</p>
+            <Spacer size={60} />
+            <p>Normal flow resumes here, after the spacer.</p>
 
-          <h3>Spacer</h3>
-          <p>A fixed-height spacer sits below this paragraph.</p>
-          <Spacer size={60} />
-          <p>Normal flow resumes here, after the spacer.</p>
-
-          <h3>Quote</h3>
-          <Quote by="Demo Author" when="2026"
-            >A quoted line, with an attribution footer.</Quote
-          >
-
-          <h3>Walkthrough and Step</h3>
-          <Walkthrough numbered>
-            <Step src={placeholderSquare} alt="Placeholder step photo, one"
-              >First step. One placeholder photo beside its text.</Step
+            <h3>Quote</h3>
+            <Quote by="Demo Author" when="2026"
+              >A quoted line, with an attribution footer.</Quote
             >
-            <Step src={placeholderSquare} alt="Placeholder step photo, two"
-              >Second step. Numbering runs down the media column's corner
-              chip.</Step
+
+            <h3>Walkthrough and Step</h3>
+            <Walkthrough numbered>
+              <Step src={placeholderSquare} alt="Placeholder step photo, one"
+                >First step. One placeholder photo beside its text.</Step
+              >
+              <Step src={placeholderSquare} alt="Placeholder step photo, two"
+                >Second step. The step number is on a chip in the corner of the
+                image.</Step
+              >
+            </Walkthrough>
+
+            <h3>Gallery</h3>
+            <Gallery
+              columns={3}
+              caption="Three placeholder plates in a bracket frame."
             >
-          </Walkthrough>
+              <GalleryImage
+                src={placeholderSquare}
+                alt="Placeholder gallery plate, one"
+                caption="Plate one"
+              />
+              <GalleryImage
+                src={placeholderSquare}
+                alt="Placeholder gallery plate, two"
+                caption="Plate two"
+              />
+              <GalleryImage
+                src={placeholderSquare}
+                alt="Placeholder gallery plate, three"
+                caption="Plate three"
+              />
+            </Gallery>
 
-          <h3>Gallery</h3>
-          <Gallery
-            columns={3}
-            caption="Three placeholder plates in a bracket frame."
-          >
-            <GalleryImage
-              src={placeholderSquare}
-              alt="Placeholder gallery plate, one"
-              caption="Plate one"
+            <h3>Blog image</h3>
+            <BlogImage
+              src={placeholderWide}
+              alt="Wide placeholder image"
+              caption="A full-width figure with a caption and the AI Art badge."
+              badges={[GENAI_BADGE]}
             />
-            <GalleryImage
-              src={placeholderSquare}
-              alt="Placeholder gallery plate, two"
-              caption="Plate two"
-            />
-            <GalleryImage
-              src={placeholderSquare}
-              alt="Placeholder gallery plate, three"
-              caption="Plate three"
-            />
-          </Gallery>
 
-          <h3>Blog image</h3>
-          <BlogImage
-            src={placeholderWide}
-            alt="Wide placeholder image"
-            caption="A full-width figure with a caption."
-          />
-
-          <h3>Media text</h3>
-          <MediaText src={placeholderTall} alt="Tall placeholder image">
-            <p>
-              Media on one side, prose on the other. This is the caption slot,
-              and it takes a short paragraph rather than a single line. On a
-              phone the two stack, image first, and the prose centers under it
-              like a figure caption.
-            </p>
-          </MediaText>
-        </div>
-      </section>
-
-      <section id="css">
-        <div class="prose">
-          <h2>CSS primitives</h2>
-          <div class="section-intro" data-section-intro="css">
-            <p>
-              The tokens are the variables everything else reads, and every
-              color on this page resolves through them. The palette editor
-              repaints the page by setting twelve. Each value is tuned to clear
-              WCAG AA against the ground it sits on. The prose and pattern
-              sheets carry the rest, the paragraph rhythm and the boxes.
-            </p>
+            <h3>Media text</h3>
+            <MediaText src={placeholderTall} alt="Tall placeholder image">
+              <p>
+                MediaText puts media on one side and prose on the other. This is
+                the caption slot. It holds a short paragraph rather than a
+                single line. On a phone the image stacks above the prose, which
+                is centered like a figure caption.
+              </p>
+            </MediaText>
           </div>
-          <Imports code={cssImports} />
-        </div>
+        </section>
 
-        <h3>Table</h3>
-        {/* Inside prose scope on purpose: the boxed ledger table
+        <section id="css">
+          <div class="prose">
+            <h2>CSS primitives</h2>
+            <div class="section-intro" data-section-intro="css">
+              <p>
+                The tokens are the CSS variables that the rest of the system
+                reads. Every color on this page comes from them. The palette
+                editor changes the page by setting twelve of them. Each value is
+                tuned to pass WCAG AA against its background. The prose and
+                pattern sheets cover paragraph spacing and the boxed styles.
+              </p>
+            </div>
+            <Imports code={cssImports} />
+          </div>
+
+          <h3>Table</h3>
+          {/* Inside prose scope on purpose: the boxed ledger table
             treatment lives in prose.css as .prose table, which is how
             every table on the blog wears it. Outside this wrapper a
             table renders bare. The specimen's rows are the system's
             own breakpoints (tokens/breakpoints.css), real data rather
             than filler; the token sheet and the Patterns ledger below
             wear the same treatment. */}
-        <div class="prose">
-          <p>
-            The boxed ledger every table in the system wears. Wide tables scroll
-            inside their own box, so the page never scrolls sideways.
-          </p>
-          {/* Scroll boxes are named sections, so tab stops with a
+          <div class="prose">
+            <p>
+              Every table in the system uses this boxed style. Wide tables
+              scroll inside their own box, so the page never scrolls sideways.
+            </p>
+            {/* Scroll boxes are named sections, so tab stops with a
               landmark name: a region that scrolls sideways and a
               keyboard cannot reach fails WCAG 2.1.1 (axe
               scrollable-region-focusable), and the wide ramps table
               below scrolls at every width. */}
-          <section class="table-scroll" tabindex="0" aria-label="Breakpoints">
-            <table>
-              <thead>
-                <tr>
-                  <th>Breakpoint</th>
-                  <th>Query</th>
-                  <th>What changes</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td><code>--bp-phone</code></td>
-                  <td><code>max-width: 768px</code></td>
-                  <td>
-                    The header's top band retires and the footer groups
-                    collapse.
-                  </td>
-                </tr>
-                <tr>
-                  <td><code>--bp-sidebar</code></td>
-                  <td><code>max-width: 991px</code></td>
-                  <td>The two-column row stacks.</td>
-                </tr>
-                <tr>
-                  <td><code>--bp-tablet</code></td>
-                  <td><code>max-width: 1024px</code></td>
-                  <td>The wide-image step.</td>
-                </tr>
-              </tbody>
-            </table>
-          </section>
-          <p>
-            A wide one, scrolling in its own box. Every color primitive in the
-            sheet, one row per family and one column per stop.
-          </p>
-          <section
-            class="table-scroll"
-            tabindex="0"
-            aria-label="Color primitives"
-          >
-            <table>
-              <thead>
-                <tr>
-                  <th>Family</th>
-                  {rampStops.map((stop) => <th>{stop}</th>)}
-                </tr>
-              </thead>
-              <tbody>
-                {rampRows.map((row) => <tr>
-                  <td>{row.family}</td>
-                  {row.cells.map((cell) => <td>
-                    {cell ? <code>{cell}</code> : ""}
-                  </td>)}
-                </tr>)}
-              </tbody>
-            </table>
-          </section>
-        </div>
+            <section class="table-scroll" tabindex="0" aria-label="Breakpoints">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Breakpoint</th>
+                    <th>Query</th>
+                    <th>What changes</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><code>--bp-phone</code></td>
+                    <td><code>max-width: 768px</code></td>
+                    <td>
+                      The header's top band is hidden and the footer groups
+                      collapse.
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><code>--bp-sidebar</code></td>
+                    <td><code>max-width: 991px</code></td>
+                    <td>The two-column row stacks.</td>
+                  </tr>
+                  <tr>
+                    <td><code>--bp-tablet</code></td>
+                    <td><code>max-width: 1024px</code></td>
+                    <td>
+                      Images load a file sized to the screen width instead of
+                      the 990px column.
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </section>
+            <p>
+              This wider table scrolls in its own box. It lists every color
+              primitive in the sheet, with one row per family and one column per
+              stop.
+            </p>
+            <section
+              class="table-scroll"
+              tabindex="0"
+              aria-label="Color primitives"
+            >
+              <table>
+                <thead>
+                  <tr>
+                    <th>Family</th>
+                    {rampStops.map((stop) => <th>{stop}</th>)}
+                  </tr>
+                </thead>
+                <tbody>
+                  {rampRows.map((row) => <tr>
+                    <td>{row.family}</td>
+                    {row.cells.map((cell) => <td>
+                      {cell ? <code>{cell}</code> : ""}
+                    </td>)}
+                  </tr>)}
+                </tbody>
+              </table>
+            </section>
+          </div>
 
-        <h3>Tokens</h3>
-        <div class="prose">
-          <p>
-            The roles components read, with the value each resolves to in the
-            current theme and palette.
-          </p>
-          <Palette entries={tokenEntries} label="Tokens" />
-        </div>
+          <h3>Tokens</h3>
+          <div class="prose">
+            <p>
+              The token roles that components read, with the value of each in
+              the current theme and palette.
+            </p>
+            <Palette entries={tokenEntries} label="Tokens" />
+          </div>
 
-        <h3>Prose specimen</h3>
-        <div class="prose">
-          <p>
-            Placeholder body copy, demonstrating paragraph rhythm, inline
-            <code>code</code>, and a <a href="#">placeholder link</a>.
-          </p>
-          <blockquote>
-            A placeholder blockquote, boxed on the gray band.
-          </blockquote>
-          <ul>
-            <li>Placeholder list item one</li>
-            <li>Placeholder list item two</li>
-          </ul>
-          {/* Footnotes in the markup remark-gfm emits for a Markdown
+          <h3>Type scale</h3>
+          <div class="prose">
+            <p>
+              The fluid type sizes. Each line is set at its own size and shows
+              the token name.
+            </p>
+            <ul class="type-scale">
+              {typeScale.map((s) => <li data-size={s} class={`type-scale-${s}`}>
+                <code>--font-size-{s}</code> Sample text
+              </li>)}
+            </ul>
+          </div>
+
+          <h3>Prose specimen</h3>
+          <div class="prose">
+            <p>
+              Placeholder body copy with inline <code>code</code> and a
+              <a href="#">placeholder link</a>.
+            </p>
+            <blockquote>A placeholder blockquote in a gray box.</blockquote>
+            <ul>
+              <li>Placeholder list item one</li>
+              <li>Placeholder list item two</li>
+            </ul>
+            {/* Footnotes in the markup remark-gfm emits for a Markdown
               [^1] reference, verbatim, since the prose sheet styles
               nothing footnote-specific: the reference is a superscript
               link, the notes an ordered list under a heading, each with
               a return link. The heading shows on purpose: the system
               defines no .sr-only (prose.css, owner call 2026-09-09). */}
-          <p>
-            A sentence with a footnote
-            reference.<sup
-              ><a
-                href="#user-content-fn-1"
-                id="user-content-fnref-1"
-                data-footnote-ref
-                aria-describedby="footnote-label"
-                >1</a
-              ></sup
-            >
-          </p>
-          <section data-footnotes class="footnotes">
-            <h2 class="sr-only" id="footnote-label">Footnotes</h2>
-            <ol>
-              <li id="user-content-fn-1">
-                <p>
-                  A placeholder footnote, with the return link that Markdown
-                  footnotes get.
-                  <a
-                    href="#user-content-fnref-1"
-                    data-footnote-backref
-                    aria-label="Back to reference 1"
-                    class="data-footnote-backref"
-                    >↩</a
-                  >
-                </p>
-              </li>
-            </ol>
-          </section>
-        </div>
+            <p>
+              A sentence with a footnote
+              reference.<sup
+                ><a
+                  href="#user-content-fn-1"
+                  id="user-content-fnref-1"
+                  data-footnote-ref
+                  aria-describedby="footnote-label"
+                  >1</a
+                ></sup
+              >
+            </p>
+            <section data-footnotes class="footnotes">
+              <h2 class="sr-only" id="footnote-label">Footnotes</h2>
+              <ol>
+                <li id="user-content-fn-1">
+                  <p>
+                    A placeholder footnote with the return link that Markdown
+                    footnotes include.
+                    <a
+                      href="#user-content-fnref-1"
+                      data-footnote-backref
+                      aria-label="Back to reference 1"
+                      class="data-footnote-backref"
+                      >↩</a
+                    >
+                  </p>
+                </li>
+              </ol>
+            </section>
+          </div>
 
-        <h3>Patterns</h3>
-        {/* The same boxed ledger the token sheet wears (prose-scoped,
+          <h3>Patterns</h3>
+          {/* The same boxed ledger the token sheet wears (prose-scoped,
             the table lesson of 2026-09-06): live specimens, so the
             patterns follow theme flips and palette applies. The Used
             for column restates each class's documented purpose from
             patterns.css, not invented roles. */}
-        <div class="prose">
-          <section class="table-scroll" tabindex="0" aria-label="Patterns">
-            <table class="demo-pattern-table">
-              <thead>
-                <tr>
-                  <th>Specimen</th>
-                  <th>Class</th>
-                  <th>Used for</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td><span class="chip">Chip</span></td>
-                  <td><code>.chip</code></td>
-                  <td>
-                    Filled label. The read-time chip and the category card's
-                    name.
-                  </td>
-                </tr>
-                <tr>
-                  <td><span class="boxed-label">Boxed label</span></td>
-                  <td><code>.boxed-label</code></td>
-                  <td>
-                    Bordered box, typically straddling a frame rule. The
-                    header's date box and widget titles.
-                  </td>
-                </tr>
-                <tr>
-                  <td>
-                    <button
-                      type="button"
-                      class="icon-box"
-                      aria-label="Placeholder icon button"
-                    >
-                      <Icon name="circle" size={16} strokeWidth={2} />
-                    </button>
-                  </td>
-                  <td><code>.icon-box</code></td>
-                  <td>
-                    Bordered interactive square. Social icons, the search
-                    magnifier, the palette panel's close box.
-                  </td>
-                </tr>
-                <tr>
-                  <td><span class="micro-label">Micro label</span></td>
-                  <td><code>.micro-label</code></td>
-                  <td>
-                    Small bold tracked line. Plate labels and the lightbox's
-                    HOME box.
-                  </td>
-                </tr>
-                <tr>
-                  <td>
-                    <span class="caption">Caption text, quiet and small.</span>
-                  </td>
-                  <td><code>.caption</code></td>
-                  <td>
-                    The quiet line under an image, beside media text, or after a
-                    quote.
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </section>
-        </div>
-      </section>
-    </article>
+          <div class="prose">
+            <section class="table-scroll" tabindex="0" aria-label="Patterns">
+              <table class="demo-pattern-table">
+                <thead>
+                  <tr>
+                    <th>Specimen</th>
+                    <th>Class</th>
+                    <th>Used for</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><span class="chip">Chip</span></td>
+                    <td><code>.chip</code></td>
+                    <td>
+                      Filled label. Used for the read-time chip and the category
+                      card's name.
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><span class="boxed-label">Boxed label</span></td>
+                    <td><code>.boxed-label</code></td>
+                    <td>
+                      Bordered box, usually placed across a frame rule. Used for
+                      the header's date box and widget titles.
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <button
+                        type="button"
+                        class="icon-box"
+                        aria-label="Placeholder icon button"
+                      >
+                        <Icon name="circle" size={16} strokeWidth={2} />
+                      </button>
+                    </td>
+                    <td><code>.icon-box</code></td>
+                    <td>
+                      Bordered square button. Used for social icons, the search
+                      button and the palette panel's close button.
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><span class="micro-label">Micro label</span></td>
+                    <td><code>.micro-label</code></td>
+                    <td>
+                      Small bold text with wide letter spacing. Used for plate
+                      labels and the lightbox's HOME box.
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <span class="caption"
+                        >Caption text, small and muted.</span
+                      >
+                    </td>
+                    <td><code>.caption</code></td>
+                    <td>
+                      The small line under an image, beside media text or after
+                      a quote.
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </section>
+          </div>
+        </section>
+      </article>
+    </main>
   </div>
 </Base>
 
@@ -823,6 +1072,34 @@ const npmPackages = [
     margin: 20px 0;
   }
   .demo-card-grid-narrow { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
+
+  /* The TwoColumn demo: a ruled frame standing in for the page the row
+     would fill. The trailing paragraph and widget margins would only
+     pad the frame's bottom edge, so they come off inside it. */
+  .demo-two-column {
+    border: var(--stroke) solid var(--rule);
+    padding: 20px;
+    margin: 20px 0;
+  }
+
+  .demo-two-column :global(.prose > p:last-child),
+  .demo-two-column :global(.widget) { margin-bottom: 0; }
+
+  /* The derived-excerpt demo: the sample body beside the card it
+     yields, the card column the same third a card takes in the grid
+     above; stacked where the sidebar row stacks. */
+  .demo-excerpt {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(260px, 1fr);
+    align-items: start;
+    gap: 20px;
+    margin: 20px 0;
+  }
+  .demo-excerpt > * { margin: 0; }
+
+  @media (--bp-sidebar) {
+    .demo-excerpt { grid-template-columns: minmax(0, 1fr); }
+  }
 
   .demo-widget-row {
     display: grid;

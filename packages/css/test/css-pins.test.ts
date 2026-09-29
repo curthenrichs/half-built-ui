@@ -50,4 +50,97 @@ describe("css pins", () => {
 
     expect(backstopMatch).not.toBeNull();
   });
+
+  it("the popout sits over scroll-top and under the link tip", () => {
+    const prims = read("../src/tokens/primitives.css");
+
+    const z = (name: string): number =>
+      Number(new RegExp(`--${name}: (\\d+);`).exec(prims)?.[1] ?? NaN);
+
+    expect(z("z-popout")).toBeGreaterThan(z("z-scroll-top"));
+    expect(z("z-popout")).toBeLessThan(z("z-tooltip"));
+  });
+
+  it("popout.css carries both modes, the scroll lock, and the reduced-motion guard", () => {
+    const css = read("../src/popout.css");
+    expect(css).toMatch(/@layer components \{/);
+
+    expect(css).toMatch(
+      /\.popout\.is-anchored \{[^}]*z-index: var\(--z-popout\);/,
+    );
+
+    expect(css).toMatch(/\.popout\.is-sheet \{/);
+    expect(css).toMatch(/\.popout::backdrop \{[^}]*var\(--veil\)/);
+
+    expect(css).toMatch(
+      /html\.popout-open,\s*html\.popout-open body \{\s*overflow: hidden;/,
+    );
+
+    expect(css).toMatch(/@media \(prefers-reduced-motion: reduce\)/);
+  });
+
+  it("the light focus ring is the amber ink, which clears 3:1 on white", () => {
+    expect(read("../src/tokens/theme-light.css")).toMatch(
+      /--focus-ring: var\(--brand-1-700\);/,
+    );
+  });
+
+  it("the light Y track is the teal ink, which clears 3:1 on white", () => {
+    expect(read("../src/tokens/theme-light.css")).toMatch(
+      /--track-y: var\(--brand-2-700\);/,
+    );
+  });
+
+  it("the code comment ink clears 4.5:1 on the code ground", () => {
+    expect(read("../src/tokens/primitives.css")).toMatch(
+      /--umber-500: #8e7e67;/,
+    );
+  });
+
+  it("the z ladder has a panel rung between scroll-top and popout", () => {
+    const prims = read("../src/tokens/primitives.css");
+
+    const z = (name: string): number => {
+      const m = new RegExp(`--${name}: (\\d+);`).exec(prims);
+      if (!m) throw new Error(`--${name} missing`);
+      return Number(m[1]);
+    };
+
+    expect(z("z-panel")).toBeGreaterThan(z("z-scroll-top"));
+    expect(z("z-panel")).toBeLessThan(z("z-popout"));
+  });
+
+  it("retired tokens are gone from every css file", () => {
+    const retired = [
+      "--input-border",
+      "--z-raised",
+      "--font-size-xxxl",
+      "--ink-950",
+      "--ink-850",
+      "--ink-700",
+      "--parchment-dim",
+      "--stroke-1",
+    ];
+
+    const all = [
+      "../src/tokens/primitives.css",
+      "../src/tokens/theme-light.css",
+      "../src/tokens/theme-dark.css",
+    ]
+      .map(read)
+      .join("\n");
+
+    for (const t of retired) expect(all, t).not.toContain(`${t}:`);
+  });
+
+  it("reduced motion turns smooth scrolling off", () => {
+    const reset = read("../src/base/reset.css");
+
+    const block =
+      /@media \(prefers-reduced-motion: reduce\) \{[\s\S]*?\n {2}\}/.exec(
+        reset,
+      );
+
+    expect(block?.[0]).toMatch(/scroll-behavior: auto/);
+  });
 });

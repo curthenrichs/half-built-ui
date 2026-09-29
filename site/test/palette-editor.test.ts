@@ -168,7 +168,7 @@ describe("palette editor", () => {
     const readouts = document.querySelector("[data-palette-readouts]");
 
     expect(readouts?.textContent).toContain(
-      "Accent 1 is too dark to read as text on the dark theme, consider a lighter shade.",
+      "Accent 1 is too dark to read as text on the dark theme. Try a lighter shade.",
     );
   });
 
@@ -288,7 +288,7 @@ describe("palette editor", () => {
     const readouts = document.querySelector("[data-palette-readouts]");
 
     expect(readouts?.textContent).toContain(
-      "Accent 1 is too dark to read as code on the code block, consider a lighter shade.",
+      "Accent 1 is too dark to read in code blocks. Try a lighter shade.",
     );
 
     expect(readouts?.textContent).not.toContain("dark theme");

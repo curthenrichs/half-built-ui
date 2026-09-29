@@ -1,14 +1,15 @@
 /* One preview server and one headless Chrome for a consumer's browser
-   suites. Adapted from half-built-robots-blog's test/browser-server.ts
-   (step 11.3 task 5): that file imported findChrome from a sibling
-   ../scripts/find-chrome.mjs, which existed because the blog keeps a
-   repo-wide scripts/ directory (visual-check.mjs used the same finder).
-   The tooling package has no such directory of its own to point at, so
-   findChrome is inlined below instead of adding a sixth file outside the
-   brief's five; its CHROME_CANDIDATES search order is preserved verbatim.
-   Everything else here is the blog's original: one definition of spawn,
-   wait, launch, and kill, so a consumer's suites do not each carry their
-   own drifted copy. */
+   suites. Adapted from a single-repo test helper (step 11.3 task 5):
+   that helper imported its Chrome finder from a sibling script, which
+   existed because that repo keeps a repo-wide scripts/ directory shared
+   by more than one tool. The tooling package has no such directory of
+   its own to point at, so findChrome is inlined below instead of adding
+   a sixth file outside the brief's five; its CHROME_CANDIDATES search
+   order carried over from that helper, with the macOS paths added
+   afterward for consumers off Windows and Linux CI. Everything else
+   here is the original: one definition of spawn, wait, launch, and
+   kill, so a consumer's suites do not each carry their own drifted
+   copy. */
 import { existsSync } from "node:fs";
 import { spawn, spawnSync, type ChildProcess } from "node:child_process";
 import type { Browser, Page } from "puppeteer-core";
@@ -23,6 +24,9 @@ const CHROME_CANDIDATES = [
   "/usr/bin/google-chrome",
   "/usr/bin/chromium-browser",
   "/usr/bin/chromium",
+  /* macOS */
+  "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+  "/Applications/Chromium.app/Contents/MacOS/Chromium",
 ];
 
 /** Absolute path to a local Chrome; throws naming every path checked. */
@@ -110,7 +114,16 @@ export async function startPreview(
     detached: process.platform !== "win32",
   });
 
-  await waitForServer(`${origin}${readyPath}`, server);
+  try {
+    await waitForServer(`${origin}${readyPath}`, server);
+  } catch (err) {
+    /* A server that is up but wrong (404) or slow past the wait is
+       still running; the caller never receives it to stop, so stop it
+       here or it holds the port for the next run. */
+    stopPreview(server);
+    throw err;
+  }
+
   return server;
 }
 
@@ -135,11 +148,41 @@ export function stopPreview(server: ChildProcess | undefined): void {
 /* CI runners restrict the user namespaces Chrome's sandbox needs; the
    runner is already a throwaway VM. It also has no GPU, so WebGL there
    is SwiftShader on a couple of vCPUs; a canvas- or WebGL-driven
-   consumer should account for that fallback path the way the blog's own
-   fluid player does, or a timeout there usually means the lighter path
-   stopped engaging, not that the assertion is slow. */
+   consumer should account for that fallback path the way a canvas- or
+   WebGL-heavy feature must, or a timeout there usually means the
+   lighter path stopped engaging, not that the assertion is slow. */
 export async function launchChrome(): Promise<Browser> {
-  const puppeteer = await import("puppeteer-core");
+  /* puppeteer-core is neither a dependency nor a declared peer of this
+     package (a declared peer made clean installs fail to resolve): a
+     consumer who runs the browser suites without installing it hits a
+     bare "Cannot find package" from Node, several frames below their
+     own test. Naming the fix here only when puppeteer-core itself is
+     the missing package, which Node quotes in the message; a missing
+     package inside an installed puppeteer-core is quoted by its own
+     name and, like any other failure, rethrows untouched. */
+  let puppeteer: typeof import("puppeteer-core");
+
+  try {
+    puppeteer = await import("puppeteer-core");
+  } catch (err) {
+    const { code, message } = (err ?? {}) as {
+      code?: string;
+      message?: string;
+    };
+
+    if (
+      code !== "ERR_MODULE_NOT_FOUND" ||
+      !(message ?? "").includes("'puppeteer-core'")
+    ) {
+      throw err;
+    }
+
+    throw new Error(
+      "the test kit's browser helpers need puppeteer-core installed by the consumer (tested with 25.x)",
+      { cause: err },
+    );
+  }
+
   return puppeteer.launch({
     executablePath: findChrome(),
     headless: true,
@@ -147,7 +190,7 @@ export async function launchChrome(): Promise<Browser> {
       /* A desktop pointer, stated at launch. Headless Chrome on a CI
          runner with no input devices reports (hover: none) and
          (pointer: none); anything gated on a hover/pointer media query
-         (the blog's link-tip.ts is one example) then correctly declines
+         (a hover-triggered tooltip component is one example) then correctly declines
          to mount, which can pass locally and fail on the runner. CDP's
          Emulation.setEmulatedMedia hover/pointer features are ignored
          by Chrome (probed both directions), so the only lever is

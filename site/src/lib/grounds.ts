@@ -15,4 +15,4 @@ export const CODE_GROUND = "#1b140c";
    contrast.test.ts pins each to the installed package. */
 export const CODE_LINE = "#3b2e1e";
 export const CODE_FG = "#e8d9c3";
-export const CODE_COMMENT = "#8a7a63";
+export const CODE_COMMENT = "#8e7e67";

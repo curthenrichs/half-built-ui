@@ -1,10 +1,13 @@
 # site
 
 The kitchen-sink demo for the half-built design system. It consumes
-only the published `@half-built/css` and `@half-built/astro` package
-specifiers, never a relative import into the sibling packages, so its
-build is the workspace's build gate: if `site` builds, the packages
-work the way an external consumer would use them.
+`@half-built/css`, `@half-built/astro`, and `@half-built/tooling`
+through their package specifiers only, never a relative import into
+the sibling packages, so its build is the workspace's build gate. A
+passing build proves the packages' source and exports the way a
+consumer imports them. It does not prove the packed tarballs: the
+workspace links the package directories, so files missing from a
+package's `files` list would still resolve here.
 
 It is also where a palette override block gets generated. The palette
 editor takes two base colors, derives the rest of the override (the
@@ -42,6 +45,8 @@ That root script is `npm run build --workspace site`.
 - Output directory: `site/dist`
 - Production branch: `main` (auto-deploys)
 - Preview branch: `dev`
-- Ordering: the exact `@half-built/*` pins in `site/package.json`
-  resolve on the registry only after the matching version tag
-  publishes, so the release goes out before the first Pages build.
+- Workspace source: the lockfile links the workspace packages, so
+  Pages builds the site from the packages' source in the same commit,
+  not from the registry. The site's `@half-built/*` pins in
+  `site/package.json` must equal the package version, or the install
+  stops linking the workspace copies.

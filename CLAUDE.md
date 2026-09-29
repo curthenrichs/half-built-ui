@@ -38,15 +38,20 @@ the extraction review in the blog repo
   (activate per clone: `git config core.hooksPath .githooks`; escape:
   `ALLOW_MAIN_PUSH=1`).
 - Releases: merge to main, bump the fixed version across all three
-  packages, tag `vX.Y.Z`, push the tag. `release.yml` runs the gates
-  and publishes via npm trusted publishing (OIDC, no tokens,
-  provenance automatic). No changesets, no version bots, no
-  Dependabot; consumers bump their exact pins by hand.
+  packages, tag `vX.Y.Z`, push the tag. `release.yml` calls `ci.yml`
+  (the full gates, browser suite included), verifies the tag equals
+  the version and the commit is on main, then publishes via npm
+  trusted publishing (OIDC, no tokens, provenance automatic); a rerun
+  skips versions already on npm from the same commit. No changesets,
+  no version bots, no Dependabot; consumers bump their exact pins by
+  hand.
 - Consumers never patch `node_modules`: a defect found downstream is
   fixed here, released as a patch, and the consumer bumps its pin.
 - CI (`ci.yml`) runs tests, `npm run lint` (eslint, stylelint, and the
-  Prettier check, all from the tooling presets), and the site build on
-  branch pushes; tag pushes fire only `release.yml`.
+  Prettier check, all from the tooling presets), the site build, and
+  then the type gate (`tsc --noEmit` over every project, `astro
+  check` on the site) on branch pushes (no `pull_request` trigger);
+  a tag push fires only `release.yml`, which calls CI itself.
 
 ## House style
 

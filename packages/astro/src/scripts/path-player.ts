@@ -6,6 +6,7 @@
    2026-08-22); flip SCRUB to re-enable. */
 import { buildPlateModal } from "./plate-modal";
 import { createFrameLoop } from "./core/frame-loop";
+import { BP_PHONE_MAX } from "./core/breakpoints";
 import { ICON_PLAY, ICON_PAUSE, ICON_ROTATE_CCW } from "./core/icons";
 import { playheadX, formatReadout, columnIndex } from "./path-player-math";
 import {
@@ -21,8 +22,8 @@ import {
    which no-inferrable-types rejects on a literal) so flipping this to
    re-enable scrubbing is a one-line change: a literal type here would
    make the `if (SCRUB)` below statically always-false and trip the
-   no-unnecessary-condition lint rule. Same widening idea as
-   src/scripts/henry-loose.ts's matchMedia guard. */
+   no-unnecessary-condition lint rule. Same widening idea as this
+   file's own matchMedia guard below. */
 const SCRUB = false as boolean;
 const AXIS_H = 14;
 const TRACK_GAP = 5;
@@ -161,6 +162,8 @@ export function createPathPlayer<S>(
   restartBtn.className = "pp-restart icon-box press-box";
   restartBtn.setAttribute("aria-label", restart);
   restartBtn.innerHTML = ICON_ROTATE_CCW;
+  playBtn.innerHTML = ICON_PLAY;
+  playBtn.setAttribute("aria-pressed", "false");
 
   if (!stageReady) {
     playBtn.disabled = true;
@@ -192,10 +195,10 @@ export function createPathPlayer<S>(
   captionToggle.textContent = about;
   captionToggle.setAttribute("aria-controls", caption.id);
 
-  /* Same widening as henry-loose.ts: jsdom has no matchMedia, and a
-     bare typeof check reads as always-true to the lint. The query list
-     type is widened too so a test stub without addEventListener is
-     still valid. */
+  /* Same widening as the package's other matchMedia guards: jsdom has
+     no matchMedia, and a bare typeof check reads as always-true to the
+     lint. The query list type is widened too so a test stub without
+     addEventListener is still valid. */
   interface PhoneQuery {
     matches: boolean;
     addEventListener?: (
@@ -211,7 +214,7 @@ export function createPathPlayer<S>(
 
     if (!mediaQuery) return null;
 
-    return mediaQuery.call(globalThis, "(max-width: 768px)");
+    return mediaQuery.call(globalThis, `(max-width: ${BP_PHONE_MAX}px)`);
   };
 
   const phone = (): boolean => phoneQuery()?.matches ?? false;
@@ -304,6 +307,15 @@ export function createPathPlayer<S>(
     tracksCanvas.height = Math.floor(timelineHeight * scale);
     staticTracks = paintStatic(w, scale);
   }
+
+  /* The timeline canvas is CSS-width-driven, and its offscreen static
+     layer is baked at a fixed pixel width; a viewport resize while the
+     modal is open leaves it stale until the next close/open round trip
+     unless it re-lays here. */
+  const onResize = (): void => {
+    layoutTracks();
+    drawFrame();
+  };
 
   function drawFrame(): void {
     const ctx = tracksCanvas.getContext("2d");
@@ -404,6 +416,7 @@ export function createPathPlayer<S>(
     setPlaying(false);
     loop.stop();
     config.sink.pause?.();
+    win.removeEventListener("resize", onResize);
   });
 
   if (SCRUB) {
@@ -416,13 +429,14 @@ export function createPathPlayer<S>(
       pm.open(opener);
       setCaptionShown(!phone());
       layoutTracks();
+      win.addEventListener("resize", onResize);
       readout.textContent = formatReadout(state.t, config.duration);
       config.sink.resume?.();
 
       /* Reduced motion: open paused; the transport still plays on demand.
-         jsdom has no matchMedia, hence the widened type (same guard as
-         henry-loose.ts). Kept separate from the frame loop's `win`,
-         which is cast non-null: this one must stay optional so a
+         jsdom has no matchMedia, hence the widened type (same guard used
+         elsewhere in this file). Kept separate from the frame loop's
+         `win`, which is cast non-null: this one must stay optional so a
          matchMedia-less jsdom does not throw. */
       const mmWin = doc.defaultView as {
         matchMedia?: typeof window.matchMedia;

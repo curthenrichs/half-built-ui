@@ -7,6 +7,7 @@ import {
   zoomAt,
   readout,
   outOfWhack,
+  wheelZoomFactor,
   MIN_NATIVE_ZOOM,
   MAX_NATIVE_ZOOM,
 } from "../src/scripts/lightbox";
@@ -132,6 +133,44 @@ describe("outOfWhack", () => {
   it("is false for a modest nudge", () => {
     expect(outOfWhack({ zoom: 0.5, x: 200, y: 0 }, 1600, 1200, 800, 600)).toBe(
       false,
+    );
+  });
+});
+
+describe("wheelZoomFactor", () => {
+  it("a sideways swipe does not zoom", () => {
+    expect(wheelZoomFactor(0, 0, 800)).toBe(1);
+  });
+
+  it("scrolling up zooms in and down zooms out, symmetrically", () => {
+    const up = wheelZoomFactor(-100, 0, 800);
+    const down = wheelZoomFactor(100, 0, 800);
+    expect(up).toBeGreaterThan(1);
+    expect(up * down).toBeCloseTo(1, 10);
+  });
+
+  it("one mouse notch is close to the old 1.2x step", () => {
+    expect(wheelZoomFactor(-100, 0, 800)).toBeGreaterThan(1.15);
+    expect(wheelZoomFactor(-100, 0, 800)).toBeLessThan(1.25);
+  });
+
+  it("forty small trackpad events add up to about one notch each 100px, not a jump to the clamp", () => {
+    let f = 1;
+    for (let i = 0; i < 40; i++) f *= wheelZoomFactor(-2.5, 0, 800);
+    expect(f).toBeCloseTo(wheelZoomFactor(-100, 0, 800), 5);
+  });
+
+  it("line mode (Firefox) scales lines to pixels", () => {
+    expect(wheelZoomFactor(-3, 1, 800)).toBeCloseTo(
+      wheelZoomFactor(-48, 0, 800),
+      10,
+    );
+  });
+
+  it("page mode scales by the page height", () => {
+    expect(wheelZoomFactor(-1, 2, 800)).toBeCloseTo(
+      wheelZoomFactor(-800, 0, 800),
+      10,
     );
   });
 });

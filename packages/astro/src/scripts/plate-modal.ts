@@ -1,8 +1,8 @@
-/* Shared plate-window chrome (spec
-   docs/superpowers/specs/2026-08-22-fluid-path-player-design.md):
-   dialog + veil, corner-stroked zone, ink plate, boxed labels, close.
-   Consumers: the image lightbox (legacyPrefix "lb" keeps its old class
-   names alive) and the path player. */
+/* Shared plate-window chrome, built for the fluid path player and
+   generalized for shared use: dialog + veil, corner-stroked zone, ink
+   plate, boxed labels, close. Consumers: the image lightbox
+   (legacyPrefix "lb" keeps its old class names alive) and the path
+   player. */
 
 import { ICON_X } from "./core/icons";
 
@@ -86,8 +86,19 @@ export function buildPlateModal(
      button's innerHTML detaches the click's target mid-bubble, and a
      detached node is contained by nothing, which read as a veil click
      and closed the dialog under the pause button (found 2026-08-23). */
+  /* A click targets the nearest common ancestor of press and release,
+     so a drag from inside the plate that ends on the veil arrives here
+     targeted at the dialog. Only a press that also began on the veil
+     closes. */
+  let pressOnVeil = false;
+
+  dialog.addEventListener("pointerdown", (ev) => {
+    pressOnVeil = ev.target === dialog;
+  });
+
   dialog.addEventListener("click", (ev) => {
-    if (ev.target === dialog) dialog.close();
+    if (ev.target === dialog && pressOnVeil) dialog.close();
+    pressOnVeil = false;
   });
 
   const addLabel = (

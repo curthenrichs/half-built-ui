@@ -5,13 +5,15 @@ import "@half-built/css";
 import "@half-built/css/patterns.css";
 import "@half-built/css/code.css";
 import "@half-built/css/plate-modal.css";
+import "@half-built/css/path-player.css";
 import "@half-built/css/lightbox.css";
+import "@half-built/css/popout.css";
 import "@half-built/css/prose.css";
 import "../styles/site.css";
 import Shell from "@half-built/astro/components/Shell.astro";
 import Masthead from "@half-built/astro/components/Masthead.astro";
 import Footer from "@half-built/astro/components/Footer.astro";
-import { formatHeaderDate } from "@half-built/astro/lib/header-date";
+import { formatHeaderDate } from "@half-built/astro/lib/header-date.ts";
 import {
   SITE_NAME,
   TAGLINE,
@@ -28,11 +30,13 @@ import { PALETTE_STORAGE_KEY } from "../lib/palette-key";
 interface Props {
   title?: string;
   description?: string;
+  noindex?: boolean;
 }
 
 const {
   title = "half-built-ui",
   description = "The reference site for the @half-built packages, every component's variants rendered on one page.",
+  noindex = false,
 } = Astro.props;
 ---
 
@@ -40,6 +44,7 @@ const {
   <Fragment slot="head">
     <title>{title}</title>
     <meta name="description" content={description} />
+    {noindex && <meta name="robots" content="noindex" />}
     {/* First-paint palette, the same shape as Shell's theme stamp just
         above this slot (owner report 2026-09-13: a cold load over a
         slow network showed the shipped amber until the bundle arrived,
@@ -112,7 +117,6 @@ const {
     nav={NAV}
     socials={SOCIALS}
     dateStr={formatHeaderDate(new Date())}
-    isHome={true}
   />
   {/* The palette editor and TOC merged into Rail.astro (owner call
       2026-09-06), rendered by the page inside .site-layout's column
@@ -127,16 +131,18 @@ const {
   />
   <Fragment slot="scripts">
     <script>
-      import { mountCodeIslands } from "@half-built/astro/scripts/code-island";
-      import { mountLightbox } from "@half-built/astro/scripts/lightbox";
-      import { mountLinkTips } from "@half-built/astro/scripts/link-tip";
-      import { mountThemeToggle } from "@half-built/astro/scripts/theme-toggle";
-      import { mountFocusMode } from "@half-built/astro/scripts/focus-mode";
-      import { mountScrollTop } from "@half-built/astro/scripts/scroll-top";
-      import { mountEcosystem } from "@half-built/astro/scripts/ecosystem";
+      import { mountCodeIslands } from "@half-built/astro/scripts/code-island.ts";
+      import { mountLightbox } from "@half-built/astro/scripts/lightbox.ts";
+      import { mountPopouts } from "@half-built/astro/scripts/popout.ts";
+      import { mountLinkTips } from "@half-built/astro/scripts/link-tip.ts";
+      import { mountThemeToggle } from "@half-built/astro/scripts/theme-toggle.ts";
+      import { mountFocusMode } from "@half-built/astro/scripts/focus-mode.ts";
+      import { mountScrollTop } from "@half-built/astro/scripts/scroll-top.ts";
+      import { mountEcosystem } from "@half-built/astro/scripts/ecosystem.ts";
       import { mountToc } from "../scripts/toc";
       import { mountPaletteEditor } from "../scripts/palette-editor";
       import { mountTokenHexes } from "../scripts/token-hexes";
+      import { mountPathDemo } from "../scripts/path-demo";
       import { THEME_STORAGE_KEY } from "../lib/theme-key";
       import { PALETTE_STORAGE_KEY } from "../lib/palette-key";
       import { ECOSYSTEM_SELF_KEY, ECOSYSTEM_ENDPOINT } from "../lib/ecosystem-config";
@@ -147,9 +153,11 @@ const {
       mountScrollTop(document);
       mountCodeIslands(document);
       mountLightbox(document);
+      mountPopouts(document);
       mountToc(document);
       mountPaletteEditor(document, { storageKey: PALETTE_STORAGE_KEY });
       mountTokenHexes(document);
+      mountPathDemo(document);
       /* Guarded, so a site with no endpoint configured makes no
          request at all. Bundlers drop the island entirely while the
          constant is null. */

@@ -16,7 +16,8 @@
    live) instead of the monorepo root. */
 import { describe, it, expect, beforeAll, afterAll, afterEach } from "vitest";
 import type { ChildProcess } from "node:child_process";
-import type { Browser, Page } from "puppeteer-core";
+import { readFileSync } from "node:fs";
+import type { Browser, HTTPRequest, Page } from "puppeteer-core";
 import { AxePuppeteer } from "@axe-core/puppeteer";
 import type { RunOptions } from "axe-core";
 import {
@@ -104,10 +105,89 @@ describe.skipIf(!enabled)("browser suite", () => {
     page = undefined;
   });
 
+  type EcosystemMode = "fixture" | "abort";
+
+  const ECOSYSTEM_FIXTURE = readFileSync(
+    new URL("./fixtures/ecosystem.json", import.meta.url),
+    "utf-8",
+  );
+
+  /* Aborted ecosystem requests on the current page, for the fallback
+     test to wait out the island's retries by count, not by clock. */
+  let ecosystemAborts = 0;
+  let onEcosystemAbort: (() => void) | undefined;
+
+  /* Resolves once the page has aborted n ecosystem requests; the timer
+     only bounds a hang, it is not a wait for time to pass. */
+  function ecosystemAborted(n: number): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const timer = setTimeout(() => {
+        onEcosystemAbort = undefined;
+
+        reject(
+          new Error(
+            `only ${String(ecosystemAborts)} of ${String(n)} ecosystem requests arrived`,
+          ),
+        );
+      }, 10_000);
+
+      const check = (): void => {
+        if (ecosystemAborts < n) return;
+        clearTimeout(timer);
+        onEcosystemAbort = undefined;
+        resolve();
+      };
+
+      onEcosystemAbort = check;
+      check();
+    });
+  }
+
+  /* One handler per page: two handlers on one request throw "already
+     handled", so a test picks the mode through open() rather than
+     adding its own. A test that needs to intercept something else on
+     the same page (the cold-load palette test blocks /_astro/
+     scripts) passes `extra`: it runs for every non-ecosystem request
+     and returns true once it has itself aborted or responded, so this
+     handler's own `req.continue()` is skipped rather than double-
+     handling the request. */
+  async function routeEcosystem(
+    p: Page,
+    mode: EcosystemMode,
+    extra?: (req: HTTPRequest) => boolean,
+  ): Promise<void> {
+    ecosystemAborts = 0;
+    await p.setRequestInterception(true);
+
+    p.on("request", (req) => {
+      if (!req.url().includes("ecosystem.json")) {
+        if (extra?.(req)) return;
+        void req.continue();
+        return;
+      }
+
+      if (mode === "abort") {
+        ecosystemAborts++;
+        onEcosystemAbort?.();
+        void req.abort();
+        return;
+      }
+
+      void req.respond({
+        status: 200,
+        contentType: "application/json",
+        headers: { "access-control-allow-origin": "*" },
+        body: ECOSYSTEM_FIXTURE,
+      });
+    });
+  }
+
   /* networkidle0, not domcontentloaded: the toc, theme toggle, and
      palette editor all mount from a module script with no DOM marker
      to wait on. */
-  async function open(): Promise<Page> {
+  async function open(
+    options: { ecosystem?: EcosystemMode } = {},
+  ): Promise<Page> {
     if (!browser) throw new Error("no browser (beforeAll failed)");
     const p = await desktopPage(browser);
     page = p;
@@ -124,6 +204,7 @@ describe.skipIf(!enabled)("browser suite", () => {
       }
     });
 
+    await routeEcosystem(p, options.ecosystem ?? "fixture");
     await p.goto(`${ORIGIN}/`, { waitUntil: "networkidle0" });
 
     /* Colors must be settled when axe reads them: a theme flip mid
@@ -134,6 +215,60 @@ describe.skipIf(!enabled)("browser suite", () => {
     });
 
     return p;
+  }
+
+  /* A phone-width page with the popout demo's first trigger centered.
+     Animations are off for the same settled-paint reason as open(): the
+     sheet's entrance (popout-rise, popout.css) slides up from
+     translateY(100%) over 150ms, and an unforced read lands
+     mid-animation. */
+  async function openPhone(
+    options: { ecosystem?: EcosystemMode } = {},
+  ): Promise<Page> {
+    if (!browser) throw new Error("no browser (beforeAll failed)");
+    const p = await phonePage(browser);
+    page = p;
+
+    /* Same isolation as open(): no test inherits another's persisted
+       palette or theme. */
+    await p.evaluateOnNewDocument(() => {
+      try {
+        localStorage.clear();
+      } catch {
+        /* storage unavailable; nothing persisted to clear */
+      }
+    });
+
+    await routeEcosystem(p, options.ecosystem ?? "fixture");
+    await p.goto(`${ORIGIN}/`, { waitUntil: "networkidle0" });
+
+    await p.addStyleTag({
+      content:
+        "*, *::before, *::after { transition: none !important; animation: none !important; }",
+    });
+
+    await p.$eval("#demo-popout-1", (t) => {
+      t.scrollIntoView({ block: "center", behavior: "instant" });
+    });
+
+    return p;
+  }
+
+  async function settleFrames(p: Page): Promise<void> {
+    await p.evaluate(
+      () =>
+        new Promise((resolve) => {
+          requestAnimationFrame(() => requestAnimationFrame(resolve));
+        }),
+    );
+  }
+
+  async function popoutOpen(p: Page): Promise<boolean> {
+    return p.$eval("dialog.popout", (s) => s.open);
+  }
+
+  async function activeId(p: Page): Promise<string> {
+    return p.evaluate(() => document.activeElement?.id ?? "");
   }
 
   it("has no WCAG 2.1 AA violations in the light theme", async () => {
@@ -333,6 +468,658 @@ describe.skipIf(!enabled)("browser suite", () => {
     expect(html).not.toContain("This fallback never renders");
   }, 30_000);
 
+  it("a popout opens below its trigger, outside the table scroller, and follows it", async () => {
+    const p = await open();
+    /* Row two, not row one: an anchored popout covering the next row's
+       own trigger is accepted desktop popover behavior (you press
+       outside or Esc, then open the next), so opening row one first
+       would leave row two unreachable by a real click. Row two has
+       nothing below it in this three-row demo to cover. */
+    await p.click("#demo-popout-2");
+
+    const first = await p.evaluate(() => {
+      const s = document.querySelector("dialog.popout");
+      const t = document.getElementById("demo-popout-2");
+      if (!(s instanceof HTMLDialogElement) || !t) throw new Error("missing");
+      const sr = s.getBoundingClientRect();
+      const tr = t.getBoundingClientRect();
+
+      return {
+        open: s.open,
+        anchored: s.classList.contains("is-anchored"),
+        parentIsBody: s.parentElement === document.body,
+        gap: sr.top - tr.bottom,
+        width: sr.width,
+        label: s.querySelector(".popout-label")?.textContent ?? "",
+      };
+    });
+
+    expect(first.open).toBe(true);
+    expect(first.anchored).toBe(true);
+    expect(first.parentIsBody).toBe(true);
+    expect(first.gap).toBeGreaterThan(0);
+    expect(first.width).toBeGreaterThan(40);
+    expect(first.label).toBe("Row two");
+
+    /* Scroll the page; after a frame the box keeps the same gap.
+       behavior: "instant" overrides the site's global smooth scroll
+       (packages/css/src/base/reset.css), which otherwise spreads a
+       scrollBy over several frames and leaves the trigger and the
+       still-catching-up surface briefly a few px apart: a real effect
+       of a site-wide reset the brief's plain scrollBy(0, 40) did not
+       anticipate, not a placement defect (verified: the same click and
+       read comes back diff 0 with an instant scroll, and a repeatable
+       diff 4 with the default smooth one). */
+    const gapAfter = await p.evaluate(async () => {
+      window.scrollBy({ top: 40, behavior: "instant" });
+
+      await new Promise((resolve) => {
+        requestAnimationFrame(() => requestAnimationFrame(resolve));
+      });
+
+      const s = document.querySelector("dialog.popout");
+      const t = document.getElementById("demo-popout-2");
+      if (!s || !t) throw new Error("missing");
+      return s.getBoundingClientRect().top - t.getBoundingClientRect().bottom;
+    });
+
+    expect(Math.abs(gapAfter - first.gap)).toBeLessThanOrEqual(1);
+
+    /* The trigger in the row above swaps content and stays open past
+       the queued close event of the first, even though it sits under
+       where row two's popout was open a moment ago. */
+    await p.click("#demo-popout-1");
+
+    await p.waitForFunction(
+      (label) => {
+        const s = document.querySelector("dialog.popout");
+        return (
+          s instanceof HTMLDialogElement &&
+          s.open &&
+          s.querySelector(".popout-label")?.textContent === label
+        );
+      },
+      {},
+      "Row one",
+    );
+
+    const second = await p.$eval("dialog.popout", (s) => ({
+      open: s.open,
+      label: s.querySelector(".popout-label")?.textContent ?? "",
+      hasLink: s.querySelector(".popout-body a") !== null,
+    }));
+
+    expect(second).toEqual({ open: true, label: "Row one", hasLink: true });
+  });
+
+  it("the Popout subsection ships a worked example matching the demo", async () => {
+    const p = await open();
+
+    const text = await p.$eval(
+      ".demo-popout-sample",
+      (el) => el.textContent || "",
+    );
+
+    expect(text).toContain("<Popout");
+    expect(text).toContain("mountPopouts");
+    expect(text).toContain("components/Popout.astro");
+  });
+
+  it("a popout inside a horizontally scrolled table follows the scroller, unclipped", async () => {
+    const p = await open();
+
+    /* The demo table is not wide enough to overflow .table-scroll on
+       its own; widen it only for this test (never the shipped demo
+       markup or CSS) so the scroller actually has somewhere to scroll
+       to. */
+    await p.evaluate(() => {
+      const table = document.getElementById("demo-popout-1")?.closest("table");
+      if (!(table instanceof HTMLElement)) throw new Error("missing table");
+      table.style.minWidth = "2000px";
+    });
+
+    await p.click("#demo-popout-1");
+
+    const before = await p.evaluate(() => {
+      const s = document.querySelector("dialog.popout");
+      const t = document.getElementById("demo-popout-1");
+      const scroller = t?.closest(".table-scroll");
+
+      if (!(s instanceof HTMLDialogElement) || !t || !scroller) {
+        throw new Error("missing");
+      }
+
+      return {
+        open: s.open,
+        parentIsBody: s.parentElement === document.body,
+        left: s.getBoundingClientRect().left,
+        width: s.getBoundingClientRect().width,
+        triggerLeft: t.getBoundingClientRect().left,
+        scrollLeftBefore: (scroller as HTMLElement).scrollLeft,
+      };
+    });
+
+    expect(before.open).toBe(true);
+    /* Not a descendant of the scroller, so nothing about it clips: the
+       surface sits on <body>, and its full width renders regardless of
+       the scroller's own overflow-x box. */
+    expect(before.parentIsBody).toBe(true);
+    expect(before.width).toBeGreaterThan(40);
+
+    /* Scroll the inner .table-scroll box, not the window: a capturing
+       document listener sees this even though the scroll event does
+       not bubble from the inner scroller. */
+    const after = await p.evaluate(async () => {
+      const t = document.getElementById("demo-popout-1");
+      const scroller = t?.closest(".table-scroll");
+      if (!t || !(scroller instanceof HTMLElement)) throw new Error("missing");
+      scroller.scrollBy({ left: 150, behavior: "instant" });
+
+      await new Promise((resolve) => {
+        requestAnimationFrame(() => requestAnimationFrame(resolve));
+      });
+
+      const s = document.querySelector("dialog.popout");
+      if (!(s instanceof HTMLDialogElement)) throw new Error("missing");
+
+      return {
+        open: s.open,
+        left: s.getBoundingClientRect().left,
+        width: s.getBoundingClientRect().width,
+        triggerLeft: t.getBoundingClientRect().left,
+        scrollLeftAfter: scroller.scrollLeft,
+      };
+    });
+
+    expect(after.open).toBe(true);
+    expect(after.scrollLeftAfter).toBeGreaterThan(before.scrollLeftBefore);
+    /* Still full width after the scroller moved: the box was never cut
+       down to whatever sliver of it the scroller's own box still
+       overlaps. */
+    expect(after.width).toBeGreaterThan(40);
+
+    const triggerDelta = before.triggerLeft - after.triggerLeft;
+    const surfaceDelta = before.left - after.left;
+    expect(triggerDelta).toBeGreaterThan(0);
+    expect(Math.abs(surfaceDelta - triggerDelta)).toBeLessThanOrEqual(1);
+  });
+
+  it("at phone width a popout is a modal sheet and the backdrop closes it", async () => {
+    const p = await openPhone();
+    await p.click("#demo-popout-1");
+
+    const state = await p.evaluate(() => {
+      const s = document.querySelector("dialog.popout");
+      if (!(s instanceof HTMLDialogElement)) throw new Error("missing");
+      const r = s.getBoundingClientRect();
+
+      return {
+        modal: s.matches(":modal"),
+        sheet: s.classList.contains("is-sheet"),
+        locked: document.documentElement.classList.contains("popout-open"),
+        bottomGap: Math.round(window.innerHeight - r.bottom),
+        fullWidth: Math.round(r.width) === document.documentElement.clientWidth,
+      };
+    });
+
+    expect(state).toEqual({
+      modal: true,
+      sheet: true,
+      locked: true,
+      bottomGap: 0,
+      fullWidth: true,
+    });
+
+    /* A tap near the top of the viewport lands on the backdrop. */
+    await p.mouse.click(20, 20);
+
+    await p.waitForFunction(
+      () => !document.querySelector<HTMLDialogElement>("dialog.popout")?.open,
+    );
+
+    const after = await p.evaluate(() => {
+      const s = document.querySelector("dialog.popout");
+      if (!(s instanceof HTMLDialogElement)) throw new Error("missing");
+
+      return {
+        open: s.open,
+        locked: document.documentElement.classList.contains("popout-open"),
+      };
+    });
+
+    expect(after).toEqual({ open: false, locked: false });
+  });
+
+  it("near the viewport bottom a popout flips above its trigger", async () => {
+    const p = await open();
+
+    await p.evaluate(() => {
+      const t = document.getElementById("demo-popout-2");
+      if (!t) throw new Error("missing");
+      const r = t.getBoundingClientRect();
+
+      window.scrollBy({
+        top: r.bottom - (window.innerHeight - 24),
+        behavior: "instant",
+      });
+    });
+
+    await p.click("#demo-popout-2");
+
+    const r = await p.evaluate(() => {
+      const s = document.querySelector("dialog.popout");
+      const t = document.getElementById("demo-popout-2");
+      if (!(s instanceof HTMLDialogElement) || !t) throw new Error("missing");
+
+      return {
+        open: s.open,
+        boxBottom: s.getBoundingClientRect().bottom,
+        triggerTop: t.getBoundingClientRect().top,
+        triggerBottom: t.getBoundingClientRect().bottom,
+        vh: window.innerHeight,
+      };
+    });
+
+    expect(r.open).toBe(true);
+    /* The setup held: no room for the box below the trigger. */
+    expect(r.triggerBottom).toBeGreaterThan(r.vh - 60);
+    expect(r.boxBottom).toBeLessThanOrEqual(r.triggerTop);
+  });
+
+  it("near the right edge a popout clamps inside the viewport", async () => {
+    const p = await open();
+
+    /* Pinned to the right edge in-test only (never the shipped demo
+       markup or CSS): the demo table sits at the left of the column. */
+    await p.$eval("#demo-popout-2", (t) => {
+      t.scrollIntoView({ block: "center", behavior: "instant" });
+      const top = t.getBoundingClientRect().top;
+      const b = t as HTMLElement;
+      b.style.position = "fixed";
+      b.style.right = "4px";
+      b.style.top = `${String(top)}px`;
+    });
+
+    await p.click("#demo-popout-2");
+
+    const r = await p.evaluate(() => {
+      const s = document.querySelector("dialog.popout");
+      const t = document.getElementById("demo-popout-2");
+      if (!(s instanceof HTMLDialogElement) || !t) throw new Error("missing");
+      const sr = s.getBoundingClientRect();
+
+      return {
+        open: s.open,
+        left: sr.left,
+        right: sr.right,
+        triggerLeft: t.getBoundingClientRect().left,
+        vw: window.innerWidth,
+      };
+    });
+
+    expect(r.open).toBe(true);
+    /* Left-aligned to the trigger it would have run off screen. */
+    expect(r.left).toBeLessThan(r.triggerLeft);
+    expect(r.left).toBeGreaterThanOrEqual(0);
+    expect(r.right).toBeLessThanOrEqual(r.vw - 30);
+  });
+
+  it("an anchored open, by click or by Enter, leaves the page scroll alone", async () => {
+    const p = await open();
+
+    await p.$eval("#demo-popout-1", (t) => {
+      t.scrollIntoView({ block: "center", behavior: "instant" });
+    });
+
+    const before = await p.evaluate(() => window.scrollY);
+    await p.click("#demo-popout-1");
+    await settleFrames(p);
+    expect(await popoutOpen(p)).toBe(true);
+    expect(await p.evaluate(() => window.scrollY)).toBe(before);
+
+    await p.keyboard.press("Escape");
+    expect(await popoutOpen(p)).toBe(false);
+    await p.keyboard.press("Enter");
+    await settleFrames(p);
+    expect(await popoutOpen(p)).toBe(true);
+    expect(await p.evaluate(() => window.scrollY)).toBe(before);
+  });
+
+  it("the keyboard opens the popout, reaches its link, and leaves it", async () => {
+    const p = await open();
+
+    await p.$eval("#demo-popout-1", (t) => {
+      t.scrollIntoView({ block: "center", behavior: "instant" });
+      (t as HTMLElement).focus();
+    });
+
+    await p.keyboard.press("Enter");
+    expect(await popoutOpen(p)).toBe(true);
+
+    let reached = false;
+
+    for (let i = 0; i < 4 && !reached; i++) {
+      await p.keyboard.press("Tab");
+
+      reached = await p.evaluate(
+        () =>
+          document.activeElement?.matches("dialog.popout .popout-body a") ??
+          false,
+      );
+    }
+
+    expect(reached).toBe(true);
+
+    await p.keyboard.press("Escape");
+    expect(await popoutOpen(p)).toBe(false);
+    expect(await activeId(p)).toBe("demo-popout-1");
+
+    /* Shift+Tab off the box's first stop hands focus back to the
+       trigger; Tab off its last stop moves on past the trigger. */
+    await p.keyboard.press("Enter");
+    expect(await popoutOpen(p)).toBe(true);
+    await p.keyboard.down("Shift");
+    await p.keyboard.press("Tab");
+    await p.keyboard.up("Shift");
+    await settleFrames(p);
+    expect(await popoutOpen(p)).toBe(false);
+    expect(await activeId(p)).toBe("demo-popout-1");
+
+    await p.keyboard.press("Enter");
+    expect(await popoutOpen(p)).toBe(true);
+
+    for (let i = 0; i < 6 && (await popoutOpen(p)); i++) {
+      await p.keyboard.press("Tab");
+      await settleFrames(p);
+    }
+
+    expect(await popoutOpen(p)).toBe(false);
+
+    const landed = await p.evaluate(() => {
+      const t = document.getElementById("demo-popout-1");
+      const a = document.activeElement;
+      return Boolean(
+        t &&
+        a &&
+        a !== document.body &&
+        t.compareDocumentPosition(a) & Node.DOCUMENT_POSITION_FOLLOWING &&
+        !a.closest("footer"),
+      );
+    });
+
+    expect(landed).toBe(true);
+  });
+
+  it("the sheet locks page scroll and hands it back where it was", async () => {
+    const p = await openPhone();
+    const before = await p.evaluate(() => window.scrollY);
+    await p.click("#demo-popout-1");
+    expect(await popoutOpen(p)).toBe(true);
+    expect(await p.evaluate(() => window.scrollY)).toBe(before);
+
+    /* A wheel over the backdrop would chain to the page if the lock
+       did not hold. */
+    await p.mouse.move(20, 20);
+    await p.mouse.wheel({ deltaY: 400 });
+    await settleFrames(p);
+    expect(await popoutOpen(p)).toBe(true);
+    expect(await p.evaluate(() => window.scrollY)).toBe(before);
+
+    await p.keyboard.press("Escape");
+    await settleFrames(p);
+    expect(await popoutOpen(p)).toBe(false);
+    expect(await p.evaluate(() => window.scrollY)).toBe(before);
+
+    /* The same wheel scrolls the page once the sheet is gone, so the
+       held scroll above was the lock and not a dead gesture. */
+    await p.mouse.wheel({ deltaY: 400 });
+    await p.waitForFunction((y) => window.scrollY > y, {}, before);
+    expect(await p.evaluate(() => window.scrollY)).toBeGreaterThan(before);
+  });
+
+  it("has no WCAG 2.1 AA violations with the sheet open at phone width", async () => {
+    const p = await openPhone();
+    await p.click("#demo-popout-1");
+    expect(await popoutOpen(p)).toBe(true);
+    const violations = await runAxe(p);
+
+    expect(violations, report("phone, sheet open", violations)).toEqual([]);
+  }, 60_000);
+
+  it("has no WCAG 2.1 AA violations with a popout open, in both themes", async () => {
+    for (const theme of ["light", "dark"] as const) {
+      const p = await open();
+
+      await p.evaluate(async (t) => {
+        if (t === "dark") document.documentElement.dataset.theme = "dark";
+        else delete document.documentElement.dataset.theme;
+
+        await new Promise((resolve) => {
+          requestAnimationFrame(resolve);
+        });
+      }, theme);
+
+      await p.click("#demo-popout-1");
+      const violations = await runAxe(p);
+
+      expect(violations, report(`${theme}, popout open`, violations)).toEqual(
+        [],
+      );
+
+      await p.close();
+      page = undefined;
+    }
+  }, 120_000);
+
+  it("the PostLink demo's resolved link lands on a real page", async () => {
+    const p = await open();
+
+    const href = await p.$eval(
+      "#components a[href$='/sample-published/']",
+      (a) => a.getAttribute("href"),
+    );
+
+    const res = await p.goto(`${ORIGIN}${href ?? ""}`, {
+      waitUntil: "networkidle0",
+    });
+
+    expect(res?.status()).toBe(200);
+    expect(await p.$eval("h1", (h) => h.textContent)).toMatch(/sample post/i);
+
+    for (const theme of ["light", "dark"] as const) {
+      await p.evaluate((t) => {
+        if (t === "dark") document.documentElement.dataset.theme = "dark";
+        else delete document.documentElement.dataset.theme;
+      }, theme);
+
+      await settleFrames(p);
+      const violations = await runAxe(p);
+
+      expect(violations, report(`${theme}, sample post`, violations)).toEqual(
+        [],
+      );
+    }
+  }, 60_000);
+
+  it("the type scale specimen shows every size stop", async () => {
+    const p = await open();
+
+    const names = await p.$$eval(".type-scale [data-size]", (els) =>
+      els.map((e) => e.getAttribute("data-size")),
+    );
+
+    expect(names).toEqual(["xs", "sm", "base", "md", "lg", "xl", "xxl"]);
+
+    const sizes = await p.$$eval(".type-scale [data-size]", (els) =>
+      els.map((e) => parseFloat(getComputedStyle(e).fontSize)),
+    );
+
+    for (let i = 1; i < sizes.length; i++) {
+      expect(sizes[i]).toBeGreaterThan(sizes[i - 1]);
+    }
+  });
+
+  it("the blog image demo wears the AI Art badge", async () => {
+    const p = await open();
+    expect(await p.$("#components .blog-image .badge-genai")).not.toBeNull();
+  });
+
+  /* The page's own main landmark, not the TwoColumn demo's: the demo
+     passes mainTag="div", so "skip to main" and landmark navigation
+     land on the page content rather than on placeholder paragraphs. */
+  it("each page has exactly one main, and the TwoColumn demo holds none", async () => {
+    const p = await open();
+
+    expect(await p.$$eval("main", (els) => els.length)).toBe(1);
+    expect(await p.$$eval("h1", (els) => els.length)).toBe(1);
+    expect(await p.$("#frame .two-column main")).toBeNull();
+    expect(await p.$("main article.static-page")).not.toBeNull();
+
+    await p.goto(`${ORIGIN}/2026/09/01/sample-published/`, {
+      waitUntil: "networkidle0",
+    });
+
+    expect(await p.$$eval("main", (els) => els.length)).toBe(1);
+    expect(await p.$$eval("h1", (els) => els.length)).toBe(1);
+    expect(await p.$("main article.static-page")).not.toBeNull();
+  });
+
+  it("a card's corner badges never overlap its reading-time chip", async () => {
+    const p = await open();
+
+    /* 900px is where the three-up card grid is narrowest: the reading
+       time plus AI Art plus Demo no longer fit on one line. */
+    for (const width of [900, 1280, 390]) {
+      await p.setViewport({ width, height: 900 });
+
+      const overlaps = await p.$$eval(
+        "#cards .demo-card-grid article",
+        (cards) =>
+          cards.map((card) => {
+            const time = card.querySelector(".reading-time");
+            const chips = [...card.querySelectorAll(".corner-badges .chip")];
+            if (!time) return false;
+            const t = time.getBoundingClientRect();
+
+            return chips.some((chip) => {
+              const c = chip.getBoundingClientRect();
+              return (
+                c.left < t.right &&
+                t.left < c.right &&
+                c.top < t.bottom &&
+                t.top < c.bottom
+              );
+            });
+          }),
+      );
+
+      expect(overlaps, `width ${String(width)}`).not.toContain(true);
+    }
+  });
+
+  it("every post card leads to the sample post, which stays out of search", async () => {
+    const p = await open();
+
+    const hrefs = await p.$$eval("#cards .entry-title a", (links) =>
+      links.map((a) => a.getAttribute("href")),
+    );
+
+    expect(hrefs.length).toBeGreaterThan(0);
+
+    for (const href of hrefs) {
+      expect(href).toBe("/2026/09/01/sample-published/");
+    }
+
+    await p.goto(`${ORIGIN}/2026/09/01/sample-published/`, {
+      waitUntil: "networkidle0",
+    });
+
+    expect(
+      await p.$eval('meta[name="robots"]', (m) => m.getAttribute("content")),
+    ).toBe("noindex");
+
+    const sitemap = await (await fetch(`${ORIGIN}/sitemap-0.xml`)).text();
+    expect(sitemap).toContain("<loc>");
+    expect(sitemap).not.toContain("sample-published");
+  });
+
+  it("the TwoColumn demo renders its main column beside a sidebar", async () => {
+    const p = await open();
+    const demo = await p.$("#frame .two-column");
+    expect(demo).not.toBeNull();
+    expect(await p.$("#frame .two-column .sidebar .widget")).not.toBeNull();
+
+    const [mainBox, sideBox] = await p.$$eval(
+      "#frame .two-column > .site-main, #frame .two-column > .sidebar",
+      (els) => els.map((e) => e.getBoundingClientRect().left),
+    );
+
+    expect(sideBox).toBeGreaterThan(mainBox);
+  });
+
+  it("the ExcerptStart card's text starts after the marker", async () => {
+    const p = await open();
+
+    const texts = await p.$$eval("#cards .demo-card-grid .post-item", (cards) =>
+      cards.map((c) => c.textContent),
+    );
+
+    expect(texts.some((t) => t.includes("The card text starts here"))).toBe(
+      true,
+    );
+
+    expect(texts.some((t) => t.includes("A short aside that opens"))).toBe(
+      false,
+    );
+  });
+
+  it("the path player opens with a glyph in its play button and paints both tracks", async () => {
+    for (const theme of ["light", "dark"] as const) {
+      const p = await open();
+
+      await p.emulateMediaFeatures([
+        { name: "prefers-reduced-motion", value: "reduce" },
+      ]);
+
+      await p.evaluate((t) => {
+        if (t === "dark") document.documentElement.dataset.theme = "dark";
+        else delete document.documentElement.dataset.theme;
+      }, theme);
+
+      await p.click(".demo-path-player");
+      await settleFrames(p);
+      expect(await p.$(".pp-plate .pp-play svg")).not.toBeNull();
+
+      expect(
+        await p.$eval(".pp-tracks", (c) => (c as HTMLCanvasElement).width),
+      ).toBeGreaterThan(0);
+
+      const violations = await runAxe(p);
+
+      expect(
+        violations,
+        report(`${theme}, path player open`, violations),
+      ).toEqual([]);
+
+      await p.close();
+      page = undefined;
+    }
+  }, 120_000);
+
+  it("typing in a clicked joined field keeps the pointer stamp", async () => {
+    const p = await open();
+
+    /* The Subscribe demo's field, not the first match on the page: the
+       header's search field comes first in the DOM and is hidden until
+       the search box opens, so a click there focuses nothing. */
+    await p.click("#components .field-join-input");
+    await p.keyboard.type("a");
+
+    expect(await p.evaluate(() => document.documentElement.dataset.focus)).toBe(
+      "pointer",
+    );
+  });
+
   it("the icon set is wired in the head and every icon resolves", async () => {
     const p = await open();
 
@@ -377,40 +1164,64 @@ describe.skipIf(!enabled)("browser suite", () => {
     }
   }, 60_000);
 
-  it("the footer's ecosystem list carries the island's hook and the baseline", async () => {
+  it("the footer renders the served fixture, not the live document", async () => {
     const p = await open();
+
+    await p.waitForFunction(() => {
+      const el = document.querySelector("footer [data-ecosystem]");
+      /* Same two-type-worlds note as palette-editor.ts's copy handler:
+         strict DOM sees string | null, the lint project sees string. */
+
+      return (el?.textContent ?? "").includes("Sample Alpha");
+    });
+
+    const labels = await p.$$eval("footer [data-ecosystem] li", (els) =>
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+      els.map((el) => el.textContent?.trim() ?? ""),
+    );
+
+    expect(labels).toContain("Sample UI");
+    expect(labels).toContain("Sample Alpha");
+  });
+
+  it("the footer's ecosystem list carries the island's hook and the baseline", async () => {
+    const p = await open({ ecosystem: "abort" });
     /* The hook is what mountEcosystem finds. The baseline is what
        renders with JavaScript off forever, and what stands whenever
        the endpoint cannot be reached: this site plus a pointer home
        to the blog.
 
-       The endpoint is blocked rather than fetched. Since it went live
-       the island would otherwise replace this list with the real
-       document, making the assertion depend on a third-party host
-       being up and on the contents of a file in another repo. Blocking
-       it tests the fallback path, which is the load-bearing promise,
-       and keeps the suite hermetic. The fetch-and-replace path is
-       covered against fixtures in ecosystem-dom.test.ts. */
-    await p.setRequestInterception(true);
+       The endpoint is blocked rather than fetched (open()'s abort
+       mode). Since it went live the island would otherwise replace
+       this list with the real document, making the assertion depend
+       on a third-party host being up and on the contents of a file in
+       another repo. Blocking it tests the fallback path, which is the
+       load-bearing promise, and keeps the suite hermetic. The
+       fetch-and-replace path is covered against the fixture in the
+       test below. */
 
-    p.on("request", (req) => {
-      void (req.url().includes("ecosystem.json")
-        ? req.abort()
-        : req.continue());
+    /* The island tries three times (the first fetch, then retries at
+       about 400ms and 1200ms plus jitter) before it falls back, so wait
+       for the third abort, then for the baseline list. */
+    await ecosystemAborted(3);
+
+    /* Same two-type-worlds note as palette-editor.ts's copy handler:
+       strict DOM sees string | null, the lint project sees string. */
+    await p.waitForFunction(() => {
+      const nodes = [
+        ...document.querySelectorAll("footer [data-ecosystem] li"),
+      ];
+
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+      const items = nodes.map((el) => el.textContent?.trim() ?? "");
+
+      return (
+        items.length === 2 &&
+        items[0] === "half-built-ui" &&
+        items[1] === "Half-Built Robots"
+      );
     });
 
-    await p.reload({ waitUntil: "networkidle0" });
-    /* The island keeps its last good document in localStorage for a
-       day and falls back to it once its retries (400ms, then 1200ms,
-       plus jitter) are spent. open()'s evaluateOnNewDocument clear
-       runs again on this reload, so the copy the first load cached is
-       gone before the island mounts; that is what makes the blocked
-       fetch land on the baseline rather than the cached document (the
-       blog's copy of this test learned that in CI on 2026-09-09).
-       networkidle0 fires between the retries, so wait the chain out
-       before asserting: "stands" means after the fallback ran, not
-       before it. */
-    await new Promise((r) => setTimeout(r, 2500));
     const list = await p.$("footer [data-ecosystem]");
     expect(list, "the footer has no data-ecosystem hook").not.toBeNull();
 
@@ -435,62 +1246,24 @@ describe.skipIf(!enabled)("browser suite", () => {
 
   it("the swapped ecosystem list keeps the footer's own styling", async () => {
     /* The complement to the test above. That one blocks the endpoint
-       and checks the baseline; this one answers with a fixture and
-       checks what the island builds, so neither touches the network.
+       and checks the baseline; this one serves the fixture (open()'s
+       default mode) and checks what the island builds, so neither
+       touches the network.
 
        Computed styles, not classes: 0.3.0 shipped an island whose
        markup and classes were correct and whose rendering was not,
        because Astro scopes Footer.astro's rules to a data-astro-cid
        attribute that createElement nodes never carried. Asserting the
        class would have passed straight through the bug. */
-    const doc = JSON.stringify({
-      version: 1,
-      updated: "2026-09-07",
-      entries: [
-        {
-          key: "blog",
-          label: "Half-Built Robots",
-          href: "https://half-built-robots.com/",
-          priority: 0,
-          family: "half-built",
-        },
-        {
-          key: "beadz",
-          label: "The Bead Reserve",
-          href: null,
-          priority: 1,
-          family: "half-built",
-        },
-        {
-          key: "ui",
-          label: "half-built-ui",
-          href: null,
-          priority: 3,
-          family: "half-built",
-        },
-      ],
-    });
-
     const p = await open();
-    await p.setRequestInterception(true);
 
-    p.on("request", (req) => {
-      void (req.url().includes("ecosystem.json")
-        ? req.respond({
-            status: 200,
-            contentType: "application/json",
-            /* The stub is cross-origin exactly as the real endpoint is,
-               so it needs the same CORS header. Without it the fetch
-               fails and the island falls back to the baseline, which
-               made this test look like a swap bug rather than a stub
-               missing a header. */
-            headers: { "Access-Control-Allow-Origin": "*" },
-            body: doc,
-          })
-        : req.continue());
+    await p.waitForFunction(() => {
+      const el = document.querySelector("footer [data-ecosystem]");
+      /* Same two-type-worlds note as the baseline test above: strict
+         DOM sees string | null, the lint project sees string. */
+
+      return (el?.textContent ?? "").includes("Sample Gamma");
     });
-
-    await p.reload({ waitUntil: "networkidle0" });
 
     const rendered = await p.$$eval("footer [data-ecosystem] li > *", (els) =>
       els.map((el) => {
@@ -507,19 +1280,23 @@ describe.skipIf(!enabled)("browser suite", () => {
       }),
     );
 
+    /* The fixture's own family sorts first (self is "ui"), then the
+       other family, each ascending by priority: ui, alpha, beta, gamma. */
     expect(rendered.map((r) => r.text)).toEqual([
-      "Half-Built Robots",
-      "The Bead Reserve",
-      "half-built-ui",
+      "Sample UI",
+      "Sample Alpha",
+      "Sample Beta",
+      "Sample Gamma",
     ]);
 
+    /* You are here, so bold. */
+    expect(rendered[0].weight).toBe("700");
     /* The link keeps the footer's underline-on-hover treatment rather
        than falling back to the browser's default underline. */
-    expect(rendered[0].deco).toBe("none");
+    expect(rendered[1].deco).toBe("none");
     /* Undeployed, so dimmed. */
-    expect(Number(rendered[1].opacity)).toBeLessThan(1);
-    /* You are here, so bold. */
-    expect(rendered[2].weight).toBe("700");
+    expect(Number(rendered[2].opacity)).toBeLessThan(1);
+    expect(rendered[3].deco).toBe("none");
   }, 30_000);
 
   it("the toc renders one link per section and every href target exists", async () => {
@@ -564,6 +1341,7 @@ describe.skipIf(!enabled)("browser suite", () => {
     for (const viewport of viewports) {
       const p = await viewport.open();
       page = p;
+      await routeEcosystem(p, "fixture");
       await p.goto(`${ORIGIN}/`, { waitUntil: "networkidle0" });
 
       const covered = await p.evaluate(() => {
@@ -630,6 +1408,7 @@ describe.skipIf(!enabled)("browser suite", () => {
     if (!browser) throw new Error("no browser (beforeAll failed)");
     const p = await desktopPage(browser, 1400, 900);
     page = p;
+    await routeEcosystem(p, "fixture");
     await p.goto(`${ORIGIN}/`, { waitUntil: "networkidle0" });
 
     const info = await p.$eval("footer .site-info", (el) => ({
@@ -680,16 +1459,21 @@ describe.skipIf(!enabled)("browser suite", () => {
       localStorage.setItem("hbui-palette", raw);
     }, saved ?? "");
 
-    await cold.setRequestInterception(true);
+    /* Fixture mode for ecosystem.json (this test asserts nothing about
+       the footer, but the suite is hermetic end to end: nothing here
+       may reach the live endpoint), plus the /_astro/ script block
+       this test is actually about, both through routeEcosystem's one
+       handler. */
     let blocked = 0;
 
-    cold.on("request", (req) => {
-      if (req.resourceType() === "script" && req.url().includes("/_astro/")) {
-        blocked += 1;
-        void req.abort();
-      } else {
-        void req.continue();
+    await routeEcosystem(cold, "fixture", (req) => {
+      if (req.resourceType() !== "script" || !req.url().includes("/_astro/")) {
+        return false;
       }
+
+      blocked += 1;
+      void req.abort();
+      return true;
     });
 
     await cold.goto(`${ORIGIN}/`, { waitUntil: "networkidle0" });

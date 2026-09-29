@@ -1,9 +1,8 @@
-/* Layer: components.plate. Shared plate-window chrome (spec
-   docs/superpowers/specs/2026-08-22-fluid-path-player-design.md).
-   Consumers add their own content rules in components.lightbox and
-   components.player, which sit above this sublayer (layers.css), so the
-   import order of the three files does not matter. The lightbox's
-   elements carry both pm-* and lb-* names. */
+/* Layer: components.plate. Shared plate-window chrome. Consumers add
+   their own content rules in components.lightbox and components.player,
+   which sit above this sublayer (layers.css), so the import order of
+   the three files does not matter. The lightbox's elements carry both
+   pm-* and lb-* names. */
 @layer components.plate {
   /* Percentages, not vw/vh: a top-layer dialog's containing block is
      the initial containing block, which excludes the page scrollbar;

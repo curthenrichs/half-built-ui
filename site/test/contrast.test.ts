@@ -64,7 +64,7 @@ describe("grounds", () => {
   it("the anchor's brand stops match the installed package's primitives", () => {
     /* SHIPPED_DEFAULTS re-states the package's brand ramp so the amber
        anchor short-circuits to shipped bytes; without this tripwire a
-       package retune (the open comment-ink decision, for example)
+       package retune (the 2026-09-27 comment-ink retune, for example)
        would leave the editor's defaults and its copyable block
        printing stale hexes while every suite stayed green. */
     const require = createRequire(import.meta.url);

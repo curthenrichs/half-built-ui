@@ -1,6 +1,6 @@
 {
   "name": "@half-built/tooling",
-  "version": "0.10.0",
+  "version": "0.11.0",
   "description": "Lint presets and the test kit for half-built sites.",
   "license": "MIT",
   "repository": {
@@ -24,21 +24,28 @@
     "@stylistic/eslint-plugin": "^5.10.0",
     "eslint-plugin-astro": "^1.7.0",
     "globals": "^17.8.0",
+    "postcss-html": "^2.0.0",
     "prettier-plugin-astro": "^1.0.0",
+    "stylelint-config-standard": "^40.0.0",
     "typescript-eslint": "^8.65.0"
   },
   "peerDependencies": {
     "eslint": "^10.8.0",
     "html-validate": "^9.7.1",
-    "puppeteer-core": "^25.8.0",
     "stylelint": "^17.14.1",
     "vitest": "^2.1.9",
     "prettier": "^3.9.6"
   },
   "peerDependenciesMeta": {
-    "puppeteer-core": {
+    "html-validate": {
+      "optional": true
+    },
+    "vitest": {
       "optional": true
     }
+  },
+  "engines": {
+    "node": "^22.13.0 || >=24"
   },
   "publishConfig": {
     "access": "public"

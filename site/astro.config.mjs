@@ -20,5 +20,9 @@ export default defineConfig({
   markdown: {
     shikiConfig: { theme: codeTheme },
   },
-  integrations: [sitemap()],
+  // The sample post is a stand-in the demo links to, not content; it
+  // carries noindex and stays out of the sitemap.
+  integrations: [
+    sitemap({ filter: (page) => !page.includes("/sample-published/") }),
+  ],
 });

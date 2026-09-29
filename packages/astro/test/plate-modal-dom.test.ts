@@ -65,6 +65,37 @@ describe("buildPlateModal", () => {
     refs.closeBtn.dispatchEvent(new MouseEvent("click", { bubbles: true }));
     expect(refs.dialog.hasAttribute("open")).toBe(false);
     refs.open(null);
+
+    /* A real tap produces a pointerdown before its click; a bare click
+       with no press is not something a veil close should react to. */
+    refs.dialog.dispatchEvent(
+      new PointerEvent("pointerdown", { bubbles: true }),
+    );
+
+    refs.dialog.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    expect(refs.dialog.hasAttribute("open")).toBe(false);
+  });
+
+  it("a press inside the plate released on the veil does not close", () => {
+    const refs = buildPlateModal(document, { ariaLabel: "x" });
+    refs.open(null);
+
+    refs.plate.dispatchEvent(
+      new PointerEvent("pointerdown", { bubbles: true }),
+    );
+
+    refs.dialog.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    expect(refs.dialog.hasAttribute("open")).toBe(true);
+  });
+
+  it("a press and click on the veil closes", () => {
+    const refs = buildPlateModal(document, { ariaLabel: "x" });
+    refs.open(null);
+
+    refs.dialog.dispatchEvent(
+      new PointerEvent("pointerdown", { bubbles: true }),
+    );
+
     refs.dialog.dispatchEvent(new MouseEvent("click", { bubbles: true }));
     expect(refs.dialog.hasAttribute("open")).toBe(false);
   });
@@ -111,6 +142,11 @@ describe("buildPlateModal", () => {
     refs.closeBtn.dispatchEvent(new MouseEvent("click", { bubbles: true }));
     expect(root.classList.contains("pm-open")).toBe(false);
     refs.open(null);
+
+    refs.dialog.dispatchEvent(
+      new PointerEvent("pointerdown", { bubbles: true }),
+    );
+
     refs.dialog.dispatchEvent(new MouseEvent("click", { bubbles: true }));
     expect(root.classList.contains("pm-open")).toBe(false);
   });

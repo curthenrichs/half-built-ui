@@ -15,8 +15,7 @@
    response (Buttondown's captcha interstitial for a suspicious client,
    or an error page) falls back to a native form submit so the reader can
    finish it on Buttondown's own page. Only a thrown fetch (the network
-   itself failing) writes the couldn't-reach line. Spec:
-   docs/superpowers/specs/2026-08-16-mailing-list-wiring-design.md
+   itself failing) writes the couldn't-reach line.
 
    On the island contract (step 9): mount(root, options?) returns a
    destroy handle, and claim() makes a second mount over an already-wired

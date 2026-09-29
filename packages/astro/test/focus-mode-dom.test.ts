@@ -39,6 +39,48 @@ describe("focus-mode island (DOM runtime)", () => {
     expect(document.documentElement.dataset.focus).toBe("pointer");
   });
 
+  it("typing in a clicked text field keeps the pointer stamp", () => {
+    mount();
+    document.body.innerHTML = '<input id="f" type="email">';
+    const f = document.getElementById("f");
+    f?.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true }));
+    f?.dispatchEvent(new KeyboardEvent("keydown", { key: "a", bubbles: true }));
+    expect(document.documentElement.dataset.focus).toBe("pointer");
+  });
+
+  it("Tab from a text field stamps keyboard", () => {
+    mount();
+    document.body.innerHTML = '<input id="f" type="text">';
+    const f = document.getElementById("f");
+    f?.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true }));
+
+    f?.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "Tab", bubbles: true }),
+    );
+
+    expect(document.documentElement.dataset.focus).toBe("keyboard");
+  });
+
+  it("Space on a checkbox stamps keyboard (only text entry is exempt)", () => {
+    mount();
+    document.body.innerHTML = '<input id="c" type="checkbox">';
+
+    document
+      .getElementById("c")
+      ?.dispatchEvent(
+        new KeyboardEvent("keydown", { key: " ", bubbles: true }),
+      );
+
+    expect(document.documentElement.dataset.focus).toBe("keyboard");
+  });
+
+  it("mounting on a Document stamps its root element", () => {
+    const h = mountFocusMode(document);
+    handles.push(h);
+    window.dispatchEvent(new PointerEvent("pointerdown"));
+    expect(document.documentElement.dataset.focus).toBe("pointer");
+  });
+
   it("destroy removes both listeners and releases the claim; a second mount claims cleanly", () => {
     const handle = mount();
     window.dispatchEvent(new PointerEvent("pointerdown"));

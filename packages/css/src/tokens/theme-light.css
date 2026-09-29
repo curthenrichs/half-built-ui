@@ -14,7 +14,6 @@
     --band: var(--gray-100);
     --hairline: var(--gray-200);
     --divider-faint: var(--black-a10);
-    --input-border: var(--gray-300);
 
     /* The ground inside a text field (the joined field's well). */
     --well: var(--white);
@@ -59,8 +58,12 @@
     /* Path-player timeline series (spec 2026-08-22, owner question 1). */
     --track-x: var(--brand-1-600);
 
-    /* The second data track is the second accent (owner call 2026-08-26). */
-    --track-y: var(--brand-2-500);
+    /* The second data track is the second accent's text ink: chart
+       lines are non-text graphical objects too (WCAG 1.4.11), so the
+       light theme needs the 3:1-clearing 700 stop here the same way
+       track-x already uses the 600 stop (owner call 2026-08-26,
+       retuned 2026-09-27). */
+    --track-y: var(--brand-2-700);
     --track-z: var(--violet-600);
 
     /* The subscribe panel, the amber block that bridges every property
@@ -80,8 +83,10 @@
        so it reads on both grounds and never means the same as hover. */
 
     /* Keyboard ring: the first accent by day, the second by night
-       (owner call 2026-08-26). */
-    --focus-ring: var(--brand-1-500);
+       (owner call 2026-08-26). A focus ring is a non-text graphical
+       object under WCAG 1.4.11, so the light theme needs the
+       3:1-clearing 700 stop, not the 500 base (retuned 2026-09-27). */
+    --focus-ring: var(--brand-1-700);
 
     /* The signature stroke: 2px here, 3px on BEADZ. */
     --stroke: var(--stroke-2);

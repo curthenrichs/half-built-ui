@@ -20,14 +20,16 @@ const ICON_EXTERNAL =
   '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7" /><path d="M8 7h9v9" /></svg>';
 
 /* "Frame", not "Chrome": the browser wears that word (owner call
-   2026-09-06). No Subscribe item: the widget renders in its own
-   section, and this site has nothing to subscribe to (same call). */
+   2026-09-06). Section links are rooted ("/#frame", not "#frame") so
+   they still reach the index from the sample post page. No Subscribe
+   item: the widget renders in its own section, and this site has
+   nothing to subscribe to (same call). */
 export const NAV: NavItem[] = [
   { label: "Home", href: "/" },
-  { label: "Frame", href: "#frame" },
-  { label: "Cards", href: "#cards" },
-  { label: "Components", href: "#components" },
-  { label: "CSS", href: "#css" },
+  { label: "Frame", href: "/#frame" },
+  { label: "Cards", href: "/#cards" },
+  { label: "Components", href: "/#components" },
+  { label: "CSS", href: "/#css" },
 ];
 
 export const SOCIALS: SocialItem[] = [
@@ -37,8 +39,8 @@ export const SOCIALS: SocialItem[] = [
     icon: ICON_EXTERNAL,
   },
   {
-    label: "Placeholder link",
-    href: "https://example.com",
+    label: "Packages on npm",
+    href: "https://www.npmjs.com/org/half-built",
     icon: ICON_EXTERNAL,
   },
 ];
@@ -55,11 +57,11 @@ export const FOOTER_SITEMAP: SitemapGroup[] = [
     collapsible: true,
     phoneOpen: true,
     links: [
-      { label: "About", href: "#intro" },
-      { label: "Frame", href: "#frame" },
-      { label: "Cards", href: "#cards" },
-      { label: "Components", href: "#components" },
-      { label: "CSS", href: "#css" },
+      { label: "About", href: "/#intro" },
+      { label: "Frame", href: "/#frame" },
+      { label: "Cards", href: "/#cards" },
+      { label: "Components", href: "/#components" },
+      { label: "CSS", href: "/#css" },
     ],
   },
   {
