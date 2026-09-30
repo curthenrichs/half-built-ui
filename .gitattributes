@@ -13,10 +13,3 @@
 *.ico   binary
 *.woff  binary
 *.woff2 binary
-
-# Temporary: this README was published inside the v0.11.0 tarball with
-# CRLF. Normalizing it now would count as a change to packages/astro since
-# that tag and trip the release bump guard with nothing else to release.
-# Delete this line with the next @half-built/astro change and let the
-# renormalize ride that version bump.
-packages/astro/README.md -text

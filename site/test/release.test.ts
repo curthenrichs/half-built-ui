@@ -33,6 +33,26 @@ const manifest = (dir: string): Manifest =>
 const git = (...args: string[]): string =>
   execFileSync("git", args, { cwd: ROOT, encoding: "utf-8" }).trim();
 
+/* Whether dir differs from tag in anything but line endings. A CRLF to
+   LF renormalization changes bytes, not what a consumer reads, so it is
+   not a releasable change and must not demand a version bump. The exit
+   code carries the answer: --quiet honors --ignore-cr-at-eol, while
+   --name-only would still list a line-ending-only file. */
+function changedSince(tag: string, dir: string): boolean {
+  try {
+    execFileSync(
+      "git",
+      ["diff", "--quiet", "--ignore-cr-at-eol", tag, "--", dir],
+      { cwd: ROOT },
+    );
+
+    return false;
+  } catch (err) {
+    if ((err as { status?: number }).status === 1) return true;
+    throw err;
+  }
+}
+
 /* Numeric major.minor.patch order: a string compare ranks 0.9.0 above
    0.10.0. The packages carry plain X.Y.Z versions (the fixed-version
    rule), so no prerelease handling is needed. */
@@ -119,7 +139,7 @@ describe("release metadata", () => {
       ).version;
 
       /* Working tree against the tag, so an unstaged edit counts too. */
-      const changed = git("diff", "--name-only", tag, "--", dir) !== "";
+      const changed = changedSince(tag, dir);
 
       if (changed) {
         expect(
