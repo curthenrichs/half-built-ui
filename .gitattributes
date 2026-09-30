@@ -1,0 +1,22 @@
+# Line-ending policy: LF in the repository and on checkout. Same policy as
+# half-built-robots-blog and the-bead-reserve-monorepo. Without it, Windows
+# tooling (Python text-mode writes, editors honoring an existing CRLF file)
+# committed a scatter of CRLF design docs.
+
+* text=auto eol=lf
+
+# Binary assets, never normalized.
+*.jpg   binary
+*.jpeg  binary
+*.png   binary
+*.gif   binary
+*.ico   binary
+*.woff  binary
+*.woff2 binary
+
+# Temporary: this README was published inside the v0.11.0 tarball with
+# CRLF. Normalizing it now would count as a change to packages/astro since
+# that tag and trip the release bump guard with nothing else to release.
+# Delete this line with the next @half-built/astro change and let the
+# renormalize ride that version bump.
+packages/astro/README.md -text
