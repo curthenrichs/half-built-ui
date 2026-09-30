@@ -919,7 +919,7 @@ describe.skipIf(!enabled)("browser suite", () => {
       (a) => a.getAttribute("href"),
     );
 
-    const res = await p.goto(`${ORIGIN}${href ?? ""}`, {
+    const res = await p.goto(`${ORIGIN}${href}`, {
       waitUntil: "networkidle0",
     });
 
@@ -940,6 +940,58 @@ describe.skipIf(!enabled)("browser suite", () => {
       );
     }
   }, 60_000);
+
+  /* The policy pages (2026-09-29): reached from the footer, clean in
+     both themes, one main and one h1 each, and listed in the sitemap
+     since they are real pages, unlike the sample post. */
+  it("the footer's policy links land on real, axe-clean pages", async () => {
+    const p = await open();
+
+    const hrefs = await p.$$eval("footer a", (links) =>
+      links
+        .map((a) => a.getAttribute("href"))
+        .filter((h) => h === "/privacy/" || h === "/accessibility/"),
+    );
+
+    expect(hrefs.sort()).toEqual(["/accessibility/", "/privacy/"]);
+
+    const sitemap = await (await fetch(`${ORIGIN}/sitemap-0.xml`)).text();
+
+    for (const href of hrefs) {
+      const res = await p.goto(`${ORIGIN}${href}`, {
+        waitUntil: "networkidle0",
+      });
+
+      expect(res?.status()).toBe(200);
+      expect(await p.$$eval("main", (els) => els.length)).toBe(1);
+      expect(await p.$$eval("h1", (els) => els.length)).toBe(1);
+      expect(sitemap).toContain(`${href}</loc>`);
+
+      for (const theme of ["light", "dark"] as const) {
+        await p.evaluate((t) => {
+          if (t === "dark") document.documentElement.dataset.theme = "dark";
+          else delete document.documentElement.dataset.theme;
+        }, theme);
+
+        await settleFrames(p);
+        const violations = await runAxe(p);
+
+        expect(violations, report(`${theme}, ${href}`, violations)).toEqual([]);
+      }
+    }
+  }, 60_000);
+
+  it("robots.txt welcomes crawlers and AI training", async () => {
+    const robots = await (await fetch(`${ORIGIN}/robots.txt`)).text();
+
+    expect(robots).toContain(
+      "Content-Signal: search=yes, ai-input=yes, ai-train=yes",
+    );
+
+    expect(robots).toContain(
+      "Sitemap: https://ui.half-built-robots.com/sitemap-index.xml",
+    );
+  });
 
   it("the type scale specimen shows every size stop", async () => {
     const p = await open();

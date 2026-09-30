@@ -1,0 +1,159 @@
+---
+import Base from "../layouts/Base.astro";
+import { THEME_STORAGE_KEY } from "../lib/theme-key";
+import { PALETTE_STORAGE_KEY } from "../lib/palette-key";
+---
+
+<Base
+  title="Privacy Policy"
+  description="What ui.half-built-robots.com collects, what it keeps in the browser, and who to contact."
+>
+  <main>
+    <article class="static-page bracket-frame">
+      <h1>Privacy Policy</h1>
+      <div class="prose">
+        <p>Last updated: September 29, 2026</p>
+        <p>
+          This policy covers ui.half-built-robots.com, the reference site for
+          the @half-built packages. The site is owned by Curt Henrichs LLC, a
+          California LLC. It is a static site with no accounts, forms, comments,
+          or ads, and it collects almost nothing.
+        </p>
+
+        <h2>What the site collects</h2>
+        <p>
+          The site is hosted by
+          <a href="https://www.cloudflare.com/">Cloudflare</a>. Like nearly
+          every host, Cloudflare may keep standard request logs (IP address,
+          browser type, and the pages requested) as part of serving the site.
+        </p>
+        <p>
+          The site uses
+          <a href="https://developers.cloudflare.com/web-analytics/"
+            >Cloudflare Web Analytics</a
+          >
+          to count page views. Cloudflare adds a small script to each page for
+          this. It sets no cookies, stores nothing in the browser, and does not
+          follow visitors to other sites. The result is a tally of which pages
+          were viewed.
+        </p>
+
+        <h2>Cookies and browser storage</h2>
+        <p>
+          The site sets no cookies of its own. Cloudflare runs bot protection in
+          front of the site, and that sets one cookie, <code>cf_clearance</code
+          >. It records that the browser already passed Cloudflare's check, so
+          it is not challenged again. It lasts up to a year, only Cloudflare can
+          read it, and it is not used for ads or cross-site tracking.
+        </p>
+        <p>
+          The site also keeps a few small values in the browser's local storage.
+          None of it is sent anywhere and none of it identifies anyone.
+        </p>
+        <ul>
+          <li>
+            <code>{THEME_STORAGE_KEY}</code>: the light or dark mode choice,
+            saved when the theme toggle is used.
+          </li>
+          <li>
+            <code>{PALETTE_STORAGE_KEY}</code>: the colors picked in the palette
+            editor, saved so the page keeps them on reload.
+          </li>
+          <li>
+            <code>half-built-ecosystem</code>: a copy of the footer's list of
+            related sites, kept for a day so it is not fetched on every page.
+            The list comes from ecosystem.half-built-robots.com, which is also
+            run by Curt Henrichs LLC on Cloudflare.
+          </li>
+        </ul>
+        <p>Clearing the browser's data for this site removes all of it.</p>
+
+        <h2>Do Not Track</h2>
+        <p>
+          Nothing on this site tracks visitors across other sites, so it behaves
+          the same whether or not the browser sends a Do Not Track or Global
+          Privacy Control signal. There is nothing for the signal to turn off.
+        </p>
+
+        <h2>Why it is kept and for how long</h2>
+        <ul>
+          <li>
+            <strong>Cloudflare's logs, analytics, and bot protection.</strong>
+            These keep the site running and protected. Cloudflare keeps them on
+            its own schedule under
+            <a href="https://www.cloudflare.com/privacypolicy/"
+              >Cloudflare's privacy policy</a
+            >.
+          </li>
+          <li>
+            <strong>Email sent to the contact address.</strong> It is used to
+            answer the sender, and it is kept unless the sender asks for it to
+            be deleted.
+          </li>
+        </ul>
+
+        <h2>Where it is processed</h2>
+        <p>
+          Cloudflare and Google are United States companies, so anything they
+          hold for this site is processed in the US. Cloudflare takes part in
+          the EU-US Data Privacy Framework.
+        </p>
+
+        <h2>Links to other sites</h2>
+        <p>
+          The site links to GitHub, npm, and Half-Built Robots. Their privacy
+          practices are their own; this policy covers only this site.
+        </p>
+
+        <h2>Children</h2>
+        <p>
+          This site is not directed at children under 13 and does not knowingly
+          collect personal information from anyone under 13.
+        </p>
+
+        <h2>Your data</h2>
+        <p>
+          Anyone, wherever they live, can ask what this site holds about them.
+          They can also ask to have it corrected, deleted, or sent to them as a
+          copy, or ask for it not to be used. Write to the address below. The
+          site itself holds nothing about its visitors, so the answer is almost
+          always nothing.
+        </p>
+        <p>
+          Anyone who thinks a request was handled badly can complain to the data
+          protection authority where they live.
+        </p>
+
+        <h2>Changes</h2>
+        <p>
+          Updates to this policy are posted on this page with a new date at the
+          top.
+        </p>
+
+        <h2>Contact</h2>
+        <ul>
+          <li>
+            Email:
+            <a href="mailto:curthenrichs@gmail.com">curthenrichs@gmail.com</a>
+          </li>
+          <li>
+            X/Twitter: <a href="https://x.com/curt_henrichs">@curt_henrichs</a>
+          </li>
+          <li>
+            Bluesky:
+            <a href="https://bsky.app/profile/curt-henrichs.bsky.social"
+              >@curt-henrichs.bsky.social</a
+            >
+          </li>
+        </ul>
+        <p>
+          The email address is a Gmail account, so mail sent to it is also
+          handled by Google under
+          <a href="https://policies.google.com/privacy"
+            >Google's privacy policy</a
+          >.
+        </p>
+      </div>
+    </article>
+  </main>
+</Base>

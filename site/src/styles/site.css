@@ -7,6 +7,13 @@
    navigation, not prose. Imported by Base.astro after the package css
    so it layers on top. */
 @layer site {
+  /* The article heading on every page: the index, the sample post,
+     and the policy pages. */
+  .static-page h1 {
+    font-size: var(--font-size-lg);
+    margin: 0 0 15px;
+  }
+
   .site-layout {
     display: grid;
     grid-template-columns: max-content 1fr;
