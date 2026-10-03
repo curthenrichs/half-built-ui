@@ -41,13 +41,15 @@ const ORIGIN = `http://localhost:${PORT}`;
    component emits for a token entry, so it is exact. */
 const ACCENT_1_CHIP = '.palette-chip[style="background-color:var(--accent-1)"]';
 
-/* WCAG 2.1 A and AA, matching the accessibility target the design
-   spec names elsewhere in this repo. Best-practice rules are left out
-   so a failure here always maps to a success criterion. */
+/* WCAG 2.2 A and AA (spec 2026-09-29-wcag-2-2-design.md), which is
+   the blog's stated target. The 2.2 tags add target size (2.5.8); the
+   other new 2.2 criteria are not automatable and were checked by hand
+   in the spec's audit. Best-practice rules are left out so a failure
+   here always maps to a success criterion. */
 const RUN: RunOptions = {
   runOnly: {
     type: "tag",
-    values: ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"],
+    values: ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22a", "wcag22aa"],
   },
   resultTypes: ["violations"],
 };
@@ -271,7 +273,7 @@ describe.skipIf(!enabled)("browser suite", () => {
     return p.evaluate(() => document.activeElement?.id ?? "");
   }
 
-  it("has no WCAG 2.1 AA violations in the light theme", async () => {
+  it("has no WCAG 2.2 AA violations in the light theme", async () => {
     const p = await open();
 
     /* Light is forced, not assumed: the head stamp follows
@@ -286,7 +288,7 @@ describe.skipIf(!enabled)("browser suite", () => {
     expect(violations, report("light", violations)).toEqual([]);
   }, 60_000);
 
-  it("has no WCAG 2.1 AA violations in the dark theme", async () => {
+  it("has no WCAG 2.2 AA violations in the dark theme", async () => {
     const p = await open();
 
     await p.evaluate(() => {
@@ -304,6 +306,48 @@ describe.skipIf(!enabled)("browser suite", () => {
     const violations = await runAxe(p);
     expect(violations, report("dark", violations)).toEqual([]);
   }, 60_000);
+
+  /* The category row's 24px targets (2.5.8) must not cost the ring or
+     the one-line ellipsis: each link's border box stays inside the
+     row's clip box, so the inset focus ring keeps all four sides, and
+     the row stays a single line however many categories a card has. */
+  it("card category links reach 24px inside the row's clip box, on one line", async () => {
+    const p = await open();
+
+    const m = await p.$$eval(".entry-cat .post-categories", (rows) =>
+      rows.map((row) => {
+        const r = row.getBoundingClientRect();
+        const style = getComputedStyle(row);
+
+        return {
+          nowrap: style.whiteSpace === "nowrap",
+          links: [...row.querySelectorAll("a")].map((a) => {
+            const l = a.getBoundingClientRect();
+
+            return {
+              height: l.height,
+              top: l.top,
+              bottom: l.bottom,
+              clipTop: r.top,
+              clipBottom: r.bottom,
+            };
+          }),
+        };
+      }),
+    );
+
+    expect(m.length).toBeGreaterThan(0);
+
+    for (const row of m) {
+      expect(row.nowrap).toBe(true);
+
+      for (const l of row.links) {
+        expect(l.height).toBeGreaterThanOrEqual(24);
+        expect(l.top).toBeGreaterThanOrEqual(l.clipTop);
+        expect(l.bottom).toBeLessThanOrEqual(l.clipBottom);
+      }
+    }
+  }, 30_000);
 
   it("dispatching an input on base 1 repaints --brand-1-500 and a rendered accent element", async () => {
     const p = await open();
@@ -877,7 +921,7 @@ describe.skipIf(!enabled)("browser suite", () => {
     expect(await p.evaluate(() => window.scrollY)).toBeGreaterThan(before);
   });
 
-  it("has no WCAG 2.1 AA violations with the sheet open at phone width", async () => {
+  it("has no WCAG 2.2 AA violations with the sheet open at phone width", async () => {
     const p = await openPhone();
     await p.click("#demo-popout-1");
     expect(await popoutOpen(p)).toBe(true);
@@ -886,7 +930,7 @@ describe.skipIf(!enabled)("browser suite", () => {
     expect(violations, report("phone, sheet open", violations)).toEqual([]);
   }, 60_000);
 
-  it("has no WCAG 2.1 AA violations with a popout open, in both themes", async () => {
+  it("has no WCAG 2.2 AA violations with a popout open, in both themes", async () => {
     for (const theme of ["light", "dark"] as const) {
       const p = await open();
 
