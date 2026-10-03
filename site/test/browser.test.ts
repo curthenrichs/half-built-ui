@@ -41,13 +41,15 @@ const ORIGIN = `http://localhost:${PORT}`;
    component emits for a token entry, so it is exact. */
 const ACCENT_1_CHIP = '.palette-chip[style="background-color:var(--accent-1)"]';
 
-/* WCAG 2.1 A and AA, matching the accessibility target the design
-   spec names elsewhere in this repo. Best-practice rules are left out
-   so a failure here always maps to a success criterion. */
+/* WCAG 2.2 A and AA (spec 2026-09-29-wcag-2-2-design.md), which is
+   the blog's stated target. The 2.2 tags add target size (2.5.8); the
+   other new 2.2 criteria are not automatable and were checked by hand
+   in the spec's audit. Best-practice rules are left out so a failure
+   here always maps to a success criterion. */
 const RUN: RunOptions = {
   runOnly: {
     type: "tag",
-    values: ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"],
+    values: ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22a", "wcag22aa"],
   },
   resultTypes: ["violations"],
 };
@@ -271,7 +273,7 @@ describe.skipIf(!enabled)("browser suite", () => {
     return p.evaluate(() => document.activeElement?.id ?? "");
   }
 
-  it("has no WCAG 2.1 AA violations in the light theme", async () => {
+  it("has no WCAG 2.2 AA violations in the light theme", async () => {
     const p = await open();
 
     /* Light is forced, not assumed: the head stamp follows
@@ -286,7 +288,7 @@ describe.skipIf(!enabled)("browser suite", () => {
     expect(violations, report("light", violations)).toEqual([]);
   }, 60_000);
 
-  it("has no WCAG 2.1 AA violations in the dark theme", async () => {
+  it("has no WCAG 2.2 AA violations in the dark theme", async () => {
     const p = await open();
 
     await p.evaluate(() => {
@@ -304,6 +306,48 @@ describe.skipIf(!enabled)("browser suite", () => {
     const violations = await runAxe(p);
     expect(violations, report("dark", violations)).toEqual([]);
   }, 60_000);
+
+  /* The category row's 24px targets (2.5.8) must not cost the ring or
+     the one-line ellipsis: each link's border box stays inside the
+     row's clip box, so the inset focus ring keeps all four sides, and
+     the row stays a single line however many categories a card has. */
+  it("card category links reach 24px inside the row's clip box, on one line", async () => {
+    const p = await open();
+
+    const m = await p.$$eval(".entry-cat .post-categories", (rows) =>
+      rows.map((row) => {
+        const r = row.getBoundingClientRect();
+        const style = getComputedStyle(row);
+
+        return {
+          nowrap: style.whiteSpace === "nowrap",
+          links: [...row.querySelectorAll("a")].map((a) => {
+            const l = a.getBoundingClientRect();
+
+            return {
+              height: l.height,
+              top: l.top,
+              bottom: l.bottom,
+              clipTop: r.top,
+              clipBottom: r.bottom,
+            };
+          }),
+        };
+      }),
+    );
+
+    expect(m.length).toBeGreaterThan(0);
+
+    for (const row of m) {
+      expect(row.nowrap).toBe(true);
+
+      for (const l of row.links) {
+        expect(l.height).toBeGreaterThanOrEqual(24);
+        expect(l.top).toBeGreaterThanOrEqual(l.clipTop);
+        expect(l.bottom).toBeLessThanOrEqual(l.clipBottom);
+      }
+    }
+  }, 30_000);
 
   it("dispatching an input on base 1 repaints --brand-1-500 and a rendered accent element", async () => {
     const p = await open();
@@ -877,7 +921,7 @@ describe.skipIf(!enabled)("browser suite", () => {
     expect(await p.evaluate(() => window.scrollY)).toBeGreaterThan(before);
   });
 
-  it("has no WCAG 2.1 AA violations with the sheet open at phone width", async () => {
+  it("has no WCAG 2.2 AA violations with the sheet open at phone width", async () => {
     const p = await openPhone();
     await p.click("#demo-popout-1");
     expect(await popoutOpen(p)).toBe(true);
@@ -886,7 +930,90 @@ describe.skipIf(!enabled)("browser suite", () => {
     expect(violations, report("phone, sheet open", violations)).toEqual([]);
   }, 60_000);
 
-  it("has no WCAG 2.1 AA violations with a popout open, in both themes", async () => {
+  /* The phone footer only shows its link lists with the groups open
+     (Feeds and Ecosystem start closed), so the page-wide passes above
+     never audit them. Open every group, audit both themes, and pin the
+     desktop list spacing so the phone-only fix cannot leak upward. */
+  it("has no WCAG 2.2 AA violations in the open phone footer, in both themes", async () => {
+    if (!browser) throw new Error("no browser (beforeAll failed)");
+    const p = await phonePage(browser);
+    page = p;
+
+    await p.evaluateOnNewDocument(() => {
+      try {
+        localStorage.clear();
+      } catch {
+        /* storage unavailable; nothing persisted to clear */
+      }
+    });
+
+    await routeEcosystem(p, "fixture");
+    await p.goto(`${ORIGIN}/`, { waitUntil: "networkidle0" });
+
+    await p.addStyleTag({
+      content:
+        "*, *::before, *::after { transition: none !important; animation: none !important; }",
+    });
+
+    await p.evaluate(() => {
+      for (const d of document.querySelectorAll<HTMLDetailsElement>(
+        "details.footer-sitemap-collapsible",
+      )) {
+        d.open = true;
+      }
+
+      document
+        .querySelector(".footer-sitemap")
+        ?.scrollIntoView({ block: "center", behavior: "instant" });
+    });
+
+    for (const theme of ["light", "dark"] as const) {
+      await p.evaluate(async (t) => {
+        if (t === "dark") document.documentElement.dataset.theme = "dark";
+        else delete document.documentElement.dataset.theme;
+
+        await new Promise((resolve) => {
+          requestAnimationFrame(resolve);
+        });
+      }, theme);
+
+      const violations = await runAxe(p);
+
+      expect(
+        violations,
+        report(`phone, footer open, ${theme}`, violations),
+      ).toEqual([]);
+    }
+
+    /* Every row keeps one rhythm, links or not: the Ecosystem list
+       mixes links with plain-text items (the current site, pending
+       entries), and a 24px line on the links alone left those rows
+       shorter. */
+    const rows = await p.$$eval(".footer-sitemap-group li", (lis) =>
+      lis.map((li) => li.getBoundingClientRect().height),
+    );
+
+    expect(rows.length).toBeGreaterThan(0);
+    expect(new Set(rows.map((h) => Math.round(h)))).toEqual(new Set([24]));
+
+    const desk = await desktopPage(browser);
+
+    try {
+      await routeEcosystem(desk, "fixture");
+      await desk.goto(`${ORIGIN}/`, { waitUntil: "networkidle0" });
+
+      const margin = await desk.$eval(
+        ".footer-sitemap-group li",
+        (li) => getComputedStyle(li).marginTop,
+      );
+
+      expect(margin).toBe("4px");
+    } finally {
+      await desk.close();
+    }
+  }, 90_000);
+
+  it("has no WCAG 2.2 AA violations with a popout open, in both themes", async () => {
     for (const theme of ["light", "dark"] as const) {
       const p = await open();
 
@@ -919,7 +1046,7 @@ describe.skipIf(!enabled)("browser suite", () => {
       (a) => a.getAttribute("href"),
     );
 
-    const res = await p.goto(`${ORIGIN}${href ?? ""}`, {
+    const res = await p.goto(`${ORIGIN}${href}`, {
       waitUntil: "networkidle0",
     });
 
@@ -940,6 +1067,58 @@ describe.skipIf(!enabled)("browser suite", () => {
       );
     }
   }, 60_000);
+
+  /* The policy pages (2026-09-29): reached from the footer, clean in
+     both themes, one main and one h1 each, and listed in the sitemap
+     since they are real pages, unlike the sample post. */
+  it("the footer's policy links land on real, axe-clean pages", async () => {
+    const p = await open();
+
+    const hrefs = await p.$$eval("footer a", (links) =>
+      links
+        .map((a) => a.getAttribute("href"))
+        .filter((h) => h === "/privacy/" || h === "/accessibility/"),
+    );
+
+    expect(hrefs.sort()).toEqual(["/accessibility/", "/privacy/"]);
+
+    const sitemap = await (await fetch(`${ORIGIN}/sitemap-0.xml`)).text();
+
+    for (const href of hrefs) {
+      const res = await p.goto(`${ORIGIN}${href}`, {
+        waitUntil: "networkidle0",
+      });
+
+      expect(res?.status()).toBe(200);
+      expect(await p.$$eval("main", (els) => els.length)).toBe(1);
+      expect(await p.$$eval("h1", (els) => els.length)).toBe(1);
+      expect(sitemap).toContain(`${href}</loc>`);
+
+      for (const theme of ["light", "dark"] as const) {
+        await p.evaluate((t) => {
+          if (t === "dark") document.documentElement.dataset.theme = "dark";
+          else delete document.documentElement.dataset.theme;
+        }, theme);
+
+        await settleFrames(p);
+        const violations = await runAxe(p);
+
+        expect(violations, report(`${theme}, ${href}`, violations)).toEqual([]);
+      }
+    }
+  }, 60_000);
+
+  it("robots.txt welcomes crawlers and AI training", async () => {
+    const robots = await (await fetch(`${ORIGIN}/robots.txt`)).text();
+
+    expect(robots).toContain(
+      "Content-Signal: search=yes, ai-input=yes, ai-train=yes",
+    );
+
+    expect(robots).toContain(
+      "Sitemap: https://ui.half-built-robots.com/sitemap-index.xml",
+    );
+  });
 
   it("the type scale specimen shows every size stop", async () => {
     const p = await open();

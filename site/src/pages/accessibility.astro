@@ -1,0 +1,88 @@
+---
+import Base from "../layouts/Base.astro";
+---
+
+<Base
+  title="Accessibility"
+  description="The accessibility statement for ui.half-built-robots.com: conformance status, known limitations, and how to report a barrier."
+>
+  <main>
+    <article class="static-page bracket-frame">
+      <h1>Accessibility</h1>
+      <div class="prose">
+        <p>
+          This is an accessibility statement from Curt Henrichs LLC for
+          ui.half-built-robots.com, the reference site for the @half-built
+          packages.
+        </p>
+
+        <h2>Conformance status</h2>
+        <p>
+          The
+          <a href="https://www.w3.org/WAI/standards-guidelines/wcag/"
+            >Web Content Accessibility Guidelines (WCAG)</a
+          >
+          define requirements for making web content accessible to people with
+          disabilities. This site is partially conformant with WCAG 2.2 Level
+          AA. Partially conformant means that some parts of the content do not
+          fully conform to the standard.
+        </p>
+
+        <h2>Feedback</h2>
+        <p>
+          Report an accessibility barrier on this site through any of these:
+        </p>
+        <ul>
+          <li>
+            Email:
+            <a href="mailto:curthenrichs@gmail.com">curthenrichs@gmail.com</a>
+          </li>
+          <li>
+            X/Twitter: <a href="https://x.com/curt_henrichs">@curt_henrichs</a>
+          </li>
+          <li>
+            Bluesky:
+            <a href="https://bsky.app/profile/curt-henrichs.bsky.social"
+              >@curt-henrichs.bsky.social</a
+            >
+          </li>
+          <li>
+            GitHub:
+            <a href="https://github.com/curthenrichs/half-built-ui/issues"
+              >open an issue</a
+            >
+          </li>
+        </ul>
+
+        <h2>Technical specifications</h2>
+        <p>
+          The site relies on HTML, CSS, and JavaScript working with the browser
+          and any assistive technology in use.
+        </p>
+
+        <h2>Known limitations</h2>
+        <ol>
+          <li>
+            The palette editor accepts any base colors. The shipped palette is
+            what the automated checks test, and a custom palette can fall below
+            the contrast requirements. The editor shows the contrast ratios of
+            the current palette next to the controls, and its reset button
+            restores the shipped colors.
+          </li>
+        </ol>
+        <p>Please report any issue not listed here.</p>
+
+        <h2>Assessment approach</h2>
+        <p>
+          Curt Henrichs assessed this site by self-evaluation. Every change to
+          the site also runs an automated check (axe-core) against the level
+          above, on every page in both the light and dark themes and with the
+          interactive demos opened.
+        </p>
+
+        <h2>Date</h2>
+        <p>This statement was written on September 29, 2026.</p>
+      </div>
+    </article>
+  </main>
+</Base>

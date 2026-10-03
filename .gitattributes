@@ -1,0 +1,15 @@
+# Line-ending policy: LF in the repository and on checkout. Same policy as
+# half-built-robots-blog and the-bead-reserve-monorepo. Without it, Windows
+# tooling (Python text-mode writes, editors honoring an existing CRLF file)
+# committed a scatter of CRLF design docs.
+
+* text=auto eol=lf
+
+# Binary assets, never normalized.
+*.jpg   binary
+*.jpeg  binary
+*.png   binary
+*.gif   binary
+*.ico   binary
+*.woff  binary
+*.woff2 binary

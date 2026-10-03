@@ -193,6 +193,15 @@ const year = new Date().getFullYear();
     }
     .footer-sitemap-group { text-align: center; width: 100%; }
 
+    /* 24px tap targets (WCAG 2.2 target size, 2.5.8). The phone lists
+       sat at a 23.3px pitch with 16px link boxes. A 24px line on every
+       row keeps the rhythm within a pixel, including the rows that are
+       plain text (the current site, pending entries), and the
+       inline-block link takes the whole line box as its target
+       (spec 2026-09-29-wcag-2-2-design.md). */
+    .footer-sitemap-group li { margin: 0; line-height: 24px; }
+    .footer-sitemap a { display: inline-block; }
+
     .footer-sitemap-collapsible summary {
       display: block;
       position: relative;
