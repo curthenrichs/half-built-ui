@@ -930,6 +930,89 @@ describe.skipIf(!enabled)("browser suite", () => {
     expect(violations, report("phone, sheet open", violations)).toEqual([]);
   }, 60_000);
 
+  /* The phone footer only shows its link lists with the groups open
+     (Feeds and Ecosystem start closed), so the page-wide passes above
+     never audit them. Open every group, audit both themes, and pin the
+     desktop list spacing so the phone-only fix cannot leak upward. */
+  it("has no WCAG 2.2 AA violations in the open phone footer, in both themes", async () => {
+    if (!browser) throw new Error("no browser (beforeAll failed)");
+    const p = await phonePage(browser);
+    page = p;
+
+    await p.evaluateOnNewDocument(() => {
+      try {
+        localStorage.clear();
+      } catch {
+        /* storage unavailable; nothing persisted to clear */
+      }
+    });
+
+    await routeEcosystem(p, "fixture");
+    await p.goto(`${ORIGIN}/`, { waitUntil: "networkidle0" });
+
+    await p.addStyleTag({
+      content:
+        "*, *::before, *::after { transition: none !important; animation: none !important; }",
+    });
+
+    await p.evaluate(() => {
+      for (const d of document.querySelectorAll<HTMLDetailsElement>(
+        "details.footer-sitemap-collapsible",
+      )) {
+        d.open = true;
+      }
+
+      document
+        .querySelector(".footer-sitemap")
+        ?.scrollIntoView({ block: "center", behavior: "instant" });
+    });
+
+    for (const theme of ["light", "dark"] as const) {
+      await p.evaluate(async (t) => {
+        if (t === "dark") document.documentElement.dataset.theme = "dark";
+        else delete document.documentElement.dataset.theme;
+
+        await new Promise((resolve) => {
+          requestAnimationFrame(resolve);
+        });
+      }, theme);
+
+      const violations = await runAxe(p);
+
+      expect(
+        violations,
+        report(`phone, footer open, ${theme}`, violations),
+      ).toEqual([]);
+    }
+
+    /* Every row keeps one rhythm, links or not: the Ecosystem list
+       mixes links with plain-text items (the current site, pending
+       entries), and a 24px line on the links alone left those rows
+       shorter. */
+    const rows = await p.$$eval(".footer-sitemap-group li", (lis) =>
+      lis.map((li) => li.getBoundingClientRect().height),
+    );
+
+    expect(rows.length).toBeGreaterThan(0);
+    expect(new Set(rows.map((h) => Math.round(h)))).toEqual(new Set([24]));
+
+    const desk = await desktopPage(browser);
+
+    try {
+      await routeEcosystem(desk, "fixture");
+      await desk.goto(`${ORIGIN}/`, { waitUntil: "networkidle0" });
+
+      const margin = await desk.$eval(
+        ".footer-sitemap-group li",
+        (li) => getComputedStyle(li).marginTop,
+      );
+
+      expect(margin).toBe("4px");
+    } finally {
+      await desk.close();
+    }
+  }, 90_000);
+
   it("has no WCAG 2.2 AA violations with a popout open, in both themes", async () => {
     for (const theme of ["light", "dark"] as const) {
       const p = await open();
