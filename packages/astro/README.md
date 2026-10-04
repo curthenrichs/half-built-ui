@@ -125,6 +125,17 @@ an Astro config. It also encodes the `>` that Shiki's HTML serializer
 leaves raw in `Code` output, so that output passes the tooling
 html-validate preset.
 
+## Footnote separators
+
+`rehype/footnote-separators` is a rehype plugin for Markdown
+footnotes. remark-gfm renders each `[^n]` as its own superscript, so
+stacked references like `[^1][^2][^3]` run together as "123". The
+plugin puts an `aria-hidden` superscript comma between references
+that touch (whitespace counts as touching) and leaves references
+split by prose alone. That check needs the text between them, which a
+CSS sibling selector cannot see, so it lives in the markup. Add it to
+`markdown.rehypePlugins` in an Astro config; MDX inherits it.
+
 ## Palette token entries
 
 A `content/Palette.astro` entry may carry `token` (a custom property
