@@ -1182,6 +1182,37 @@ describe.skipIf(!enabled)("browser suite", () => {
     }
   }, 60_000);
 
+  /* No 404.html once meant Pages answered every unknown URL with the
+     homepage and a 200 (a soft 404). The custom page must come back
+     with a real 404, render the site chrome, be axe-clean, and stay out
+     of the sitemap (2026-10-03). */
+  it("an unknown URL gets a real 404 page", async () => {
+    const p = await open();
+
+    const res = await p.goto(`${ORIGIN}/not-a-real-page/`, {
+      waitUntil: "networkidle0",
+    });
+
+    expect(res?.status()).toBe(404);
+    expect(await p.$$eval("main", (els) => els.length)).toBe(1);
+    expect(await p.$$eval("h1", (els) => els.length)).toBe(1);
+    expect(await p.$$eval('main a[href="/"]', (els) => els.length)).toBe(1);
+
+    for (const theme of ["light", "dark"] as const) {
+      await p.evaluate((t) => {
+        if (t === "dark") document.documentElement.dataset.theme = "dark";
+        else delete document.documentElement.dataset.theme;
+      }, theme);
+
+      await settleFrames(p);
+      const violations = await runAxe(p);
+      expect(violations, report(`${theme}, 404`, violations)).toEqual([]);
+    }
+
+    const sitemap = await (await fetch(`${ORIGIN}/sitemap-0.xml`)).text();
+    expect(sitemap).not.toContain("404");
+  }, 60_000);
+
   it("robots.txt welcomes crawlers and AI training", async () => {
     const robots = await (await fetch(`${ORIGIN}/robots.txt`)).text();
 
