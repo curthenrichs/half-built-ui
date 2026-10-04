@@ -1114,7 +1114,7 @@ describe.skipIf(!enabled)("browser suite", () => {
     }
   }, 60_000);
 
-  /* The policy pages (2026-09-29): reached from the footer, clean in
+  /* The policy pages (2026-09-29, Terms 2026-10-03): reached from the footer, clean in
      both themes, one main and one h1 each, and listed in the sitemap
      since they are real pages, unlike the sample post. */
   it("the footer's policy links land on real, axe-clean pages", async () => {
@@ -1123,10 +1123,13 @@ describe.skipIf(!enabled)("browser suite", () => {
     const hrefs = await p.$$eval("footer a", (links) =>
       links
         .map((a) => a.getAttribute("href"))
-        .filter((h) => h === "/privacy/" || h === "/accessibility/"),
+        .filter(
+          (h) =>
+            h === "/privacy/" || h === "/terms/" || h === "/accessibility/",
+        ),
     );
 
-    expect(hrefs.sort()).toEqual(["/accessibility/", "/privacy/"]);
+    expect(hrefs.sort()).toEqual(["/accessibility/", "/privacy/", "/terms/"]);
 
     const sitemap = await (await fetch(`${ORIGIN}/sitemap-0.xml`)).text();
 
