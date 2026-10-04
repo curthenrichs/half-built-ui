@@ -79,10 +79,10 @@ const pageHref = (n: number) => archivePagePath(n, base);
     border: 1px solid var(--ink);
   }
 
-  .nav-links a:hover,
-  .nav-links a:focus {
-    color: var(--ink);
-    border-color: var(--rule);
+  /* The header nav's hover ring. :hover alone: keyboard focus is the
+     site-wide amber ring (base/reset.css). */
+  .nav-links a:hover {
+    outline: var(--stroke) solid var(--rule);
   }
 
   /* Press feedback comes from .press-box on the links; the shared rule
