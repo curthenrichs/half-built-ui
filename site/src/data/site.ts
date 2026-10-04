@@ -48,11 +48,10 @@ export const SOCIALS: SocialItem[] = [
 /* The same holder the blog's footer names; the two lines must match. */
 export const LEGAL_HOLDER = "Curt Henrichs LLC";
 
-/* Site lists this page's sections and the policy pages, More points
-   off the site (owner call 2026-09-06; the license lives in the repo,
-   and this site has no Terms page because MIT is the terms).
-   Ecosystem is the Footer's own third column and
-   comes from ECOSYSTEM below. */
+/* Site lists this page's sections, More points off the site (owner
+   call 2026-09-06), and Rules holds the policy pages and the MIT
+   license, as the blog's footer does (owner call 2026-10-03). Ecosystem
+   is the Footer's own fourth column and comes from ECOSYSTEM below. */
 export const FOOTER_SITEMAP: SitemapGroup[] = [
   {
     title: "Site",
@@ -64,9 +63,6 @@ export const FOOTER_SITEMAP: SitemapGroup[] = [
       { label: "Cards", href: "/#cards" },
       { label: "Components", href: "/#components" },
       { label: "CSS", href: "/#css" },
-      { label: "Privacy", href: "/privacy/" },
-      { label: "Terms", href: "/terms/" },
-      { label: "Accessibility", href: "/accessibility/" },
     ],
   },
   {
@@ -76,10 +72,6 @@ export const FOOTER_SITEMAP: SitemapGroup[] = [
       {
         label: "Source on GitHub",
         href: "https://github.com/curthenrichs/half-built-ui",
-      },
-      {
-        label: "MIT License",
-        href: "https://github.com/curthenrichs/half-built-ui/blob/main/LICENSE",
       },
       {
         label: "@half-built/css",
@@ -92,6 +84,19 @@ export const FOOTER_SITEMAP: SitemapGroup[] = [
       {
         label: "@half-built/tooling",
         href: "https://www.npmjs.com/package/@half-built/tooling",
+      },
+    ],
+  },
+  {
+    title: "Rules",
+    collapsible: true,
+    links: [
+      { label: "Privacy", href: "/privacy/" },
+      { label: "Terms", href: "/terms/" },
+      { label: "Accessibility", href: "/accessibility/" },
+      {
+        label: "MIT License",
+        href: "https://github.com/curthenrichs/half-built-ui/blob/main/LICENSE",
       },
     ],
   },
