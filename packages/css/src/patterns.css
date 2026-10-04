@@ -293,10 +293,22 @@
     font-size: var(--font-size-sm);
   }
 
+  /* A label wrapping the input (the search forms) takes the input's
+     share of the row and stretches it to the box's full height; laid
+     out inline, it left a gap under the input that the inset ring
+     stopped short of. */
+  .field-join label {
+    display: flex;
+    flex: 1;
+    min-width: 0;
+  }
+
   /* Inset, not the site-wide outside ring: an outside ring around the
-     input alone would cut across the fused box. */
+     input alone would cut across the fused box. Clicked into, the ring
+     is the box's own border color (the subscribe panel's look); the
+     amber is for keyboard focus only. */
   .field-join-input:focus-visible {
-    outline: 2px solid var(--field-ring, var(--focus-ring));
+    outline: 2px solid var(--field-ring, var(--field-ink, var(--rule)));
     outline-offset: -2px;
   }
 
