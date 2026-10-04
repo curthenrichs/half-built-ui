@@ -316,6 +316,24 @@
     outline-color: var(--focus-ring);
   }
 
+  /* A search input's clear button, drawn as the house x in the field's
+     text color in place of the browser's own (a solid blue glyph in
+     Chrome's light theme, owner report 2026-10-03). The mask is the
+     icon registry's x glyph at its default stroke
+     (packages/astro/src/scripts/core/icons.ts), the one copy of path
+     data outside the registry, since css cannot import it;
+     packages/astro/test/icons.test.ts pins the two together. */
+  .field-join-input::-webkit-search-cancel-button {
+    appearance: none;
+    width: 14px;
+    height: 14px;
+    margin-left: 8px;
+    background-color: currentColor;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M18 6 6 18'/%3E%3Cpath d='m6 6 12 12'/%3E%3C/svg%3E")
+      center / contain no-repeat;
+    cursor: pointer;
+  }
+
   .field-join-button {
     border-width: 0 0 0 var(--stroke);
     border-color: var(--field-ink, var(--rule));

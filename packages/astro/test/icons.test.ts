@@ -64,4 +64,29 @@ describe("icon registry", () => {
 
     expect(offenders).toEqual([]);
   });
+
+  /* The css package's one copy of path data: the search clear button's
+     mask in the joined-field pattern, since css cannot import the
+     registry. It must stay the registry's x at the default stroke. */
+  it("the search clear button's mask is the registry's x", () => {
+    const css = readFileSync(
+      fileURLToPath(new URL("../../css/src/patterns.css", import.meta.url)),
+      "utf-8",
+    );
+
+    const mask = decodeURIComponent(
+      /::-webkit-search-cancel-button\s*\{[^}]*?url\("data:image\/svg\+xml,([^"]+)"\)/.exec(
+        css,
+      )?.[1] ?? "",
+    );
+
+    /* The registry's markup in the data URI's single quotes. */
+    const x = iconMarkup("x").replaceAll('"', "'");
+    const paths = /(<path[^>]*\/>)+/.exec(x)?.[0] ?? "";
+    const stroke = /stroke-width='[^']*'/.exec(x)?.[0] ?? "";
+
+    expect(paths).not.toBe("");
+    expect(mask).toContain(paths);
+    expect(mask).toContain(stroke);
+  });
 });
