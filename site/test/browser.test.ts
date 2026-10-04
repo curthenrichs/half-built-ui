@@ -1120,6 +1120,31 @@ describe.skipIf(!enabled)("browser suite", () => {
   it("the footer's policy links land on real, axe-clean pages", async () => {
     const p = await open();
 
+    /* The policies get their own Rules column, the license included,
+       beside Site, More, and Ecosystem (owner call 2026-10-03). */
+    const rules = await p.$$eval(".footer-sitemap-group", (groups) => {
+      const g = groups.find(
+        (el) => el.querySelector("h2")?.textContent.trim() === "Rules",
+      );
+
+      return g
+        ? [...g.querySelectorAll("a")].map((a) => [
+            a.textContent.trim(),
+            a.getAttribute("href"),
+          ])
+        : [];
+    });
+
+    expect(rules).toEqual([
+      ["Privacy", "/privacy/"],
+      ["Terms", "/terms/"],
+      ["Accessibility", "/accessibility/"],
+      [
+        "MIT License",
+        "https://github.com/curthenrichs/half-built-ui/blob/main/LICENSE",
+      ],
+    ]);
+
     const hrefs = await p.$$eval("footer a", (links) =>
       links
         .map((a) => a.getAttribute("href"))
