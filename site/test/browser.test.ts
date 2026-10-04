@@ -349,6 +349,44 @@ describe.skipIf(!enabled)("browser suite", () => {
     }
   }, 30_000);
 
+  /* No demo card has more categories than fit, so this one is given
+     some: the row must overflow and ellipsize on its single line, never
+     wrap to a second, and the added links keep their 24px boxes inside
+     the clip like the rest. */
+  it("a card with more categories than fit ellipsizes on one line", async () => {
+    const p = await open();
+
+    const m = await p.$eval(".entry-cat .post-categories", (row) => {
+      const before = row.getBoundingClientRect().height;
+      const first = row.querySelector("a");
+      if (!first) throw new Error("no category link in the first card");
+
+      for (let i = 0; i < 12; i++) {
+        row.append(", ", first.cloneNode(true));
+      }
+
+      const r = row.getBoundingClientRect();
+      const last = row.querySelector("a:last-of-type")?.getBoundingClientRect();
+
+      return {
+        before,
+        after: r.height,
+        overflows: row.scrollWidth > row.clientWidth,
+        ellipsis: getComputedStyle(row).textOverflow === "ellipsis",
+        lastTop: last?.top ?? 0,
+        lastBottom: last?.bottom ?? 0,
+        clipTop: r.top,
+        clipBottom: r.bottom,
+      };
+    });
+
+    expect(m.overflows).toBe(true);
+    expect(m.ellipsis).toBe(true);
+    expect(m.after).toBe(m.before);
+    expect(m.lastTop).toBeGreaterThanOrEqual(m.clipTop);
+    expect(m.lastBottom).toBeLessThanOrEqual(m.clipBottom);
+  }, 30_000);
+
   it("dispatching an input on base 1 repaints --brand-1-500 and a rendered accent element", async () => {
     const p = await open();
     await p.click("[data-palette-editor] summary");
@@ -930,10 +968,11 @@ describe.skipIf(!enabled)("browser suite", () => {
     expect(violations, report("phone, sheet open", violations)).toEqual([]);
   }, 60_000);
 
-  /* The phone footer only shows its link lists with the groups open
-     (Feeds and Ecosystem start closed), so the page-wide passes above
-     never audit them. Open every group, audit both themes, and pin the
-     desktop list spacing so the phone-only fix cannot leak upward. */
+  /* Phones start the footer's Feeds and Ecosystem groups closed, so the
+     page-wide passes above never audit those lists (the sheet pass sees
+     only the open Site group). Open every group, audit both themes, and
+     pin the desktop list styling so the phone-only fix cannot leak
+     upward. */
   it("has no WCAG 2.2 AA violations in the open phone footer, in both themes", async () => {
     if (!browser) throw new Error("no browser (beforeAll failed)");
     const p = await phonePage(browser);
@@ -1002,12 +1041,19 @@ describe.skipIf(!enabled)("browser suite", () => {
       await routeEcosystem(desk, "fixture");
       await desk.goto(`${ORIGIN}/`, { waitUntil: "networkidle0" });
 
-      const margin = await desk.$eval(
-        ".footer-sitemap-group li",
-        (li) => getComputedStyle(li).marginTop,
-      );
+      const desktop = await desk.$eval(".footer-sitemap-group li", (li) => {
+        const a = li.querySelector("a");
 
-      expect(margin).toBe("4px");
+        return {
+          margin: getComputedStyle(li).marginTop,
+          lineHeight: getComputedStyle(li).lineHeight,
+          display: a ? getComputedStyle(a).display : "",
+        };
+      });
+
+      expect(desktop.margin).toBe("4px");
+      expect(desktop.lineHeight).not.toBe("24px");
+      expect(desktop.display).toBe("inline");
     } finally {
       await desk.close();
     }
@@ -1068,7 +1114,7 @@ describe.skipIf(!enabled)("browser suite", () => {
     }
   }, 60_000);
 
-  /* The policy pages (2026-09-29): reached from the footer, clean in
+  /* The policy pages (2026-09-29, Terms 2026-10-03): reached from the footer, clean in
      both themes, one main and one h1 each, and listed in the sitemap
      since they are real pages, unlike the sample post. */
   it("the footer's policy links land on real, axe-clean pages", async () => {
@@ -1077,10 +1123,13 @@ describe.skipIf(!enabled)("browser suite", () => {
     const hrefs = await p.$$eval("footer a", (links) =>
       links
         .map((a) => a.getAttribute("href"))
-        .filter((h) => h === "/privacy/" || h === "/accessibility/"),
+        .filter(
+          (h) =>
+            h === "/privacy/" || h === "/terms/" || h === "/accessibility/",
+        ),
     );
 
-    expect(hrefs.sort()).toEqual(["/accessibility/", "/privacy/"]);
+    expect(hrefs.sort()).toEqual(["/accessibility/", "/privacy/", "/terms/"]);
 
     const sitemap = await (await fetch(`${ORIGIN}/sitemap-0.xml`)).text();
 

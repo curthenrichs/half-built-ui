@@ -65,6 +65,7 @@ export const FOOTER_SITEMAP: SitemapGroup[] = [
       { label: "Components", href: "/#components" },
       { label: "CSS", href: "/#css" },
       { label: "Privacy", href: "/privacy/" },
+      { label: "Terms", href: "/terms/" },
       { label: "Accessibility", href: "/accessibility/" },
     ],
   },
