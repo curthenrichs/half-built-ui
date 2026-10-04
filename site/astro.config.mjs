@@ -1,6 +1,7 @@
 import { defineConfig } from "astro/config";
 import sitemap from "@astrojs/sitemap";
 import codeTheme from "@half-built/astro/shiki/code-theme";
+import footnoteSeparators from "@half-built/astro/rehype/footnote-separators";
 
 // Kitchen-sink demo for the half-built packages. No adapter, and no
 // integrations beyond what a minimal static site needs: the point is
@@ -19,6 +20,7 @@ export default defineConfig({
   output: "static",
   markdown: {
     shikiConfig: { theme: codeTheme },
+    rehypePlugins: [footnoteSeparators],
   },
   // The sample post is a stand-in the demo links to, not content; it
   // carries noindex and stays out of the sitemap.
