@@ -294,11 +294,11 @@ assistive tech; one item may set `accent`.
 
 ```astro
 <StatLedger
-  label="Reserve figures"
+  label="Sample figures"
   items={[
-    { label: "Held", value: "1,024 units" },
-    { label: "Issued", value: "1,024 units" },
-    { label: "Ratio", value: "100.0%", accent: true },
+    { label: "Sample A", value: "1,024 units" },
+    { label: "Sample B", value: "512 units" },
+    { label: "Ratio", value: "50.0%", accent: true },
   ]}
 />
 ```
@@ -309,9 +309,12 @@ It is a `<dl>` and stacks into one column at phone width.
 
 `components/Meter.astro` is a segmented bar with `role="meter"`. Props:
 `value`, `max`, `label`, `segments` (default 10), `valueText` (default
-"`value` of `max`"). The value is clamped to `0..max`. It sets
+the clamped value of `max`, such as "3 of 10"), and `class`. The value is
+clamped to `0..max`, and a non-finite value reads as empty. It sets
 `--meter-fill` and `--meter-segments` inline; the tooling html-validate
-preset allows both.
+preset allows both. A consumer keeping a local copy of
+`htmlvalidate.json` must add `--meter-fill` and `--meter-segments` to its
+`no-inline-style` allowlist.
 
 ## Subscribe status lines
 

@@ -301,7 +301,20 @@ describe.skipIf(!enabled)("browser suite", () => {
       })),
     );
 
-    const [three, over, empty] = meters;
+    const byLabel = (name: string) => {
+      const found = meters.find((m) => m.label === name);
+
+      if (!found) {
+        throw new Error(`no meter labelled ${name}`);
+      }
+
+      return found;
+    };
+
+    const three = byLabel("Sample progress");
+    const over = byLabel("Sample overshoot");
+    const empty = byLabel("Sample empty total");
+    const missing = byLabel("Sample missing value");
 
     expect(three).toMatchObject({
       label: "Sample progress",
@@ -316,6 +329,31 @@ describe.skipIf(!enabled)("browser suite", () => {
     expect(over.fill).toBeCloseTo(over.inner, 0);
     expect(empty).toMatchObject({ now: "0", max: "0" });
     expect(empty.fill).toBe(0);
+    expect(missing).toMatchObject({ now: "0", max: "10", text: "0 of 10" });
+    expect(missing.fill).toBe(0);
+  });
+
+  it("keeps the Meter fill visible in forced colors", async () => {
+    const p = await open();
+
+    /* Puppeteer's emulateMediaFeatures rejects forced-colors, so the
+       feature goes through the protocol directly. */
+    const session = await p.createCDPSession();
+
+    await session.send("Emulation.setEmulatedMedia", {
+      features: [{ name: "forced-colors", value: "active" }],
+    });
+
+    const fill = await p.$eval(
+      "#components [role='meter'][aria-label='Sample progress'] .meter-fill",
+      (el) => ({
+        adjust: getComputedStyle(el).forcedColorAdjust,
+        width: el.getBoundingClientRect().width,
+      }),
+    );
+
+    expect(fill.adjust).toBe("none");
+    expect(fill.width).toBeGreaterThan(0);
   });
 
   it("has no WCAG 2.2 AA violations in the light theme", async () => {

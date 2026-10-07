@@ -537,7 +537,8 @@ const npmPackages = [
               segments. It carries role="meter" with the value and a text
               reading, and it needs no script. The value is clamped to the
               range, so an overshoot fills the bar and a total of zero leaves it
-              empty.
+              empty. A missing value, which is not a finite number, reads as
+              empty too.
             </p>
           </div>
           <div class="demo-meter-stack">
@@ -549,6 +550,7 @@ const npmPackages = [
               valueText="Over the top"
             />
             <Meter label="Sample empty total" value={5} max={0} segments={4} />
+            <Meter label="Sample missing value" value={Number.NaN} max={10} />
           </div>
 
           <div class="prose">
