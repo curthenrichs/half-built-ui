@@ -404,3 +404,9 @@
     }
   }
 }
+
+.demo-meter-stack {
+  display: grid;
+  gap: 16px;
+  margin: 0 0 2em;
+}

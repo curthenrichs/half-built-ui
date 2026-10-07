@@ -1,0 +1,64 @@
+---
+interface Props {
+  value: number;
+  max: number;
+  label: string;
+  segments?: number;
+  valueText?: string;
+  class?: string;
+}
+
+const {
+  value,
+  max,
+  label,
+  segments = 10,
+  valueText,
+  class: className,
+} = Astro.props;
+
+const top = Math.max(max, 0);
+const now = Math.min(Math.max(value, 0), top);
+const share = top > 0 ? (now / top) * 100 : 0;
+---
+
+<div
+  class:list={["meter", className]}
+  role="meter"
+  aria-label={label}
+  aria-valuemin="0"
+  aria-valuemax={top}
+  aria-valuenow={now}
+  aria-valuetext={valueText ?? `${String(now)} of ${String(top)}`}
+  style={`--meter-fill: ${String(share)}%; --meter-segments: ${String(segments)};`}
+>
+  <div class="meter-fill"></div>
+</div>
+
+<style>
+  .meter {
+    position: relative;
+    height: 18px;
+    background: var(--band);
+    border: var(--stroke) solid var(--rule);
+  }
+
+  .meter-fill {
+    width: var(--meter-fill, 0%);
+    height: 100%;
+    background: var(--accent-1-ink);
+  }
+
+  .meter::after {
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      to right,
+      transparent 0 calc(100% / var(--meter-segments, 10) - 2px),
+      var(--rule) calc(100% / var(--meter-segments, 10) - 2px)
+        calc(100% / var(--meter-segments, 10))
+    );
+    content: "";
+    pointer-events: none;
+  }
+</style>

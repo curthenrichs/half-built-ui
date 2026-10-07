@@ -286,6 +286,38 @@ describe.skipIf(!enabled)("browser suite", () => {
     expect(text).toBe("Sample override. That address will not do.");
   });
 
+  it("the Meter demos expose clamped values and paint the fill to that share", async () => {
+    const p = await open();
+
+    const meters = await p.$$eval("#components [role='meter']", (els) =>
+      els.map((el) => ({
+        label: el.getAttribute("aria-label"),
+        now: el.getAttribute("aria-valuenow"),
+        max: el.getAttribute("aria-valuemax"),
+        text: el.getAttribute("aria-valuetext"),
+        inner: el.clientWidth,
+        fill:
+          el.querySelector(".meter-fill")?.getBoundingClientRect().width ?? -1,
+      })),
+    );
+
+    const [three, over, empty] = meters;
+
+    expect(three).toMatchObject({
+      label: "Sample progress",
+      now: "3",
+      max: "10",
+      text: "3 of 10",
+    });
+
+    expect(three.fill / three.inner).toBeGreaterThan(0.29);
+    expect(three.fill / three.inner).toBeLessThan(0.31);
+    expect(over).toMatchObject({ now: "10", text: "Over the top" });
+    expect(over.fill).toBeCloseTo(over.inner, 0);
+    expect(empty).toMatchObject({ now: "0", max: "0" });
+    expect(empty.fill).toBe(0);
+  });
+
   it("has no WCAG 2.2 AA violations in the light theme", async () => {
     const p = await open();
 
