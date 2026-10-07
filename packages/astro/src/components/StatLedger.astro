@@ -15,6 +15,8 @@ const { items, label, class: className } = Astro.props;
 const Wrap = label ? "section" : "div";
 ---
 
+{/* A boxed row of figures: a label over a large value in each cell, with an optional accent on the figure that matters. A <dl>, so each label is announced with its value. Wrapped in a named section when a label is given, a plain div otherwise. Stacks at phone width. */}
+
 <Wrap class:list={["stat-ledger", className]} aria-label={label}>
   <dl>
     {items.map((item) => <div class="stat-ledger-cell">
