@@ -24,6 +24,9 @@ const {
 const Heading: "h2" | "h3" | "h4" = `h${headingLevel}`;
 ---
 
+{/* The messages prop holds status lines that replace the defaults in
+    scripts/subscribe.ts (invalid, pending, sent, failed). Serialized onto
+    the form. */}
 <section class:list={["subscribe", `subscribe-${variant}`, className]}>
   <Heading class="subscribe-title"
     ><slot name="title"

@@ -22,6 +22,10 @@ const now = Math.min(Math.max(value, 0), top);
 const share = top > 0 ? (now / top) * 100 : 0;
 ---
 
+{/* A segmented progress bar. role="meter" carries the value for
+    assistive tech; the fill and the segment ticks are drawn from two
+    inline custom properties, so the component ships no script. value is
+    clamped to 0..max, and a max of 0 reads as empty rather than NaN. */}
 <div
   class:list={["meter", className]}
   role="meter"
