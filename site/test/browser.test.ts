@@ -273,6 +273,19 @@ describe.skipIf(!enabled)("browser suite", () => {
     return p.evaluate(() => document.activeElement?.id ?? "");
   }
 
+  it("the Subscribe demo shows its overridden invalid line", async () => {
+    const p = await open();
+    await p.type("#components .subscribe-email", "not-an-email");
+    await p.click("#components .subscribe-submit");
+
+    const text = await p.$eval(
+      "#components .subscribe-status",
+      (el) => el.textContent,
+    );
+
+    expect(text).toBe("Sample override. That address will not do.");
+  });
+
   it("has no WCAG 2.2 AA violations in the light theme", async () => {
     const p = await open();
 

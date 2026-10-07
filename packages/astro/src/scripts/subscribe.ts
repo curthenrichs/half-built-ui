@@ -38,6 +38,42 @@ export const MSG = {
     `${failed.replace(/\.$/, "")}, or sign up at ${url}.`,
 };
 
+const MESSAGE_KEYS = ["invalid", "pending", "sent", "failed"] as const;
+
+type MessageKey = (typeof MESSAGE_KEYS)[number];
+
+/* The component's messages prop rides the form as JSON (data-messages),
+   because the component mounts itself and a consumer cannot reach that
+   call. Only the four string lines are read: failedAt stays the
+   package's, and anything malformed falls back to the defaults rather
+   than printing a broken status line. */
+export function formMessages(
+  form: HTMLFormElement,
+): Partial<Record<MessageKey, string>> {
+  const raw = form.dataset.messages;
+  if (!raw) return {};
+  let parsed: unknown;
+
+  try {
+    parsed = JSON.parse(raw);
+  } catch {
+    return {};
+  }
+
+  if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
+    return {};
+  }
+
+  const out: Partial<Record<MessageKey, string>> = {};
+
+  for (const key of MESSAGE_KEYS) {
+    const value = (parsed as Record<string, unknown>)[key];
+    if (typeof value === "string" && value !== "") out[key] = value;
+  }
+
+  return out;
+}
+
 /* The provider's public sign-up page rides the form's data-public-url
    (config NEWSLETTER via the component's publicUrl prop), so this script names no provider; without the
    attribute the message stays generic. */
@@ -111,6 +147,8 @@ export const mountSubscribe: Island<SubscribeOptions> = (
   const handlers: [HTMLFormElement, (e: Event) => void][] = [];
 
   for (const form of forms) {
+    const formMsgs: typeof MSG = { ...messages, ...formMessages(form) };
+
     const onSubmit = (e: Event): void => {
       e.preventDefault();
       const input = form.querySelector(".subscribe-email");
@@ -128,7 +166,7 @@ export const mountSubscribe: Island<SubscribeOptions> = (
       input.value = value;
 
       if (!EMAIL.test(value)) {
-        setStatus(status, messages.invalid, true);
+        setStatus(status, formMsgs.invalid, true);
         return;
       }
 
@@ -137,7 +175,7 @@ export const mountSubscribe: Island<SubscribeOptions> = (
         input,
         button instanceof HTMLButtonElement ? button : null,
         status,
-        messages,
+        formMsgs,
       );
     };
 

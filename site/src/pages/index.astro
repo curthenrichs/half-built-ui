@@ -610,13 +610,15 @@ const npmPackages = [
             <p>
               Subscribe is a standard form with a method and an action, so it
               submits with JavaScript turned off. Its text is in named slots and
-              can be replaced without forking the component.
+              can be replaced without forking the component. Its status lines
+              can be replaced through the messages prop.
             </p>
           </div>
           <Subscribe
             variant="page"
             action="https://example.com/subscribe"
             publicUrl="example.com/subscribe"
+            messages={{ invalid: "Sample override. That address will not do." }}
           >
             <Fragment slot="fine-print"
               >Placeholder form. This demo does not send email. The action is
