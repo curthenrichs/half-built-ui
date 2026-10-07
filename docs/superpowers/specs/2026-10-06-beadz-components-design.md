@@ -1,4 +1,4 @@
-# StatLedger, Meter, Subscribe tag (0.12.0): design
+# StatLedger and Meter (0.12.0): design
 
 Date: 2026-10-06. Consumer driving it: the BEADZ site facelift (full spec in
 the private BEADZ monorepo, `docs/superpowers/specs/2026-10-06-beadz-site-facelift-design.md`).
@@ -24,12 +24,6 @@ A segmented progress bar.
 - `role="meter"` with `aria-valuenow`, `aria-valuemax`, `aria-valuetext`.
 - Fill is the accent ink, track a surface token, segment ticks a CSS gradient
   over the track. No JS.
-
-## Subscribe: `tag` prop
-
-Optional `string | string[]`, rendered as hidden `tag` inputs so a consumer can
-tag signups on a shared Buttondown account. Verify the embed endpoint's field
-name and the tagged-subscriber behavior before building.
 
 ## Rules
 
