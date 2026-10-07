@@ -18,6 +18,7 @@ import {
 import PostNavigation from "@half-built/astro/components/PostNavigation.astro";
 import LinkListWidget from "@half-built/astro/components/LinkListWidget.astro";
 import Widget from "@half-built/astro/components/Widget.astro";
+import StatLedger from "@half-built/astro/components/StatLedger.astro";
 import Popout from "@half-built/astro/components/Popout.astro";
 import Subscribe from "@half-built/astro/components/Subscribe.astro";
 import Button from "@half-built/astro/content/Button.astro";
@@ -509,6 +510,24 @@ const npmPackages = [
               </p>
             </Widget>
           </div>
+
+          <div class="prose">
+            <h3>Stat ledger</h3>
+            <p>
+              StatLedger sets a few figures side by side in one ruled box, a
+              label over each value. One figure can take the accent. It is a
+              description list, so a screen reader pairs each label with its
+              value, and it stacks into one column at phone width.
+            </p>
+          </div>
+          <StatLedger
+            label="Sample figures"
+            items={[
+              { label: "Sample A", value: "1,024 units" },
+              { label: "Sample B", value: "512 units" },
+              { label: "Ratio", value: "50.0%", accent: true },
+            ]}
+          />
 
           <div class="prose">
             <h3>Popout</h3>

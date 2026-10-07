@@ -1788,4 +1788,59 @@ describe.skipIf(!enabled)("browser suite", () => {
 
     expect(brand1500).toBe("#2f9e44");
   }, 30_000);
+
+  it("the StatLedger demo is a dl with one row of three cells, the third accented", async () => {
+    const p = await open();
+
+    const cells = await p.$$eval("#components .stat-ledger dl > div", (els) =>
+      els.map((e) => ({
+        left: Math.round(e.getBoundingClientRect().left),
+        top: Math.round(e.getBoundingClientRect().top),
+        dt: e.querySelector("dt")?.textContent.trim() ?? "",
+        accent:
+          e
+            .querySelector("dd")
+            ?.classList.contains("stat-ledger-value-accent") ?? false,
+      })),
+    );
+
+    expect(cells.map((c) => c.dt)).toEqual(["Sample A", "Sample B", "Ratio"]);
+    expect(new Set(cells.map((c) => c.top)).size).toBe(1);
+    expect(new Set(cells.map((c) => c.left)).size).toBe(3);
+    expect(cells.map((c) => c.accent)).toEqual([false, false, true]);
+
+    expect(
+      await p.$eval("#components section.stat-ledger", (el) =>
+        el.getAttribute("aria-label"),
+      ),
+    ).toBe("Sample figures");
+  });
+
+  it("at phone width the StatLedger stacks and its long value stays inside the box", async () => {
+    const p = await openPhone();
+
+    const geo = await p.$eval("#components .stat-ledger", (el) => {
+      const box = el.getBoundingClientRect();
+
+      const cells = [...el.querySelectorAll("dl > div")].map((c) => {
+        const r = c.getBoundingClientRect();
+        return { left: Math.round(r.left), right: r.right };
+      });
+
+      return {
+        right: box.right,
+        cells,
+        page: document.documentElement.scrollWidth,
+        vw: window.innerWidth,
+      };
+    });
+
+    expect(new Set(geo.cells.map((c) => c.left)).size).toBe(1);
+
+    for (const c of geo.cells) {
+      expect(c.right).toBeLessThanOrEqual(geo.right + 0.5);
+    }
+
+    expect(geo.page).toBeLessThanOrEqual(geo.vw);
+  });
 });
