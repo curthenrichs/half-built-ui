@@ -196,8 +196,8 @@ inside the home link. Fill it to replace the site name's text while
 keeping the package's centering, boxed tagline, and h1/p choice:
 
 ```astro
-<Masthead siteName="The Bead Reserve" ...>
-  <span slot="title" class="wordmark">The Bead <em>Reserve</em></span>
+<Masthead siteName="Sample Site" ...>
+  <span slot="title" class="wordmark">Sample <em>Site</em></span>
 </Masthead>
 ```
 

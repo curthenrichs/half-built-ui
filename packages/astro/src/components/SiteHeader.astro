@@ -78,11 +78,10 @@ const isCurrent = (href: string) =>
                   >
                 </h1>
               ) : (
-                <p class="site-title">
-                  <a href="/" rel="home"
-                    ><slot name="title">{siteName}</slot></a
-                  >
-                </p>
+                <Fragment
+                  >{/* prettier-ignore */}
+                  <p class="site-title"><a href="/" rel="home"><slot name="title">{siteName}</slot></a></p></Fragment
+                >
               )}
               <p class="site-description">{tagline}</p>
             </div>
@@ -133,6 +132,8 @@ const isCurrent = (href: string) =>
                 {/* Phones lose the top band, so the toggle sits beside the
                   search there (owner request 2026-08-26). */}
                 <ThemeToggle placement="phone" />
+                {/* searchAction={false} removes the whole search block
+                  (button, flyout, form) for sites with no search page. */}
                 {searchAction !== false && <div class="navigation-search">
                   <div class="navigation-search-wrap">
                     {/* A control that reveals UI is a button, not a link: a
