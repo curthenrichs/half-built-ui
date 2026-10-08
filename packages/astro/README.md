@@ -189,6 +189,25 @@ media block that pins the cluster.
 `mainTag="div"` for a demo or nested use where the page already has
 its own main.
 
+## SiteHeader title slot and search
+
+`SiteHeader` (also exported as `Masthead`) has a named `title` slot
+inside the home link. Fill it to replace the site name's text while
+keeping the package's centering, boxed tagline, and h1/p choice:
+
+```astro
+<Masthead siteName="The Bead Reserve" ...>
+  <span slot="title" class="wordmark">The Bead <em>Reserve</em></span>
+</Masthead>
+```
+
+The span's own class carries any font change. `siteName` stays
+required and is the fallback when the slot is empty.
+
+`searchAction` defaults to `"/search/"`. Pass `searchAction={false}` to
+render no search block at all (no button, flyout, or form). The phone
+theme toggle stays.
+
 ## Search flyout
 
 `scripts/site-header` drives the masthead's search flyout as a
