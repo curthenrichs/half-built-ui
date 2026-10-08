@@ -10,7 +10,7 @@ interface Props {
   socials: SocialItem[];
   dateStr: string;
   isHome?: boolean;
-  searchAction?: string;
+  searchAction?: string | false;
   searchParam?: string;
   searchLabels?: { prompt?: string; placeholder?: string; submit?: string };
 }
@@ -73,10 +73,15 @@ const isCurrent = (href: string) =>
             <div class="site-identity">
               {isHome ? (
                 <h1 class="site-title">
-                  <a href="/" rel="home">{siteName}</a>
+                  <a href="/" rel="home"
+                    ><slot name="title">{siteName}</slot></a
+                  >
                 </h1>
               ) : (
-                <p class="site-title"><a href="/" rel="home">{siteName}</a></p>
+                <Fragment
+                  >{/* prettier-ignore */}
+                  <p class="site-title"><a href="/" rel="home"><slot name="title">{siteName}</slot></a></p></Fragment
+                >
               )}
               <p class="site-description">{tagline}</p>
             </div>
@@ -127,48 +132,54 @@ const isCurrent = (href: string) =>
                 {/* Phones lose the top band, so the toggle sits beside the
                   search there (owner request 2026-08-26). */}
                 <ThemeToggle placement="phone" />
-                <div class="navigation-search">
-                  <div class="navigation-search-wrap">
-                    {/* A control that reveals UI is a button, not a link: a
+                {
+                  /* searchAction={false} removes the whole search block
+                  (button, flyout, form) for sites with no search page. */ searchAction !==
+                    false && <div class="navigation-search">
+                    <div class="navigation-search-wrap">
+                      {/* A control that reveals UI is a button, not a link: a
                       bare-hash anchor navigates (scroll jump + history
                       entry), audit finding A3. With the island mounted it
                       is the flyout's toggle (site-header.ts); without
                       JavaScript, focus-within still opens the flyout when
                       the button takes focus. */}
-                    <button
-                      type="button"
-                      title="Search"
-                      class="navigation-search-icon icon-box"
-                      aria-expanded="false"
-                    >
-                      <Icon name="search" size={14} />
-                      <span class="screen-reader-text">Search</span>
-                    </button>
-                    <div class="navigation-search-form">
-                      <form
-                        role="search"
-                        class="search-form field-join"
-                        action={searchAction}
-                        method="get"
+                      <button
+                        type="button"
+                        title="Search"
+                        class="navigation-search-icon icon-box"
+                        aria-expanded="false"
                       >
-                        <label>
-                          <span class="screen-reader-text">{searchPrompt}</span>
+                        <Icon name="search" size={14} />
+                        <span class="screen-reader-text">Search</span>
+                      </button>
+                      <div class="navigation-search-form">
+                        <form
+                          role="search"
+                          class="search-form field-join"
+                          action={searchAction}
+                          method="get"
+                        >
+                          <label>
+                            <span class="screen-reader-text"
+                              >{searchPrompt}</span
+                            >
+                            <input
+                              type="search"
+                              class="search-field field-join-input"
+                              placeholder={searchPlaceholder}
+                              name={searchParam}
+                            />
+                          </label>
                           <input
-                            type="search"
-                            class="search-field field-join-input"
-                            placeholder={searchPlaceholder}
-                            name={searchParam}
+                            type="submit"
+                            class="search-submit field-join-button press-box press-box-shaded"
+                            value={searchSubmit}
                           />
-                        </label>
-                        <input
-                          type="submit"
-                          class="search-submit field-join-button press-box press-box-shaded"
-                          value={searchSubmit}
-                        />
-                      </form>
+                        </form>
+                      </div>
                     </div>
                   </div>
-                </div>
+                }
               </div>
             </div>
           </div></slot

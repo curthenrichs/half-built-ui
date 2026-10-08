@@ -270,6 +270,21 @@ import Popout from "@half-built/astro/components/Popout.astro";
   <code>inline code</code>.
 </Popout>`;
 
+const titleSlotSample = `---
+import Masthead from "@half-built/astro/components/Masthead.astro";
+---
+
+<Masthead
+  siteName="Sample Site"
+  tagline="A sample tagline"
+  nav={nav}
+  socials={socials}
+  dateStr={dateStr}
+  searchAction={false}
+>
+  <span slot="title" class="wordmark">Sample <em>Site</em></span>
+</Masthead>`;
+
 const pathPlayerSample = `---
 import "@half-built/css/plate-modal.css";
 import "@half-built/css/path-player.css";
@@ -365,6 +380,30 @@ const npmPackages = [
               </p>
             </div>
             <Imports code={frameImports} />
+          </div>
+
+          <div class="prose">
+            <h3>Header title and search</h3>
+            <p>
+              The header's <code>title</code> slot replaces the text inside the
+              home link. The centering, the boxed tagline, and the heading level
+              stay with the package, and the slotted element's own class carries
+              any font change. With the slot empty, <code>siteName</code>{" "}
+              renders as plain text. Passing
+              <code>searchAction={"{false}"}</code>{" "} removes the search
+              button, flyout, and form from the header. This site does that,
+              because it has no search page.
+            </p>
+            <div class="demo-title-slot-sample">
+              <CodeBlock>
+                <Code
+                  code={titleSlotSample}
+                  lang="astro"
+                  theme={codeTheme}
+                  transformers={[codeVars]}
+                />
+              </CodeBlock>
+            </div>
           </div>
 
           <h3>Two-column layout</h3>

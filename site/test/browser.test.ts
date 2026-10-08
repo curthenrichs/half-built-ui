@@ -28,6 +28,7 @@ import {
   phonePage,
 } from "@half-built/tooling/test-kit/browser-server.ts";
 import { SECTIONS } from "../src/data/sections";
+import { SITE_NAME } from "../src/data/site";
 
 const enabled = process.env.BROWSER_TESTS === "1";
 
@@ -715,6 +716,39 @@ describe.skipIf(!enabled)("browser suite", () => {
     }));
 
     expect(second).toEqual({ open: true, label: "Row one", hasLink: true });
+  });
+
+  it("the header renders no search block when searchAction is false", async () => {
+    const p = await open();
+
+    const found = await p.$eval(".site-header", (h) => ({
+      block: h.querySelector(".navigation-search") !== null,
+      form: h.querySelector('form[role="search"]') !== null,
+    }));
+
+    expect(found).toEqual({ block: false, form: false });
+  });
+
+  it("the header home link shows the site name when the title slot is empty", async () => {
+    const p = await open();
+
+    const text = await p.$eval(".site-header .site-title a", (a) =>
+      a.textContent.trim(),
+    );
+
+    expect(text).toBe(SITE_NAME);
+  });
+
+  it("the Frame section ships a worked title slot example", async () => {
+    const p = await open();
+
+    const text = await p.$eval(
+      ".demo-title-slot-sample",
+      (el) => el.textContent || "",
+    );
+
+    expect(text).toContain('slot="title"');
+    expect(text).toContain("<Masthead");
   });
 
   it("the Popout subsection ships a worked example matching the demo", async () => {

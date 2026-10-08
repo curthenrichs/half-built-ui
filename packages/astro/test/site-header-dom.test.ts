@@ -262,4 +262,16 @@ describe("site header island (DOM runtime)", () => {
       expect(menu().classList.contains("open")).toBe(true);
     });
   });
+
+  it("mounts over a header with no search block and still wires the menu", () => {
+    document.body.innerHTML = `
+      <div class="date boxed-label" id="header-date">stale</div>
+      <button type="button" class="menu-toggle" aria-controls="primary-menu" aria-expanded="false"></button>
+      <ul id="primary-menu" class="menu"></ul>`;
+
+    expect(() => mountSiteHeader(document)).not.toThrow();
+    btn().click();
+    expect(menu().classList.contains("open")).toBe(true);
+    expect(btn().getAttribute("aria-expanded")).toBe("true");
+  });
 });
