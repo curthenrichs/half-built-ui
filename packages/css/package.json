@@ -1,6 +1,6 @@
 {
   "name": "@half-built/css",
-  "version": "0.11.4",
+  "version": "0.12.0",
   "description": "Design tokens, base, patterns, and prose CSS for the half-built design system.",
   "license": "MIT",
   "repository": {

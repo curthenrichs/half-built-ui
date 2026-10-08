@@ -3,21 +3,29 @@
    fetch to Buttondown's embed endpoint, and the status line for each
    outcome. fetch is mocked; nothing here touches the network. */
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { mountSubscribe, MSG } from "../src/scripts/subscribe";
+import { mountSubscribe, MSG, formMessages } from "../src/scripts/subscribe";
 import type { SubscribeOptions } from "../src/scripts/subscribe";
 
 const ACTION =
   "https://buttondown.com/api/emails/embed-subscribe/half-built-robots";
 
-function mount(options?: SubscribeOptions): {
+function mount(
+  options?: SubscribeOptions,
+  dataMessages?: string,
+): {
   form: HTMLFormElement;
   input: HTMLInputElement;
   button: HTMLButtonElement;
   status: HTMLElement;
 } {
+  const attr =
+    dataMessages === undefined
+      ? ""
+      : ` data-messages='${dataMessages.replace(/'/g, "&#39;")}'`;
+
   document.body.innerHTML = `
     <section class="subscribe subscribe-post">
-      <form class="subscribe-form field-join" method="post" action="${ACTION}" novalidate>
+      <form class="subscribe-form field-join" method="post" action="${ACTION}" novalidate${attr}>
         <input type="hidden" name="embed" value="1" />
         <input class="subscribe-email field-join-input" type="email" name="email" required />
         <button class="subscribe-submit field-join-button" type="submit">Subscribe</button>
@@ -216,5 +224,107 @@ describe("subscribe form (DOM runtime)", () => {
         "Couldn't reach the list. Try again in a minute, or sign up at buttondown.com/half-built-robots.",
       );
     });
+  });
+});
+
+describe("subscribe form messages from data-messages", () => {
+  let fetchMock: ReturnType<typeof vi.fn>;
+
+  beforeEach(() => {
+    fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+    document.body.innerHTML = "";
+  });
+
+  it("the form's invalid line replaces the default", () => {
+    const { form, input, status } = mount(
+      undefined,
+      JSON.stringify({ invalid: "Form says no." }),
+    );
+
+    input.value = "nope";
+    submit(form);
+    expect(status.textContent).toBe("Form says no.");
+  });
+
+  it("the form's sent line replaces the default after a 200", async () => {
+    fetchMock.mockResolvedValue({
+      ok: true,
+      redirected: false,
+      status: 200,
+      type: "cors",
+    });
+
+    const { form, input, status } = mount(
+      undefined,
+      JSON.stringify({ sent: "Form says sent." }),
+    );
+
+    input.value = "reader@example.com";
+    submit(form);
+
+    await vi.waitFor(() => {
+      expect(status.textContent).toBe("Form says sent.");
+    });
+  });
+
+  it("malformed JSON falls back to the defaults without throwing", () => {
+    const { form, input, status } = mount(undefined, "{not json");
+    input.value = "nope";
+    submit(form);
+    expect(status.textContent).toBe(MSG.invalid);
+  });
+
+  it("an array, unknown keys, empty and non-string values are ignored", () => {
+    const { form, input, status } = mount(
+      undefined,
+      JSON.stringify({ invalid: 42, bogus: "x", pending: "" }),
+    );
+
+    input.value = "nope";
+    submit(form);
+    expect(status.textContent).toBe(MSG.invalid);
+
+    document.body.innerHTML = "";
+    const second = mount(undefined, JSON.stringify(["invalid"]));
+    second.input.value = "nope";
+    submit(second.form);
+    expect(second.status.textContent).toBe(MSG.invalid);
+  });
+
+  it("the form's line wins over the mount option, key by key", () => {
+    const { form, input, status } = mount(
+      { messages: { invalid: "Option line." } },
+      JSON.stringify({ invalid: "Form line." }),
+    );
+
+    input.value = "nope";
+    submit(form);
+    expect(status.textContent).toBe("Form line.");
+  });
+});
+
+describe("formMessages", () => {
+  it("returns only the four known keys with non-empty strings", () => {
+    const form = document.createElement("form");
+
+    form.dataset.messages = JSON.stringify({
+      invalid: "a",
+      pending: "b",
+      sent: "",
+      failed: 3,
+      failedAt: "x",
+    });
+
+    expect(formMessages(form)).toEqual({ invalid: "a", pending: "b" });
+  });
+
+  it("returns {} with no attribute", () => {
+    expect(formMessages(document.createElement("form"))).toEqual({});
   });
 });

@@ -1,0 +1,74 @@
+---
+export interface StatLedgerItem {
+  label: string;
+  value: string;
+  accent?: boolean;
+}
+
+interface Props {
+  items: StatLedgerItem[];
+  label?: string;
+  class?: string;
+}
+
+const { items, label, class: className } = Astro.props;
+const Wrap = label ? "section" : "div";
+---
+
+{/* A boxed row of figures: a label over a large value in each cell, with an optional accent on the figure that matters. A <dl>, so each label is announced with its value. Wrapped in a named section when a label is given, a plain div otherwise. Stacks at phone width. */}
+
+<Wrap class:list={["stat-ledger", className]} aria-label={label}>
+  <dl>
+    {items.map((item) => <div class="stat-ledger-cell">
+      <dt class="stat-ledger-label micro-label">{item.label}</dt>
+      <dd
+        class:list={[
+          "stat-ledger-value",
+          { "stat-ledger-value-accent": item.accent },
+        ]}
+      >
+        {item.value}
+      </dd>
+    </div>)}
+  </dl>
+</Wrap>
+
+<style>
+  .stat-ledger { margin: 0 0 2em; }
+
+  .stat-ledger dl {
+    display: grid;
+    grid-auto-columns: 1fr;
+    grid-auto-flow: column;
+    margin: 0;
+    border: var(--stroke) solid var(--rule);
+  }
+
+  .stat-ledger-cell { min-width: 0; padding: 16px 14px; }
+  .stat-ledger-cell + .stat-ledger-cell { border-left: var(--stroke) solid var(--rule); }
+
+  .stat-ledger-label {
+    margin: 0;
+    color: var(--ink-muted);
+    text-transform: uppercase;
+  }
+
+  .stat-ledger-value {
+    margin: 7px 0 0;
+    overflow-wrap: anywhere;
+    color: var(--ink);
+    font-size: var(--font-size-lg);
+    font-weight: 700;
+  }
+
+  .stat-ledger-value-accent { color: var(--accent-1-ink); }
+
+  @media (--bp-phone) {
+    .stat-ledger dl { grid-auto-flow: row; }
+
+    .stat-ledger-cell + .stat-ledger-cell {
+      border-top: var(--stroke) solid var(--rule);
+      border-left: 0;
+    }
+  }
+</style>

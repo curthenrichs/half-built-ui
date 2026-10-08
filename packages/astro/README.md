@@ -286,6 +286,42 @@ close box for a site that is not in English.
 Not covered yet: structured content (lists, sub-tables, images),
 triggers on chart marks, and hover previews.
 
+## StatLedger
+
+`components/StatLedger.astro` sets a few figures side by side in one
+ruled box, a label over each value. Pass `label` to name the section for
+assistive tech; one item may set `accent`.
+
+```astro
+<StatLedger
+  label="Sample figures"
+  items={[
+    { label: "Sample A", value: "1,024 units" },
+    { label: "Sample B", value: "512 units" },
+    { label: "Ratio", value: "50.0%", accent: true },
+  ]}
+/>
+```
+
+It is a `<dl>` and stacks into one column at phone width.
+
+## Meter
+
+`components/Meter.astro` is a segmented bar with `role="meter"`. Props:
+`value`, `max`, `label`, `segments` (default 10), `valueText` (default
+the clamped value of `max`, such as "3 of 10"), and `class`. The value is
+clamped to `0..max`, and a non-finite value reads as empty. It sets
+`--meter-fill` and `--meter-segments` inline; the tooling html-validate
+preset allows both. A consumer keeping a local copy of
+`htmlvalidate.json` must add `--meter-fill` and `--meter-segments` to its
+`no-inline-style` allowlist.
+
+## Subscribe status lines
+
+`Subscribe` takes `messages` to replace any of its four status lines
+(`invalid`, `pending`, `sent`, `failed`). The lines ride the form as
+`data-messages`, so the self-mounting script picks them up per form.
+
 ## Import notes
 
 Wildcard subpath imports need explicit file extensions under

@@ -18,6 +18,8 @@ import {
 import PostNavigation from "@half-built/astro/components/PostNavigation.astro";
 import LinkListWidget from "@half-built/astro/components/LinkListWidget.astro";
 import Widget from "@half-built/astro/components/Widget.astro";
+import StatLedger from "@half-built/astro/components/StatLedger.astro";
+import Meter from "@half-built/astro/components/Meter.astro";
 import Popout from "@half-built/astro/components/Popout.astro";
 import Subscribe from "@half-built/astro/components/Subscribe.astro";
 import Button from "@half-built/astro/content/Button.astro";
@@ -511,6 +513,47 @@ const npmPackages = [
           </div>
 
           <div class="prose">
+            <h3>Stat ledger</h3>
+            <p>
+              StatLedger sets a few figures side by side in one ruled box, a
+              label over each value. One figure can take the accent. It is a
+              description list, so a screen reader pairs each label with its
+              value, and it stacks into one column at phone width.
+            </p>
+          </div>
+          <StatLedger
+            label="Sample figures"
+            items={[
+              { label: "Sample A", value: "1,024 units" },
+              { label: "Sample B", value: "512 units" },
+              { label: "Ratio", value: "50.0%", accent: true },
+            ]}
+          />
+
+          <div class="prose">
+            <h3>Meter</h3>
+            <p>
+              Meter shows how far a count has come toward its total, in ruled
+              segments. It carries role="meter" with the value and a text
+              reading, and it needs no script. The value is clamped to the
+              range, so an overshoot fills the bar and a total of zero leaves it
+              empty. A missing value, which is not a finite number, reads as
+              empty too.
+            </p>
+          </div>
+          <div class="demo-meter-stack">
+            <Meter label="Sample progress" value={3} max={10} />
+            <Meter
+              label="Sample overshoot"
+              value={14}
+              max={10}
+              valueText="Over the top"
+            />
+            <Meter label="Sample empty total" value={5} max={0} segments={4} />
+            <Meter label="Sample missing value" value={Number.NaN} max={10} />
+          </div>
+
+          <div class="prose">
             <h3>Popout</h3>
             <p>
               Popout holds a short note behind a cell in a data table. It is for
@@ -610,13 +653,15 @@ const npmPackages = [
             <p>
               Subscribe is a standard form with a method and an action, so it
               submits with JavaScript turned off. Its text is in named slots and
-              can be replaced without forking the component.
+              can be replaced without forking the component. Its status lines
+              can be replaced through the messages prop.
             </p>
           </div>
           <Subscribe
             variant="page"
             action="https://example.com/subscribe"
             publicUrl="example.com/subscribe"
+            messages={{ invalid: "Sample override. That address will not do." }}
           >
             <Fragment slot="fine-print"
               >Placeholder form. This demo does not send email. The action is

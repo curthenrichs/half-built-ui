@@ -7,6 +7,7 @@ interface Props {
   publicUrl?: string;
   placeholder?: string;
   buttonLabel?: string;
+  messages?: Partial<Record<"invalid" | "pending" | "sent" | "failed", string>>;
 }
 
 const {
@@ -17,11 +18,15 @@ const {
   publicUrl,
   placeholder = "you@somewhere.tld",
   buttonLabel = "Subscribe",
+  messages,
 } = Astro.props;
 
 const Heading: "h2" | "h3" | "h4" = `h${headingLevel}`;
 ---
 
+{/* The messages prop holds status lines that replace the defaults in
+    scripts/subscribe.ts (invalid, pending, sent, failed). Serialized onto
+    the form. */}
 <section class:list={["subscribe", `subscribe-${variant}`, className]}>
   <Heading class="subscribe-title"
     ><slot name="title"
@@ -47,6 +52,7 @@ const Heading: "h2" | "h3" | "h4" = `h${headingLevel}`;
     method="post"
     action={action}
     data-public-url={publicUrl}
+    data-messages={messages ? JSON.stringify(messages) : undefined}
     novalidate
   >
     <input type="hidden" name="embed" value="1" />

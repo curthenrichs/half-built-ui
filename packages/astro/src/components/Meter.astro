@@ -1,0 +1,81 @@
+---
+interface Props {
+  value: number;
+  max: number;
+  label: string;
+  segments?: number;
+  valueText?: string;
+  class?: string;
+}
+
+const {
+  value,
+  max,
+  label,
+  segments = 10,
+  valueText,
+  class: className,
+} = Astro.props;
+
+const top = Number.isFinite(max) && max > 0 ? max : 0;
+const now = Number.isFinite(value) ? Math.min(Math.max(value, 0), top) : 0;
+
+const ticks = Number.isFinite(segments)
+  ? Math.max(1, Math.round(segments))
+  : 10;
+
+const share = top > 0 ? (now / top) * 100 : 0;
+---
+
+{/* A segmented progress bar. role="meter" carries the value for
+    assistive tech; the fill and the segment ticks are drawn from two
+    inline custom properties, so the component ships no script. value is
+    clamped to 0..max, a max of 0 and any non-finite value read as empty
+    rather than NaN, and segments rounds to a whole number of at least 1. */}
+<div
+  class:list={["meter", className]}
+  role="meter"
+  aria-label={label}
+  aria-valuemin="0"
+  aria-valuemax={top}
+  aria-valuenow={now}
+  aria-valuetext={valueText ?? `${String(now)} of ${String(top)}`}
+  style={`--meter-fill: ${String(share)}%; --meter-segments: ${String(ticks)};`}
+>
+  <div class="meter-fill"></div>
+</div>
+
+<style>
+  .meter {
+    position: relative;
+    height: 18px;
+    background: var(--band);
+    border: var(--stroke) solid var(--rule);
+  }
+
+  .meter-fill {
+    width: var(--meter-fill, 0%);
+    height: 100%;
+    background: var(--accent-1-ink);
+  }
+
+  .meter::after {
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      to right,
+      transparent 0 calc(100% / var(--meter-segments, 10) - 2px),
+      var(--rule) calc(100% / var(--meter-segments, 10) - 2px)
+        calc(100% / var(--meter-segments, 10))
+    );
+    content: "";
+    pointer-events: none;
+  }
+
+  @media (forced-colors: active) {
+    .meter-fill {
+      forced-color-adjust: none;
+      background: Highlight;
+    }
+  }
+</style>

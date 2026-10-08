@@ -12,7 +12,9 @@
           "color",
           "background-color",
           "overflow-x",
-          "font-style"
+          "font-style",
+          "--meter-fill",
+          "--meter-segments"
         ]
       }
     ],
