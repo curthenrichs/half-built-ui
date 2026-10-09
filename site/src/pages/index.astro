@@ -302,14 +302,20 @@ import "@half-built/css/path-player.css";
   button.addEventListener("click", () => player.open(button));
 </script>`;
 
-const plateFrameSample = `<div class="plate-frame">
+const plateFrameSample = `<div class="plate-frame" data-plate-label="Sample">
   <div class="plate-frame-plate bracket-frame">
     <button type="button" class="icon-box plate-frame-corner" aria-label="Enlarge sample">
       <Icon name="maximize-2" size={16} strokeWidth={2} />
     </button>
-    <!-- content -->
+    <div data-plate-frame-content><!-- content --></div>
   </div>
-</div>`;
+</div>
+
+<script>
+  import { mountPlateFrames } from "@half-built/astro/scripts/plate-frame.ts";
+
+  mountPlateFrames(document);
+</script>`;
 
 const npmPackages = [
   {
@@ -706,9 +712,15 @@ const npmPackages = [
               the full view. The corners come from the outer box's background,
               so the markup adds no elements for them. At phone width the
               corners drop and the box moves inside the plate, as in the modal.
+              With <code>mountPlateFrames</code>, the corner box moves the
+              frame's <code>[data-plate-frame-content]</code> element into the
+              plate modal whole, and every way out of the modal puts it back.
             </p>
           </div>
-          <div class="plate-frame demo-plate-frame">
+          <div
+            class="plate-frame demo-plate-frame"
+            data-plate-label="Plate frame sample"
+          >
             <div class="plate-frame-plate bracket-frame">
               <button
                 type="button"
@@ -717,12 +729,14 @@ const npmPackages = [
               >
                 <Icon name="maximize-2" size={16} strokeWidth={2} />
               </button>
-              <img
-                src={placeholderWide.src}
-                width={placeholderWide.width}
-                height={placeholderWide.height}
-                alt="Placeholder sample, a wide geometric figure"
-              />
+              <div data-plate-frame-content>
+                <img
+                  src={placeholderWide.src}
+                  width={placeholderWide.width}
+                  height={placeholderWide.height}
+                  alt="Placeholder sample, a wide geometric figure"
+                />
+              </div>
             </div>
           </div>
           <div class="prose">

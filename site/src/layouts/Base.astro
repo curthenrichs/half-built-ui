@@ -135,6 +135,7 @@ const {
       import { mountCodeIslands } from "@half-built/astro/scripts/code-island.ts";
       import { mountLightbox } from "@half-built/astro/scripts/lightbox.ts";
       import { mountPopouts } from "@half-built/astro/scripts/popout.ts";
+      import { mountPlateFrames } from "@half-built/astro/scripts/plate-frame.ts";
       import { mountLinkTips } from "@half-built/astro/scripts/link-tip.ts";
       import { mountThemeToggle } from "@half-built/astro/scripts/theme-toggle.ts";
       import { mountFocusMode } from "@half-built/astro/scripts/focus-mode.ts";
@@ -155,6 +156,7 @@ const {
       mountCodeIslands(document);
       mountLightbox(document);
       mountPopouts(document);
+      mountPlateFrames(document);
       mountToc(document);
       mountPaletteEditor(document, { storageKey: PALETTE_STORAGE_KEY });
       mountTokenHexes(document);
