@@ -587,12 +587,9 @@ const npmPackages = [
           <div class="prose">
             <h3>Meter</h3>
             <p>
-              Meter shows how far a count has come toward its total, in ruled
-              segments. It carries role="meter" with the value and a text
-              reading, and it needs no script. The value is clamped to the
-              range, so an overshoot fills the bar and a total of zero leaves it
-              empty. A missing value, which is not a finite number, reads as
-              empty too.
+              Meter is a segmented bar that shows a count against its total. It
+              needs no script, and a screen reader announces it as a meter with
+              its reading. A value outside the range stops at the nearest end.
             </p>
           </div>
           <div class="demo-meter-stack">
@@ -705,16 +702,10 @@ const npmPackages = [
           <div class="prose">
             <h3>Plate frame</h3>
             <p>
-              The plate frame is the plate modal's frame drawn inline: four
-              accent corners around a plate with the surface and shadow. An icon
-              box with <code>.plate-frame-corner</code> sits on the plate's
-              top-right corner, where the modal puts its close box, and can open
-              the full view. The corners come from the outer box's background,
-              so the markup adds no elements for them. At phone width the
-              corners drop and the box moves inside the plate, as in the modal.
-              With <code>mountPlateFrames</code>, the corner box moves the
-              frame's <code>[data-plate-frame-content]</code> element into the
-              plate modal whole, and every way out of the modal puts it back.
+              The plate frame puts the plate modal's frame around content on the
+              page. The button in its corner opens that content full size in the
+              plate modal. Closing the modal puts it back. At phone width the
+              corners drop away, the same as in the modal.
             </p>
           </div>
           <div
@@ -915,22 +906,22 @@ const npmPackages = [
             <h3>Gallery</h3>
             <Gallery
               columns={3}
-              caption="Three placeholder plates in a bracket frame."
+              caption="Three placeholder images in a bracket frame."
             >
               <GalleryImage
                 src={placeholderSquare}
-                alt="Placeholder gallery plate, one"
-                caption="Plate one"
+                alt="Placeholder geometric figure, one"
+                caption="Image one"
               />
               <GalleryImage
                 src={placeholderSquare}
-                alt="Placeholder gallery plate, two"
-                caption="Plate two"
+                alt="Placeholder geometric figure, two"
+                caption="Image two"
               />
               <GalleryImage
                 src={placeholderSquare}
-                alt="Placeholder gallery plate, three"
-                caption="Plate three"
+                alt="Placeholder geometric figure, three"
+                caption="Image three"
               />
             </Gallery>
 
