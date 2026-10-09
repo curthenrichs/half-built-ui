@@ -42,6 +42,8 @@ export interface LinkListItem {
 export interface NavItem {
   label: string;
   href: string;
+  /* Open in a new tab (target and rel set, a hidden hint appended). */
+  newTab?: boolean;
 }
 
 export interface SocialItem {
@@ -59,6 +61,8 @@ export interface SocialItem {
 export interface SitemapLink {
   label: string;
   href: string;
+  /* Open in a new tab (target and rel set, a hidden hint appended). */
+  newTab?: boolean;
 }
 
 export interface SitemapGroup {

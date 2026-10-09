@@ -118,10 +118,15 @@ const isCurrent = (href: string) =>
                             isCurrent(item.href) && "tint-overlay",
                           ]}
                           href={item.href}
+                          target={item.newTab ? "_blank" : undefined}
+                          rel={item.newTab ? "noopener" : undefined}
                           aria-current={
                             isCurrent(item.href) ? "page" : undefined
                           }
-                          >{item.label}</a
+                          >{item.label}{item.newTab && <span
+                            class="screen-reader-text"
+                          >
+                            {" (opens in a new tab)"}</span>}</a
                         >
                       </li>)}
                     </ul>

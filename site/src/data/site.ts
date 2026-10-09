@@ -72,18 +72,22 @@ export const FOOTER_SITEMAP: SitemapGroup[] = [
       {
         label: "Source on GitHub",
         href: "https://github.com/curthenrichs/half-built-ui",
+        newTab: true,
       },
       {
         label: "@half-built/css",
         href: "https://www.npmjs.com/package/@half-built/css",
+        newTab: true,
       },
       {
         label: "@half-built/astro",
         href: "https://www.npmjs.com/package/@half-built/astro",
+        newTab: true,
       },
       {
         label: "@half-built/tooling",
         href: "https://www.npmjs.com/package/@half-built/tooling",
+        newTab: true,
       },
     ],
   },

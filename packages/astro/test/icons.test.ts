@@ -36,6 +36,13 @@ describe("icon registry", () => {
     expect(svg).toContain('<circle cx="11" cy="11" r="8"/>');
   });
 
+  it("draws maximize-2, the enlarge glyph", () => {
+    const svg = iconMarkup("maximize-2");
+
+    expect(svg).toContain('<path d="M15 3h6v6"/>');
+    expect(svg).toContain('<path d="M9 21H3v-6"/>');
+  });
+
   it("takes a pixel size, a stroke width, and a class", () => {
     const svg = iconMarkup("clock", {
       size: 12,

@@ -68,6 +68,11 @@ const GLYPHS = {
       '<path d="M8 2v3"/><path d="M16 2v3"/><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/>',
   },
   circle: { paths: '<circle cx="12" cy="12" r="10"/>' },
+  /* The enlarge control for icon-box buttons (consumer request 2026-10-08). */
+  "maximize-2": {
+    paths:
+      '<path d="M15 3h6v6"/><path d="m21 3-7 7"/><path d="m3 21 7-7"/><path d="M9 21H3v-6"/>',
+  },
 } as const satisfies Record<string, Glyph>;
 
 export type IconName = keyof typeof GLYPHS;

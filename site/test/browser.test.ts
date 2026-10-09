@@ -1543,6 +1543,37 @@ describe.skipIf(!enabled)("browser suite", () => {
     }
   }, 30_000);
 
+  it("newTab links open a new tab with noopener and a hidden hint, others do not", async () => {
+    const p = await open();
+
+    const flagged = await p.$$eval(
+      '.footer-sitemap a[href^="https://www.npmjs.com/package/"], .footer-sitemap a[href^="https://github.com/curthenrichs/half-built-ui"]:not([href*="/blob/"])',
+      (els) =>
+        els.map((a) => ({
+          target: a.getAttribute("target"),
+          rel: a.getAttribute("rel"),
+          hint: a.querySelector(".screen-reader-text")?.textContent ?? "",
+        })),
+    );
+
+    expect(flagged.length).toBe(4);
+
+    for (const l of flagged) {
+      expect(l.target).toBe("_blank");
+      expect(l.rel).toBe("noopener");
+      expect(l.hint.trim()).toBe("(opens in a new tab)");
+    }
+
+    const plain = await p.$$eval(
+      '#primary-menu a, .footer-sitemap a[href^="/"]',
+      (els) =>
+        els.map((a) => [a.getAttribute("target"), a.getAttribute("rel")]),
+    );
+
+    expect(plain.length).toBeGreaterThan(0);
+    expect(plain.every(([t, r]) => t === null && r === null)).toBe(true);
+  }, 30_000);
+
   it("jumping to a section marks that same section in the toc", async () => {
     const p = await open();
 
