@@ -24,7 +24,7 @@ license; see `ICONS-LICENSE`. Templates render one through
 `name` is a registry key (`x`, `play`, `sparkles`, `pause`,
 `rotate-ccw`, `chevron-left`, `chevron-right`, `chevron-up`,
 `arrow-left`, `arrow-right`, `sun`, `moon`, `search`, `clock`, `user`,
-`calendar`, `circle`), `size` a CSS
+`calendar`, `circle`, `maximize-2`), `size` a CSS
 length or pixel count (default `1em`, tracking the parent's font
 size), `strokeWidth` defaults to 2.5, and `class` lands on the svg.
 The icon is decorative by contract (aria-hidden, pointer-events none),
@@ -33,6 +33,14 @@ svg arrives through `set:html` and carries no scoped-style attribute;
 style it from the parent with `:global(svg)`. Client scripts take the
 `ICON_*` strings from the same file. Add a glyph to the registry,
 never as inline `<svg>` in a component; a test enforces that.
+
+## Links that open a new tab
+
+`NavItem` (the header's nav) and `SitemapLink` (the footer's sitemap
+groups) take an optional `newTab: boolean`. When true the link renders
+`target="_blank" rel="noopener"` and a visually hidden
+` (opens in a new tab)` inside the link, so the cue reaches screen
+readers. Without it the markup is unchanged.
 
 ## Corner badges
 
