@@ -134,7 +134,11 @@ in scoped styles.
   `.plate-frame-corner` straddles the plate's top-right corner where
   the modal's close box sits. At phone width the corners drop and the
   box moves inside the plate, as in the modal. The values mirror
-  `plate-modal.css` and change with it.
+  `plate-modal.css` and change with it. The corner box opens the full
+  view through `mountPlateFrames` in `@half-built/astro` (0.16.0), which
+  moves the frame's `[data-plate-frame-content]` element into the plate
+  modal and sets `.is-popped` on the frame (hiding its corner box) until
+  the modal closes.
 
   ```html
   <div class="plate-frame">
@@ -146,7 +150,7 @@ in scoped styles.
       >
         <!-- icon -->
       </button>
-      <!-- content -->
+      <div data-plate-frame-content><!-- content --></div>
     </div>
   </div>
   ```
