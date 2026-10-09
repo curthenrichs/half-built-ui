@@ -23,13 +23,13 @@ const PAGE = `
       </a>
     </figure>
     <div class="gallery-plates bracket-frame">
-      <figure class="gallery-plate"><div class="plate-frame">
+      <figure class="gallery-plate"><div class="gallery-frame">
         <a class="lightbox-link" href="/full/g1.jpg" data-lb-w="2000" data-lb-h="1500" data-lb-caption="Plate one"><img src="/thumb/g1.jpg" alt="Plate one"></a>
       </div></figure>
-      <figure class="gallery-plate"><div class="plate-frame">
+      <figure class="gallery-plate"><div class="gallery-frame">
         <a class="lightbox-link" href="/full/g2.jpg" data-lb-w="2000" data-lb-h="1500" data-lb-caption="Plate two"><img src="/thumb/g2.jpg" alt="Plate two"></a>
       </div></figure>
-      <figure class="gallery-plate"><div class="plate-frame">
+      <figure class="gallery-plate"><div class="gallery-frame">
         <a class="lightbox-link" href="/full/g3.jpg" data-lb-w="1500" data-lb-h="2000" data-lb-caption="Plate three"><img src="/thumb/g3.jpg" alt="Plate three"></a>
       </div></figure>
     </div>
