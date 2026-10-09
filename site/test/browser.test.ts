@@ -1507,6 +1507,182 @@ describe.skipIf(!enabled)("browser suite", () => {
     }
   }, 120_000);
 
+  /* The frame's geometry, read the same way for the inline pattern and
+     the open plate modal: the zone padding as the plate's inset in its
+     frame, and the corner box's offsets from the plate's top-right. */
+  interface FrameGeometry {
+    inset: { top: number; right: number; bottom: number; left: number };
+    box: { top: number; right: number; width: number; height: number };
+  }
+
+  async function frameGeometry(
+    p: Page,
+    frameSel: string,
+    plateSel: string,
+    boxSel: string,
+  ): Promise<FrameGeometry> {
+    return p.evaluate(
+      (f, pl, b) => {
+        const frame = document.querySelector(f);
+        const plate = document.querySelector(pl);
+        const box = document.querySelector(b);
+
+        if (!frame || !plate || !box) {
+          throw new Error(`missing ${f} / ${pl} / ${b}`);
+        }
+
+        const fr = frame.getBoundingClientRect();
+        const pr = plate.getBoundingClientRect();
+        const br = box.getBoundingClientRect();
+        const r = (n: number): number => Math.round(n);
+
+        return {
+          inset: {
+            top: r(pr.top - fr.top),
+            right: r(fr.right - pr.right),
+            bottom: r(fr.bottom - pr.bottom),
+            left: r(pr.left - fr.left),
+          },
+          box: {
+            top: r(br.top - pr.top),
+            right: r(br.right - pr.right),
+            width: r(br.width),
+            height: r(br.height),
+          },
+        };
+      },
+      frameSel,
+      plateSel,
+      boxSel,
+    );
+  }
+
+  it("the plate frame draws four accent corners in both themes", async () => {
+    for (const theme of ["light", "dark"] as const) {
+      const p = await open();
+
+      await p.evaluate((t) => {
+        if (t === "dark") document.documentElement.dataset.theme = "dark";
+        else delete document.documentElement.dataset.theme;
+      }, theme);
+
+      await settleFrames(p);
+
+      const read = await p.$eval("#components .plate-frame", (frame) => {
+        const probe = document.createElement("span");
+        probe.style.color = "var(--accent-1)";
+        frame.append(probe);
+        const accent = getComputedStyle(probe).color;
+        probe.remove();
+        const cs = getComputedStyle(frame);
+
+        return {
+          accent,
+          image: cs.backgroundImage,
+          size: cs.backgroundSize,
+          stroke: getComputedStyle(frame).getPropertyValue("--stroke").trim(),
+        };
+      });
+
+      /* Four corners, two strokes each, every layer the accent. */
+      const layers = [...read.image.matchAll(/linear-gradient\(/g)];
+      expect(layers, `${theme}: ${read.image}`).toHaveLength(8);
+      const colors = [...read.image.matchAll(/rgba?\([^)]*\)/g)];
+      expect(colors).toHaveLength(16);
+
+      for (const color of colors) {
+        expect(color[0], theme).toBe(read.accent);
+      }
+
+      const sizes = read.size.split(",").map((s) => s.trim());
+      expect(sizes).toHaveLength(8);
+
+      for (const size of sizes) {
+        const [w, h] = size.split(" ");
+
+        expect([w, h].sort(), `${theme}: ${size}`).toEqual(
+          ["22px", read.stroke].sort(),
+        );
+      }
+
+      await p.close();
+      page = undefined;
+    }
+  }, 60_000);
+
+  it("the plate frame matches the open plate modal's zone and close box", async () => {
+    const p = await open();
+
+    const inline = await frameGeometry(
+      p,
+      "#components .plate-frame",
+      "#components .plate-frame-plate",
+      "#components .plate-frame-corner",
+    );
+
+    expect(inline.inset).toEqual({ top: 26, right: 30, bottom: 26, left: 30 });
+
+    await p.emulateMediaFeatures([
+      { name: "prefers-reduced-motion", value: "reduce" },
+    ]);
+
+    await p.click(".demo-path-player");
+    await settleFrames(p);
+
+    const modal = await frameGeometry(
+      p,
+      "dialog[open] .pm-zone",
+      "dialog[open] .pm-plate",
+      "dialog[open] .pm-close",
+    );
+
+    expect(inline.inset).toEqual(modal.inset);
+    expect(inline.box).toEqual(modal.box);
+
+    /* The box straddles the plate's top-right corner: its center sits
+       within a few px of that corner. */
+    expect(Math.abs(inline.box.top + inline.box.height / 2)).toBeLessThan(4);
+    expect(Math.abs(inline.box.right - inline.box.width / 2)).toBeLessThan(4);
+  });
+
+  it("at phone width the plate frame drops its corners like the modal", async () => {
+    const p = await openPhone();
+
+    const inline = await frameGeometry(
+      p,
+      "#components .plate-frame",
+      "#components .plate-frame-plate",
+      "#components .plate-frame-corner",
+    );
+
+    const image = await p.$eval(
+      "#components .plate-frame",
+      (f) => getComputedStyle(f).backgroundImage,
+    );
+
+    expect(image).toBe("none");
+    expect(inline.inset).toEqual({ top: 16, right: 9, bottom: 16, left: 9 });
+
+    await p.emulateMediaFeatures([
+      { name: "prefers-reduced-motion", value: "reduce" },
+    ]);
+
+    await p.click(".demo-path-player");
+    await settleFrames(p);
+
+    const modal = await frameGeometry(
+      p,
+      "dialog[open] .pm-zone",
+      "dialog[open] .pm-plate",
+      "dialog[open] .pm-close",
+    );
+
+    /* The box moves inside the plate's right edge, as the close box
+       does on a phone. */
+    expect(inline.box).toEqual(modal.box);
+    expect(inline.box.right).toBeLessThan(0);
+  });
+
   it("typing in a clicked joined field keeps the pointer stamp", async () => {
     const p = await open();
 

@@ -405,6 +405,16 @@
   }
 }
 
+.demo-plate-frame {
+  margin: 0 0 2em;
+}
+
+.demo-plate-frame img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
 .demo-meter-stack {
   display: grid;
   gap: 16px;
