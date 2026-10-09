@@ -17,7 +17,7 @@ const { src, alt = "", caption, badges = [], class: className } = Astro.props;
 ---
 
 <figure class:list={["gallery-plate", className]}>
-  <div class="plate-frame">
+  <div class="gallery-frame">
     <LightboxLink
       href={src.src}
       w={src.width}
@@ -38,11 +38,15 @@ const { src, alt = "", caption, badges = [], class: className } = Astro.props;
 
 <style>
   .gallery-plate { margin: 0; }
-  .plate-frame { border: var(--stroke) solid var(--rule); line-height: 0; }
+
+  /* The tile's outline. Not .plate-frame: since 0.15.0 that is the
+     global plate-frame pattern (accent corners, padding), and the old
+     scoped class of the same name picked it up on every tile. */
+  .gallery-frame { border: var(--stroke) solid var(--rule); line-height: 0; }
 
   /* The frame owns the outline; zero the default img border from
      prose.css so plates don't double-line. */
-  .plate-frame :global(img) { width: 100%; height: 220px; object-fit: cover; border: 0; }
+  .gallery-frame :global(img) { width: 100%; height: 220px; object-fit: cover; border: 0; }
 
   /* Type from the .caption pattern, tracked a touch wider under a plate.
      Caption case is the author's own; the uppercase transform from the

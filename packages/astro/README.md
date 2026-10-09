@@ -260,6 +260,25 @@ picks the links, `groupSelector` names the containers whose links form
 one set, and `labels` renames the viewer's controls for a site that is
 not in English.
 
+## Plate frame
+
+`scripts/plate-frame.ts` makes the `.plate-frame` pattern's corner box
+(`@half-built/css`) open the full view. The frame's
+`[data-plate-frame-content]` element moves into the plate modal whole,
+so live content keeps running there, and a slot of the same height
+holds its place. Every way out of the modal (close box, veil, Escape)
+moves it back and returns focus to the corner box.
+
+```ts
+import { mountPlateFrames } from "@half-built/astro/scripts/plate-frame.ts";
+
+mountPlateFrames(document);
+```
+
+Per frame, optional: `data-plate-label` names the dialog (default
+"Enlarged view"); `data-plate-class` and `data-zone-class` add classes
+to the modal's plate and zone for sizing. Needs `plate-modal.css`.
+
 ## Popout
 
 `components/Popout.astro` puts a short note behind a table cell: detail

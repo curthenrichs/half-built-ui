@@ -1610,6 +1610,76 @@ describe.skipIf(!enabled)("browser suite", () => {
     }
   }, 60_000);
 
+  /* Regression (0.15.1): GalleryImage's tile used a scoped class named
+     plate-frame, so 0.15.0's global .plate-frame pattern painted accent
+     corners and padding onto every gallery tile. A tile is a plain
+     outlined image: no corner layers and no padding. */
+  it("gallery tiles never pick up the plate frame pattern", async () => {
+    const p = await open();
+    await settleFrames(p);
+
+    const tiles = await p.$$eval(".gallery-plate > div", (els) =>
+      els.map((el) => {
+        const cs = getComputedStyle(el);
+
+        return {
+          plateFrame: el.classList.contains("plate-frame"),
+          image: cs.backgroundImage,
+          padding: cs.padding,
+        };
+      }),
+    );
+
+    expect(tiles.length).toBeGreaterThan(0);
+
+    for (const t of tiles) {
+      expect(t.plateFrame).toBe(false);
+      expect(t.image).toBe("none");
+      expect(t.padding).toBe("0px");
+    }
+
+    await p.close();
+    page = undefined;
+  }, 60_000);
+
+  it("the plate frame's corner box opens the sample on the plate modal and Escape puts it back", async () => {
+    const p = await open();
+    await settleFrames(p);
+    await p.click("#components .plate-frame-corner");
+    await settleFrames(p);
+
+    const popped = await p.evaluate(() => ({
+      open: document.querySelector("dialog[open]")?.getAttribute("aria-label"),
+      inModal: !!document.querySelector(
+        "dialog[open] .pm-plate [data-plate-frame-content] img",
+      ),
+      framePopped: !!document.querySelector(
+        "#components .plate-frame.is-popped",
+      ),
+    }));
+
+    expect(popped).toEqual({
+      open: "Plate frame sample",
+      inModal: true,
+      framePopped: true,
+    });
+
+    await p.keyboard.press("Escape");
+    await settleFrames(p);
+
+    const back = await p.evaluate(() => ({
+      open: !!document.querySelector("dialog[open]"),
+      inFrame: !!document.querySelector(
+        "#components .plate-frame [data-plate-frame-content] img",
+      ),
+      focus: document.activeElement?.classList.contains("plate-frame-corner"),
+    }));
+
+    expect(back).toEqual({ open: false, inFrame: true, focus: true });
+    await p.close();
+    page = undefined;
+  }, 60_000);
+
   it("the plate frame matches the open plate modal's zone and close box", async () => {
     const p = await open();
 

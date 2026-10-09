@@ -413,6 +413,12 @@
     z-index: 1;
   }
 
+  /* Popped out (mountPlateFrames, astro 0.16.0): the content is in the
+     plate modal, which has its own close box. */
+  .plate-frame.is-popped .plate-frame-corner {
+    display: none;
+  }
+
   /* Phone: the corners crowd the edges, as in the modal. */
   @media (--bp-phone) {
     .plate-frame {
