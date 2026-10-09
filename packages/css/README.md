@@ -125,6 +125,32 @@ in scoped styles.
   stamped `data-focus="keyboard"` (`scripts/focus-mode.ts`) the input
   rings in `--focus-ring` instead, so no component ever overrides the
   keyboard ring.
+- `.plate-frame` (with `.plate-frame-plate` and `.plate-frame-corner`):
+  the plate modal's frame inline. The outer box takes the modal zone's
+  padding and paints the four 22px `--accent-1` corner strokes from its
+  own background, so the markup carries no corner elements. The plate
+  inside wears the modal plate's `--surface` and `--shadow`; compose
+  `.bracket-frame` on it for the modal's rules. An `.icon-box` with
+  `.plate-frame-corner` straddles the plate's top-right corner where
+  the modal's close box sits. At phone width the corners drop and the
+  box moves inside the plate, as in the modal. The values mirror
+  `plate-modal.css` and change with it.
+
+  ```html
+  <div class="plate-frame">
+    <div class="plate-frame-plate bracket-frame">
+      <button
+        type="button"
+        class="icon-box plate-frame-corner"
+        aria-label="Enlarge"
+      >
+        <!-- icon -->
+      </button>
+      <!-- content -->
+    </div>
+  </div>
+  ```
+
 - Modal chrome inherits rather than copies: the plate's arrows,
   transport, and close box are `.icon-box`; its labels are
   `.boxed-label`; the image lightbox composes `.bracket-frame`,

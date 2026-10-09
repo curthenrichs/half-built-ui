@@ -353,4 +353,75 @@
     outline: 2px solid var(--focus-ring);
     outline-offset: -4px;
   }
+
+  /* Plate frame: the plate modal's frame inline (0.15.0). The outer box
+     is the modal's zone (.pm-zone's padding) and paints the four 22px
+     accent corner strokes as eight solid gradient layers, so the
+     consumer adds no corner elements; forced colors may drop the
+     strokes, and the content is untouched either way. The plate inside
+     is .pm-plate's surface and shadow, and an .icon-box carrying
+     .plate-frame-corner straddles the plate's top-right corner at
+     .pm-close's offsets. These values mirror plate-modal.css and must
+     stay in step with it, phone rule included. */
+  .plate-frame {
+    position: relative;
+    padding: 26px 30px;
+    max-width: 100%;
+    box-sizing: border-box;
+    background-image:
+      linear-gradient(var(--accent-1), var(--accent-1)),
+      linear-gradient(var(--accent-1), var(--accent-1)),
+      linear-gradient(var(--accent-1), var(--accent-1)),
+      linear-gradient(var(--accent-1), var(--accent-1)),
+      linear-gradient(var(--accent-1), var(--accent-1)),
+      linear-gradient(var(--accent-1), var(--accent-1)),
+      linear-gradient(var(--accent-1), var(--accent-1)),
+      linear-gradient(var(--accent-1), var(--accent-1));
+    background-repeat: no-repeat;
+    background-position:
+      left top,
+      left top,
+      right top,
+      right top,
+      left bottom,
+      left bottom,
+      right bottom,
+      right bottom;
+    background-size:
+      22px var(--stroke),
+      var(--stroke) 22px,
+      22px var(--stroke),
+      var(--stroke) 22px,
+      22px var(--stroke),
+      var(--stroke) 22px,
+      22px var(--stroke),
+      var(--stroke) 22px;
+  }
+
+  .plate-frame-plate {
+    position: relative;
+    background: var(--surface);
+    box-shadow: var(--shadow);
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  .plate-frame-corner {
+    position: absolute;
+    top: -17px;
+    right: -17px;
+    z-index: 1;
+  }
+
+  /* Phone: the corners crowd the edges, as in the modal. */
+  @media (--bp-phone) {
+    .plate-frame {
+      padding: 16px 9px;
+      background-image: none;
+    }
+
+    .plate-frame-corner {
+      right: 16px;
+    }
+  }
 }

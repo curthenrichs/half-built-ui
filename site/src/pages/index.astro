@@ -302,6 +302,15 @@ import "@half-built/css/path-player.css";
   button.addEventListener("click", () => player.open(button));
 </script>`;
 
+const plateFrameSample = `<div class="plate-frame">
+  <div class="plate-frame-plate bracket-frame">
+    <button type="button" class="icon-box plate-frame-corner" aria-label="Enlarge sample">
+      <Icon name="maximize-2" size={16} strokeWidth={2} />
+    </button>
+    <!-- content -->
+  </div>
+</div>`;
+
 const npmPackages = [
   {
     name: "@half-built/css",
@@ -680,6 +689,46 @@ const npmPackages = [
             <CodeBlock>
               <Code
                 code={pathPlayerSample}
+                lang="astro"
+                theme={codeTheme}
+                transformers={[codeVars]}
+              />
+            </CodeBlock>
+          </div>
+
+          <div class="prose">
+            <h3>Plate frame</h3>
+            <p>
+              The plate frame is the plate modal's frame drawn inline: four
+              accent corners around a plate with the surface and shadow. An icon
+              box with <code>.plate-frame-corner</code> sits on the plate's
+              top-right corner, where the modal puts its close box, and can open
+              the full view. The corners come from the outer box's background,
+              so the markup adds no elements for them. At phone width the
+              corners drop and the box moves inside the plate, as in the modal.
+            </p>
+          </div>
+          <div class="plate-frame demo-plate-frame">
+            <div class="plate-frame-plate bracket-frame">
+              <button
+                type="button"
+                class="icon-box plate-frame-corner"
+                aria-label="Enlarge sample"
+              >
+                <Icon name="maximize-2" size={16} strokeWidth={2} />
+              </button>
+              <img
+                src={placeholderWide.src}
+                width={placeholderWide.width}
+                height={placeholderWide.height}
+                alt="Placeholder sample, a wide geometric figure"
+              />
+            </div>
+          </div>
+          <div class="prose">
+            <CodeBlock>
+              <Code
+                code={plateFrameSample}
                 lang="astro"
                 theme={codeTheme}
                 transformers={[codeVars]}
