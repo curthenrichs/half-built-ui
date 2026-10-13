@@ -3,8 +3,7 @@
    date-only permalink field; `published` carries the full source timestamp
    when a consumer's import knew it. Every consumer (sorting, feeds,
    display) must go through these instead of picking fields ad hoc:
-   hand-picked fields are how the same-day ordering bug shipped twice
-   (audit A1/A2). */
+   hand-picked fields are how the same-day ordering bug shipped twice. */
 
 export interface Publishable {
   data: { date: Date; published?: Date };

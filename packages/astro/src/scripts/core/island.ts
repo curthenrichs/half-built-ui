@@ -1,4 +1,4 @@
-/* The island contract (step 9, spec sequence item 9): every client
+/* The island contract: every client
    behavior is mount(root, options?) returning a destroy handle, and
    mounting twice is a no-op per element via claim(). Options carry the
    selectors and copy that used to be baked in, defaulting to this

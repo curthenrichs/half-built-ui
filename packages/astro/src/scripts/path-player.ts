@@ -1,5 +1,4 @@
-/* Generic transport-and-timeline player over a plate-modal (spec
-   section 3). Knows nothing about fluids: samples, tracks, and the
+/* Generic transport-and-timeline player over a plate-modal. Knows nothing about fluids: samples, tracks, and the
    sink come from the caller, and the sample type S is the caller's
    too; the player only indexes the array and hands samples to the
    sink. Scrubbing is implemented but ships off (owner call
@@ -184,7 +183,7 @@ export function createPathPlayer<S>(
 
   /* Phones: the caption is the biggest discretionary block in the
      plate (nine lines at xs), so it hides behind a toggle until asked
-     for (spec 2026-08-25, item 1). Wider viewports never see the
+     for. Wider viewports never see the
      toggle (path-player.css) and always see the caption. */
   const captionToggle = doc.createElement("button");
   captionToggle.type = "button";

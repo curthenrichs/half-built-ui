@@ -2,3 +2,5 @@ node_modules/
 dist/
 .astro/
 .superpowers/
+# Specs and plans are local working files, never committed.
+docs/superpowers/

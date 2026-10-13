@@ -21,9 +21,8 @@ build:site`. `npm run typecheck` runs `tsc` over every project, then
 
 This code was extracted from the private
 `half-built-robots-blog` repository, where it was built and used in
-production. The extraction review that checked each piece for
-blog-specific assumptions before it moved here is the design record for
-this library. There is no separate design doc.
+production. The decisions behind it are in
+[`docs/design-record.md`](docs/design-record.md).
 
 ## Status
 

@@ -1,8 +1,7 @@
 /* The ecosystem island: the footer's Ecosystem column, fetched at
    runtime from a shared document so adding a property to the family
-   never means rebuilding every site (design record
-   docs/superpowers/specs/2026-09-06-ecosystem-endpoint-design.md in
-   this repo).
+   never means rebuilding every site (docs/design-record.md,
+   "The ecosystem endpoint").
 
    The component keeps rendering its typed props, which are the static
    baseline. This island replaces that list only on a validated,

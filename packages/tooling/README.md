@@ -85,6 +85,5 @@ fresh install fail with ERESOLVE.
 ## Provenance
 
 Extracted from the private `half-built-robots-blog` repository, where
-this configuration was built and used in production. The extraction
-review that checked it for blog-specific assumptions before the move is
-the design record for this package.
+this configuration was built and used in production. The decisions
+behind it are in the [design record](https://github.com/curthenrichs/half-built-ui/blob/main/docs/design-record.md).

@@ -1,4 +1,4 @@
-/* Popout (spec docs/superpowers/specs/2026-09-26-popout-design.md):
+/* Popout:
    secondary context for tables and data viz. One island, one real
    <dialog> per page. A click on a trigger fills it from the template
    right after that trigger and opens it anchored below the trigger

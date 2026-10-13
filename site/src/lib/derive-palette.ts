@@ -92,8 +92,8 @@ function shiftL(hex: string, dl: number): string {
 
 /* The shipped default pair, and every stop the package ships for it.
    These were hand-tuned rather than walked, and they clear the
-   thresholds below (the comment ink retuned to 4.63:1, CLOSED
-   2026-09-27 in the live-code-colors spec), so the default pair
+   thresholds below (the comment ink retuned to 4.63:1 on
+   2026-09-27), so the default pair
    reproduces them exactly instead of returning a near-miss
    derivation that would visibly differ from the tokens the package
    actually ships. */
@@ -165,7 +165,7 @@ function deriveCodeChrome(b1: string): CodeChrome {
   };
 }
 
-/* The code kin (spec 2026-09-06): 300 is the light kin the code theme
+/* The code kin: 300 is the light kin the code theme
    uses for functions, vivid the deep saturated kin for strings. Both
    are code text, so both walk lighter until they read against the
    derived code ground; the seed jump keeps them distinct from the

@@ -6,9 +6,8 @@ system.
 ## Provenance
 
 Extracted from the private `half-built-robots-blog` repository, where
-these components were built and used in production. The extraction
-review that checked them for blog-specific assumptions before the move
-is the design record for this package.
+these components were built and used in production. The decisions
+behind them are in the [design record](https://github.com/curthenrichs/half-built-ui/blob/main/docs/design-record.md).
 
 ## Icons
 

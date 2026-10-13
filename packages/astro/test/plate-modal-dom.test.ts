@@ -131,7 +131,7 @@ describe("buildPlateModal", () => {
 
   it("open locks the page behind the veil; every close path unlocks it", () => {
     /* A top-layer <dialog> does not stop the document scrolling under
-       it; the class carries overflow: hidden (spec 2026-08-25, item 2). */
+       it; the class carries overflow: hidden. */
     const refs = buildPlateModal(document, { ariaLabel: "x" });
     const root = document.documentElement;
     refs.open(null);

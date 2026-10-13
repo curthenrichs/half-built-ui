@@ -221,8 +221,8 @@ function itemFor(link: HTMLAnchorElement): Item {
 }
 
 /* Gallery plates sharing a .gallery-plates ancestor form a set, and so do
-   the photos of one Walkthrough (spec 2026-08-15-walkthrough-steps-design).
-   Every other image opens solo (spec: no implicit chaining). */
+   the photos of one Walkthrough. Every other image opens solo; nothing
+   chains implicitly. */
 function setFor(
   link: HTMLAnchorElement,
   selector: string,

@@ -1,5 +1,5 @@
-/* Track geometry for the path player, canvas-free (spec: geometry is
-   pure and tested; the 2D painting consumes it). */
+/* Track geometry for the path player, canvas-free: geometry is pure
+   and tested, and the 2D painting consumes it. */
 import { describe, it, expect } from "vitest";
 import {
   normalizeSeries,

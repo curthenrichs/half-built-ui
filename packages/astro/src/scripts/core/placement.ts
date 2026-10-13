@@ -1,6 +1,6 @@
 /* Pure placement shared by the measured islands (link-tip, popout;
-   spec docs/superpowers/specs/2026-09-26-popout-design.md moved it
-   here from link-tip.ts). Measure then place, never predict. */
+   it moved here from link-tip.ts when the popout arrived). Measure then
+   place, never predict. */
 
 const GAP = 1; /* px between anchor and tip; the old bottom: calc(100% + 1px) */
 const INSET = 2; /* px of horizontal lead-out past the anchor edge */

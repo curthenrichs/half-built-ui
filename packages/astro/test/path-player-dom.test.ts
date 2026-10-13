@@ -238,7 +238,7 @@ describe("createPathPlayer", () => {
     expect(player.isPlaying()).toBe(false); // the click still toggled
   });
 
-  /* The no-WebGL path (spec error table): fallback stage disables the
+  /* The no-WebGL path: fallback stage disables the
      transport and never autoplays. Untestable by hand on hardware that
      has WebGL, which is why it gets a test. */
   it("buildStage returning false disables the transport and skips autoplay", () => {
@@ -436,7 +436,7 @@ describe("createPathPlayer", () => {
 
   it("on phones the caption starts hidden behind the toggle, which reveals it", () => {
     /* The nine-line caption was the biggest block in a plate that ran
-       100px past a 664px phone (spec 2026-08-25, item 1). */
+       100px past a 664px phone. */
     vi.stubGlobal("matchMedia", (q: string) => ({
       matches: q === "(max-width: 768px)",
     }));

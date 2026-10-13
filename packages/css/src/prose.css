@@ -2,7 +2,7 @@
    See the @half-built/css README, Architecture. */
 @layer components {
   /* Prose rhythm for .prose. Lists verified to 3+ depths (7 live posts
-   nest, 3 go 3+ deep). Table treatment: boxed ledger (spec section 5). */
+   nest, 3 go 3+ deep). Table treatment: boxed ledger. */
   .prose {
     margin-top: 0;
   }

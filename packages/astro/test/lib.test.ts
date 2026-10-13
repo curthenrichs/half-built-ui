@@ -164,7 +164,7 @@ describe("archivePagePath", () => {
   });
 });
 
-describe("publication ordering (audit A1/A2 root)", () => {
+describe("publication ordering", () => {
   it("byNewest breaks same-day ties by published timestamp", async () => {
     const { byNewest, publishedAt } = await import("../src/lib/ordering");
 
