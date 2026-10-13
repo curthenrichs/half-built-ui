@@ -107,7 +107,7 @@ const year = new Date().getFullYear();
         /* Phones start the collapsible groups closed, except the ones
            marked data-phone-open (Site, owner call 2026-08-27). A closed
            <details> cannot be reopened by CSS, so this is the one place
-           script decides layout (spec 2026-08-25, item 5). Inline so it
+           script decides layout. Inline so it
            runs before the footer paints; without script the groups stay
            open, which is the graceful state.
            The value rides define:vars from core/breakpoints.ts (step 11.1). */
@@ -189,7 +189,7 @@ const year = new Date().getFullYear();
 
   /* Collapsible groups: on desktop the summary is nothing but the
      heading it replaced (no marker, no pointer). Mouse toggling is off
-     on desktop (the spec's call); keyboard toggling of a focused
+     on desktop (owner call); keyboard toggling of a focused
      summary remains, reopening is one keypress. */
   .footer-sitemap-collapsible summary { list-style: none; cursor: default; pointer-events: none; }
   .footer-sitemap-collapsible summary::-webkit-details-marker { display: none; }
@@ -214,7 +214,7 @@ const year = new Date().getFullYear();
        row keeps the rhythm within a pixel, including the rows that are
        plain text (the current site, pending entries), and the
        inline-block link takes the whole line box as its target
-       (spec 2026-09-29-wcag-2-2-design.md). */
+       (WCAG 2.2, 2.5.8 target size). */
     .footer-sitemap-group li { margin: 0; line-height: 24px; }
     .footer-sitemap a { display: inline-block; }
 

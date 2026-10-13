@@ -1,7 +1,7 @@
 /* Layer: components (code island stylesheet).
    See the @half-built/css README, Architecture. */
 @layer components {
-  /* Terminal island (spec section 5): the one deliberate dark surface on the
+  /* Terminal island: the one deliberate dark surface on the
    light page, in the parent theme's own palette. */
   .prose pre.astro-code {
     border: var(--stroke) solid var(--rule);
@@ -12,8 +12,7 @@
     line-height: 1.7;
   }
 
-  /* Inline code in running text (spec 2026-07-28, toned down same day by
-   owner request: the dark chip read too loud in prose). Muted gray ground
+  /* Inline code in running text (toned down by owner request: the dark chip read too loud in prose). Muted gray ground
    with a hairline border; the body font is already mono, so the box alone
    marks backticked names. Excludes code inside pre, which the island owns. */
   .prose :not(pre) > code {

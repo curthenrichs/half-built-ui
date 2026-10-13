@@ -1,5 +1,4 @@
-/* The system breakpoints, defined once (step 11.1; the step 1 plan's
-   deferred slice). Three names, per the extraction review: phone is
+/* The system breakpoints, defined once. Three names: phone is
    where the top header band retires and footer groups collapse;
    sidebar is where the two-column row stacks; tablet is the wide-image
    step. Component-intrinsic queries (a gallery's own 480, a step's own

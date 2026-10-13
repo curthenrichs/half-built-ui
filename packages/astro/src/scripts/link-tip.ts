@@ -11,7 +11,7 @@ export interface LinkTipOptions {
    link the singleton is filled (data-tooltip if stamped, else the
    href), measured with getBoundingClientRect, and placed fixed via
    placeTip: measure then place, never predict, which is the whole
-   point (spec 2026-09-02; three positioning defects shipped from
+   point (three positioning defects shipped from
    pseudo-element prediction). Containers steer placement with
    data-tip-place="below" and data-tip-align="end" (the masthead). */
 export const mountLinkTips: Island<LinkTipOptions> = (

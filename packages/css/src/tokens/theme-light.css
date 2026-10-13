@@ -40,7 +40,7 @@
     --code-fg: var(--parchment);
     --code-line: var(--ink-800);
 
-    /* Syntax token roles (spec 2026-09-06): what the Shiki theme bakes
+    /* Syntax token roles: what the Shiki theme bakes
        as hex, restated as variables so the code-vars transformer can
        emit tokens that follow a palette override. Identical in both
        themes because the code surface is always the warm dark block. */
@@ -49,13 +49,13 @@
     --code-token-string: var(--brand-1-vivid);
     --code-token-comment: var(--umber-500);
 
-    /* Plate-modal chrome (spec 2026-07-30): veil over the blurred page,
+    /* Plate-modal chrome: veil over the blurred page,
        and the viewbox mat one step lighter than --hairline. Values
        validated in the owner mockup session. */
     --veil: var(--graphite-a55);
     --mat-line: var(--gray-075);
 
-    /* Path-player timeline series (spec 2026-08-22, owner question 1). */
+    /* Path-player timeline series (owner call). */
     --track-x: var(--brand-1-600);
 
     /* The second data track is the second accent's text ink: chart

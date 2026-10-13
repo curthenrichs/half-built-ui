@@ -11,9 +11,10 @@ published on npm as `@half-built/css`, `@half-built/astro`, and
 `@half-built/tooling` (first published 2026-09-04). An npm-workspaces
 monorepo; `site/` is a private kitchen-sink demo that consumes only
 the published package specifiers and is the build gate. The blog is
-the reference consumer; BEADZ adopts later. The full design record is
-the extraction review in the blog repo
-(`half-built-robots-blog/docs/superpowers/reviews/2026-08-24-library-extraction-review.md`).
+the reference consumer; BEADZ adopts later. The decisions that still
+bind are in `docs/design-record.md`; change it in the same commit as
+any decision it records. Specs and plans under `docs/superpowers/` are
+local working files, gitignored and never committed.
 
 ## Boundaries
 

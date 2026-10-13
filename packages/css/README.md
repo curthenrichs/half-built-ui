@@ -6,9 +6,8 @@ design system.
 ## Provenance
 
 Extracted from the private `half-built-robots-blog` repository, where
-this CSS was built and used in production. The extraction review that
-checked it for blog-specific assumptions before the move is the design
-record for this package.
+this CSS was built and used in production. The decisions behind it are
+in the [design record](https://github.com/curthenrichs/half-built-ui/blob/main/docs/design-record.md).
 
 ## Usage
 
@@ -240,6 +239,19 @@ by `packages/css/test/css-pins.test.ts`, such as both themes defining
 `--focus-ring` and the retired names staying gone. A consumer can add
 its own sweep the same way; this package's own suite pins only what
 this repository's history has needed pinned.
+
+### Prose width
+
+Prose width is never capped: no `max-width` and no `ch` measure on
+prose. The layout's column is the only width authority. The stylelint
+preset bans `ch` everywhere, since it has no use except capping prose.
+The other half of the rule, that a prose stylesheet's only `max-width`
+is the `max-width: 100%` image fit, depends on which selectors are
+prose, and stylelint can't see that. So each consumer pins it in its
+own test: read the prose stylesheet and assert its `max-width`
+declarations are exactly `["max-width: 100%;"]`. Sizing a non-prose
+element (a data table, an image, a floating box) to its content is a
+different thing and is fine.
 
 ### Lint
 

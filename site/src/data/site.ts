@@ -106,7 +106,7 @@ export const FOOTER_SITEMAP: SitemapGroup[] = [
   },
 ];
 
-/* The satellite baseline (design record 2026-09-06-ecosystem-endpoint):
+/* The satellite baseline (docs/design-record.md, "The ecosystem endpoint"):
    this site plus a pointer home to the blog. The island replaces the
    list with the shared document at runtime; this is what renders with
    JavaScript off, during an outage, or before the endpoint exists.

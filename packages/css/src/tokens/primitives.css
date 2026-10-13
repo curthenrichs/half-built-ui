@@ -34,8 +34,7 @@
 
     /* Brand ramps, the entire third-party theming surface. Family 1 is
        the ecosystem amber by default, family 2 its cyan complement; the
-       names are hue-neutral because a consumer may override all six
-       (spec: docs/superpowers/specs/2026-09-05-reference-site-design.md).
+       names are hue-neutral because a consumer may override all six.
        500 is the base, 700 its AA text ink on the light paper, 600 the
        chart kin, 300 the light kin legible as text on the dark ground.
        The 700 stops also carry the light theme's non-text graphical
@@ -64,7 +63,7 @@
     --brand-2-500: #3cc7dd;
     --brand-2-700: #1a7f90;
 
-    /* Code-viewer kin of family 1 (spec 2026-09-06, live code colors):
+    /* Code-viewer kin of family 1:
        the values the Shiki theme has always baked, promoted to
        primitives so the code token roles below them can follow a
        palette override. 300 is a true lightness stop (OKLCH L 0.885,

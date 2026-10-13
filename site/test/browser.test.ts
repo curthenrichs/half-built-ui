@@ -42,10 +42,9 @@ const ORIGIN = `http://localhost:${PORT}`;
    component emits for a token entry, so it is exact. */
 const ACCENT_1_CHIP = '.palette-chip[style="background-color:var(--accent-1)"]';
 
-/* WCAG 2.2 A and AA (spec 2026-09-29-wcag-2-2-design.md), which is
-   the blog's stated target. The 2.2 tags add target size (2.5.8); the
-   other new 2.2 criteria are not automatable and were checked by hand
-   in the spec's audit. Best-practice rules are left out so a failure
+/* WCAG 2.2 A and AA, which is the blog's stated target. The 2.2 tags
+   add target size (2.5.8); the other new 2.2 criteria are not
+   automatable and were checked by hand when the move to 2.2 landed. Best-practice rules are left out so a failure
    here always maps to a success criterion. */
 const RUN: RunOptions = {
   runOnly: {

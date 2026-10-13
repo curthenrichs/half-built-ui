@@ -1,5 +1,4 @@
-/* Layer: components. The popout (spec
-   docs/superpowers/specs/2026-09-26-popout-design.md): secondary
+/* Layer: components. The popout: secondary
    context for tables and data viz. One island-owned <dialog>
    (scripts/popout.ts) in the boxed grammar of the link tip and the
    search flyout. The island picks a mode per open: .is-anchored is a
@@ -67,7 +66,7 @@
   }
 
   /* A floating UI box, not text in the layout column: the no-prose-cap
-     rule does not apply (spec, chrome section). 60px is both edges'
+     rule does not apply. 60px is both edges'
      room plus the straddling close box. The floor keeps a short note's
      caption from ellipsizing to a few letters, and never outgrows the
      cap. */

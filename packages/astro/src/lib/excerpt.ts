@@ -45,7 +45,7 @@ const MDX_EXPRESSION_LINE = /^\s*\{[\s\S]*?\}\s*$/gm;
 const NOT_PROSE = /^(?:#|>|-\s|\*\s|\||!|```|\d+[.)]\s)/;
 
 /* A code fence is emptied rather than removed: the sentinel keeps it
-   a non-prose block, so it still ends the opening prose (spec rule 1)
+   a non-prose block, so it still ends the opening prose
    instead of vanishing and letting the run continue past it. */
 function stripBlocks(body: string): string {
   return body
@@ -171,7 +171,7 @@ export interface Excerptable {
   data: { slug: string; draft?: boolean };
 }
 
-/* The one place the publish policy lives (spec, "Consumers"): every
+/* The one place the publish policy lives: every
    consumer calls this, never deriveExcerpt directly. A published post
    with no usable opening fails the build; a draft with none warns and
    renders blank, so a SHOW_DRAFTS=1 build still runs and the stub is

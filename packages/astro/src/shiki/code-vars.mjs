@@ -1,6 +1,6 @@
 // Shiki transformer: rewrite the code theme's baked hex values to the
 // css package's custom properties, so highlighted code follows a live
-// palette override (spec 2026-09-06, live code colors). Shiki inlines
+// palette override. Shiki inlines
 // literal colors on every span at build; with this transformer the
 // build emits var() instead, and the variables resolve to the exact
 // same hexes until something overrides them, so adopting it changes
