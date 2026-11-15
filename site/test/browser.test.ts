@@ -390,11 +390,11 @@ describe.skipIf(!enabled)("browser suite", () => {
     expect(violations, report("dark", violations)).toEqual([]);
   }, 60_000);
 
-  /* The category row's 24px targets (2.5.8) must not cost the ring or
+  /* The category row's targets (24px for 2.5.8, plus 2px headroom) must not cost the ring or
      the one-line ellipsis: each link's border box stays inside the
      row's clip box, so the inset focus ring keeps all four sides, and
      the row stays a single line however many categories a card has. */
-  it("card category links reach 24px inside the row's clip box, on one line", async () => {
+  it("card category links reach 26px inside the row's clip box, on one line", async () => {
     const p = await open();
 
     const m = await p.$$eval(".entry-cat .post-categories", (rows) =>
@@ -425,7 +425,9 @@ describe.skipIf(!enabled)("browser suite", () => {
       expect(row.nowrap).toBe(true);
 
       for (const l of row.links) {
-        expect(l.height).toBeGreaterThanOrEqual(24);
+        /* 24px is the 2.5.8 floor; the card keeps 2px over it so a
+           rounding change fails here before it fails the criterion. */
+        expect(l.height).toBeGreaterThanOrEqual(26);
         expect(l.top).toBeGreaterThanOrEqual(l.clipTop);
         expect(l.bottom).toBeLessThanOrEqual(l.clipBottom);
       }
@@ -434,7 +436,7 @@ describe.skipIf(!enabled)("browser suite", () => {
 
   /* No demo card has more categories than fit, so this one is given
      some: the row must overflow and ellipsize on its single line, never
-     wrap to a second, and the added links keep their 24px boxes inside
+     wrap to a second, and the added links keep their 26px boxes inside
      the clip like the rest. */
   it("a card with more categories than fit ellipsizes on one line", async () => {
     const p = await open();
