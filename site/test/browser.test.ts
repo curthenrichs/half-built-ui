@@ -492,13 +492,13 @@ describe.skipIf(!enabled)("browser suite", () => {
       input.dispatchEvent(new Event("input", { bubbles: true }));
     });
 
-    const brand1500 = await p.evaluate(() =>
-      getComputedStyle(document.documentElement)
-        .getPropertyValue("--brand-1-500")
-        .trim(),
+    /* the editor applies a pick on the next animation frame */
+    await p.waitForFunction(
+      () =>
+        getComputedStyle(document.documentElement)
+          .getPropertyValue("--brand-1-500")
+          .trim() === "#2f9e44",
     );
-
-    expect(brand1500).toBe("#2f9e44");
 
     const after = await p.$eval(
       ACCENT_1_CHIP,
@@ -2124,6 +2124,11 @@ describe.skipIf(!enabled)("browser suite", () => {
       input.value = "#2f9e44";
       input.dispatchEvent(new Event("input", { bubbles: true }));
     });
+
+    /* the editor applies, and so stores, a pick on the next frame */
+    await p.waitForFunction(
+      () => localStorage.getItem("hbui-palette") !== null,
+    );
 
     const saved = await p.evaluate(() => localStorage.getItem("hbui-palette"));
     expect(saved, "the editor wrote nothing to storage").not.toBeNull();

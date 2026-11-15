@@ -334,6 +334,7 @@ already clear the same gate on the dark ground.
 
 The reference site generates a compliant block for you: give it two
 base colors and its palette editor derives the other four stops and
-prints a ready-to-paste override in exactly the shape above. It will
-live at `ui.half-built-robots.com` once deployed; today the source for
-that derivation is `site/src/lib/derive-palette.ts` in this repo.
+prints a ready-to-paste override in exactly the shape above. It lives
+at `ui.half-built-robots.com`. A build can run the same derivation
+itself through `@half-built/tooling/palette` (`derivePalette` and
+`overrideBlock`; see that package's README).

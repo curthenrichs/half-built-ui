@@ -1,7 +1,7 @@
 {
   "name": "@half-built/tooling",
-  "version": "0.16.2",
-  "description": "Lint presets and the test kit for half-built sites.",
+  "version": "0.17.0",
+  "description": "Lint presets, the test kit, and the palette math for half-built sites.",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -17,11 +17,14 @@
     "./stylelint": "./src/stylelintrc.json",
     "./htmlvalidate": "./src/htmlvalidate.json",
     "./test-kit/*": "./src/test-kit/*",
-    "./prettier": "./src/prettier.config.mjs"
+    "./prettier": "./src/prettier.config.mjs",
+    "./palette": "./src/palette/index.ts"
   },
   "dependencies": {
     "@eslint/js": "^10.0.1",
     "@stylistic/eslint-plugin": "^5.10.0",
+    "@types/culori": "^4.0.1",
+    "culori": "^4.0.2",
     "eslint-plugin-astro": "^1.7.0",
     "globals": "^17.8.0",
     "postcss-html": "^2.0.0",

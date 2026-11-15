@@ -22,7 +22,7 @@ import {
   type Base1Readout,
   type BaseReadout,
   type PaletteOverride,
-} from "../lib/derive-palette";
+} from "@half-built/tooling/palette";
 
 const HEX_RE = /^#[0-9a-f]{6}$/i;
 
@@ -369,8 +369,30 @@ export function mountPaletteEditor(
     syncPresets(SHIPPED_B1, SHIPPED_B2);
   }
 
+  /* A color picker fires input on every pointer move while it is
+     dragged, far faster than the page can repaint, and each apply
+     derives the whole ramp and re-themes the page. So input only books
+     a frame, and the frame applies whatever the two inputs hold by
+     then: at most one derivation per frame, always of the latest pick.
+     Every other path that sets the pair (preset, flip, reset) applies
+     at once and drops a booked frame first, so a late frame can never
+     re-apply over it (after reset, that would write the amber pair
+     back as a stored override). */
+  let frame: number | null = null;
+
+  const dropFrame = (): void => {
+    if (frame === null) return;
+    cancelAnimationFrame(frame);
+    frame = null;
+  };
+
   const onBaseInput = (): void => {
-    apply(els.input1.value, els.input2.value);
+    if (frame !== null) return;
+
+    frame = requestAnimationFrame(() => {
+      frame = null;
+      apply(els.input1.value, els.input2.value);
+    });
   };
 
   els.input1.addEventListener("input", onBaseInput);
@@ -388,6 +410,7 @@ export function mountPaletteEditor(
         const b1 = btn.getAttribute("data-base-1");
         const b2 = btn.getAttribute("data-base-2");
         if (!b1 || !b2) return;
+        dropFrame();
         setInputs(els, b1, b2);
         apply(b1, b2);
       });
@@ -422,11 +445,13 @@ export function mountPaletteEditor(
   flipBtn?.addEventListener("click", () => {
     const b1 = els.input2.value;
     const b2 = els.input1.value;
+    dropFrame();
     setInputs(els, b1, b2);
     apply(b1, b2);
   });
 
   els.resetBtn.addEventListener("click", () => {
+    dropFrame();
     clearStored(storage, storageKey);
 
     for (const key of RAMP_ORDER) {

@@ -47,6 +47,11 @@ Buttondown list. The endpoint and the copy are props.
   required, and the caller supplies it.
 - `@fontsource/roboto-mono` is the one runtime dependency of
   `@half-built/css`, an exception to "no dependencies".
+- The palette derivation lives in `@half-built/tooling/palette`
+  (2026-11-15), not in the site: a consumer's build derives and
+  asserts the same ramp the reference site's editor prints, and the
+  editor imports it from the package. It is pure math over culori,
+  which is a runtime dependency of tooling for that reason.
 
 ## Islands
 

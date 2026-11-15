@@ -1,5 +1,5 @@
 import { converter, clampChroma, formatHex } from "culori";
-import { contrastRatio } from "./contrast";
+import { contrastRatio } from "./contrast.ts";
 import {
   LIGHT_PAPER,
   DARK_GROUND,
@@ -7,16 +7,15 @@ import {
   CODE_LINE,
   CODE_FG,
   CODE_COMMENT,
-} from "./grounds";
+} from "./grounds.ts";
 
 const toOklch = converter("oklch");
 
 /* Everything in this module is pure math over the reference constants
-   above: no DOM, no site imports. That shape is deliberate (owner
-   call 2026-09-06): the code island's theming is a package capability
-   (the code-vars transformer and the --code-* roles ship in the
-   packages), and this derivation lifts into @half-built/tooling at
-   the registered 0.3.0 promotion without a rewrite. */
+   above: no DOM, no site imports (owner call 2026-09-06). Built in the
+   reference site's palette editor and moved here unchanged in 0.17.0,
+   so a consumer's build can derive and assert the same ramp the editor
+   prints, and the editor imports it back from the package. */
 export interface PaletteOverride {
   "--brand-1-300": string;
   "--brand-1-500": string;

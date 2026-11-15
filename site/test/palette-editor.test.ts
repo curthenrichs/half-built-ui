@@ -6,9 +6,9 @@
    reload. Mirrors the jsdom conventions in
    packages/astro/test/theme-toggle-dom.test.ts: real localStorage,
    fireEvent-style dispatch, one describe block. */
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { mountPaletteEditor } from "../src/scripts/palette-editor";
-import { derivePalette, overrideBlock } from "../src/lib/derive-palette";
+import { derivePalette, overrideBlock } from "@half-built/tooling/palette";
 
 const KEY = "test-palette-key";
 
@@ -59,9 +59,27 @@ function input(id: string): HTMLInputElement {
   return el;
 }
 
-function fireInput(el: HTMLInputElement, value: string): void {
+/* The editor applies a pick on the next animation frame, so frames
+   are a hand-run queue here: dispatchInput books one, runFrames plays
+   whatever is booked, and fireInput is both, for the tests that only
+   care about the applied result. */
+let frames = new Map<number, FrameRequestCallback>();
+let nextFrame = 1;
+
+function runFrames(): void {
+  const due = frames;
+  frames = new Map();
+  for (const cb of due.values()) cb(0);
+}
+
+function dispatchInput(el: HTMLInputElement, value: string): void {
   el.value = value;
   el.dispatchEvent(new Event("input", { bubbles: true }));
+}
+
+function fireInput(el: HTMLInputElement, value: string): void {
+  dispatchInput(el, value);
+  runFrames();
 }
 
 function computedProps(): Record<string, string> {
@@ -75,12 +93,65 @@ function computedProps(): Record<string, string> {
 }
 
 beforeEach(() => {
+  frames = new Map();
+  nextFrame = 1;
+
+  vi.stubGlobal("requestAnimationFrame", (cb: FrameRequestCallback) => {
+    frames.set(nextFrame, cb);
+    return nextFrame++;
+  });
+
+  vi.stubGlobal("cancelAnimationFrame", (id: number) => {
+    frames.delete(id);
+  });
+
   document.documentElement.removeAttribute("style");
   fixture();
   localStorage.clear();
 });
 
+afterEach(() => {
+  vi.unstubAllGlobals();
+});
+
 describe("palette editor", () => {
+  it("a burst of picks within one frame applies once, with the latest pair", () => {
+    mountPaletteEditor(document, { storageKey: KEY });
+    const setItem = vi.spyOn(Storage.prototype, "setItem");
+
+    dispatchInput(input("palette-base-1"), "#104020");
+    dispatchInput(input("palette-base-1"), "#2f9e44");
+    dispatchInput(input("palette-base-2"), "#0ca678");
+
+    expect(frames.size).toBe(1);
+    expect(computedProps()["--brand-1-500"]).toBe("");
+
+    runFrames();
+
+    expect(computedProps()).toEqual(derivePalette("#2f9e44", "#0ca678"));
+    expect(setItem).toHaveBeenCalledTimes(1);
+    setItem.mockRestore();
+  });
+
+  it("reset drops a pick still waiting on its frame", () => {
+    mountPaletteEditor(document, { storageKey: KEY });
+    dispatchInput(input("palette-base-1"), "#2f9e44");
+
+    const reset = document.querySelector<HTMLButtonElement>(
+      "[data-palette-reset]",
+    );
+
+    if (!reset) throw new Error("no reset button");
+    reset.click();
+    runFrames();
+
+    expect(localStorage.getItem(KEY)).toBeNull();
+
+    for (const value of Object.values(computedProps())) {
+      expect(value).toBe("");
+    }
+  });
+
   it("picking a base sets every override property and persists the pair with its ramp", () => {
     mountPaletteEditor(document, { storageKey: KEY });
     fireInput(input("palette-base-1"), "#2f9e44");

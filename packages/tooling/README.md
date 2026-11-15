@@ -1,6 +1,6 @@
 # @half-built/tooling
 
-Lint presets and the test kit for half-built sites.
+Lint presets, the test kit, and the palette math for half-built sites.
 
 ## Presets
 
@@ -70,6 +70,38 @@ From `test-kit/helpers.ts`:
   and the style snapshot).
 - `RecordingContext`: the shape `recordingContext()` returns (`calls`,
   `ops`, `ctx`).
+
+## Palette
+
+`@half-built/tooling/palette` is the accent-palette math behind the
+reference site's palette editor. A consumer's build can use it to
+derive a compliant override from two base colors and to assert the
+contrast of whatever it ships. It is pure functions with no DOM, so
+it also runs in a browser bundle (the editor imports it that way).
+
+- `derivePalette(base1, base2)`: the full override for two accent
+  bases: both brand ramps plus the code island's chrome, each stop
+  walked in OKLCH until it clears its WCAG gate against the ground it
+  renders on. The shipped amber pair returns the package's own tokens
+  exactly.
+- `readBases(base1, base2)`: the bases' own ratios and pass flags (as
+  text on the dark ground, as a fill on light paper, and for base 1,
+  as code keyword ink on its derived code ground).
+- `overrideBlock(palette)`: the override as a ready-to-paste `:root`
+  block, in `RAMP_ORDER`.
+- `contrastRatio(a, b)`: the WCAG 2.x ratio between two CSS colors,
+  through culori's `wcagContrast`; throws on a string culori cannot
+  parse.
+- `RAMP_ORDER`, `SHIPPED_B1`, `SHIPPED_B2`, and the grounds the gates
+  are measured against (`LIGHT_PAPER`, `DARK_GROUND`, `CODE_GROUND`,
+  and the code chrome references). The package's tests pin every
+  ground and shipped stop to `@half-built/css`'s tokens, so they move
+  together.
+- Types: `PaletteOverride`, `BaseReadout`, `Base1Readout`.
+
+The module ships as TypeScript source with `.ts` import specifiers,
+like the test kit: Vite and Astro load it as is, and so does Node
+with type stripping (on by default from 22.18).
 
 ## Requirements
 
