@@ -1,0 +1,179 @@
+/* Layer: components. The page TOC (#438; Toc.astro, scripts/toc.ts).
+   .toc is a zero-height sticky anchor at the top of the content
+   column, so the list tracks the viewport with no script; the script
+   only measures the gutter and writes data-toc-mode plus --toc-edge
+   (the anchor's distance from the viewport's left edge).
+   - strip: the panel sits open in the gutter, its right edge 16px
+     short of the column, never wider than 260px.
+   - tab: a vertical Sections tab on the viewport's left edge; the
+     panel opens beside it while data-toc-open is set.
+   The panel is the Group treatment's rule box with the label
+   straddling its top rule (as the demo's rail TOC had it); the list
+   inside owns the scrolling, so neither the label nor the corner X is
+   clipped. Unmounted (no data-toc-mode) the whole thing is hidden: the
+   tab cannot open without the script. */
+@layer components {
+  .toc {
+    position: sticky;
+    top: 2rem;
+    height: 0;
+    z-index: var(--z-panel);
+  }
+
+  /* Hidden, not display: none, so the script can measure where the
+     anchor sits before it picks a mode (a display: none box reads as
+     left 0, which picked the tab everywhere). */
+  .toc:not([data-toc-mode]) {
+    visibility: hidden;
+  }
+
+  .toc-panel {
+    position: absolute;
+    top: 0;
+    box-sizing: border-box;
+    padding: 18px 8px 10px;
+    color: var(--ink);
+    background: var(--surface);
+    border: var(--stroke) solid var(--rule);
+  }
+
+  .toc-label {
+    position: absolute;
+    top: 0;
+    left: 10px;
+
+    /* Center the label on the top rule, not the padding edge. */
+    transform: translateY(calc(-50% - 1px));
+    padding: 3px 8px;
+    font-size: var(--font-size-xs);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    line-height: 1;
+  }
+
+  .toc-close {
+    position: absolute;
+    top: -16px;
+    right: 10px;
+    background: var(--surface);
+  }
+
+  .toc-links,
+  .toc-links ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .toc-links {
+    max-height: calc(100vh - 6rem);
+    overflow: auto;
+    overscroll-behavior: contain;
+  }
+
+  .toc-links li {
+    margin-bottom: 4px;
+  }
+
+  .toc-links ul {
+    margin-top: 4px;
+    padding-left: 12px;
+  }
+
+  /* 24px rows at the least (WCAG 2.5.8); long headings wrap. */
+  .toc-links a {
+    display: block;
+    box-sizing: border-box;
+    min-height: 24px;
+    padding: 4px 8px;
+    color: var(--ink);
+    font-size: var(--font-size-sm);
+    line-height: 1.3;
+    text-decoration: none;
+    border-left: var(--stroke) solid transparent;
+  }
+
+  .toc-links a:hover {
+    text-decoration: underline;
+  }
+
+  .toc-links a[aria-current="true"] {
+    border-left-color: var(--accent-1);
+    color: var(--accent-1-ink);
+    font-weight: 700;
+  }
+
+  /* The h2 around the current h3: the accent rule, not the weight, so
+     the h3 still reads as the place you are. */
+  .toc-links a[data-toc-parent-current] {
+    border-left-color: var(--accent-1);
+    color: var(--accent-1-ink);
+  }
+
+  .toc[data-toc-mode="strip"] .toc-panel {
+    right: calc(100% + 16px);
+    width: min(260px, var(--toc-edge) - 32px);
+  }
+
+  .toc[data-toc-mode="strip"] .toc-tab,
+  .toc[data-toc-mode="strip"] .toc-close {
+    display: none;
+  }
+
+  /* The tab: the accent press box set on its side, reading bottom to
+     top, flush with the viewport's left edge. */
+  .toc-tab {
+    position: absolute;
+    top: 0;
+    left: calc(-1 * var(--toc-edge));
+    padding: 12px 6px;
+    color: var(--accent-1-ink);
+    background: color-mix(in srgb, var(--accent-1) 6%, var(--surface));
+    border: var(--stroke) solid var(--accent-1);
+    border-left: 0;
+    box-shadow: var(--shadow);
+    font: inherit;
+    font-size: var(--font-size-sm);
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    cursor: pointer;
+  }
+
+  .toc-tab:hover {
+    background: color-mix(in srgb, var(--accent-1) 14%, var(--surface));
+  }
+
+  .toc[data-toc-mode="tab"] .toc-panel {
+    display: none;
+    left: calc(-1 * var(--toc-edge));
+    width: min(300px, 85vw);
+    box-shadow: var(--shadow);
+  }
+
+  .toc[data-toc-mode="tab"][data-toc-open] .toc-panel {
+    display: block;
+  }
+
+  /* Open, it steps above the scale's other panels: a sticky floater
+     later in the page at the same --z-panel (the demo's palette knob)
+     otherwise paints over the list. */
+  .toc[data-toc-open] {
+    z-index: calc(var(--z-panel) + 1);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .toc[data-toc-mode="tab"] .toc-panel {
+      transition:
+        transform 150ms ease-out,
+        opacity 150ms ease-out;
+    }
+
+    @starting-style {
+      .toc[data-toc-mode="tab"][data-toc-open] .toc-panel {
+        transform: translateX(-12px);
+        opacity: 0;
+      }
+    }
+  }
+}

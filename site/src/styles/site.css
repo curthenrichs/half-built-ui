@@ -1,10 +1,10 @@
 /* Layer: site (the last layer in the cascade, so these rules outrank
    the package's own; see layers.css). Page-level layout for this demo
-   site only: the TOC-beside-content grid and the TOC's sticky
+   site only: the rail-beside-content grid and the rail's sticky
    behavior. Nothing here caps a prose container's width; --shell-max
    on .shell (packages/css/src/base/shell.css) stays the only width
-   authority, and the TOC column is sized to its own content, which is
-   navigation, not prose. Imported by Base.astro after the package css
+   authority, and the rail column is sized to its own content, which is
+   a control, not prose. Imported by Base.astro after the package css
    so it layers on top. */
 @layer site {
   /* The article heading on every page: the index, the sample post,
@@ -30,28 +30,16 @@
     min-width: 0;
   }
 
-  /* The site rail (owner call 2026-09-06): palette knob and section
-     TOC merged into one viewport-tracking stack. Desktop: the sticky
-     left column, one offset for the whole stack (the old TOC needed
-     7.5rem just to duck the separate fixed button). --z-panel keeps
-     an open panel over every page floater and under popouts. The
-     tablet-and-down corner cluster lives in the media block below. */
+  /* The site rail (owner call 2026-09-06): the palette knob, tracking
+     the viewport. Desktop: the sticky left column. --z-panel keeps an
+     open panel over every page floater and under popouts. The
+     tablet-and-down corner knob lives in the media block below. The
+     section TOC left the rail for the package Toc in 0.18.0 (#438). */
   .site-rail {
     position: sticky;
     top: 2rem;
     align-self: start;
-    display: flex;
-    flex-direction: column;
-
-    /* Clears the Sections label, which straddles the box's top rule
-       and so reaches about 10px up into this gap. */
-    gap: 28px;
     z-index: var(--z-panel);
-  }
-
-  /* The Sections knob exists for the corner cluster only. */
-  .site-rail-sections {
-    display: none;
   }
 
   /* The token sheet: variable names and hex chips never break
@@ -109,7 +97,7 @@
     min-width: 11em;
   }
 
-  /* The rail's knobs (palette and sections details). All colors are
+  /* The rail's knob (the palette details). All colors are
      theme tokens (var(--surface) and kin), so they follow day/night
      like the rest of the chrome. Each knob wears the accent-box
      treatment (the tagline's recipe in SiteHeader.astro) so it reads
@@ -117,12 +105,9 @@
      read the brand variables directly, so an applied palette recolors
      the closed button with no script. */
 
-  /* Above the TOC box: that box is positioned too (its label straddles
-     the top rule) and comes later in the rail, so without this step
-     the open palette panel paints underneath it. */
+  /* The open panel (.site-toolbar-body) is placed against its knob. */
   .site-knob {
     position: relative;
-    z-index: 1;
   }
 
   .site-knob > summary {
@@ -334,28 +319,27 @@
   }
 
   /* At the tablet break and below the layout column collapses and the
-     rail becomes the fixed bottom-left corner cluster (owner call
-     2026-09-06): the Palette knob gains its Sections sibling, panels
-     open upward, and the corner X flips to straddle the bottom border
+     rail becomes the fixed bottom-left corner knob (owner call
+     2026-09-06): the panel opens upward, and the corner X flips to straddle the bottom border
      so it stays beside the trigger and the thumb. */
   @media (--bp-tablet) {
     .site-layout {
       display: block;
     }
 
-    /* The cluster's inset from the viewport corner, shared with the
+    /* The knob's inset from the viewport corner, shared with the
        footer's reserve below so the two cannot drift apart. */
     :root {
       --site-rail-inset: 1rem;
 
-      /* A fixed cluster takes no room in flow, so the footer's last
+      /* A fixed knob takes no room in flow, so the footer's last
          links ended under it (owner report 2026-09-09): Portfolio and
          Okos Polip at phone widths, and the Site column's Components and
          CSS at tablet widths, where the sitemap's leftmost column starts
-         inside the cluster's span. The package's --dock-bottom token is
+         inside the knob's span. The package's --dock-bottom token is
          the general rule for a viewport-bound bottom component: the
          Footer reserves that much below its last link. This site sets
-         it to the cluster's room: the inset, the knob (font-size-sm plus
+         it to the knob's room: the inset, the knob (font-size-sm plus
          8px of padding and the stroke each side, 40px), and a line of
          air. */
       --dock-bottom: calc(var(--site-rail-inset) + 40px + 1rem);
@@ -366,31 +350,6 @@
       top: auto;
       bottom: var(--site-rail-inset);
       left: var(--site-rail-inset);
-      flex-direction: row;
-      gap: 8px;
-    }
-
-    .site-rail-toc {
-      display: none;
-    }
-
-    .site-rail-sections {
-      display: block;
-    }
-
-    /* Panels anchor to the rail, not their own knob: anchored to the
-       second knob the sections panel ran off the right viewport edge.
-       The rail is the fixed element, so static knobs make it the
-       containing block and every panel opens above the whole cluster,
-       aligned to its 1rem inset. */
-    .site-knob {
-      position: static;
-    }
-
-    /* The cluster's knobs size to their own labels; only the desktop
-       rail stretches them to the column the TOC sets. */
-    .site-knob > summary {
-      width: fit-content;
     }
 
     .site-toolbar-body {

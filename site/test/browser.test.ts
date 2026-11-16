@@ -1835,8 +1835,8 @@ describe.skipIf(!enabled)("browser suite", () => {
 
       await p.waitForFunction(
         (title: string) =>
-          document.querySelector('.site-rail-toc a[aria-current="true"]')
-            ?.textContent === title,
+          document.querySelector('.toc a[aria-current="true"]')?.textContent ===
+          title,
         { timeout: 5000 },
         section.title,
       );
@@ -1981,7 +1981,7 @@ describe.skipIf(!enabled)("browser suite", () => {
   it("the toc renders one link per section and every href target exists", async () => {
     const p = await open();
 
-    const hrefs = await p.$$eval(".site-rail-toc a", (els) =>
+    const hrefs = await p.$$eval(".toc a", (els) =>
       els.map((el) => el.getAttribute("href") ?? ""),
     );
 
@@ -1999,16 +1999,191 @@ describe.skipIf(!enabled)("browser suite", () => {
     ).toEqual([]);
   }, 30_000);
 
-  it("the fixed corner cluster never covers the footer's links", async () => {
-    /* At the tablet break and below the rail is a fixed corner cluster
+  /* The package Toc (#438): open in the gutter where it fits, a tab
+     and slide-out panel where it does not. These pages skip open()'s
+     palette clear and axe settling; nothing here reads colors. */
+  async function openAt(width: number, height: number): Promise<Page> {
+    if (!browser) throw new Error("no browser (beforeAll failed)");
+
+    const p =
+      width <= 390
+        ? await phonePage(browser, width, height)
+        : await desktopPage(browser, width, height);
+
+    page = p;
+    await routeEcosystem(p, "fixture");
+    await p.goto(`${ORIGIN}/`, { waitUntil: "networkidle0" });
+
+    await p.addStyleTag({
+      content:
+        "*, *::before, *::after { transition: none !important; animation: none !important; }",
+    });
+
+    return p;
+  }
+
+  const tocMode = (p: Page): Promise<string | null> =>
+    p.$eval("[data-toc]", (el) => el.getAttribute("data-toc-mode"));
+
+  it("the toc sits open in the gutter at 1920px", async () => {
+    const p = await openAt(1920, 1080);
+
+    expect(await tocMode(p)).toBe("strip");
+
+    const box = await p.evaluate(() => {
+      const panel = document.querySelector("[data-toc-panel]");
+      const shell = document.querySelector(".shell");
+      if (!panel || !shell) return null;
+      const r = panel.getBoundingClientRect();
+      return {
+        width: r.width,
+        left: r.left,
+        right: r.right,
+        shellLeft: shell.getBoundingClientRect().left,
+        tabShown:
+          getComputedStyle(
+            document.querySelector("[data-toc-tab]") ?? document.body,
+          ).display !== "none",
+      };
+    });
+
+    expect(box).not.toBeNull();
+    expect(box?.width).toBeGreaterThan(0);
+    expect(box?.left).toBeGreaterThanOrEqual(0);
+    expect(box?.right).toBeLessThanOrEqual(box?.shellLeft ?? 0);
+    expect(box?.tabShown).toBe(false);
+  }, 30_000);
+
+  it("the toc is a tab at 1440px and on a phone, and the panel opens and closes", async () => {
+    for (const [width, height] of [
+      [1440, 900],
+      [390, 664],
+    ] as const) {
+      const p = await openAt(width, height);
+
+      expect(await tocMode(p), `${String(width)}px`).toBe("tab");
+
+      const panelShown = (): Promise<boolean> =>
+        p.$eval(
+          "[data-toc-panel]",
+          (el) => el.getBoundingClientRect().width > 0,
+        );
+
+      expect(await panelShown()).toBe(false);
+
+      /* Scrolled, so the anchor and the demo's rail have both stuck
+         at 2rem, side by side, where they overlap. */
+      await p.evaluate(() => {
+        window.scrollTo({ top: 900, behavior: "instant" });
+      });
+
+      await p.click("[data-toc-tab]");
+
+      expect(
+        await p.$eval("[data-toc-tab]", (el) =>
+          el.getAttribute("aria-expanded"),
+        ),
+      ).toBe("true");
+
+      expect(await panelShown()).toBe(true);
+
+      /* The open panel paints over every page floater, the demo's
+         palette knob included (it sat on top at 1440 before the fix). */
+      expect(
+        await p.$eval("[data-toc-panel]", (panel) => {
+          const links = [...panel.querySelectorAll(".toc-links a")];
+          return links.every((a) => {
+            const r = a.getBoundingClientRect();
+
+            const hit = document.elementFromPoint(
+              r.left + r.width / 2,
+              r.top + r.height / 2,
+            );
+
+            return hit !== null && panel.contains(hit);
+          });
+        }),
+        `${String(width)}px: something paints over the open panel`,
+      ).toBe(true);
+
+      await p.keyboard.press("Escape");
+
+      expect(await panelShown()).toBe(false);
+
+      await p.close();
+      page = undefined;
+    }
+  }, 60_000);
+
+  it("every toc link is at least 24px tall", async () => {
+    for (const [width, height] of [
+      [1920, 1080],
+      [1440, 900],
+    ] as const) {
+      const p = await openAt(width, height);
+
+      if ((await tocMode(p)) === "tab") await p.click("[data-toc-tab]");
+
+      const heights = await p.$$eval(".toc-links a", (els) =>
+        els.map((a) => a.getBoundingClientRect().height),
+      );
+
+      expect(heights.length).toBeGreaterThan(0);
+
+      expect(Math.min(...heights), `${String(width)}px`).toBeGreaterThanOrEqual(
+        24,
+      );
+
+      await p.close();
+      page = undefined;
+    }
+  }, 60_000);
+
+  it("a long toc scrolls inside itself", async () => {
+    const p = await openAt(1920, 700);
+
+    const result = await p.evaluate(() => {
+      const list = document.querySelector(".toc-links");
+      const panel = document.querySelector("[data-toc-panel]");
+      if (!list || !panel) return null;
+
+      for (let i = 0; i < 30; i++) {
+        list.insertAdjacentHTML(
+          "beforeend",
+          `<li><a href="#intro">Extra ${String(i)}</a></li>`,
+        );
+      }
+
+      /* Past the page top, where the sticky anchor has stuck at
+         2rem: at the very top the anchor sits below the header and
+         the list's tail starts under the fold until the reader
+         scrolls, which is the steady state this checks. */
+      window.scrollTo({ top: 1000, behavior: "instant" });
+      const last = list.querySelector("li:last-child a");
+      last?.scrollIntoView({ block: "nearest", behavior: "instant" });
+      const l = last?.getBoundingClientRect();
+      const p = panel.getBoundingClientRect();
+      return {
+        scrolls: list.scrollHeight > list.clientHeight,
+        inside:
+          l !== undefined && l.top >= p.top - 1 && l.bottom <= p.bottom + 1,
+        fitsViewport: p.bottom <= window.innerHeight,
+      };
+    });
+
+    expect(result).toEqual({ scrolls: true, inside: true, fitsViewport: true });
+  }, 30_000);
+
+  it("the fixed corner knob never covers the footer's links", async () => {
+    /* At the tablet break and below the rail is a fixed corner knob
        (site.css), so nothing in flow makes room for it. Before the
        2026-09-09 fix the footer's last links sat under it: Portfolio
        and Okos Polip at phone widths, the Site group's Components and
        CSS at tablet widths, where the sitemap's leftmost column starts
-       inside the cluster's span. Every collapsible group is opened
+       inside the knob's span. Every collapsible group is opened
        first so the longest possible footer is what has to clear, and
-       the cluster's own panels stay closed: an open panel covering the
-       page is the design, the closed knobs covering it is the bug. */
+       the knob's own panel stays closed: an open panel covering the
+       page is the design, the closed knob covering it is the bug. */
     if (!browser) throw new Error("no browser (beforeAll failed)");
     const b = browser;
 
@@ -2071,7 +2246,7 @@ describe.skipIf(!enabled)("browser suite", () => {
 
       expect(
         covered,
-        `${viewport.name}: footer text under the corner cluster`,
+        `${viewport.name}: footer text under the corner knob`,
       ).toEqual([]);
 
       await p.close();

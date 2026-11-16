@@ -1,0 +1,56 @@
+---
+import { ICON_X } from "../scripts/core/icons.ts";
+import type { TocItem } from "../lib/toc.ts";
+
+interface Props {
+  items: TocItem[];
+  label?: string;
+}
+
+const { items, label = "Sections" } = Astro.props;
+---
+
+{/* The page TOC (#438): one or two heading levels, open in the empty
+    gutter left of the page where it fits, a Sections tab and slide-out
+    panel where it does not. Place it as the first child of the column
+    whose headings it lists; it renders a zero-height sticky anchor, and
+    @half-built/css/toc.css hangs the list off it. mountToc
+    (scripts/toc.ts) picks the mode, tracks the current section, and
+    runs the panel. Build items with lib/toc.ts's tocFromHeadings; when
+    to show a TOC at all is the consumer's call. One per page. */}
+{items.length > 0 && <div class="toc" data-toc>
+  <button
+    type="button"
+    class="toc-tab"
+    data-toc-tab
+    aria-expanded="false"
+    aria-controls="toc-panel"
+  >
+    {label}
+  </button>
+  <div class="toc-panel" id="toc-panel" data-toc-panel>
+    <p class="toc-label boxed-label" aria-hidden="true">
+      {label}
+    </p>
+    <button
+      type="button"
+      class="toc-close icon-box"
+      data-toc-close
+      aria-label={`Close ${label.toLowerCase()}`}
+    >
+      <Fragment set:html={ICON_X} />
+    </button>
+    <nav aria-label={label}>
+      <ul class="toc-links">
+        {items.map((item) => <li>
+          <a href={`#${item.id}`}>{item.text}</a>
+          {item.children.length > 0 && <ul>
+            {item.children.map((child) => <li>
+              <a href={`#${child.id}`}>{child.text}</a>
+            </li>)}
+          </ul>}
+        </li>)}
+      </ul>
+    </nav>
+  </div>
+</div>}

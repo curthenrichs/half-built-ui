@@ -2,6 +2,8 @@
 import { Code } from "astro:components";
 import Base from "../layouts/Base.astro";
 import Rail from "../components/Rail.astro";
+import Toc from "@half-built/astro/components/Toc.astro";
+import { SECTIONS } from "../data/sections";
 import Imports from "../components/Imports.astro";
 import EditorNote from "@half-built/astro/content/EditorNote.astro";
 import WhenPublished from "@half-built/astro/content/WhenPublished.astro";
@@ -337,6 +339,11 @@ const npmPackages = [
   title="half-built-ui"
   description="The reference site for the @half-built packages, with every component and its variants on one page."
 >
+  {/* The section TOC is the package Toc (#438), placed before the
+      grid so its anchor's gutter is the page edge, not the rail. */}
+  <Toc
+    items={SECTIONS.map((s) => ({ id: s.id, text: s.title, children: [] }))}
+  />
   <div class="site-layout">
     <Rail />
     <main>
