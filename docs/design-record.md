@@ -52,6 +52,13 @@ Buttondown list. The endpoint and the copy are props.
   asserts the same ramp the reference site's editor prints, and the
   editor imports it from the package. It is pure math over culori,
   which is a runtime dependency of tooling for that reason.
+- The page TOC lives in the package (`Toc.astro`, `lib/toc.ts`,
+  `scripts/toc.ts`, `toc.css`; owner, 2026-11-15). It sits open in
+  the empty space left of the page when that space is at least 220px
+  wide, and collapses to a Sections tab elsewhere. It never goes in
+  the sidebar, which stays in normal flow. It lists one or two heading
+  levels, never the full tree. When to show it is the consumer's
+  call: the threshold and any per-page override live in the consumer.
 
 ## Islands
 

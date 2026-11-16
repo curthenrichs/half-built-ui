@@ -24,7 +24,7 @@ import "@half-built/css/code.css";
 ```
 
 The island stylesheets (`lightbox.css`, `plate-modal.css`,
-`path-player.css`, `popout.css`) load the same way, from whichever
+`path-player.css`, `popout.css`, `toc.css`) load the same way, from whichever
 layout or component mounts their island. The `.` entry is the base
 layer (reset, shell, link-tip, scroll-top); it is not the whole
 system, which is why the explicit order above exists.
@@ -62,14 +62,14 @@ overrides.
 | tokens | `tokens.css`, importing `tokens/primitives.css`, `tokens/theme-light.css`, `tokens/theme-dark.css` | Custom properties only |
 | base | `global.css`, importing `base/reset.css`, `base/shell.css`, `base/link-tip.css`, `base/scroll-top.css` | Element defaults, a11y utilities, the page shell, and the two chrome pieces that pair CSS with a script |
 | patterns | `patterns.css` | The visual grammar (below) |
-| components | `prose.css`, `code.css`, `popout.css`, plus each modal island's own sublayer | Layout and behavior unique to one component or content domain |
+| components | `prose.css`, `code.css`, `popout.css`, `toc.css`, plus each modal island's own sublayer | Layout and behavior unique to one component or content domain |
 
 The plate-modal family sits in three sublayers of `components`:
 `components.plate, components.lightbox, components.player`, in that
 order. `plate-modal.css` holds the shared chrome; `lightbox.css` and
 `path-player.css` override it by sublayer order, so the three files
 can be imported in whichever order a consumer needs. Unsublayered
-`components` rules (prose, code, the popout) rank above all three
+`components` rules (prose, code, the popout, the TOC) rank above all three
 sublayers, which is fine since they never target modal elements.
 
 ### Patterns

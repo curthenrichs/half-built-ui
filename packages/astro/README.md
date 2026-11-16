@@ -331,6 +331,55 @@ close box for a site that is not in English.
 Not covered yet: structured content (lists, sub-tables, images),
 triggers on chart marks, and hover previews.
 
+## Toc
+
+`components/Toc.astro` lists a page's sections and marks the one the
+reader is in. Where the empty space left of the page is at least 220px
+wide, the list sits open in that space. Where it isn't, the list
+collapses to a Sections tab on the left edge, and the tab opens it as a
+panel. `scripts/toc` picks between the two and tracks the reader.
+
+```astro
+---
+import Toc from "@half-built/astro/components/Toc.astro";
+import { tocFromHeadings } from "@half-built/astro/lib/toc.ts";
+
+const { Content, headings } = await render(post);
+---
+
+<article>
+  <Toc items={tocFromHeadings(headings)} />
+  <Content />
+</article>
+```
+
+```js
+import "@half-built/css/toc.css";
+import { mountToc } from "@half-built/astro/scripts/toc.ts";
+
+mountToc(document);
+```
+
+Place `Toc` as the first child of the column whose headings it lists.
+It renders a zero-height sticky marker there, and the list hangs off it
+into the space on the left, so it follows the reader down the column and
+stops at its end. One per page.
+
+`tocFromHeadings(headings, { depth })` takes Astro's `render()` headings.
+`depth: 3` (the default) lists each `##` with its `###` nested under it;
+`depth: 2` lists the `##` only. An `###` before the first `##` is left
+out. A page with hand-built sections passes `{ id, text, children }`
+items directly. `label` (default `Sections`) names the nav, the tab, and
+the close box. The component renders nothing for an empty list.
+
+The current link gets `aria-current="true"`. Inside an `###`, its `##`
+gets an accent rule too, without being announced as current. The panel
+closes on a link, a click outside, its close box, or Escape, which
+returns focus to the tab. A resize that crosses the 220px line closes
+an open panel. With JavaScript off the TOC is hidden.
+
+When to show a TOC, and on which pages, is the consumer's call.
+
 ## StatLedger
 
 `components/StatLedger.astro` sets a few figures side by side in one
