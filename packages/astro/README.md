@@ -374,8 +374,8 @@ the close box. The component renders nothing for an empty list.
 
 The current link gets `aria-current="true"`. Inside an `###`, its `##`
 gets an accent rule too, without being announced as current. The panel
-closes on a link, a click outside, its close box, or Escape, which
-returns focus to the tab. A resize that crosses the 220px line closes
+closes on a link, a click outside, its close box, focus leaving it, or
+Escape, which returns focus to the tab. A resize that crosses the 220px line closes
 an open panel. With JavaScript off the TOC is hidden.
 
 When to show a TOC, and on which pages, is the consumer's call.
