@@ -16,13 +16,39 @@
      outside, the close button, and Escape close it; Escape returns
      focus to the tab.
    Without the script the anchor carries no mode and the stylesheet
-   hides it: the tab and panel cannot work without it. */
+   hides it: the tab and panel cannot work without it.
+   An island like the rest (core/island.ts): mounting twice is a no-op,
+   and destroy() drops every listener and the observer. */
+import { claim, release, type Island, type IslandHandle } from "./core/island";
+import { docOf } from "./core/dom";
+
 export const TOC_STRIP_MIN_GUTTER = 220;
 
-export function mountToc(root: Document): void {
-  const toc = root.querySelector<HTMLElement>("[data-toc]");
-  const view = root.defaultView;
-  if (!toc || !view) return;
+export interface TocOptions {
+  selector?: string;
+}
+
+export const mountToc: Island<TocOptions> = (
+  root,
+  options = {},
+): IslandHandle => {
+  const { selector = "[data-toc]" } = options;
+  const doc = docOf(root);
+  const toc = doc.querySelector<HTMLElement>(selector);
+  const view = doc.defaultView;
+  if (!toc || !view || !claim(toc, "toc")) return { destroy: () => undefined };
+
+  const controller = new AbortController();
+  const on = { signal: controller.signal };
+  let observer: IntersectionObserver | null = null;
+
+  const handle: IslandHandle = {
+    destroy(): void {
+      controller.abort();
+      observer?.disconnect();
+      release(toc, "toc");
+    },
+  };
 
   const tab = toc.querySelector<HTMLButtonElement>("[data-toc-tab]");
 
@@ -37,7 +63,7 @@ export function mountToc(root: Document): void {
 
   toc.querySelectorAll<HTMLAnchorElement>("nav a[href^='#']").forEach((a) => {
     const id = decodeURIComponent(a.hash.slice(1));
-    const target = id ? root.getElementById(id) : null;
+    const target = id ? doc.getElementById(id) : null;
     if (!target) return;
     links.set(id, a);
     targets.push(target);
@@ -66,42 +92,66 @@ export function mountToc(root: Document): void {
 
   let frame = false;
 
-  view.addEventListener("resize", () => {
-    if (frame) return;
-    frame = true;
+  view.addEventListener(
+    "resize",
+    () => {
+      if (frame) return;
+      frame = true;
 
-    view.requestAnimationFrame(() => {
-      frame = false;
-      measure();
-    });
-  });
+      view.requestAnimationFrame(() => {
+        frame = false;
+        if (!controller.signal.aborted) measure();
+      });
+    },
+    on,
+  );
 
-  tab?.addEventListener("click", () => {
-    setOpen(!isOpen());
-  });
+  tab?.addEventListener(
+    "click",
+    () => {
+      setOpen(!isOpen());
+    },
+    on,
+  );
 
-  toc.querySelector("[data-toc-close]")?.addEventListener("click", () => {
-    setOpen(false);
-  });
+  toc.querySelector("[data-toc-close]")?.addEventListener(
+    "click",
+    () => {
+      setOpen(false);
+    },
+    on,
+  );
 
   links.forEach((a) => {
-    a.addEventListener("click", () => {
-      if (isOpen()) setOpen(false);
-    });
+    a.addEventListener(
+      "click",
+      () => {
+        if (isOpen()) setOpen(false);
+      },
+      on,
+    );
   });
 
-  root.addEventListener("click", (e) => {
-    if (!isOpen()) return;
-    if (e.target instanceof Node && !toc.contains(e.target)) setOpen(false);
-  });
+  doc.addEventListener(
+    "click",
+    (e) => {
+      if (!isOpen()) return;
+      if (e.target instanceof Node && !toc.contains(e.target)) setOpen(false);
+    },
+    on,
+  );
 
-  root.addEventListener("keydown", (e) => {
-    if (e.key !== "Escape" || !isOpen()) return;
-    setOpen(false);
-    tab?.focus();
-  });
+  doc.addEventListener(
+    "keydown",
+    (e) => {
+      if (e.key !== "Escape" || !isOpen()) return;
+      setOpen(false);
+      tab?.focus();
+    },
+    on,
+  );
 
-  if (targets.length === 0) return;
+  if (targets.length === 0) return handle;
 
   const setCurrent = (id: string): void => {
     const currentLink = links.get(id);
@@ -121,7 +171,7 @@ export function mountToc(root: Document): void {
      observer quiet until the scroll settles. */
   let quietUntil = 0;
 
-  const observer = new IntersectionObserver(
+  const spy = new IntersectionObserver(
     (entries) => {
       if (Date.now() < quietUntil) return;
       const intersecting = entries.filter((entry) => entry.isIntersecting);
@@ -131,8 +181,10 @@ export function mountToc(root: Document): void {
     { rootMargin: "-40% 0px -55% 0px" },
   );
 
+  observer = spy;
+
   targets.forEach((target) => {
-    observer.observe(target);
+    spy.observe(target);
   });
 
   /* The observer only speaks when a heading crosses its band, so a
@@ -157,6 +209,8 @@ export function mountToc(root: Document): void {
     setCurrent(id);
   };
 
-  view.addEventListener("hashchange", markHash);
+  view.addEventListener("hashchange", markHash, on);
   markHash();
-}
+
+  return handle;
+};

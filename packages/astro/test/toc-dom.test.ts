@@ -309,6 +309,50 @@ describe("page TOC island (DOM runtime)", () => {
     ]);
   });
 
+  it("mounting twice is a no-op", () => {
+    gutter = 100;
+    mountToc(document);
+    mountToc(document);
+
+    expect(FakeObserver.instances).toHaveLength(1);
+
+    el("[data-toc-tab]").click();
+
+    expect(anchor().hasAttribute("data-toc-open")).toBe(true);
+  });
+
+  it("destroy disconnects the observer, drops the listeners, and releases the claim", () => {
+    gutter = 100;
+    const handle = mountToc(document);
+    handle.destroy();
+
+    expect(observer().disconnect).toHaveBeenCalled();
+    expect(anchor().hasAttribute("data-island-toc")).toBe(false);
+
+    el("[data-toc-tab]").click();
+
+    expect(anchor().hasAttribute("data-toc-open")).toBe(false);
+
+    gutter = 300;
+    window.dispatchEvent(new Event("resize"));
+    runFrames();
+
+    expect(anchor().dataset.tocMode).toBe("tab");
+
+    mountToc(document);
+
+    expect(FakeObserver.instances).toHaveLength(2);
+  });
+
+  it("takes a selector for the anchor", () => {
+    const node = anchor();
+    node.removeAttribute("data-toc");
+    node.setAttribute("data-page-toc", "");
+    mountToc(document, { selector: "[data-page-toc]" });
+
+    expect(el("[data-page-toc]").dataset.tocMode).toBe("strip");
+  });
+
   it("does nothing when there is no [data-toc]", () => {
     document.body.innerHTML = "<p>no toc</p>";
 
