@@ -66,8 +66,10 @@
     padding: 0;
   }
 
+  /* dvh, so a phone's browser toolbar never hides the list's tail. */
   .toc-links {
     max-height: calc(100vh - 6rem);
+    max-height: calc(100dvh - 6rem);
     overflow: auto;
     overscroll-behavior: contain;
   }
@@ -144,9 +146,14 @@
     background: color-mix(in srgb, var(--accent-1) 14%, var(--surface));
   }
 
+  /* Fixed at 2rem rather than hung off the anchor: at the page top the
+     anchor still sits below the header, and a panel there ran past the
+     bottom of a phone screen with its last entries out of reach. */
   .toc[data-toc-mode="tab"] .toc-panel {
     display: none;
-    left: calc(-1 * var(--toc-edge));
+    position: fixed;
+    top: 2rem;
+    left: 0;
     width: min(300px, 85vw);
     box-shadow: var(--shadow);
   }
@@ -155,9 +162,9 @@
     display: block;
   }
 
-  /* Open, it steps above the scale's other panels: a sticky floater
-     later in the page at the same --z-panel (the demo's palette knob)
-     otherwise paints over the list. */
+  /* Open, it steps above the scale's other panels: any floater later
+     in the page at the same --z-panel would otherwise paint over the
+     list. */
   .toc[data-toc-open] {
     z-index: calc(var(--z-panel) + 1);
   }

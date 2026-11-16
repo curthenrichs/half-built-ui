@@ -24,6 +24,18 @@ import { docOf } from "./core/dom";
 
 export const TOC_STRIP_MIN_GUTTER = 220;
 
+/* A hash is whatever the visitor typed or followed, and
+   decodeURIComponent throws on a stray "%" ("#50%"). A throw at mount
+   would also stop every island the layout mounts after this one, so a
+   malformed hash falls back to its raw text. */
+function decodeHash(hash: string): string {
+  try {
+    return decodeURIComponent(hash.slice(1));
+  } catch {
+    return hash.slice(1);
+  }
+}
+
 export interface TocOptions {
   selector?: string;
 }
@@ -56,13 +68,14 @@ export const mountToc: Island<TocOptions> = (
      link in the closest li around the h3's own list). Ids are looked
      up with getElementById, never a selector, so a slug like
      "0.17-release" works; a link with no target on the page is
-     skipped. */
+     skipped. Ids are unique per page, so one link per id: a second
+     link to the same id replaces the first. */
   const links = new Map<string, HTMLAnchorElement>();
   const parents = new Map<HTMLAnchorElement, HTMLAnchorElement>();
   const targets: HTMLElement[] = [];
 
   toc.querySelectorAll<HTMLAnchorElement>("nav a[href^='#']").forEach((a) => {
-    const id = decodeURIComponent(a.hash.slice(1));
+    const id = decodeHash(a.hash);
     const target = id ? doc.getElementById(id) : null;
     if (!target) return;
     links.set(id, a);
@@ -141,6 +154,19 @@ export const mountToc: Island<TocOptions> = (
     on,
   );
 
+  /* Tabbing out of the open panel closes it, as the header's menu and
+     the popout do, so it never sits over the control that has focus. */
+  toc.addEventListener(
+    "focusout",
+    (e) => {
+      if (!isOpen()) return;
+      const next = e.relatedTarget;
+      if (next instanceof Node && toc.contains(next)) return;
+      if (next !== null) setOpen(false);
+    },
+    on,
+  );
+
   doc.addEventListener(
     "keydown",
     (e) => {
@@ -203,7 +229,7 @@ export const mountToc: Island<TocOptions> = (
   setCurrent(openingId);
 
   const markHash = (): void => {
-    const id = decodeURIComponent(view.location.hash.slice(1));
+    const id = decodeHash(view.location.hash);
     if (!links.has(id)) return;
     quietUntil = Date.now() + 900;
     setCurrent(id);

@@ -2174,6 +2174,43 @@ describe.skipIf(!enabled)("browser suite", () => {
     expect(result).toEqual({ scrolls: true, inside: true, fitsViewport: true });
   }, 30_000);
 
+  it("a long toc panel fits a phone screen from the top of the page", async () => {
+    /* Tab mode at the page top, where the anchor still sits below the
+       masthead: the open panel must end inside the viewport, or its
+       last entries are unreachable (the list contains its own
+       overscroll, so swiping it never moves the page). */
+    const p = await openAt(390, 664);
+
+    await p.evaluate(() => {
+      const list = document.querySelector(".toc-links");
+
+      for (let i = 0; i < 30; i++) {
+        list?.insertAdjacentHTML(
+          "beforeend",
+          `<li><a href="#intro">Extra ${String(i)}</a></li>`,
+        );
+      }
+    });
+
+    await p.click("[data-toc-tab]");
+
+    const result = await p.evaluate(() => {
+      const list = document.querySelector(".toc-links");
+      const panel = document.querySelector("[data-toc-panel]");
+      if (!list || !panel) return null;
+      const last = list.querySelector("li:last-child a");
+      last?.scrollIntoView({ block: "nearest", behavior: "instant" });
+      const l = last?.getBoundingClientRect();
+      const r = panel.getBoundingClientRect();
+      return {
+        fitsViewport: r.bottom <= window.innerHeight,
+        lastVisible: l !== undefined && l.bottom <= window.innerHeight,
+      };
+    });
+
+    expect(result).toEqual({ fitsViewport: true, lastVisible: true });
+  }, 30_000);
+
   it("the fixed corner knob never covers the footer's links", async () => {
     /* At the tablet break and below the rail is a fixed corner knob
        (site.css), so nothing in flow makes room for it. Before the

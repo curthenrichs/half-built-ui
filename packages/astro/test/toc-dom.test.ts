@@ -309,6 +309,62 @@ describe("page TOC island (DOM runtime)", () => {
     ]);
   });
 
+  it("a malformed hash neither throws nor stops the island", () => {
+    history.replaceState(null, "", "#50%");
+
+    expect(() => {
+      mountToc(document);
+    }).not.toThrow();
+
+    expect(() => {
+      window.dispatchEvent(new HashChangeEvent("hashchange"));
+    }).not.toThrow();
+
+    fire("b");
+
+    expect(current()).toEqual(["b"]);
+  });
+
+  it("focus leaving the open panel closes it", () => {
+    gutter = 100;
+    mountToc(document);
+    el("[data-toc-tab]").click();
+    el('.toc-links a[href="#b"]').focus();
+    byId("elsewhere").focus();
+
+    expect(anchor().hasAttribute("data-toc-open")).toBe(false);
+  });
+
+  it("focus moving inside the open panel keeps it open", () => {
+    gutter = 100;
+    mountToc(document);
+    el("[data-toc-tab]").click();
+    el('.toc-links a[href="#a"]').focus();
+    el('.toc-links a[href="#b"]').focus();
+
+    expect(anchor().hasAttribute("data-toc-open")).toBe(true);
+  });
+
+  it("Escape inside another open dialog leaves the closed TOC alone", () => {
+    gutter = 100;
+
+    document.body.insertAdjacentHTML(
+      "beforeend",
+      '<dialog open><button type="button" id="in-dialog">x</button></dialog>',
+    );
+
+    mountToc(document);
+    const inner = byId("in-dialog");
+    inner.focus();
+
+    inner.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "Escape", bubbles: true }),
+    );
+
+    expect(document.activeElement).toBe(inner);
+    expect(anchor().hasAttribute("data-toc-open")).toBe(false);
+  });
+
   it("mounting twice is a no-op", () => {
     gutter = 100;
     mountToc(document);
