@@ -55,7 +55,11 @@ Buttondown list. The endpoint and the copy are props.
 - The page TOC lives in the package (`Toc.astro`, `lib/toc.ts`,
   `scripts/toc.ts`, `toc.css`; owner, 2026-11-15). It sits open in
   the empty space left of the page when that space is at least 220px
-  wide, and collapses to a Sections tab elsewhere. It never goes in
+  wide. Elsewhere it is a collapsed "Sections" disclosure in normal
+  flow under the title or a post's hero, with no floating control:
+  on a small screen every pixel is for content, furniture, or a CTA,
+  and the TOC's job there is jumping, not "where am I" (owner,
+  2026-11-18, replacing the first build's tab). It never goes in
   the sidebar, which stays in normal flow. It lists one or two heading
   levels, never the full tree. When to show it is the consumer's
   call: the threshold and any per-page override live in the consumer.

@@ -333,11 +333,11 @@ triggers on chart marks, and hover previews.
 
 ## Toc
 
-`components/Toc.astro` lists a page's sections and marks the one the
-reader is in. Where the empty space left of the page is at least 220px
-wide, the list sits open in that space. Where it isn't, the list
-collapses to a Sections tab on the left edge, and the tab opens it as a
-panel. `scripts/toc` picks between the two and tracks the reader.
+`components/Toc.astro` lists a page's sections. Where the empty space
+left of the page is at least 220px wide, the list sits open in that
+space and marks the section the reader is in. Where it isn't, the list
+is a collapsed "Sections (N)" disclosure in normal flow, for jumping to
+a section. `scripts/toc` picks between the two and tracks the reader.
 
 ```astro
 ---
@@ -360,23 +360,27 @@ import { mountToc } from "@half-built/astro/scripts/toc.ts";
 mountToc(document);
 ```
 
-Place `Toc` as the first child of the column whose headings it lists.
-It renders a zero-height sticky marker there, and the list hangs off it
-into the space on the left, so it follows the reader down the column and
-stops at its end. One per page.
+Place `Toc` where the disclosure should read: under the page title, or
+after a post's hero image. Its root takes no box of its own (`display:
+contents`), so the open list sticks for the length of the column it was
+placed in and stops at its end. The space on the left is measured from
+the page's outer column, the nearest `.shell` ancestor (pass
+`mountToc(document, { column: ".your-column" })` for another one), not
+from the component, so the list clears the column's border and padding.
+One per page.
 
 `tocFromHeadings(headings, { depth })` takes Astro's `render()` headings.
 `depth: 3` (the default) lists each `##` with its `###` nested under it;
 `depth: 2` lists the `##` only. An `###` before the first `##` is left
 out. A page with hand-built sections passes `{ id, text, children }`
-items directly. `label` (default `Sections`) names the nav, the tab, and
-the close box. The component renders nothing for an empty list.
+items directly. `label` (default `Sections`) names the nav and heads
+both forms. The component renders nothing for an empty list.
 
-The current link gets `aria-current="true"`. Inside an `###`, its `##`
-gets an accent rule too, without being announced as current. The panel
-closes on a link, a click outside, its close box, focus leaving it, or
-Escape, which returns focus to the tab. A resize that crosses the 220px line closes
-an open panel. With JavaScript off the TOC is hidden.
+In the open list, the current link gets `aria-current="true"`. Inside
+an `###`, its `##` gets an accent rule too, without being announced as
+current. The disclosure is a native `<details>`: its open state is the
+reader's, and the script never changes it. With JavaScript off the
+disclosure shows at every width.
 
 When to show a TOC, and on which pages, is the consumer's call.
 
