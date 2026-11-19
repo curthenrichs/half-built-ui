@@ -339,16 +339,21 @@ const npmPackages = [
   title="half-built-ui"
   description="The reference site for the @half-built packages, with every component and its variants on one page."
 >
-  {/* The section TOC is the package Toc (#438), placed before the
-      grid so its anchor's gutter is the page edge, not the rail. */}
-  <Toc
-    items={SECTIONS.map((s) => ({ id: s.id, text: s.title, children: [] }))}
-  />
   <div class="site-layout">
     <Rail />
     <main>
       <article class="static-page bracket-frame">
         <h1>half-built-ui</h1>
+        {/* The package Toc (#438), under the title where a post would
+            put it after its hero. The strip measures from the page
+            shell, so it clears the rail. */}
+        <Toc
+          items={SECTIONS.map((s) => ({
+            id: s.id,
+            text: s.title,
+            children: [],
+          }))}
+        />
 
         <section id="intro">
           <div class="prose">

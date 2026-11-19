@@ -1,35 +1,45 @@
 /* Layer: components. The page TOC (#438; Toc.astro, scripts/toc.ts).
-   .toc is a zero-height sticky anchor at the top of the content
-   column, so the list tracks the viewport with no script; the script
-   only measures the gutter and writes data-toc-mode plus --toc-edge
-   (the anchor's distance from the viewport's left edge).
-   - strip: the panel sits open in the gutter, its right edge 16px
-     short of the column, never wider than 260px.
-   - tab: a vertical Sections tab on the viewport's left edge; the
-     panel opens beside it while data-toc-open is set.
-   The panel is the Group treatment's rule box with the label
-   straddling its top rule (as the demo's rail TOC had it); the list
-   inside owns the scrolling, so neither the label nor the corner X is
-   clipped. Unmounted (no data-toc-mode) the whole thing is hidden: the
-   tab cannot open without the script. */
+   Two forms of one list, and exactly one shows:
+   - strip (data-toc-mode="strip"): a zero-height sticky anchor in the
+     column, with the list hung open in the empty gutter left of the
+     page. Its right edge sits 16px short of the reference column's
+     content edge (--toc-edge from the script; --toc-inset is how far
+     inside that edge the component sits), never wider than 260px.
+   - inline (data-toc-mode="inline", or no mode at all, so it works
+     without the script): a boxed <details> in normal flow, the accent
+     press box as its summary and the list in a rule box under it.
+   .toc itself is display: contents, so the strip's sticky containing
+   block is the column the component was placed in (the article), and
+   it sticks for that column's whole length. The strip panel is the
+   Group treatment's rule box with the label straddling its top rule;
+   the list inside owns the scrolling, so the label is never clipped.
+   Nothing here floats over the page in inline mode. */
 @layer components {
   .toc {
+    display: contents;
+  }
+
+  .toc-strip {
+    display: none;
     position: sticky;
     top: 2rem;
     height: 0;
     z-index: var(--z-panel);
   }
 
-  /* Hidden, not display: none, so the script can measure where the
-     anchor sits before it picks a mode (a display: none box reads as
-     left 0, which picked the tab everywhere). */
-  .toc:not([data-toc-mode]) {
-    visibility: hidden;
+  .toc[data-toc-mode="strip"] .toc-strip {
+    display: block;
+  }
+
+  .toc[data-toc-mode="strip"] .toc-inline {
+    display: none;
   }
 
   .toc-panel {
     position: absolute;
     top: 0;
+    right: calc(100% + var(--toc-inset, 0px) + 16px);
+    width: min(260px, var(--toc-edge, 0px) - 32px);
     box-sizing: border-box;
     padding: 18px 8px 10px;
     color: var(--ink);
@@ -52,13 +62,6 @@
     line-height: 1;
   }
 
-  .toc-close {
-    position: absolute;
-    top: -16px;
-    right: 10px;
-    background: var(--surface);
-  }
-
   .toc-links,
   .toc-links ul {
     list-style: none;
@@ -66,8 +69,8 @@
     padding: 0;
   }
 
-  /* dvh, so a phone's browser toolbar never hides the list's tail. */
-  .toc-links {
+  /* dvh, so a browser toolbar never hides the strip list's tail. */
+  .toc-panel .toc-links {
     max-height: calc(100vh - 6rem);
     max-height: calc(100dvh - 6rem);
     overflow: auto;
@@ -113,74 +116,48 @@
     color: var(--accent-1-ink);
   }
 
-  .toc[data-toc-mode="strip"] .toc-panel {
-    right: calc(100% + 16px);
-    width: min(260px, var(--toc-edge) - 32px);
+  /* The inline form: the accent press box (the palette knob's recipe)
+     as the summary, "+" closed and a minus open, and the list in a
+     rule box joined under it. Full width is a control's width here,
+     not a prose measure. */
+  .toc-inline {
+    margin: 0 0 1.5em;
   }
 
-  .toc[data-toc-mode="strip"] .toc-tab,
-  .toc[data-toc-mode="strip"] .toc-close {
-    display: none;
-  }
-
-  /* The tab: the accent press box set on its side, reading bottom to
-     top, flush with the viewport's left edge. */
-  .toc-tab {
-    position: absolute;
-    top: 0;
-    left: calc(-1 * var(--toc-edge));
-    padding: 12px 6px;
+  .toc-inline-summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
     color: var(--accent-1-ink);
     background: color-mix(in srgb, var(--accent-1) 6%, var(--surface));
     border: var(--stroke) solid var(--accent-1);
-    border-left: 0;
-    box-shadow: var(--shadow);
-    font: inherit;
     font-size: var(--font-size-sm);
-    writing-mode: vertical-rl;
-    transform: rotate(180deg);
+    list-style: none;
     cursor: pointer;
   }
 
-  .toc-tab:hover {
+  .toc-inline-summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .toc-inline-summary::after {
+    content: "+";
+    font-weight: 700;
+  }
+
+  .toc-inline[open] > .toc-inline-summary::after {
+    content: "\2212";
+  }
+
+  .toc-inline-summary:hover {
     background: color-mix(in srgb, var(--accent-1) 14%, var(--surface));
   }
 
-  /* Fixed at 2rem rather than hung off the anchor: at the page top the
-     anchor still sits below the header, and a panel there ran past the
-     bottom of a phone screen with its last entries out of reach. */
-  .toc[data-toc-mode="tab"] .toc-panel {
-    display: none;
-    position: fixed;
-    top: 2rem;
-    left: 0;
-    width: min(300px, 85vw);
-    box-shadow: var(--shadow);
-  }
-
-  .toc[data-toc-mode="tab"][data-toc-open] .toc-panel {
-    display: block;
-  }
-
-  /* Open, it steps above the scale's other panels: any floater later
-     in the page at the same --z-panel would otherwise paint over the
-     list. */
-  .toc[data-toc-open] {
-    z-index: calc(var(--z-panel) + 1);
-  }
-
-  @media (prefers-reduced-motion: no-preference) {
-    .toc[data-toc-mode="tab"] .toc-panel {
-      transition:
-        transform 150ms ease-out,
-        opacity 150ms ease-out;
-    }
-
-    @starting-style {
-      .toc[data-toc-mode="tab"][data-toc-open] .toc-panel {
-        transform: translateX(-12px);
-        opacity: 0;
-      }
-    }
+  .toc-inline-body {
+    padding: 10px 8px;
+    border: var(--stroke) solid var(--rule);
+    border-top: 0;
   }
 }

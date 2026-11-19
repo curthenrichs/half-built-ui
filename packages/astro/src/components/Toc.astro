@@ -17,14 +17,15 @@ const { items, label = "Sections" } = Astro.props;
     image. Its root is display: contents, so the strip sticks for the
     length of the column it is placed in. @half-built/css/toc.css styles
     both forms; mountToc (scripts/toc.ts) picks one and tracks the
-    reader, and without it the disclosure shows. Build items with
+    reader, and without it the disclosure shows. The root is the one
+    navigation landmark for both forms. Build items with
     lib/toc.ts's tocFromHeadings; when to show a TOC at all is the
     consumer's call. */}
-{items.length > 0 && <div class="toc" data-toc>
+{items.length > 0 && <nav class="toc" data-toc aria-label={label}>
   <div class="toc-strip" data-toc-strip>
     <div class="toc-panel">
       <p class="toc-label boxed-label" aria-hidden="true">{label}</p>
-      <nav aria-label={label}>
+      <div class="toc-strip-body">
         <ul class="toc-links">
           {items.map((item) => <li>
             <a href={`#${item.id}`}>{item.text}</a>
@@ -35,12 +36,12 @@ const { items, label = "Sections" } = Astro.props;
             </ul>}
           </li>)}
         </ul>
-      </nav>
+      </div>
     </div>
   </div>
   <details class="toc-inline" data-toc-inline>
     <summary class="toc-inline-summary">{label} ({items.length})</summary>
-    <nav class="toc-inline-body" aria-label={label}>
+    <div class="toc-inline-body">
       <ul class="toc-links">
         {items.map((item) => <li>
           <a href={`#${item.id}`}>{item.text}</a>
@@ -51,6 +52,6 @@ const { items, label = "Sections" } = Astro.props;
           </ul>}
         </li>)}
       </ul>
-    </nav>
+    </div>
   </details>
-</div>}
+</nav>}

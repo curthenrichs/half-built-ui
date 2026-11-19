@@ -84,7 +84,7 @@ export const mountToc: Island<TocOptions> = (
   const targets: HTMLElement[] = [];
 
   toc
-    .querySelectorAll<HTMLAnchorElement>("[data-toc-strip] nav a[href^='#']")
+    .querySelectorAll<HTMLAnchorElement>("[data-toc-strip] a[href^='#']")
     .forEach((a) => {
       const id = decodeHash(a.hash);
       const target = id ? doc.getElementById(id) : null;

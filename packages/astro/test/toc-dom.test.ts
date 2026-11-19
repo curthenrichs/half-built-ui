@@ -17,18 +17,18 @@ const LIST = `<ul class="toc-links">
 </ul>`;
 
 const TOC = `
-  <div class="toc" data-toc>
+  <nav class="toc" data-toc aria-label="Sections">
     <div class="toc-strip" data-toc-strip>
       <div class="toc-panel">
         <p class="toc-label boxed-label" aria-hidden="true">Sections</p>
-        <nav aria-label="Sections">${LIST}</nav>
+        <div class="toc-strip-body">${LIST}</div>
       </div>
     </div>
     <details class="toc-inline" data-toc-inline>
       <summary class="toc-inline-summary">Sections (2)</summary>
-      <nav class="toc-inline-body" aria-label="Sections">${LIST}</nav>
+      <div class="toc-inline-body">${LIST}</div>
     </details>
-  </div>`;
+  </nav>`;
 
 const HEADINGS = `<h2 id="a">A</h2><h3 id="a1">A1</h3><h3 id="a2">A2</h3><h2 id="b">B</h2>`;
 
