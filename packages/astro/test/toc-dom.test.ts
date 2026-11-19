@@ -53,6 +53,20 @@ class FakeObserver {
   }
 }
 
+class FakeResizeObserver {
+  static instances: FakeResizeObserver[] = [];
+  callback: () => void;
+  observed: Element[] = [];
+  disconnect = vi.fn();
+  observe = (el: Element): void => {
+    this.observed.push(el);
+  };
+  constructor(callback: () => void) {
+    this.callback = callback;
+    FakeResizeObserver.instances.push(this);
+  }
+}
+
 let frames: FrameRequestCallback[] = [];
 
 function runFrames(): void {
@@ -101,6 +115,9 @@ function inline(): HTMLDetailsElement {
 function stubLayout(column: Element = el(".shell")): void {
   column.getBoundingClientRect = () => new DOMRect(gutter, 0, 900, 2000);
 
+  el(".toc-panel").getBoundingClientRect = () =>
+    new DOMRect(gutter - 200, 0, 184, 400);
+
   for (const shell of ["[data-toc-strip]", "[data-toc-inline]"]) {
     el(shell).getBoundingClientRect = () => new DOMRect(gutter + 25, 0, 600, 0);
   }
@@ -132,9 +149,11 @@ describe("page TOC island (DOM runtime)", () => {
     document.body.innerHTML = PAGE;
     history.replaceState(null, "", "/");
     FakeObserver.instances = [];
+    FakeResizeObserver.instances = [];
     frames = [];
     gutter = 300;
     vi.stubGlobal("IntersectionObserver", FakeObserver);
+    vi.stubGlobal("ResizeObserver", FakeResizeObserver);
 
     vi.stubGlobal("requestAnimationFrame", (cb: FrameRequestCallback) => {
       frames.push(cb);
@@ -178,6 +197,25 @@ describe("page TOC island (DOM runtime)", () => {
 
     expect(anchor().dataset.tocMode).toBe("inline");
     expect(anchor().style.getPropertyValue("--toc-edge")).toBe("100px");
+  });
+
+  it("re-measures when the column resizes without a window resize", () => {
+    mountToc(document);
+    const watcher = FakeResizeObserver.instances.at(0);
+
+    expect(watcher?.observed).toContain(el(".shell"));
+
+    gutter = 100;
+    watcher?.callback();
+    runFrames();
+
+    expect(anchor().dataset.tocMode).toBe("inline");
+  });
+
+  it("writes the strip panel's height for the stylesheet", () => {
+    mountToc(document);
+
+    expect(anchor().style.getPropertyValue("--toc-strip-height")).toBe("400px");
   });
 
   it("an open inline disclosure stays open across mode changes", () => {
@@ -351,6 +389,7 @@ describe("page TOC island (DOM runtime)", () => {
     handle.destroy();
 
     expect(observer().disconnect).toHaveBeenCalled();
+    expect(FakeResizeObserver.instances.at(0)?.disconnect).toHaveBeenCalled();
     expect(anchor().hasAttribute("data-island-toc")).toBe(false);
 
     gutter = 100;

@@ -19,12 +19,23 @@
     display: contents;
   }
 
+  /* The anchor is as tall as the panel (--toc-strip-height, from the
+     script), so it stops sticking when the panel's bottom, not its
+     top, meets the column's end: the list never hangs past the article
+     into the footer. A negative margin cannot cancel that height,
+     because sticky limits the margin box; a zero-width float takes no
+     room in flow instead (only a clear within the panel's height
+     below the anchor would feel it). Clicks pass through to the page;
+     only the panel takes them. */
   .toc-strip {
     display: none;
+    float: left;
     position: sticky;
     top: 2rem;
-    height: 0;
+    width: 0;
+    height: var(--toc-strip-height, 0);
     z-index: var(--z-panel);
+    pointer-events: none;
   }
 
   .toc[data-toc-mode="strip"] .toc-strip {
@@ -45,6 +56,7 @@
     color: var(--ink);
     background: var(--surface);
     border: var(--stroke) solid var(--rule);
+    pointer-events: auto;
   }
 
   .toc-label {
@@ -142,13 +154,18 @@
     display: none;
   }
 
+  /* The marker is decoration: the empty alt text after the slash keeps
+     it out of the summary's accessible name ("Sections (5)", not
+     "Sections (5) plus"). The plain line is for engines without alt. */
   .toc-inline-summary::after {
     content: "+";
+    content: "+" / "";
     font-weight: 700;
   }
 
   .toc-inline[open] > .toc-inline-summary::after {
     content: "\2212";
+    content: "\2212" / "";
   }
 
   .toc-inline-summary:hover {

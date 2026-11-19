@@ -2232,6 +2232,48 @@ describe.skipIf(!enabled)("browser suite", () => {
     expect(result).toEqual({ scrolls: true, inside: true, fitsViewport: true });
   }, 30_000);
 
+  it("the strip stops at the article's end instead of hanging into the footer", async () => {
+    /* Final review 2026-11-19: a zero-height sticky anchor stuck until
+       the article's last pixel, so its list hung past the article over
+       the footer band in the gutter. A short viewport, so the bottom
+       of the page brings the article's end up past the panel. */
+    const p = await openAt(1920, 400);
+
+    const result = await p.evaluate(() => {
+      window.scrollTo({
+        top: document.documentElement.scrollHeight,
+        behavior: "instant",
+      });
+
+      const panel = document.querySelector("[data-toc-strip] .toc-panel");
+      const article = panel?.closest("article");
+      if (!panel || !article) return null;
+      return {
+        panelBottom: Math.round(panel.getBoundingClientRect().bottom),
+        articleBottom: Math.round(article.getBoundingClientRect().bottom),
+      };
+    });
+
+    expect(result).not.toBeNull();
+
+    expect(result?.panelBottom).toBeLessThanOrEqual(
+      (result?.articleBottom ?? 0) + 1,
+    );
+  }, 30_000);
+
+  it("the disclosure's name is its label and count, not its marker", async () => {
+    const p = await openAt(390, 664);
+    const summary = await p.$("[data-toc-inline] > summary");
+    if (!summary) throw new Error("no summary");
+
+    const closed = await p.accessibility.snapshot({ root: summary });
+    await summary.click();
+    const opened = await p.accessibility.snapshot({ root: summary });
+
+    expect(closed?.name).toBe("Sections (5)");
+    expect(opened?.name).toBe("Sections (5)");
+  }, 30_000);
+
   it("the inline disclosure opens and jumps", async () => {
     const p = await openAt(390, 664);
 

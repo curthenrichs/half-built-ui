@@ -13,7 +13,8 @@
      it writes data-toc-mode="strip", otherwise "inline". The column's
      content edge goes to --toc-edge and the component's own offset
      inside it to --toc-inset, so the strip hangs off the column's edge.
-     Re-measured on resize. The disclosure's open state is the reader's;
+     Re-measured on resize and when the column or the strip's panel
+     changes size. The disclosure's open state is the reader's;
      the script never touches it.
    - Tracking. One IntersectionObserver over the elements the strip's
      links name, marking the current link with aria-current. Inside an
@@ -60,11 +61,13 @@ export const mountToc: Island<TocOptions> = (
   const controller = new AbortController();
   const on = { signal: controller.signal };
   let observer: IntersectionObserver | null = null;
+  let watcher: ResizeObserver | null = null;
 
   const handle: IslandHandle = {
     destroy(): void {
       controller.abort();
       observer?.disconnect();
+      watcher?.disconnect();
       release(toc, "toc");
     },
   };
@@ -72,6 +75,7 @@ export const mountToc: Island<TocOptions> = (
   const reference = toc.closest(column) ?? toc.parentElement;
   const strip = toc.querySelector<HTMLElement>("[data-toc-strip]");
   const inline = toc.querySelector<HTMLElement>("[data-toc-inline]");
+  const panel = toc.querySelector<HTMLElement>(".toc-panel");
 
   /* Each id maps to its link, and each h3 link to its h2's link (the
      link in the closest li around the h3's own list). Ids are looked
@@ -114,25 +118,42 @@ export const mountToc: Island<TocOptions> = (
     const left = shown ? Math.round(shown.getBoundingClientRect().left) : edge;
     toc.style.setProperty("--toc-edge", `${String(edge)}px`);
     toc.style.setProperty("--toc-inset", `${String(left - edge)}px`);
+
+    /* The strip anchor takes the panel's height (with an equal negative
+       margin, so it takes no room in flow), so it stops sticking when
+       the panel's bottom, not its top, meets the column's end and the
+       list never hangs past the article into the footer. */
+    if (mode === "strip" && panel) {
+      const height = Math.round(panel.getBoundingClientRect().height);
+      toc.style.setProperty("--toc-strip-height", `${String(height)}px`);
+    }
   };
 
   measure();
 
   let frame = false;
 
-  view.addEventListener(
-    "resize",
-    () => {
-      if (frame) return;
-      frame = true;
+  const remeasure = (): void => {
+    if (frame) return;
+    frame = true;
 
-      view.requestAnimationFrame(() => {
-        frame = false;
-        if (!controller.signal.aborted) measure();
-      });
-    },
-    on,
-  );
+    view.requestAnimationFrame(() => {
+      frame = false;
+      if (!controller.signal.aborted) measure();
+    });
+  };
+
+  view.addEventListener("resize", remeasure, on);
+
+  /* The column can move with no window resize (a scrollbar arriving
+     late, a consumer's layout toggle), and the panel's height follows
+     its list. Writing the strip's height never resizes the panel, so
+     this cannot loop. */
+  if (typeof ResizeObserver === "function") {
+    watcher = new ResizeObserver(remeasure);
+    if (reference) watcher.observe(reference);
+    if (panel) watcher.observe(panel);
+  }
 
   if (targets.length === 0) return handle;
 
