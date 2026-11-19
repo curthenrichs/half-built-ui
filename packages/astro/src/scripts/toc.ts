@@ -1,22 +1,28 @@
 /* The page TOC island (#438), grown from the demo site's rail TOC.
-   Toc.astro renders a zero-height sticky anchor at the top of the
-   content column, and CSS hangs the list off it into the gutter, so
-   keeping it on screen is the stylesheet's job. This script does the
-   rest:
-   - Mode. With at least TOC_STRIP_MIN_GUTTER px between the anchor
-     and the viewport's left edge the list sits open in that strip
-     (data-toc-mode="strip"); with less it collapses to a Sections tab
-     that slides the list out as a panel ("tab"). The measured gap is
-     written to --toc-edge for the stylesheet. Re-measured on resize.
-   - Tracking. One IntersectionObserver over the elements the TOC's
+   Toc.astro renders two forms of the same list inside a layout-free
+   root (display: contents), placed under the post's title or hero:
+   - the strip ([data-toc-strip]), a zero-height sticky anchor whose
+     list CSS hangs open in the empty gutter left of the page;
+   - the inline disclosure ([data-toc-inline]), a <details> in normal
+     flow, for screens with no gutter to spare.
+   This script picks one and tracks the reader:
+   - Mode. The gutter is measured from the page's reference column
+     (the nearest ancestor matching `column`, default ".shell", else
+     the root's parent), not from the component, which sits inside the
+     article's padding. With at least TOC_STRIP_MIN_GUTTER px of gutter
+     it writes data-toc-mode="strip", otherwise "inline". The column's
+     content edge goes to --toc-edge and the component's own offset
+     inside it to --toc-inset, so the strip hangs off the column's edge.
+     Re-measured on resize. The disclosure's open state is the reader's;
+     the script never touches it.
+   - Tracking. One IntersectionObserver over the elements the strip's
      links name, marking the current link with aria-current. Inside an
      h3, the h2 above it gets data-toc-parent-current, not a second
-     aria-current, so assistive tech hears one current section.
-   - The panel's manners, tab mode only: following a link, a click
-     outside, the close button, and Escape close it; Escape returns
-     focus to the tab.
-   Without the script the anchor carries no mode and the stylesheet
-   hides it: the tab and panel cannot work without it.
+     aria-current, so assistive tech hears one current section. Only
+     the strip is marked: the inline list is for jumping, not for
+     "where am I".
+   Without the script there is no mode, and the stylesheet shows the
+   inline disclosure and hides the strip, so the list still works.
    An island like the rest (core/island.ts): mounting twice is a no-op,
    and destroy() drops every listener and the observer. */
 import { claim, release, type Island, type IslandHandle } from "./core/island";
@@ -38,13 +44,14 @@ function decodeHash(hash: string): string {
 
 export interface TocOptions {
   selector?: string;
+  column?: string;
 }
 
 export const mountToc: Island<TocOptions> = (
   root,
   options = {},
 ): IslandHandle => {
-  const { selector = "[data-toc]" } = options;
+  const { selector = "[data-toc]", column = ".shell" } = options;
   const doc = docOf(root);
   const toc = doc.querySelector<HTMLElement>(selector);
   const view = doc.defaultView;
@@ -62,7 +69,9 @@ export const mountToc: Island<TocOptions> = (
     },
   };
 
-  const tab = toc.querySelector<HTMLButtonElement>("[data-toc-tab]");
+  const reference = toc.closest(column) ?? toc.parentElement;
+  const strip = toc.querySelector<HTMLElement>("[data-toc-strip]");
+  const inline = toc.querySelector<HTMLElement>("[data-toc-inline]");
 
   /* Each id maps to its link, and each h3 link to its h2's link (the
      link in the closest li around the h3's own list). Ids are looked
@@ -74,31 +83,37 @@ export const mountToc: Island<TocOptions> = (
   const parents = new Map<HTMLAnchorElement, HTMLAnchorElement>();
   const targets: HTMLElement[] = [];
 
-  toc.querySelectorAll<HTMLAnchorElement>("nav a[href^='#']").forEach((a) => {
-    const id = decodeHash(a.hash);
-    const target = id ? doc.getElementById(id) : null;
-    if (!target) return;
-    links.set(id, a);
-    targets.push(target);
+  toc
+    .querySelectorAll<HTMLAnchorElement>("[data-toc-strip] nav a[href^='#']")
+    .forEach((a) => {
+      const id = decodeHash(a.hash);
+      const target = id ? doc.getElementById(id) : null;
+      if (!target) return;
+      links.set(id, a);
+      targets.push(target);
 
-    const parent = a.closest("li")?.parentElement?.closest("li");
-    const parentLink = parent?.querySelector<HTMLAnchorElement>(":scope > a");
-    if (parentLink) parents.set(a, parentLink);
-  });
+      const parent = a.closest("li")?.parentElement?.closest("li");
+      const parentLink = parent?.querySelector<HTMLAnchorElement>(":scope > a");
+      if (parentLink) parents.set(a, parentLink);
+    });
 
-  const isOpen = (): boolean => toc.hasAttribute("data-toc-open");
-
-  const setOpen = (open: boolean): void => {
-    toc.toggleAttribute("data-toc-open", open);
-    tab?.setAttribute("aria-expanded", String(open));
-  };
-
+  /* The column's content edge (its padding is page air, not gutter),
+     and the component's offset inside it, read from whichever form is
+     rendered: the hidden one has no box. */
   const measure = (): void => {
-    const edge = Math.round(toc.getBoundingClientRect().left);
-    const mode = edge >= TOC_STRIP_MIN_GUTTER ? "strip" : "tab";
-    toc.style.setProperty("--toc-edge", `${String(edge)}px`);
-    if (toc.dataset.tocMode !== mode && isOpen()) setOpen(false);
+    const box = reference?.getBoundingClientRect();
+
+    const pad = reference
+      ? parseFloat(view.getComputedStyle(reference).paddingLeft) || 0
+      : 0;
+
+    const edge = Math.round((box?.left ?? 0) + pad);
+    const mode = edge >= TOC_STRIP_MIN_GUTTER ? "strip" : "inline";
     toc.dataset.tocMode = mode;
+    const shown = mode === "strip" ? strip : inline;
+    const left = shown ? Math.round(shown.getBoundingClientRect().left) : edge;
+    toc.style.setProperty("--toc-edge", `${String(edge)}px`);
+    toc.style.setProperty("--toc-inset", `${String(left - edge)}px`);
   };
 
   measure();
@@ -115,64 +130,6 @@ export const mountToc: Island<TocOptions> = (
         frame = false;
         if (!controller.signal.aborted) measure();
       });
-    },
-    on,
-  );
-
-  tab?.addEventListener(
-    "click",
-    () => {
-      setOpen(!isOpen());
-    },
-    on,
-  );
-
-  toc.querySelector("[data-toc-close]")?.addEventListener(
-    "click",
-    () => {
-      setOpen(false);
-    },
-    on,
-  );
-
-  links.forEach((a) => {
-    a.addEventListener(
-      "click",
-      () => {
-        if (isOpen()) setOpen(false);
-      },
-      on,
-    );
-  });
-
-  doc.addEventListener(
-    "click",
-    (e) => {
-      if (!isOpen()) return;
-      if (e.target instanceof Node && !toc.contains(e.target)) setOpen(false);
-    },
-    on,
-  );
-
-  /* Tabbing out of the open panel closes it, as the header's menu and
-     the popout do, so it never sits over the control that has focus. */
-  toc.addEventListener(
-    "focusout",
-    (e) => {
-      if (!isOpen()) return;
-      const next = e.relatedTarget;
-      if (next instanceof Node && toc.contains(next)) return;
-      if (next !== null) setOpen(false);
-    },
-    on,
-  );
-
-  doc.addEventListener(
-    "keydown",
-    (e) => {
-      if (e.key !== "Escape" || !isOpen()) return;
-      setOpen(false);
-      tab?.focus();
     },
     on,
   );

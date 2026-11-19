@@ -1,5 +1,4 @@
 ---
-import { ICON_X } from "../scripts/core/icons.ts";
 import type { TocItem } from "../lib/toc.ts";
 
 interface Props {
@@ -10,37 +9,38 @@ interface Props {
 const { items, label = "Sections" } = Astro.props;
 ---
 
-{/* The page TOC (#438): one or two heading levels, open in the empty
-    gutter left of the page where it fits, a Sections tab and slide-out
-    panel where it does not. Place it as the first child of the column
-    whose headings it lists; it renders a zero-height sticky anchor, and
-    @half-built/css/toc.css hangs the list off it. mountToc
-    (scripts/toc.ts) picks the mode, tracks the current section, and
-    runs the panel. Build items with lib/toc.ts's tocFromHeadings; when
-    to show a TOC at all is the consumer's call. One per page. */}
+{/* The page TOC (#438): one or two heading levels in two forms. Where
+    the gutter left of the page fits it, the strip sits open there and
+    marks the current section; where it does not, a boxed "Sections (N)"
+    disclosure sits in normal flow, for jumping. Place it where the
+    disclosure should read: under the page title, or after a post's hero
+    image. Its root is display: contents, so the strip sticks for the
+    length of the column it is placed in. @half-built/css/toc.css styles
+    both forms; mountToc (scripts/toc.ts) picks one and tracks the
+    reader, and without it the disclosure shows. Build items with
+    lib/toc.ts's tocFromHeadings; when to show a TOC at all is the
+    consumer's call. */}
 {items.length > 0 && <div class="toc" data-toc>
-  <button
-    type="button"
-    class="toc-tab"
-    data-toc-tab
-    aria-expanded="false"
-    aria-controls="toc-panel"
-  >
-    {label}
-  </button>
-  <div class="toc-panel" id="toc-panel" data-toc-panel>
-    <p class="toc-label boxed-label" aria-hidden="true">
-      {label}
-    </p>
-    <button
-      type="button"
-      class="toc-close icon-box"
-      data-toc-close
-      aria-label={`Close ${label.toLowerCase()}`}
-    >
-      <Fragment set:html={ICON_X} />
-    </button>
-    <nav aria-label={label}>
+  <div class="toc-strip" data-toc-strip>
+    <div class="toc-panel">
+      <p class="toc-label boxed-label" aria-hidden="true">{label}</p>
+      <nav aria-label={label}>
+        <ul class="toc-links">
+          {items.map((item) => <li>
+            <a href={`#${item.id}`}>{item.text}</a>
+            {item.children.length > 0 && <ul>
+              {item.children.map((child) => <li>
+                <a href={`#${child.id}`}>{child.text}</a>
+              </li>)}
+            </ul>}
+          </li>)}
+        </ul>
+      </nav>
+    </div>
+  </div>
+  <details class="toc-inline" data-toc-inline>
+    <summary class="toc-inline-summary">{label} ({items.length})</summary>
+    <nav class="toc-inline-body" aria-label={label}>
       <ul class="toc-links">
         {items.map((item) => <li>
           <a href={`#${item.id}`}>{item.text}</a>
@@ -52,5 +52,5 @@ const { items, label = "Sections" } = Astro.props;
         </li>)}
       </ul>
     </nav>
-  </div>
+  </details>
 </div>}
