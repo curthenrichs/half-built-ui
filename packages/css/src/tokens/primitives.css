@@ -132,11 +132,15 @@
     /* Consumer fixed panels: over page floaters, under popouts and tips. */
     --z-panel: 18;
     --z-popout: 19;
-    --z-tooltip: 20;
 
     /* 49 and 50 are reserved for a consumer's own floating elements,
        defined consumer-side. */
     --z-search-flyout: 99;
+
+    /* The link tip tops the ladder: it labels exactly what the pointer
+       is on, it is transient, and it is pointer-events: none, so it
+       never blocks anything and nothing should ever cover it. */
+    --z-tooltip: 100;
 
     /* Fluid type scale */
     --font-size-xs: clamp(0.7rem, 0.17vw + 0.76rem, 0.79rem);

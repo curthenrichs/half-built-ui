@@ -128,8 +128,8 @@ describe("css pins", () => {
       "z-scroll-top",
       "z-panel",
       "z-popout",
-      "z-tooltip",
       "z-search-flyout",
+      "z-tooltip",
     ];
 
     const values = order.map(z);

@@ -256,9 +256,14 @@ in `tokens/primitives.css`:
 | `--z-scroll-top`    | 17    | the scroll-to-top button                           |
 | `--z-panel`         | 18    | a consumer's fixed or sticky control panel         |
 | `--z-popout`        | 19    | the popout's anchored box                          |
-| `--z-tooltip`       | 20    | link tips                                          |
 | (49, 50)            |       | two rungs reserved for a consumer's own floating elements |
 | `--z-search-flyout` | 99    | the header's search flyout and mobile menu         |
+| `--z-tooltip`       | 100   | link tips                                          |
+
+The link tip tops the ladder. It labels exactly what the pointer is
+on, it is transient, and it is `pointer-events: none`, so it never
+blocks anything and nothing should ever cover it, the open menu and
+the search flyout included.
 
 The overlay rule: a layer's z-index lives on the box that floats, or
 on the element that makes its stacking context, and nowhere in
@@ -293,13 +298,13 @@ their own component, but some sit in the root stacking context (the
 PostCard chips and draft stamp, the Step chip), where they can meet a
 page layer. There they always lose to it, and the css pins hold that
 order: `--z-raised` < `--z-raised-top` < `--z-skip-link` <
-`--z-scroll-top` < `--z-panel` < `--z-popout` < `--z-tooltip` <
-`--z-search-flyout`.
+`--z-scroll-top` < `--z-panel` < `--z-popout` < `--z-search-flyout` <
+`--z-tooltip`.
 
 **Extending it.** A consumer adds its own rungs by defining
 `--z-<name>` custom properties in its own tokens, placed relative to
 the package ladder (for example `--z-chat-widget: 49`). Pick a value between
-the rungs the layer must sit between; the reserved 49 and 50 rungs are for this: two consumer rungs above the tooltip (20) and below the search flyout (99). The lint rule accepts any `var(--z-*)`, so a consumer's rungs
+the rungs the layer must sit between; the reserved 49 and 50 rungs are for this: two consumer rungs above the popout (19) and below the search flyout (99). The lint rule accepts any `var(--z-*)`, so a consumer's rungs
 pass with no config. Anything else fails the rule, including `inherit`, `initial`, `unset`, `0`, bare numbers, and negatives. A new layer gets a name, never a `calc()`.
 
 **Enforcement.** The tooling preset's stylelint config allows only

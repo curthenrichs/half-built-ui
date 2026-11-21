@@ -114,7 +114,10 @@ Not built, on purpose:
   `--z-*` ladder and carry their rung on the floating box; no ancestor
   may be a lower-rung stacking context; local decoration uses
   `--z-raised` and `--z-raised-top`; consumers add `--z-<name>` rungs
-  (49 and 50 are reserved). The tooling preset allows only `auto` or
+  (49 and 50 are reserved). The link tip tops the ladder at 100, over
+  the search flyout (owner, 2026-11-21): it labels exactly what the
+  pointer is on, is transient and `pointer-events: none`, so nothing
+  should cover it. The tooling preset allows only `auto` or
   `var(--z-*)` for `z-index`, a breaking lint change in 0.19.0. It
   followed a demo bug: the open Palette panel painted under the rail's
   TOC panel because both were `z-index: auto` and DOM order decided,
