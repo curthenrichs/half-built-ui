@@ -33,14 +33,17 @@ describe("z-index lint rule", () => {
     ).toBeDefined();
   });
 
-  it.each(["3", "calc(var(--z-panel) + 1)", "-1"])(
-    "reports z-index: %s",
-    async (v) => {
-      expect(await zWarnings(v)).toContain(
-        "declaration-property-value-allowed-list",
-      );
-    },
-  );
+  it.each([
+    "3",
+    "calc(var(--z-panel) + 1)",
+    "-1",
+    "var(--z-x, 5)",
+    "Var(--z-panel)",
+  ])("reports z-index: %s", async (v) => {
+    expect(await zWarnings(v)).toContain(
+      "declaration-property-value-allowed-list",
+    );
+  });
 
   it.each(["auto", "var(--z-panel)", "var(--z-henry)", "var(--z-henry-under)"])(
     "allows z-index: %s",

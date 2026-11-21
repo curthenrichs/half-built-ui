@@ -109,6 +109,12 @@
       0 3px 12px -1px rgb(7 10 25 / 20%), 0 22px 27px -20px rgb(7 10 25 / 20%);
     --transition: all 0.1s ease;
 
+    /* Local stacking inside one component: a child over its siblings. */
+    --z-raised: 1;
+
+    /* Local stacking: over a --z-raised sibling in the same component. */
+    --z-raised-top: 2;
+
     /* z ladder. Skip link above content, scroll-to-top above the
        header's search flyout would be wrong, so the flyout tops the
        ladder; a gap below it is reserved for a consumer's own floating
@@ -118,11 +124,6 @@
        popout's anchored box sits under the tooltip so a link tip
        inside it still draws on top. */
 
-    /* Local stacking inside one component: a child over its siblings. */
-    --z-raised: 1;
-
-    /* Local stacking: over a --z-raised sibling in the same component. */
-    --z-raised-top: 2;
     --z-skip-link: 10;
     --z-scroll-top: 17;
 

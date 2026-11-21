@@ -5,6 +5,7 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 
 const read = (path: string) =>
   readFileSync(new URL(path, import.meta.url), "utf-8");
@@ -176,23 +177,18 @@ describe("css pins", () => {
       }
     };
 
-    walk(new URL("../src", import.meta.url).pathname.replace(/^\/(\w:)/, "$1"));
-
-    walk(
-      new URL("../../astro/src", import.meta.url).pathname.replace(
-        /^\/(\w:)/,
-        "$1",
-      ),
-    );
+    for (const root of ["../src", "../../astro/src"]) {
+      walk(fileURLToPath(new URL(root, import.meta.url)));
+    }
 
     expect(files.length).toBeGreaterThan(20);
 
     const raw: string[] = [];
 
     for (const file of files) {
-      for (const m of readFileSync(file, "utf-8").matchAll(
-        /z-index:\s*([^;]+);/g,
-      )) {
+      const text = readFileSync(file, "utf-8").replace(/\/\*[\s\S]*?\*\//g, "");
+
+      for (const m of text.matchAll(/z-index:\s*([^;}]+)[;}]/gi)) {
         const value = m[1].trim();
 
         if (value !== "auto" && !/^var\(--z-[a-z0-9-]+\)$/.test(value)) {
