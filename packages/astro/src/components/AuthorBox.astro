@@ -8,17 +8,19 @@ interface Props extends AuthorModel {
 
 const { name, url, bio, label = "About the author" } = Astro.props;
 
-const labelId = `author-box-${slugifyCategory(name) || "label"}`;
+const idBase = `author-box-${slugifyCategory(name) || "author"}`;
+const labelId = `${idBase}-label`;
+const nameId = `${idBase}-name`;
 ---
 
 {/* The author credit that closes a post, typically a guest's: a boxed
     label on the top rule, the author's name as a link, and a short bio.
     Data arrives as typed props; the site decides who is credited. The
-    label id derives from the name, so boxes for two different authors
-    on one page keep distinct accessible names. */}
-<aside class="author-box rule-box" aria-labelledby={labelId}>
+    box is a landmark named by its label and the author's name, so boxes
+    for two different authors on one page keep distinct names. */}
+<aside class="author-box rule-box" aria-labelledby={`${labelId} ${nameId}`}>
   <p class="author-box-label boxed-label" id={labelId}>{label}</p>
-  <p class="author-box-name"><a href={url}>{name}</a></p>
+  <p class="author-box-name" id={nameId}><a href={url}>{name}</a></p>
   <p class="author-box-bio">{bio}</p>
 </aside>
 

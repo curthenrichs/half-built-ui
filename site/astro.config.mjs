@@ -22,9 +22,13 @@ export default defineConfig({
     shikiConfig: { theme: codeTheme },
     rehypePlugins: [footnoteSeparators],
   },
-  // The sample post is a stand-in the demo links to, not content; it
-  // carries noindex and stays out of the sitemap.
+  // The sample post and the search results page are stand-ins the demo
+  // links to, not content; they carry noindex and stay out of the
+  // sitemap.
   integrations: [
-    sitemap({ filter: (page) => !page.includes("/sample-published/") }),
+    sitemap({
+      filter: (page) =>
+        !page.includes("/sample-published/") && !page.includes("/search/"),
+    }),
   ],
 });

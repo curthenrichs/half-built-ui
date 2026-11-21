@@ -719,8 +719,15 @@ describe.skipIf(!enabled)("browser suite", () => {
     expect(second).toEqual({ open: true, label: "Row one", hasLink: true });
   });
 
+  /* The demo keeps search on and points it at a stand-in page; the
+     privacy page opts out, so the false case stays demoed. */
   it("the header renders no search block when searchAction is false", async () => {
     const p = await open();
+
+    /* Fetched outside the browser and parsed in place, so the browser
+       cache stays cold for the policy-pages test's 200 check. */
+    const html = await (await fetch(`${ORIGIN}/privacy/`)).text();
+    await p.setContent(html);
 
     const found = await p.$eval(".site-header", (h) => ({
       block: h.querySelector(".navigation-search") !== null,
@@ -729,6 +736,45 @@ describe.skipIf(!enabled)("browser suite", () => {
 
     expect(found).toEqual({ block: false, form: false });
   });
+
+  it("the header's search form posts to the stand-in page", async () => {
+    const p = await open();
+
+    const form = await p.$eval('.site-header form[role="search"]', (f) => ({
+      action: f.getAttribute("action"),
+      field: f.querySelector("input[type=search]")?.getAttribute("name"),
+    }));
+
+    expect(form).toEqual({ action: "/search/", field: "s" });
+
+    const sitemap = await (await fetch(`${ORIGIN}/sitemap-0.xml`)).text();
+    expect(sitemap).not.toContain("/search/</loc>");
+
+    const res = await p.goto(`${ORIGIN}/search/?s=sample`, {
+      waitUntil: "networkidle0",
+    });
+
+    expect(res?.status()).toBe(200);
+
+    expect(
+      await p.$eval('meta[name="robots"]', (m) => m.getAttribute("content")),
+    ).toBe("noindex");
+
+    expect(await p.$$eval("main", (els) => els.length)).toBe(1);
+    expect(await p.$$eval("h1", (els) => els.length)).toBe(1);
+
+    for (const theme of ["light", "dark"] as const) {
+      await p.evaluate((t) => {
+        if (t === "dark") document.documentElement.dataset.theme = "dark";
+        else delete document.documentElement.dataset.theme;
+      }, theme);
+
+      await settleFrames(p);
+      const violations = await runAxe(p);
+
+      expect(violations, report(`${theme}, /search/`, violations)).toEqual([]);
+    }
+  }, 60_000);
 
   it("the header home link shows the site name when the title slot is empty", async () => {
     const p = await open();
@@ -1432,7 +1478,9 @@ describe.skipIf(!enabled)("browser suite", () => {
       const labelId = first.getAttribute("aria-labelledby") ?? "";
 
       return {
-        name: document.getElementById(labelId)?.textContent.trim(),
+        name: document
+          .getElementById(labelId.split(" ")[0] ?? "")
+          ?.textContent.trim(),
         link: first.querySelector(".author-box-name a")?.textContent.trim(),
         href: first.querySelector(".author-box-name a")?.getAttribute("href"),
         bio: first.querySelector(".author-box-bio")?.textContent.trim() ?? "",
@@ -1446,20 +1494,27 @@ describe.skipIf(!enabled)("browser suite", () => {
     expect(box?.bio.length).toBeGreaterThan(0);
   });
 
-  it("two author boxes on one page keep distinct labels", async () => {
+  /* Each box is a landmark, so its accessible name must be unique on
+     the page: the label plus the author's name. */
+  it("two author boxes on one page keep distinct accessible names", async () => {
     const p = await open();
 
-    const labels = await p.$$eval("aside.author-box", (boxes) =>
-      boxes.map((b) => {
-        const id = b.getAttribute("aria-labelledby") ?? "";
-        const label = document.getElementById(id);
-        return { id, inside: label !== null && b.contains(label) };
-      }),
+    const names = await p.$$eval("aside.author-box", (boxes) =>
+      boxes.map((b) =>
+        (b.getAttribute("aria-labelledby") ?? "")
+          .split(" ")
+          .map((id) => {
+            const el = document.getElementById(id);
+            return el && b.contains(el) ? el.textContent.trim() : "(missing)";
+          })
+          .join(" "),
+      ),
     );
 
-    expect(labels.length).toBe(2);
-    expect(labels[0]?.id).not.toBe(labels[1]?.id);
-    expect(labels.every((l) => l.inside)).toBe(true);
+    expect(names).toEqual([
+      "About the author Sam Rivera",
+      "About the author sam_rivera_with_a_very_long_unbroken_handle_for_wrapping",
+    ]);
   });
 
   it("a long author name and bio wrap inside the box at phone width", async () => {
@@ -2717,6 +2772,57 @@ describe.skipIf(!enabled)("browser suite", () => {
     await closePage(p);
   }, 30_000);
 
+  /* The search flyout drops from the header's magnifier at its own rung
+     (--z-search-flyout). At a short phone viewport it reaches the
+     fixed corner knob, the one fixed layer it can meet. */
+  const openSearch = async (p: Page): Promise<void> => {
+    await p.click(".navigation-search-icon");
+
+    await p.waitForFunction(() => {
+      const f = document.querySelector(".navigation-search-form");
+      return f !== null && getComputedStyle(f).opacity === "1";
+    });
+  };
+
+  it("the open search flyout is on top", async () => {
+    for (const [width, height] of [
+      [1440, 900],
+      [1024, 800],
+    ] as const) {
+      const p = await openAt(width, height);
+
+      try {
+        await openSearch(p);
+
+        expect(
+          await coversItself(p, ".navigation-search-form"),
+          `${String(width)}px`,
+        ).toEqual([]);
+      } finally {
+        await closePage(p);
+      }
+    }
+
+    const p = await openAt(390, 400);
+
+    try {
+      await openSearch(p);
+
+      expect(
+        await boxesOverlap(p, ".navigation-search-form", ".site-rail"),
+        "the open flyout must reach the fixed knob or this proves nothing",
+      ).toBe(true);
+
+      expect(await coversItself(p, ".navigation-search-form")).toEqual([]);
+
+      expect(
+        await coversShared(p, ".navigation-search-form", ".site-rail"),
+      ).toBe("");
+    } finally {
+      await closePage(p);
+    }
+  }, 60_000);
+
   /* The center of one element lands inside another: a single probe
      where the grid would step over a small target. */
   const centerLandsIn = (
@@ -3112,6 +3218,24 @@ describe.skipIf(!enabled)("browser suite", () => {
         );
       },
     },
+    "search flyout": {
+      floating: ".navigation-search-form",
+      open: async (p) => {
+        await p.click(".navigation-search-icon");
+
+        /* Past the opacity fade: the open class lands at once, the form
+           reaches full opacity a transition later. */
+        return waitOpen(p, ".navigation-search-wrap.search-open", () => {
+          const f = document.querySelector(".navigation-search-form");
+          return (
+            document.querySelector(".navigation-search-wrap.search-open") !==
+              null &&
+            f !== null &&
+            getComputedStyle(f).opacity === "1"
+          );
+        });
+      },
+    },
     popout: {
       floating: "dialog.popout",
       open: async (p, width) => {
@@ -3148,17 +3272,23 @@ describe.skipIf(!enabled)("browser suite", () => {
     {
       width: 1440,
       height: 900,
-      open: ["nothing open", "palette panel", "popout"],
+      open: ["nothing open", "palette panel", "search flyout", "popout"],
     },
     {
       width: 1024,
       height: 800,
-      open: ["nothing open", "palette panel", "popout"],
+      open: ["nothing open", "palette panel", "search flyout", "popout"],
     },
     {
       width: 390,
       height: 844,
-      open: ["nothing open", "palette panel", "mobile menu", "popout"],
+      open: [
+        "nothing open",
+        "palette panel",
+        "mobile menu",
+        "search flyout",
+        "popout",
+      ],
     },
   ];
 

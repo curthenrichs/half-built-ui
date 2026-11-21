@@ -32,12 +32,15 @@ interface Props {
   title?: string;
   description?: string;
   noindex?: boolean;
+
+  search?: boolean;
 }
 
 const {
   title = "half-built-ui",
   description = "The reference site for the @half-built packages, every component's variants rendered on one page.",
   noindex = false,
+  search = true,
 } = Astro.props;
 ---
 
@@ -118,7 +121,7 @@ const {
     nav={NAV}
     socials={SOCIALS}
     dateStr={formatHeaderDate(new Date())}
-    searchAction={false}
+    searchAction={search ? "/search/" : false}
   />
   {/* The palette editor and the TOC panel (Rail.astro) and the inline
       TOC (the package Toc) are rendered by the index page, not

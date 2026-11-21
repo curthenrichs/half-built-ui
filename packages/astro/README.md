@@ -72,10 +72,11 @@ guest's. Props are an `AuthorModel` (`name`, `url`, `bio`, typed in
 `components/models.ts`) plus an optional `label`, which defaults to
 "About the author". `url` is rendered exactly as given, so a relative
 path to an about page and an absolute link to another site both work.
-The markup hooks are `aside.author-box` (labelled by its label),
-`.author-box-label`, `.author-box-name` (the link), and
-`.author-box-bio`. The label's id derives from `name`, so boxes for
-two different authors on one page keep distinct accessible names.
+The markup hooks are `aside.author-box`, `.author-box-label`,
+`.author-box-name` (the link), and `.author-box-bio`. The box is a
+landmark named by its label and the author's name ("About the author
+Sam Rivera"), so boxes for two different authors on one page keep
+distinct accessible names.
 Long names and bios wrap inside the box.
 
 A guest post pairs it with the guest badge on the post's card:
