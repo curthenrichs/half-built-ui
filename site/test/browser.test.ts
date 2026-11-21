@@ -724,10 +724,7 @@ describe.skipIf(!enabled)("browser suite", () => {
   it("the header renders no search block when searchAction is false", async () => {
     const p = await open();
 
-    /* Fetched outside the browser and parsed in place, so the browser
-       cache stays cold for the policy-pages test's 200 check. */
-    const html = await (await fetch(`${ORIGIN}/privacy/`)).text();
-    await p.setContent(html);
+    await p.goto(`${ORIGIN}/privacy/`, { waitUntil: "networkidle0" });
 
     const found = await p.$eval(".site-header", (h) => ({
       block: h.querySelector(".navigation-search") !== null,
@@ -1322,6 +1319,10 @@ describe.skipIf(!enabled)("browser suite", () => {
 
     const sitemap = await (await fetch(`${ORIGIN}/sitemap-0.xml`)).text();
 
+    /* Every load is fresh: another test may already have visited a
+       policy page, and a cached revisit answers 304, not 200. */
+    await p.setCacheEnabled(false);
+
     for (const href of hrefs) {
       const res = await p.goto(`${ORIGIN}${href}`, {
         waitUntil: "networkidle0",
@@ -1511,6 +1512,14 @@ describe.skipIf(!enabled)("browser suite", () => {
       ),
     );
 
+    /* The stress box links a relative path, the blog's own about-page
+       shape: url renders exactly as given. */
+    expect(
+      await p.$$eval(".author-box-name a", (as) =>
+        as.map((a) => a.getAttribute("href")),
+      ),
+    ).toEqual(["https://example.com/", "/"]);
+
     expect(names).toEqual([
       "About the author Sam Rivera",
       "About the author sam_rivera_with_a_very_long_unbroken_handle_for_wrapping",
@@ -1539,7 +1548,7 @@ describe.skipIf(!enabled)("browser suite", () => {
     const p = await open();
 
     /* 900px is where the three-up card grid is narrowest: the reading
-       time plus AI Art plus Demo no longer fit on one line. */
+       time plus AI Art, Demo, and Guest no longer fit on one line. */
     for (const width of [900, 1280, 390]) {
       await p.setViewport({ width, height: 900 });
 

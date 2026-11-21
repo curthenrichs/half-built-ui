@@ -50,8 +50,8 @@ The three house conventions ship as `GENAI_BADGE` (a generated
 image), `DEMO_BADGE` (an interactive demo), and `GUEST_BADGE` (a post
 by a guest author rather than the site's owner; the site decides who
 counts as a guest). A site's view-model lists the badges a post
-carries, in order, and can add its own without a package change. `PostCardModel.badges` carries
-them to the card. The content components (`BlogImage`, `GalleryImage`,
+carries, in order, and can add its own without a package change.
+`PostCardModel.badges` carries them to the card. The content components (`BlogImage`, `GalleryImage`,
 `MediaText`) take the same `badges` array, for example
 `badges={[GENAI_BADGE]}` with `GENAI_BADGE` imported from
 `@half-built/astro/scripts/core/badges.ts`.
@@ -76,7 +76,9 @@ The markup hooks are `aside.author-box`, `.author-box-label`,
 `.author-box-name` (the link), and `.author-box-bio`. The box is a
 landmark named by its label and the author's name ("About the author
 Sam Rivera"), so boxes for two different authors on one page keep
-distinct accessible names.
+distinct accessible names. Its ids derive from `name`; a name with no
+Latin letters or digits falls back to `author-box-author`, so two such
+authors on one page would share ids.
 Long names and bios wrap inside the box.
 
 A guest post pairs it with the guest badge on the post's card:
@@ -84,13 +86,13 @@ A guest post pairs it with the guest badge on the post's card:
 ```astro
 ---
 import AuthorBox from "@half-built/astro/components/AuthorBox.astro";
-import { GUEST_BADGE } from "@half-built/astro/scripts/core/badges.ts";
 ---
 
 <AuthorBox name="Sam Rivera" url="https://example.com/" bio="Short bio." />
 ```
 
-with `badges: [GUEST_BADGE]` in that post's `PostCardModel`.
+with `badges: [GUEST_BADGE]` in that post's `PostCardModel`
+(`GUEST_BADGE` from `@half-built/astro/scripts/core/badges.ts`).
 
 ## WhenPublished and PostLink
 
