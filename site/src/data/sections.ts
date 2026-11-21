@@ -1,3 +1,5 @@
+import type { TocItem } from "@half-built/astro/lib/toc.ts";
+
 /* The page's anchored sections, in the order they render (step 1, Task
    4). One list feeds both the <section id> headings in index.astro and
    the TOC's links, so the two can never drift apart. */
@@ -18,3 +20,11 @@ export const SECTIONS: SectionEntry[] = [
   { id: "components", title: "Components" },
   { id: "css", title: "CSS" },
 ];
+
+/* The same list as the package Toc's items, one level deep: the rail's
+   panel and the inline disclosure under the title both read it. */
+export const SECTION_TOC: TocItem[] = SECTIONS.map((s) => ({
+  id: s.id,
+  text: s.title,
+  children: [],
+}));

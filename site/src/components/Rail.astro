@@ -1,7 +1,9 @@
 ---
 import ThemeToggle from "@half-built/astro/components/ThemeToggle.astro";
 import { ICON_X } from "@half-built/astro/scripts/core/icons.ts";
+import Toc from "@half-built/astro/components/Toc.astro";
 import { SHIPPED_B1, SHIPPED_B2 } from "@half-built/tooling/palette";
+import { SECTION_TOC } from "../data/sections";
 ---
 
 <aside class="site-rail" aria-label="Page tools">
@@ -121,4 +123,10 @@ import { SHIPPED_B1, SHIPPED_B2 } from "@half-built/tooling/palette";
       </div>
     </div>
   </details>
+
+  {/* The package Toc's panel form under the Palette knob (owner,
+      2026-11-21), where the demo's own Sections box sat before 0.18.0.
+      Hidden at the tablet break and below (site.css), where the rail is
+      the corner knob and the inline form under the title takes over. */}
+  <Toc form="panel" items={SECTION_TOC} />
 </aside>

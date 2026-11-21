@@ -1835,7 +1835,7 @@ describe.skipIf(!enabled)("browser suite", () => {
 
       await p.waitForFunction(
         (title: string) =>
-          document.querySelector('[data-toc-strip] a[aria-current="true"]')
+          document.querySelector('[data-toc] a[aria-current="true"]')
             ?.textContent === title,
         { timeout: 5000 },
         section.title,
@@ -1981,7 +1981,7 @@ describe.skipIf(!enabled)("browser suite", () => {
   it("the toc renders one link per section and every href target exists", async () => {
     const p = await open();
 
-    const hrefs = await p.$$eval("[data-toc-strip] a", (els) =>
+    const hrefs = await p.$$eval("[data-toc] a", (els) =>
       els.map((el) => el.getAttribute("href") ?? ""),
     );
 
@@ -1999,10 +1999,11 @@ describe.skipIf(!enabled)("browser suite", () => {
     ).toEqual([]);
   }, 30_000);
 
-  /* The package Toc (#438): open in the gutter where it fits (the
-     strip), a boxed inline disclosure under the title where it does
-     not. These pages skip open()'s palette clear and axe settling;
-     nothing here reads colors. */
+  /* The package Toc (#438): the panel form in the rail under the
+     Palette knob above the tablet break, the inline disclosure under
+     the title at and below it (owner, 2026-11-21: the gutter strip was
+     rejected). These pages skip open()'s palette clear and axe
+     settling; nothing here reads colors. */
   async function openAt(
     width: number,
     height: number,
@@ -2033,60 +2034,80 @@ describe.skipIf(!enabled)("browser suite", () => {
     page = undefined;
   }
 
-  const tocMode = (p: Page): Promise<string | null> =>
-    p.$eval("[data-toc]", (el) => el.getAttribute("data-toc-mode"));
-
-  it("the toc sits open in the gutter at 1920px", async () => {
-    const p = await openAt(1920, 1080);
-
-    expect(await tocMode(p)).toBe("strip");
-
-    const box = await p.evaluate(() => {
-      const panel = document.querySelector("[data-toc-strip] .toc-panel");
-      const column = document.querySelector(".site-content");
+  /* Which form renders: a display: none ancestor leaves no box. */
+  const shownForms = (p: Page): Promise<{ panel: boolean; inline: boolean }> =>
+    p.evaluate(() => {
+      const panel = document.querySelector("[data-toc]");
       const inline = document.querySelector("[data-toc-inline]");
-      if (!panel || !column || !inline) return null;
-      const r = panel.getBoundingClientRect();
       return {
-        width: r.width,
-        left: r.left,
-        right: r.right,
-        columnEdge:
-          column.getBoundingClientRect().left +
-          parseFloat(getComputedStyle(column).paddingLeft),
-        inlineShown: getComputedStyle(inline).display !== "none",
+        panel: panel !== null && panel.getClientRects().length > 0,
+        inline: inline !== null && inline.getClientRects().length > 0,
       };
     });
 
-    expect(box).not.toBeNull();
-    expect(box?.width).toBeGreaterThan(0);
-    expect(box?.left).toBeGreaterThanOrEqual(0);
-    expect(box?.right).toBeLessThanOrEqual((box?.columnEdge ?? 0) - 15);
-    expect(box?.inlineShown).toBe(false);
-  }, 30_000);
-
-  it("below the strip threshold the toc is an inline disclosure under the title", async () => {
+  it("above the tablet break the toc is the panel in the rail, under the palette", async () => {
     for (const [width, height] of [
+      [1025, 800],
       [1440, 900],
+      [1920, 1080],
+    ] as const) {
+      const p = await openAt(width, height);
+
+      expect(await shownForms(p), `${String(width)}px`).toEqual({
+        panel: true,
+        inline: false,
+      });
+
+      const place = await p.evaluate(() => {
+        const panel = document.querySelector("[data-toc]");
+        const knob = document.querySelector(".site-knob > summary");
+        const column = document.querySelector("article.static-page");
+        if (!panel || !knob || !column) return null;
+        const r = panel.getBoundingClientRect();
+        const k = knob.getBoundingClientRect();
+        /* The label straddles the box's top rule, so it reaches about
+           10px above the box. */
+        const label = panel.querySelector(".toc-label")?.getBoundingClientRect();
+        return {
+          inRail: panel.closest(".site-rail") !== null,
+          belowKnob: (label?.top ?? r.top) >= k.bottom,
+          clearOfColumn: r.right <= column.getBoundingClientRect().left,
+        };
+      });
+
+      expect(place, `${String(width)}px`).toEqual({
+        inRail: true,
+        belowKnob: true,
+        clearOfColumn: true,
+      });
+
+      await closePage(p);
+    }
+  }, 60_000);
+
+  it("at and below the tablet break the toc is the inline disclosure under the title", async () => {
+    for (const [width, height] of [
       [1024, 800],
+      [768, 1024],
       [390, 664],
     ] as const) {
       const p = await openAt(width, height);
 
-      expect(await tocMode(p), `${String(width)}px`).toBe("inline");
+      expect(await shownForms(p), `${String(width)}px`).toEqual({
+        panel: false,
+        inline: true,
+      });
 
       const place = await p.evaluate(() => {
-        const strip = document.querySelector("[data-toc-strip]");
         const inline = document.querySelector("[data-toc-inline]");
         const article = inline?.closest("article");
         const h1 = article?.querySelector("h1");
         const section = article?.querySelector("section");
-        if (!strip || !inline || !article || !h1 || !section) return null;
+        if (!inline || !article || !h1 || !section) return null;
         const r = inline.getBoundingClientRect();
         const a = article.getBoundingClientRect();
         const cs = getComputedStyle(article);
         return {
-          stripShown: getComputedStyle(strip).display !== "none",
           belowTitle: r.top >= h1.getBoundingClientRect().bottom,
           aboveFirstSection: r.bottom <= section.getBoundingClientRect().top,
           insideColumn:
@@ -2096,7 +2117,6 @@ describe.skipIf(!enabled)("browser suite", () => {
       });
 
       expect(place, `${String(width)}px`).toEqual({
-        stripShown: false,
         belowTitle: true,
         aboveFirstSection: true,
         insideColumn: true,
@@ -2106,42 +2126,42 @@ describe.skipIf(!enabled)("browser suite", () => {
     }
   }, 60_000);
 
+  it("the two forms carry distinct landmark names", async () => {
+    const p = await openAt(1440, 900);
+
+    const names = await p.$$eval("nav", (els) =>
+      els
+        .filter((el) => el.querySelector(".toc-links"))
+        .map((el) => el.getAttribute("aria-label")),
+    );
+
+    expect(names).toHaveLength(2);
+    expect(new Set(names).size).toBe(2);
+  }, 30_000);
+
   it("the toc covers nothing at any width", async () => {
     /* The first build's tab overlapped the column's edge below about
        1410px, and the demo's palette knob painted over it between the
        tablet break and about 1410px (owner review 2026-11-18). */
-    for (const width of [390, 768, 1024, 1100, 1380, 1440, 1740, 1920]) {
+    const tops = { top: 0, middle: 1500, bottom: Number.MAX_SAFE_INTEGER };
+
+    for (const width of [390, 768, 1024, 1100, 1440, 1920]) {
       const p = await openAt(width, 800);
 
       for (const at of ["top", "middle", "bottom"] as const) {
-        const result = await p.evaluate((where: string) => {
-          const tops: Record<string, number> = {
-            top: 0,
-            middle: 1500,
-            bottom: document.documentElement.scrollHeight,
-          };
+        const result = await p.evaluate((top: number) => {
+          window.scrollTo({ top, behavior: "instant" });
+          const panel = document.querySelector("[data-toc]");
+          const column = document.querySelector("article.static-page");
+          if (!panel || !column) return "markup missing";
 
-          window.scrollTo({ top: tops[where] ?? 0, behavior: "instant" });
-          const toc = document.querySelector("[data-toc]");
-          const strip = document.querySelector("[data-toc-strip]");
-          const panel = document.querySelector("[data-toc-strip] .toc-panel");
-          const column = document.querySelector(".site-content");
-          if (!toc || !strip || !panel || !column) return "markup missing";
-          const mode = toc.getAttribute("data-toc-mode");
-
-          if (mode === "strip") {
-            /* 16px short of the column's content edge (toc.css). */
+          if (panel.getClientRects().length > 0) {
             const r = panel.getBoundingClientRect();
+            const c = column.getBoundingClientRect();
 
-            const edge =
-              column.getBoundingClientRect().left +
-              parseFloat(getComputedStyle(column).paddingLeft);
-
-            if (r.right > edge - 16 + 1 || r.left < 0) {
-              return `strip spans ${String(r.left)}..${String(r.right)} against the column at ${String(edge)}`;
+            if (r.right > c.left || r.left < 0) {
+              return `panel spans ${String(r.left)}..${String(r.right)} against the article at ${String(c.left)}`;
             }
-          } else if (getComputedStyle(strip).display !== "none") {
-            return "the strip renders in inline mode";
           }
 
           const knob = document.querySelector(".site-knob > summary");
@@ -2154,7 +2174,7 @@ describe.skipIf(!enabled)("browser suite", () => {
           return hit !== null && knob.contains(hit)
             ? "ok"
             : `something paints over the knob: ${hit?.className ?? "nothing"}`;
-        }, at);
+        }, tops[at]);
 
         expect(result, `${String(width)}px, ${at}`).toBe("ok");
       }
@@ -2165,13 +2185,20 @@ describe.skipIf(!enabled)("browser suite", () => {
 
   it("every toc link is at least 24px tall", async () => {
     for (const [width, height, list] of [
-      [1920, 1080, "[data-toc-strip]"],
+      [1920, 1080, "[data-toc]"],
       [390, 664, "[data-toc-inline]"],
     ] as const) {
       const p = await openAt(width, height);
 
       if (list === "[data-toc-inline]") {
         await p.click("[data-toc-inline] > summary");
+
+        const summary = await p.$eval(
+          "[data-toc-inline] > summary",
+          (el) => el.getBoundingClientRect().height,
+        );
+
+        expect(summary).toBeGreaterThanOrEqual(24);
       }
 
       const heights = await p.$$eval(`${list} .toc-links a`, (els) =>
@@ -2184,25 +2211,16 @@ describe.skipIf(!enabled)("browser suite", () => {
         24,
       );
 
-      const summary = await p.$eval(
-        "[data-toc-inline] > summary",
-        (el) => el.getBoundingClientRect().height,
-      );
-
-      if (list === "[data-toc-inline]") {
-        expect(summary).toBeGreaterThanOrEqual(24);
-      }
-
       await closePage(p);
     }
   }, 60_000);
 
-  it("a long toc scrolls inside the strip", async () => {
-    const p = await openAt(1920, 700);
+  it("a long toc scrolls inside the panel and the panel fits the viewport", async () => {
+    const p = await openAt(1440, 700);
 
     const result = await p.evaluate(() => {
-      const list = document.querySelector("[data-toc-strip] .toc-links");
-      const panel = document.querySelector("[data-toc-strip] .toc-panel");
+      const list = document.querySelector("[data-toc] .toc-links");
+      const panel = document.querySelector("[data-toc]");
       if (!list || !panel) return null;
 
       for (let i = 0; i < 30; i++) {
@@ -2212,10 +2230,7 @@ describe.skipIf(!enabled)("browser suite", () => {
         );
       }
 
-      /* Past the page top, where the sticky anchor has stuck at
-         2rem: at the very top the anchor sits below the title and
-         the list's tail starts under the fold until the reader
-         scrolls, which is the steady state this checks. */
+      /* Past the page top, where the sticky rail has stuck at 2rem. */
       window.scrollTo({ top: 1000, behavior: "instant" });
       const last = list.querySelector("li:last-child a");
       last?.scrollIntoView({ block: "nearest", behavior: "instant" });
@@ -2230,35 +2245,6 @@ describe.skipIf(!enabled)("browser suite", () => {
     });
 
     expect(result).toEqual({ scrolls: true, inside: true, fitsViewport: true });
-  }, 30_000);
-
-  it("the strip stops at the article's end instead of hanging into the footer", async () => {
-    /* Final review 2026-11-19: a zero-height sticky anchor stuck until
-       the article's last pixel, so its list hung past the article over
-       the footer band in the gutter. A short viewport, so the bottom
-       of the page brings the article's end up past the panel. */
-    const p = await openAt(1920, 400);
-
-    const result = await p.evaluate(() => {
-      window.scrollTo({
-        top: document.documentElement.scrollHeight,
-        behavior: "instant",
-      });
-
-      const panel = document.querySelector("[data-toc-strip] .toc-panel");
-      const article = panel?.closest("article");
-      if (!panel || !article) return null;
-      return {
-        panelBottom: Math.round(panel.getBoundingClientRect().bottom),
-        articleBottom: Math.round(article.getBoundingClientRect().bottom),
-      };
-    });
-
-    expect(result).not.toBeNull();
-
-    expect(result?.panelBottom).toBeLessThanOrEqual(
-      (result?.articleBottom ?? 0) + 1,
-    );
   }, 30_000);
 
   it("the disclosure's name is its label and count, not its marker", async () => {
@@ -2305,26 +2291,22 @@ describe.skipIf(!enabled)("browser suite", () => {
     expect(landed.open).toBe(true);
   }, 30_000);
 
-  it("without JavaScript the inline disclosure shows and the strip stays hidden", async () => {
-    const p = await openAt(1920, 1080, { javascript: false });
+  it("without JavaScript each width still shows its one form, unmarked", async () => {
+    for (const [width, height, expected] of [
+      [1920, 1080, { panel: true, inline: false }],
+      [390, 664, { panel: false, inline: true }],
+    ] as const) {
+      const p = await openAt(width, height, { javascript: false });
 
-    const shown = await p.evaluate(() => {
-      const strip = document.querySelector("[data-toc-strip]");
-      const inline = document.querySelector("[data-toc-inline]");
-      if (!strip || !inline) return null;
-      return {
-        mode: document
-          .querySelector("[data-toc]")
-          ?.getAttribute("data-toc-mode"),
-        strip: getComputedStyle(strip).display,
-        inlineHeight: inline.getBoundingClientRect().height,
-      };
-    });
+      expect(await shownForms(p), `${String(width)}px`).toEqual(expected);
 
-    expect(shown?.mode).toBeNull();
-    expect(shown?.strip).toBe("none");
-    expect(shown?.inlineHeight).toBeGreaterThan(0);
-  }, 30_000);
+      expect(
+        await p.$$eval("[data-toc] [aria-current]", (els) => els.length),
+      ).toBe(0);
+
+      await closePage(p);
+    }
+  }, 60_000);
 
   it("the fixed corner knob never covers the footer's links", async () => {
     /* At the tablet break and below the rail is a fixed corner knob

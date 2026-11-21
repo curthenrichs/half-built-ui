@@ -30,16 +30,32 @@
     min-width: 0;
   }
 
-  /* The site rail (owner call 2026-09-06): the palette knob, tracking
-     the viewport. Desktop: the sticky left column. --z-panel keeps an
-     open panel over every page floater and under popouts. The
-     tablet-and-down corner knob lives in the media block below. The
-     section TOC left the rail for the package Toc in 0.18.0 (#438). */
+  /* The site rail (owner call 2026-09-06): the palette knob and, under
+     it, the package Toc's panel form (owner, 2026-11-21), tracking the
+     viewport. Desktop: the sticky left column. --z-panel keeps an open
+     panel over every page floater and under popouts. The
+     tablet-and-down corner knob lives in the media block below. */
   .site-rail {
     position: sticky;
     top: 2rem;
     align-self: start;
+    display: flex;
+    flex-direction: column;
+
+    /* Clears the Sections label, which straddles the panel's top rule
+       and so reaches about 10px up into this gap. */
+    gap: 28px;
     z-index: var(--z-panel);
+
+    /* The rail sticks at 2rem and the knob (40px) and the gap sit above
+       the panel, so its list stops short of the viewport's bottom. */
+    --toc-panel-max-height: calc(100dvh - 2rem - 40px - 28px - 3rem);
+  }
+
+  /* One TOC form per width: the panel in the rail above the tablet
+     break, the inline disclosure under the title at and below it. */
+  .static-page .toc-inline-nav {
+    display: none;
   }
 
   /* The token sheet: variable names and hex chips never break
@@ -350,6 +366,14 @@
       top: auto;
       bottom: var(--site-rail-inset);
       left: var(--site-rail-inset);
+    }
+
+    .site-rail .toc-panel {
+      display: none;
+    }
+
+    .static-page .toc-inline-nav {
+      display: block;
     }
 
     .site-toolbar-body {
