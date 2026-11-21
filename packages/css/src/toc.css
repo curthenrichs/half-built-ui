@@ -1,4 +1,4 @@
-/* Layer: components. The page TOC (#438; Toc.astro, scripts/toc.ts).
+/* Layer: components. The page TOC (Toc.astro, scripts/toc.ts).
    Two forms of one list; the consumer places each and decides which
    shows at which width:
    - panel (form="panel"): the Group treatment's rule box, in normal

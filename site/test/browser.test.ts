@@ -1999,7 +1999,7 @@ describe.skipIf(!enabled)("browser suite", () => {
     ).toEqual([]);
   }, 30_000);
 
-  /* The package Toc (#438): the panel form in the rail under the
+  /* The package Toc: the panel form in the rail under the
      Palette knob above the tablet break, the inline disclosure under
      the title at and below it (owner, 2026-11-21: the gutter strip was
      rejected). These pages skip open()'s palette clear and axe

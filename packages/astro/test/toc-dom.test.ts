@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-/* DOM runtime test for the page TOC island (#438). jsdom has no layout
+/* DOM runtime test for the page TOC island. jsdom has no layout
    and no IntersectionObserver, so the headings' rects are stubbed and
    the observer is a fake whose callback the tests drive. The island
    tracks the panel form only; the inline form needs no script. */
