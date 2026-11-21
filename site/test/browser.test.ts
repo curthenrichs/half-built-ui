@@ -2038,7 +2038,7 @@ describe.skipIf(!enabled)("browser suite", () => {
   const shownForms = (p: Page): Promise<{ panel: boolean; inline: boolean }> =>
     p.evaluate(() => {
       const panel = document.querySelector("[data-toc]");
-      const inline = document.querySelector("[data-toc-inline]");
+      const inline = document.querySelector("details.toc-inline");
       return {
         panel: panel !== null && panel.getClientRects().length > 0,
         inline: inline !== null && inline.getClientRects().length > 0,
@@ -2103,7 +2103,7 @@ describe.skipIf(!enabled)("browser suite", () => {
       });
 
       const place = await p.evaluate(() => {
-        const inline = document.querySelector("[data-toc-inline]");
+        const inline = document.querySelector("details.toc-inline");
         const article = inline?.closest("article");
         const h1 = article?.querySelector("h1");
         const section = article?.querySelector("section");
@@ -2119,6 +2119,10 @@ describe.skipIf(!enabled)("browser suite", () => {
             r.right <= a.right - parseFloat(cs.paddingRight) + 1,
         };
       });
+
+      /* Classes are the hooks; the old script hook is gone (final
+         review 2026-11-21). */
+      expect(await p.$("[data-toc-inline]"), `${String(width)}px`).toBeNull();
 
       expect(place, `${String(width)}px`).toEqual({
         belowTitle: true,
@@ -2190,15 +2194,15 @@ describe.skipIf(!enabled)("browser suite", () => {
   it("every toc link is at least 24px tall", async () => {
     for (const [width, height, list] of [
       [1920, 1080, "[data-toc]"],
-      [390, 664, "[data-toc-inline]"],
+      [390, 664, "details.toc-inline"],
     ] as const) {
       const p = await openAt(width, height);
 
-      if (list === "[data-toc-inline]") {
-        await p.click("[data-toc-inline] > summary");
+      if (list === "details.toc-inline") {
+        await p.click("details.toc-inline > summary");
 
         const summary = await p.$eval(
-          "[data-toc-inline] > summary",
+          "details.toc-inline > summary",
           (el) => el.getBoundingClientRect().height,
         );
 
@@ -2251,9 +2255,42 @@ describe.skipIf(!enabled)("browser suite", () => {
     expect(result).toEqual({ scrolls: true, inside: true, fitsViewport: true });
   }, 30_000);
 
+  it("the rail panel fits a short viewport whatever the knob's height", async () => {
+    /* Final review 2026-11-21: the panel's cap was the viewport less a
+       hand-summed knob height, so a taller knob (larger root text, a
+       restyle) pushed the panel's bottom below the fold. */
+    const p = await openAt(1440, 600);
+
+    await p.addStyleTag({
+      content: ".site-knob > summary { padding-block: 40px !important; }",
+    });
+
+    const result = await p.evaluate(() => {
+      const list = document.querySelector("[data-toc] .toc-links");
+      const panel = document.querySelector("[data-toc]");
+      if (!list || !panel) return null;
+
+      for (let i = 0; i < 30; i++) {
+        list.insertAdjacentHTML(
+          "beforeend",
+          `<li><a href="#intro">Extra ${String(i)}</a></li>`,
+        );
+      }
+
+      window.scrollTo({ top: 1000, behavior: "instant" });
+      return {
+        scrolls: list.scrollHeight > list.clientHeight,
+        fitsViewport:
+          panel.getBoundingClientRect().bottom <= window.innerHeight,
+      };
+    });
+
+    expect(result).toEqual({ scrolls: true, fitsViewport: true });
+  }, 30_000);
+
   it("the disclosure's name is its label and count, not its marker", async () => {
     const p = await openAt(390, 664);
-    const summary = await p.$("[data-toc-inline] > summary");
+    const summary = await p.$("details.toc-inline > summary");
     if (!summary) throw new Error("no summary");
 
     const closed = await p.accessibility.snapshot({ root: summary });
@@ -2267,13 +2304,13 @@ describe.skipIf(!enabled)("browser suite", () => {
   it("the inline disclosure opens and jumps", async () => {
     const p = await openAt(390, 664);
 
-    await p.click("[data-toc-inline] > summary");
+    await p.click("details.toc-inline > summary");
 
     expect(
-      await p.$eval("[data-toc-inline]", (el) => el.hasAttribute("open")),
+      await p.$eval("details.toc-inline", (el) => el.hasAttribute("open")),
     ).toBe(true);
 
-    await p.click('[data-toc-inline] a[href="#cards"]');
+    await p.click('details.toc-inline a[href="#cards"]');
 
     await p.waitForFunction(() => location.hash === "#cards", {
       timeout: 5000,
@@ -2284,7 +2321,7 @@ describe.skipIf(!enabled)("browser suite", () => {
       return {
         top: target ? Math.round(target.getBoundingClientRect().top) : null,
         open:
-          document.querySelector("[data-toc-inline]")?.hasAttribute("open") ??
+          document.querySelector("details.toc-inline")?.hasAttribute("open") ??
           false,
       };
     });

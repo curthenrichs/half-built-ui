@@ -39,11 +39,21 @@
     padding: 0;
   }
 
-  /* dvh, so a browser toolbar never hides the list's tail. */
+  /* The list owns the scrolling, so the label is never clipped. vh
+     first: a var() whose fallback holds a unit the engine lacks is
+     invalid at computed-value time and drops to none rather than to an
+     earlier line, so the dvh line (a browser toolbar never hides the
+     list's tail) sits behind @supports. */
   .toc-panel .toc-links {
-    max-height: var(--toc-panel-max-height, calc(100dvh - 6rem));
+    max-height: var(--toc-panel-max-height, calc(100vh - 6rem));
     overflow: auto;
     overscroll-behavior: contain;
+  }
+
+  @supports (height: 100dvh) {
+    .toc-panel .toc-links {
+      max-height: var(--toc-panel-max-height, calc(100dvh - 6rem));
+    }
   }
 
   .toc-links li {

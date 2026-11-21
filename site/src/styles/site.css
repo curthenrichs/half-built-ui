@@ -47,9 +47,29 @@
     gap: 28px;
     z-index: var(--z-panel);
 
-    /* The rail sticks at 2rem and the knob (40px) and the gap sit above
-       the panel, so its list stops short of the viewport's bottom. */
-    --toc-panel-max-height: calc(100dvh - 2rem - 40px - 28px - 3rem);
+    /* The rail fits the viewport below its 2rem stick, with as much air
+       under it, and the panel takes what the knob leaves: the list
+       shrinks and scrolls, so no knob height is summed by hand (final
+       review 2026-11-21). The knob's panel is absolutely placed, so it
+       is not squeezed. */
+    max-height: calc(100vh - 4rem);
+    max-height: calc(100dvh - 4rem);
+
+    --toc-panel-max-height: none;
+  }
+
+  .site-rail > .site-knob {
+    flex-shrink: 0;
+  }
+
+  .site-rail .toc-panel {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  .site-rail .toc-panel .toc-links {
+    min-height: 0;
   }
 
   /* One TOC form per width: the panel in the rail above the tablet

@@ -367,13 +367,31 @@ mountToc(document);
 
 The component renders where it is put and never hides itself. Put the
 inline form under the page title, or after a post's hero image; put
-the panel in a rail or column, and give a sticky rail
-`--toc-panel-max-height` so a long list scrolls inside the box. A
-page that shows the panel on wide screens and the inline form on
-narrow ones renders both and hides one with its own media queries.
-Each form is one navigation landmark named `navLabel` (default:
-`label`), so when a page carries both, give one of them its own
-`navLabel`.
+the panel in a rail or column:
+
+```astro
+<aside class="rail">
+  <Toc form="panel" items={items} />
+</aside>
+<article>
+  <h1>{title}</h1>
+  <Toc form="inline" navLabel="Sections menu" items={items} />
+</article>
+```
+
+A page that shows the panel on wide screens and the inline form on
+narrow ones renders both, as above, and hides one with its own media
+queries. The hooks are the forms' roots: `nav.toc-panel` and
+`nav.toc-inline-nav`. Each form is one navigation landmark named
+`navLabel` (default: `label`), so when a page carries both, give one
+of them its own `navLabel`.
+
+The panel's list scrolls inside the box once it is taller than
+`--toc-panel-max-height` (default: the viewport less 6rem). A sticky
+rail that fits itself to the viewport can set it to `none` and size
+the panel itself: the reference site's rail is a flex column capped
+at the viewport, and the panel and its list take `min-height: 0`, so
+the list shrinks to whatever the rail's other controls leave.
 
 `tocFromHeadings(headings, { depth })` takes Astro's `render()` headings.
 `depth: 3` (the default) lists each `##` with its `###` nested under it;

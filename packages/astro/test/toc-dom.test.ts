@@ -25,7 +25,7 @@ const PANEL = `
 
 const INLINE = `
   <nav class="toc-inline-nav" aria-label="Sections menu">
-    <details class="toc-inline" data-toc-inline>
+    <details class="toc-inline">
       <summary class="toc-inline-summary">Sections (2)</summary>
       <div class="toc-inline-body">${LIST}</div>
     </details>
@@ -123,7 +123,7 @@ describe("page TOC island (DOM runtime)", () => {
 
     expect(
       document.querySelectorAll(
-        "[data-toc-inline] [aria-current], [data-toc-inline] [data-toc-parent-current]",
+        "details.toc-inline [aria-current], details.toc-inline [data-toc-parent-current]",
       ),
     ).toHaveLength(0);
 

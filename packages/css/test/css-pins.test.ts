@@ -33,6 +33,26 @@ describe("css pins", () => {
     }
   });
 
+  it("toc.css keeps a vh panel height for engines without dvh", () => {
+    /* A var() whose fallback holds an unknown unit is invalid at
+       computed-value time, which drops max-height to none instead of
+       falling back to an earlier declaration (final review
+       2026-11-21). So the dvh line sits behind @supports. */
+    const css = read("../src/toc.css");
+
+    expect(css).toMatch(
+      /max-height: var\(--toc-panel-max-height, calc\(100vh - 6rem\)\);/,
+    );
+
+    expect(css).toMatch(
+      /@supports \(height: 100dvh\) \{[^}]*\{[^}]*calc\(100dvh - 6rem\)/,
+    );
+
+    expect(
+      css.replace(/@supports \(height: 100dvh\) \{[^}]*\{[^}]*\}/g, ""),
+    ).not.toMatch(/dvh\)/);
+  });
+
   it("prose never caps width (standing owner rule; the only max-width is the img fit)", () => {
     const css = read("../src/prose.css");
     const hits = [...css.matchAll(/max-width[^;]*;/g)].map((m) => m[0]);
