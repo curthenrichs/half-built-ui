@@ -190,9 +190,12 @@
 
   /* The body is the frame; .site-toolbar-scroll inside it owns the
      scrolling, so the corner X can straddle the border without being
-     clipped by an overflow box. */
+     clipped by an overflow box. It carries its own rung: inside the
+     rail's stacking context it must beat the TOC panel, a positioned
+     sibling that would otherwise win on DOM order (#545, 2026-11-21). */
   .site-toolbar-body {
     position: absolute;
+    z-index: var(--z-panel);
     left: 0;
     top: calc(100% + 8px);
     width: 300px;

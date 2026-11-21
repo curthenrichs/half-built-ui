@@ -2429,6 +2429,199 @@ describe.skipIf(!enabled)("browser suite", () => {
     }
   }, 30_000);
 
+  /* Every overlay the demo opens is topmost over what it covers
+     (#545, 2026-11-21). The palette panel once painted under the rail's
+     TOC panel: both were z-index: auto inside the rail's stacking
+     context, so DOM order decided. Each test opens the overlay the way
+     a user does, then samples a 4x4 grid inside its box, inset from the
+     edges, and asks elementFromPoint who is there. A test also asserts
+     that the overlay really overlaps the thing it could lose to, so it
+     cannot pass by never meeting it. */
+  const coversItself = (
+    p: Page,
+    selector: string,
+    skip?: string,
+  ): Promise<string[]> =>
+    p.evaluate(
+      (sel: string, skipSel: string | null) => {
+        const overlay = document.querySelector(sel);
+        if (!overlay) return [`${sel}: not found`];
+
+        /* Clamped to the viewport: elementFromPoint answers null off
+           screen, which says nothing about stacking. */
+        const full = overlay.getBoundingClientRect();
+
+        const r = {
+          left: Math.max(full.left, 0),
+          top: Math.max(full.top, 0),
+          width:
+            Math.min(full.right, window.innerWidth) - Math.max(full.left, 0),
+          height:
+            Math.min(full.bottom, window.innerHeight) - Math.max(full.top, 0),
+        };
+
+        const skipped = skipSel
+          ? [...document.querySelectorAll(skipSel)].map((el) =>
+              el.getBoundingClientRect(),
+            )
+          : [];
+
+        const inset = 6;
+        const misses: string[] = [];
+
+        for (let i = 0; i < 4; i++) {
+          for (let j = 0; j < 4; j++) {
+            const x = r.left + inset + ((r.width - 2 * inset) * i) / 3;
+            const y = r.top + inset + ((r.height - 2 * inset) * j) / 3;
+
+            if (
+              skipped.some(
+                (s) =>
+                  x >= s.left && x <= s.right && y >= s.top && y <= s.bottom,
+              )
+            ) {
+              continue;
+            }
+
+            const hit = document.elementFromPoint(x, y);
+
+            if (!hit || !overlay.contains(hit)) {
+              misses.push(
+                `(${String(Math.round(x))},${String(Math.round(y))}) hits ${
+                  hit ? hit.tagName.toLowerCase() : "nothing"
+                }.${hit ? (hit.getAttribute("class") ?? "") : ""}`,
+              );
+            }
+          }
+        }
+
+        return misses;
+      },
+      selector,
+      skip ?? null,
+    );
+
+  const boxesOverlap = (p: Page, a: string, b: string): Promise<boolean> =>
+    p.evaluate(
+      (selA: string, selB: string) => {
+        const ea = document.querySelector(selA);
+        const eb = document.querySelector(selB);
+
+        if (!ea || !eb) return false;
+
+        const ra = ea.getBoundingClientRect();
+        const rb = eb.getBoundingClientRect();
+
+        return (
+          ra.left < rb.right &&
+          ra.right > rb.left &&
+          ra.top < rb.bottom &&
+          ra.bottom > rb.top
+        );
+      },
+      a,
+      b,
+    );
+
+  /* The grid can step over a small neighbor (the corner knob is 40px
+     under a menu hundreds wide), so the shared region gets its own
+     probes: the center of the intersection of the two boxes. */
+  const coversShared = (
+    p: Page,
+    overlaySel: string,
+    otherSel: string,
+  ): Promise<string> =>
+    p.evaluate(
+      (selA: string, selB: string) => {
+        const overlay = document.querySelector(selA);
+        const other = document.querySelector(selB);
+
+        if (!overlay || !other) return "missing";
+
+        const a = overlay.getBoundingClientRect();
+        const b = other.getBoundingClientRect();
+        const x = (Math.max(a.left, b.left) + Math.min(a.right, b.right)) / 2;
+
+        const y =
+          (Math.max(a.top, b.top, 0) +
+            Math.min(a.bottom, b.bottom, window.innerHeight)) /
+          2;
+
+        const hit = document.elementFromPoint(x, y);
+
+        return hit && overlay.contains(hit)
+          ? ""
+          : `(${String(Math.round(x))},${String(Math.round(y))}) hits ${
+              hit ? hit.tagName.toLowerCase() : "nothing"
+            }`;
+      },
+      overlaySel,
+      otherSel,
+    );
+
+  it("the open palette panel is on top at 1440, over the rail toc panel", async () => {
+    const p = await openAt(1440, 900);
+
+    await p.click(".site-knob > summary");
+
+    expect(
+      await boxesOverlap(p, ".site-toolbar-body", ".toc-panel"),
+      "the panel must reach the toc panel or this proves nothing",
+    ).toBe(true);
+
+    expect(
+      await coversItself(p, ".site-toolbar-body", ".site-toolbar-close"),
+    ).toEqual([]);
+
+    await closePage(p);
+  }, 30_000);
+
+  it("the open palette panel is on top at the tablet corner and the phone", async () => {
+    for (const [width, height] of [
+      [1024, 800],
+      [390, 844],
+    ] as const) {
+      const p = await openAt(width, height);
+
+      await p.click(".site-knob > summary");
+
+      expect(
+        await coversItself(p, ".site-toolbar-body", ".site-toolbar-close"),
+        `${String(width)}px`,
+      ).toEqual([]);
+
+      await closePage(p);
+    }
+  }, 60_000);
+
+  it("the open mobile menu is on top of the corner knob", async () => {
+    const p = await openAt(390, 480);
+
+    await p.click(".menu-toggle");
+
+    expect(
+      await boxesOverlap(p, "#primary-menu", ".site-rail"),
+      "the open menu must reach the fixed knob or this proves nothing",
+    ).toBe(true);
+
+    expect(await coversItself(p, "#primary-menu")).toEqual([]);
+    expect(await coversShared(p, "#primary-menu", ".site-rail")).toBe("");
+
+    await closePage(p);
+  }, 30_000);
+
+  it("the open popout is on top at desktop", async () => {
+    /* A showModal dialog lives in the top layer, outside the ladder;
+       this guards a regression to a non-modal one. */
+    const p = await openAt(1440, 900);
+
+    await p.click("#demo-popout-2");
+
+    expect(await coversItself(p, "dialog.popout")).toEqual([]);
+
+    await closePage(p);
+  }, 30_000);
+
   it("the footer's site-info is the copyright line alone", async () => {
     /* The site-name home link under the copyright retired (owner call
        2026-09-14). The masthead and the Ecosystem group's bold entry
