@@ -1,0 +1,147 @@
+/* Layer: components. The page TOC (#438; Toc.astro, scripts/toc.ts).
+   Two forms of one list; the consumer places each and decides which
+   shows at which width:
+   - panel (form="panel"): the Group treatment's rule box, in normal
+     flow, with the label straddling its top rule. The list inside owns
+     the scrolling, so the label is never clipped; a sticky rail can
+     cap it with --toc-panel-max-height.
+   - inline (form="inline"): a boxed <details>, the accent press box as
+     its summary and the list in a rule box under it.
+   Nothing here floats over the page, measures it, or hides a form. */
+@layer components {
+  .toc-panel {
+    position: relative;
+    padding: 18px 8px 10px;
+    color: var(--ink);
+    background: var(--surface);
+    border: var(--stroke) solid var(--rule);
+  }
+
+  .toc-label {
+    position: absolute;
+    top: 0;
+    left: 10px;
+
+    /* Center the label on the top rule, not the padding edge. */
+    transform: translateY(calc(-50% - 1px));
+    padding: 3px 8px;
+    font-size: var(--font-size-xs);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    line-height: 1;
+  }
+
+  .toc-links,
+  .toc-links ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* The list owns the scrolling, so the label is never clipped. vh
+     first: a var() whose fallback holds a unit the engine lacks is
+     invalid at computed-value time and drops to none rather than to an
+     earlier line, so the dvh line (a browser toolbar never hides the
+     list's tail) sits behind @supports. */
+  .toc-panel .toc-links {
+    max-height: var(--toc-panel-max-height, calc(100vh - 6rem));
+    overflow: auto;
+    overscroll-behavior: contain;
+  }
+
+  @supports (height: 100dvh) {
+    .toc-panel .toc-links {
+      max-height: var(--toc-panel-max-height, calc(100dvh - 6rem));
+    }
+  }
+
+  .toc-links li {
+    margin-bottom: 4px;
+  }
+
+  .toc-links ul {
+    margin-top: 4px;
+    padding-left: 12px;
+  }
+
+  /* 24px rows at the least (WCAG 2.5.8); long headings wrap. */
+  .toc-links a {
+    display: block;
+    box-sizing: border-box;
+    min-height: 24px;
+    padding: 4px 8px;
+    color: var(--ink);
+    font-size: var(--font-size-sm);
+    line-height: 1.3;
+    text-decoration: none;
+    border-left: var(--stroke) solid transparent;
+  }
+
+  .toc-links a:hover {
+    text-decoration: underline;
+  }
+
+  .toc-links a[aria-current="true"] {
+    border-left-color: var(--accent-1);
+    color: var(--accent-1-ink);
+    font-weight: 700;
+  }
+
+  /* The h2 around the current h3: the accent rule, not the weight, so
+     the h3 still reads as the place you are. */
+  .toc-links a[data-toc-parent-current] {
+    border-left-color: var(--accent-1);
+    color: var(--accent-1-ink);
+  }
+
+  /* The inline form: the accent press box (the palette knob's recipe)
+     as the summary, "+" closed and a minus open, and the list in a
+     rule box joined under it. Full width is a control's width here,
+     not a prose measure. */
+  .toc-inline {
+    margin: 0 0 1.5em;
+  }
+
+  .toc-inline-summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    color: var(--accent-1-ink);
+    background: color-mix(in srgb, var(--accent-1) 6%, var(--surface));
+    border: var(--stroke) solid var(--accent-1);
+    font-size: var(--font-size-sm);
+    list-style: none;
+    cursor: pointer;
+  }
+
+  .toc-inline-summary::-webkit-details-marker {
+    display: none;
+  }
+
+  /* The marker is decoration: the empty alt text after the slash keeps
+     it out of the summary's accessible name ("Sections (5)", not
+     "Sections (5) plus"). The plain line is for engines without alt. */
+  .toc-inline-summary::after {
+    content: "+";
+    content: "+" / "";
+    font-weight: 700;
+  }
+
+  .toc-inline[open] > .toc-inline-summary::after {
+    content: "\2212";
+    content: "\2212" / "";
+  }
+
+  .toc-inline-summary:hover {
+    background: color-mix(in srgb, var(--accent-1) 14%, var(--surface));
+  }
+
+  .toc-inline-body {
+    padding: 10px 8px;
+    border: var(--stroke) solid var(--rule);
+    border-top: 0;
+  }
+}

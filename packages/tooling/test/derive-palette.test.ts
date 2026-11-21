@@ -1,12 +1,12 @@
 import { describe, it, expect } from "vitest";
-import { contrastRatio } from "../src/lib/contrast";
-import { LIGHT_PAPER, DARK_GROUND } from "../src/lib/grounds";
+import { contrastRatio } from "../src/palette/contrast.ts";
+import { LIGHT_PAPER, DARK_GROUND } from "../src/palette/grounds.ts";
 import {
   derivePalette,
   readBases,
   overrideBlock,
   type PaletteOverride,
-} from "../src/lib/derive-palette";
+} from "../src/palette/derive-palette.ts";
 
 const HEX_RE = /^#[0-9a-f]{6}$/;
 

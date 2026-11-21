@@ -1,0 +1,66 @@
+---
+import type { TocItem } from "../lib/toc.ts";
+
+interface Props {
+  items: TocItem[];
+  form?: "inline" | "panel";
+  label?: string;
+  navLabel?: string;
+}
+
+const {
+  items,
+  form = "inline",
+  label = "Sections",
+  navLabel = label,
+} = Astro.props;
+---
+
+{/* The page TOC (#438): one or two heading levels, in the form the
+    consumer picks and where the consumer puts it.
+    - form="inline" (default): a boxed "Sections (N)" disclosure in
+      normal flow, for jumping. Put it under the page title, or after a
+      post's hero image. Needs no script.
+    - form="panel": the open list in a rule box with the label on its
+      top rule, for a rail or column. mountToc (scripts/toc.ts) marks
+      the current section in it as the reader scrolls.
+    Which form shows at which width is the consumer's CSS; the package
+    never hides one. Each renders one navigation landmark named
+    navLabel (default: label), so a page carrying both forms gives one
+    of them a distinct navLabel. @half-built/css/toc.css styles both.
+    Build items with lib/toc.ts's tocFromHeadings; when to show a TOC at
+    all is the consumer's call. */}
+{items.length > 0 &&
+  (form === "panel" ? (
+    <nav class="toc-panel" data-toc aria-label={navLabel}>
+      <p class="toc-label boxed-label" aria-hidden="true">{label}</p>
+      <ul class="toc-links">
+        {items.map((item) => <li>
+          <a href={`#${item.id}`}>{item.text}</a>
+          {item.children.length > 0 && <ul>
+            {item.children.map((child) => <li>
+              <a href={`#${child.id}`}>{child.text}</a>
+            </li>)}
+          </ul>}
+        </li>)}
+      </ul>
+    </nav>
+  ) : (
+    <nav class="toc-inline-nav" aria-label={navLabel}>
+      <details class="toc-inline">
+        <summary class="toc-inline-summary">{label} ({items.length})</summary>
+        <div class="toc-inline-body">
+          <ul class="toc-links">
+            {items.map((item) => <li>
+              <a href={`#${item.id}`}>{item.text}</a>
+              {item.children.length > 0 && <ul>
+                {item.children.map((child) => <li>
+                  <a href={`#${child.id}`}>{child.text}</a>
+                </li>)}
+              </ul>}
+            </li>)}
+          </ul>
+        </div>
+      </details>
+    </nav>
+  ))}

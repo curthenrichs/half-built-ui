@@ -1,8 +1,9 @@
 ---
 import ThemeToggle from "@half-built/astro/components/ThemeToggle.astro";
 import { ICON_X } from "@half-built/astro/scripts/core/icons.ts";
-import { SHIPPED_B1, SHIPPED_B2 } from "../lib/derive-palette";
-import { SECTIONS } from "../data/sections";
+import Toc from "@half-built/astro/components/Toc.astro";
+import { SHIPPED_B1, SHIPPED_B2 } from "@half-built/tooling/palette";
+import { SECTION_TOC } from "../data/sections";
 ---
 
 <aside class="site-rail" aria-label="Page tools">
@@ -123,90 +124,9 @@ import { SECTIONS } from "../data/sections";
     </div>
   </details>
 
-  <details data-rail-sections class="site-knob site-rail-sections">
-    <summary>Sections</summary>
-    <div class="site-toolbar-body">
-      <button
-        type="button"
-        data-sections-close
-        class="icon-box site-toolbar-close"
-        aria-label="Close sections"
-      >
-        <Fragment set:html={ICON_X} />
-      </button>
-      <nav aria-label="Sections menu">
-        <ul class="site-rail-links">
-          {SECTIONS.map((section) => <li>
-            <a href={`#${section.id}`}>{section.title}</a>
-          </li>)}
-        </ul>
-      </nav>
-    </div>
-  </details>
-
-  <nav class="site-rail-toc" aria-label="Sections">
-    {/* Decorative duplicate of the nav's accessible name, so it is
-        hidden from the tree; it is the small offset panel above the
-        list (owner call 2026-09-06). */}
-    <p class="site-rail-toc-label boxed-label" aria-hidden="true">Sections</p>
-    <ul class="site-rail-links">
-      {SECTIONS.map((section) => <li>
-        <a href={`#${section.id}`}>{section.title}</a>
-      </li>)}
-    </ul>
-  </nav>
+  {/* The package Toc's panel form under the Palette knob (owner,
+      2026-11-21), where the demo's own Sections box sat before 0.18.0.
+      Hidden at the tablet break and below (site.css), where the rail is
+      the corner knob and the inline form under the title takes over. */}
+  <Toc form="panel" items={SECTION_TOC} />
 </aside>
-
-<style>
-  /* The list sits in the Group treatment's rule box, with the
-     Sections label straddling its top rule the way Callout and
-     EditorNote place theirs (owner calls 2026-09-06). The box is the
-     only thing added; the list inside keeps its own shape. */
-  .site-rail-toc {
-    position: relative;
-    border: var(--stroke) solid var(--rule);
-    background: var(--surface);
-    padding: 18px 8px 10px;
-  }
-
-  .site-rail-toc-label {
-    position: absolute;
-    top: 0;
-    left: 10px;
-
-    /* Center the label on the 2px top rule, not the padding edge. */
-    transform: translateY(calc(-50% - 1px));
-    padding: 3px 8px;
-    font-size: var(--font-size-xs);
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    line-height: 1;
-  }
-
-  .site-rail-links {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-  }
-  .site-rail-links li { margin-bottom: 6px; }
-
-  .site-rail-links a {
-    display: block;
-    padding: 4px 8px;
-    color: var(--ink);
-    font-size: var(--font-size-sm);
-    text-decoration: none;
-    border-left: var(--stroke) solid transparent;
-  }
-  .site-rail-links a:hover { text-decoration: underline; }
-
-  .site-rail-links a[aria-current="true"] {
-    border-left-color: var(--accent-1);
-    color: var(--accent-1-ink);
-    font-weight: 700;
-  }
-
-  /* The phone panel's list breathes inside the panel padding. */
-  .site-rail-sections nav { padding: 14px; }
-</style>

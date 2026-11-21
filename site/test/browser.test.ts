@@ -390,11 +390,11 @@ describe.skipIf(!enabled)("browser suite", () => {
     expect(violations, report("dark", violations)).toEqual([]);
   }, 60_000);
 
-  /* The category row's 24px targets (2.5.8) must not cost the ring or
+  /* The category row's targets (24px for 2.5.8, plus 2px headroom) must not cost the ring or
      the one-line ellipsis: each link's border box stays inside the
      row's clip box, so the inset focus ring keeps all four sides, and
      the row stays a single line however many categories a card has. */
-  it("card category links reach 24px inside the row's clip box, on one line", async () => {
+  it("card category links reach 26px inside the row's clip box, on one line", async () => {
     const p = await open();
 
     const m = await p.$$eval(".entry-cat .post-categories", (rows) =>
@@ -425,7 +425,9 @@ describe.skipIf(!enabled)("browser suite", () => {
       expect(row.nowrap).toBe(true);
 
       for (const l of row.links) {
-        expect(l.height).toBeGreaterThanOrEqual(24);
+        /* 24px is the 2.5.8 floor; the card keeps 2px over it so a
+           rounding change fails here before it fails the criterion. */
+        expect(l.height).toBeGreaterThanOrEqual(26);
         expect(l.top).toBeGreaterThanOrEqual(l.clipTop);
         expect(l.bottom).toBeLessThanOrEqual(l.clipBottom);
       }
@@ -434,7 +436,7 @@ describe.skipIf(!enabled)("browser suite", () => {
 
   /* No demo card has more categories than fit, so this one is given
      some: the row must overflow and ellipsize on its single line, never
-     wrap to a second, and the added links keep their 24px boxes inside
+     wrap to a second, and the added links keep their 26px boxes inside
      the clip like the rest. */
   it("a card with more categories than fit ellipsizes on one line", async () => {
     const p = await open();
@@ -490,13 +492,13 @@ describe.skipIf(!enabled)("browser suite", () => {
       input.dispatchEvent(new Event("input", { bubbles: true }));
     });
 
-    const brand1500 = await p.evaluate(() =>
-      getComputedStyle(document.documentElement)
-        .getPropertyValue("--brand-1-500")
-        .trim(),
+    /* the editor applies a pick on the next animation frame */
+    await p.waitForFunction(
+      () =>
+        getComputedStyle(document.documentElement)
+          .getPropertyValue("--brand-1-500")
+          .trim() === "#2f9e44",
     );
-
-    expect(brand1500).toBe("#2f9e44");
 
     const after = await p.$eval(
       ACCENT_1_CHIP,
@@ -1833,7 +1835,7 @@ describe.skipIf(!enabled)("browser suite", () => {
 
       await p.waitForFunction(
         (title: string) =>
-          document.querySelector('.site-rail-toc a[aria-current="true"]')
+          document.querySelector('[data-toc] a[aria-current="true"]')
             ?.textContent === title,
         { timeout: 5000 },
         section.title,
@@ -1979,7 +1981,7 @@ describe.skipIf(!enabled)("browser suite", () => {
   it("the toc renders one link per section and every href target exists", async () => {
     const p = await open();
 
-    const hrefs = await p.$$eval(".site-rail-toc a", (els) =>
+    const hrefs = await p.$$eval("[data-toc] a", (els) =>
       els.map((el) => el.getAttribute("href") ?? ""),
     );
 
@@ -1997,16 +1999,366 @@ describe.skipIf(!enabled)("browser suite", () => {
     ).toEqual([]);
   }, 30_000);
 
-  it("the fixed corner cluster never covers the footer's links", async () => {
-    /* At the tablet break and below the rail is a fixed corner cluster
+  /* The package Toc (#438): the panel form in the rail under the
+     Palette knob above the tablet break, the inline disclosure under
+     the title at and below it (owner, 2026-11-21: the gutter strip was
+     rejected). These pages skip open()'s palette clear and axe
+     settling; nothing here reads colors. */
+  async function openAt(
+    width: number,
+    height: number,
+    options: { javascript?: boolean } = {},
+  ): Promise<Page> {
+    if (!browser) throw new Error("no browser (beforeAll failed)");
+
+    const p =
+      width <= 390
+        ? await phonePage(browser, width, height)
+        : await desktopPage(browser, width, height);
+
+    page = p;
+    if (options.javascript === false) await p.setJavaScriptEnabled(false);
+    await routeEcosystem(p, "fixture");
+    await p.goto(`${ORIGIN}/`, { waitUntil: "networkidle0" });
+
+    await p.addStyleTag({
+      content:
+        "html { scroll-behavior: auto !important; } *, *::before, *::after { transition: none !important; animation: none !important; }",
+    });
+
+    return p;
+  }
+
+  async function closePage(p: Page): Promise<void> {
+    await p.close();
+    page = undefined;
+  }
+
+  /* Which form renders: a display: none ancestor leaves no box. */
+  const shownForms = (p: Page): Promise<{ panel: boolean; inline: boolean }> =>
+    p.evaluate(() => {
+      const panel = document.querySelector("[data-toc]");
+      const inline = document.querySelector("details.toc-inline");
+      return {
+        panel: panel !== null && panel.getClientRects().length > 0,
+        inline: inline !== null && inline.getClientRects().length > 0,
+      };
+    });
+
+  it("above the tablet break the toc is the panel in the rail, under the palette", async () => {
+    for (const [width, height] of [
+      [1025, 800],
+      [1440, 900],
+      [1920, 1080],
+    ] as const) {
+      const p = await openAt(width, height);
+
+      expect(await shownForms(p), `${String(width)}px`).toEqual({
+        panel: true,
+        inline: false,
+      });
+
+      const place = await p.evaluate(() => {
+        const panel = document.querySelector("[data-toc]");
+        const knob = document.querySelector(".site-knob > summary");
+        const column = document.querySelector("article.static-page");
+        if (!panel || !knob || !column) return null;
+        const r = panel.getBoundingClientRect();
+        const k = knob.getBoundingClientRect();
+
+        /* The label straddles the box's top rule, so it reaches about
+           10px above the box. */
+        const label = panel
+          .querySelector(".toc-label")
+          ?.getBoundingClientRect();
+
+        return {
+          inRail: panel.closest(".site-rail") !== null,
+          belowKnob: (label?.top ?? r.top) >= k.bottom,
+          clearOfColumn: r.right <= column.getBoundingClientRect().left,
+        };
+      });
+
+      expect(place, `${String(width)}px`).toEqual({
+        inRail: true,
+        belowKnob: true,
+        clearOfColumn: true,
+      });
+
+      await closePage(p);
+    }
+  }, 60_000);
+
+  it("at and below the tablet break the toc is the inline disclosure under the title", async () => {
+    for (const [width, height] of [
+      [1024, 800],
+      [768, 1024],
+      [390, 664],
+    ] as const) {
+      const p = await openAt(width, height);
+
+      expect(await shownForms(p), `${String(width)}px`).toEqual({
+        panel: false,
+        inline: true,
+      });
+
+      const place = await p.evaluate(() => {
+        const inline = document.querySelector("details.toc-inline");
+        const article = inline?.closest("article");
+        const h1 = article?.querySelector("h1");
+        const section = article?.querySelector("section");
+        if (!inline || !article || !h1 || !section) return null;
+        const r = inline.getBoundingClientRect();
+        const a = article.getBoundingClientRect();
+        const cs = getComputedStyle(article);
+        return {
+          belowTitle: r.top >= h1.getBoundingClientRect().bottom,
+          aboveFirstSection: r.bottom <= section.getBoundingClientRect().top,
+          insideColumn:
+            r.left >= a.left + parseFloat(cs.paddingLeft) - 1 &&
+            r.right <= a.right - parseFloat(cs.paddingRight) + 1,
+        };
+      });
+
+      /* Classes are the hooks; the old script hook is gone (final
+         review 2026-11-21). */
+      expect(await p.$("[data-toc-inline]"), `${String(width)}px`).toBeNull();
+
+      expect(place, `${String(width)}px`).toEqual({
+        belowTitle: true,
+        aboveFirstSection: true,
+        insideColumn: true,
+      });
+
+      await closePage(p);
+    }
+  }, 60_000);
+
+  it("the two forms carry distinct landmark names", async () => {
+    const p = await openAt(1440, 900);
+
+    const names = await p.$$eval("nav", (els) =>
+      els
+        .filter((el) => el.querySelector(".toc-links"))
+        .map((el) => el.getAttribute("aria-label")),
+    );
+
+    expect(names).toHaveLength(2);
+    expect(new Set(names).size).toBe(2);
+  }, 30_000);
+
+  it("the toc covers nothing at any width", async () => {
+    /* The first build's tab overlapped the column's edge below about
+       1410px, and the demo's palette knob painted over it between the
+       tablet break and about 1410px (owner review 2026-11-18). */
+    const tops = { top: 0, middle: 1500, bottom: Number.MAX_SAFE_INTEGER };
+
+    for (const width of [390, 768, 1024, 1100, 1440, 1920]) {
+      const p = await openAt(width, 800);
+
+      for (const at of ["top", "middle", "bottom"] as const) {
+        const result = await p.evaluate((top: number) => {
+          window.scrollTo({ top, behavior: "instant" });
+          const panel = document.querySelector("[data-toc]");
+          const column = document.querySelector("article.static-page");
+          if (!panel || !column) return "markup missing";
+
+          if (panel.getClientRects().length > 0) {
+            const r = panel.getBoundingClientRect();
+            const c = column.getBoundingClientRect();
+
+            if (r.right > c.left || r.left < 0) {
+              return `panel spans ${String(r.left)}..${String(r.right)} against the article at ${String(c.left)}`;
+            }
+          }
+
+          const knob = document.querySelector(".site-knob > summary");
+          if (!knob) return "knob missing";
+          const k = knob.getBoundingClientRect();
+          const x = k.left + k.width / 2;
+          const y = k.top + k.height / 2;
+          if (y < 0 || y > window.innerHeight) return "ok";
+          const hit = document.elementFromPoint(x, y);
+          return hit !== null && knob.contains(hit)
+            ? "ok"
+            : `something paints over the knob: ${hit?.className ?? "nothing"}`;
+        }, tops[at]);
+
+        expect(result, `${String(width)}px, ${at}`).toBe("ok");
+      }
+
+      await closePage(p);
+    }
+  }, 120_000);
+
+  it("every toc link is at least 24px tall", async () => {
+    for (const [width, height, list] of [
+      [1920, 1080, "[data-toc]"],
+      [390, 664, "details.toc-inline"],
+    ] as const) {
+      const p = await openAt(width, height);
+
+      if (list === "details.toc-inline") {
+        await p.click("details.toc-inline > summary");
+
+        const summary = await p.$eval(
+          "details.toc-inline > summary",
+          (el) => el.getBoundingClientRect().height,
+        );
+
+        expect(summary).toBeGreaterThanOrEqual(24);
+      }
+
+      const heights = await p.$$eval(`${list} .toc-links a`, (els) =>
+        els.map((a) => a.getBoundingClientRect().height),
+      );
+
+      expect(heights.length).toBeGreaterThan(0);
+
+      expect(Math.min(...heights), `${String(width)}px`).toBeGreaterThanOrEqual(
+        24,
+      );
+
+      await closePage(p);
+    }
+  }, 60_000);
+
+  it("a long toc scrolls inside the panel and the panel fits the viewport", async () => {
+    const p = await openAt(1440, 700);
+
+    const result = await p.evaluate(() => {
+      const list = document.querySelector("[data-toc] .toc-links");
+      const panel = document.querySelector("[data-toc]");
+      if (!list || !panel) return null;
+
+      for (let i = 0; i < 30; i++) {
+        list.insertAdjacentHTML(
+          "beforeend",
+          `<li><a href="#intro">Extra ${String(i)}</a></li>`,
+        );
+      }
+
+      /* Past the page top, where the sticky rail has stuck at 2rem. */
+      window.scrollTo({ top: 1000, behavior: "instant" });
+      const last = list.querySelector("li:last-child a");
+      last?.scrollIntoView({ block: "nearest", behavior: "instant" });
+      const l = last?.getBoundingClientRect();
+      const r = panel.getBoundingClientRect();
+      return {
+        scrolls: list.scrollHeight > list.clientHeight,
+        inside:
+          l !== undefined && l.top >= r.top - 1 && l.bottom <= r.bottom + 1,
+        fitsViewport: r.bottom <= window.innerHeight,
+      };
+    });
+
+    expect(result).toEqual({ scrolls: true, inside: true, fitsViewport: true });
+  }, 30_000);
+
+  it("the rail panel fits a short viewport whatever the knob's height", async () => {
+    /* Final review 2026-11-21: the panel's cap was the viewport less a
+       hand-summed knob height, so a taller knob (larger root text, a
+       restyle) pushed the panel's bottom below the fold. */
+    const p = await openAt(1440, 600);
+
+    await p.addStyleTag({
+      content: ".site-knob > summary { padding-block: 40px !important; }",
+    });
+
+    const result = await p.evaluate(() => {
+      const list = document.querySelector("[data-toc] .toc-links");
+      const panel = document.querySelector("[data-toc]");
+      if (!list || !panel) return null;
+
+      for (let i = 0; i < 30; i++) {
+        list.insertAdjacentHTML(
+          "beforeend",
+          `<li><a href="#intro">Extra ${String(i)}</a></li>`,
+        );
+      }
+
+      window.scrollTo({ top: 1000, behavior: "instant" });
+      return {
+        scrolls: list.scrollHeight > list.clientHeight,
+        fitsViewport:
+          panel.getBoundingClientRect().bottom <= window.innerHeight,
+      };
+    });
+
+    expect(result).toEqual({ scrolls: true, fitsViewport: true });
+  }, 30_000);
+
+  it("the disclosure's name is its label and count, not its marker", async () => {
+    const p = await openAt(390, 664);
+    const summary = await p.$("details.toc-inline > summary");
+    if (!summary) throw new Error("no summary");
+
+    const closed = await p.accessibility.snapshot({ root: summary });
+    await summary.click();
+    const opened = await p.accessibility.snapshot({ root: summary });
+
+    expect(closed?.name).toBe("Sections (5)");
+    expect(opened?.name).toBe("Sections (5)");
+  }, 30_000);
+
+  it("the inline disclosure opens and jumps", async () => {
+    const p = await openAt(390, 664);
+
+    await p.click("details.toc-inline > summary");
+
+    expect(
+      await p.$eval("details.toc-inline", (el) => el.hasAttribute("open")),
+    ).toBe(true);
+
+    await p.click('details.toc-inline a[href="#cards"]');
+
+    await p.waitForFunction(() => location.hash === "#cards", {
+      timeout: 5000,
+    });
+
+    const landed = await p.evaluate(() => {
+      const target = document.getElementById("cards");
+      return {
+        top: target ? Math.round(target.getBoundingClientRect().top) : null,
+        open:
+          document.querySelector("details.toc-inline")?.hasAttribute("open") ??
+          false,
+      };
+    });
+
+    expect(landed.top).not.toBeNull();
+    expect(landed.top).toBeGreaterThanOrEqual(-1);
+    expect(landed.top).toBeLessThanOrEqual(80);
+    expect(landed.open).toBe(true);
+  }, 30_000);
+
+  it("without JavaScript each width still shows its one form, unmarked", async () => {
+    for (const [width, height, expected] of [
+      [1920, 1080, { panel: true, inline: false }],
+      [390, 664, { panel: false, inline: true }],
+    ] as const) {
+      const p = await openAt(width, height, { javascript: false });
+
+      expect(await shownForms(p), `${String(width)}px`).toEqual(expected);
+
+      expect(
+        await p.$$eval("[data-toc] [aria-current]", (els) => els.length),
+      ).toBe(0);
+
+      await closePage(p);
+    }
+  }, 60_000);
+
+  it("the fixed corner knob never covers the footer's links", async () => {
+    /* At the tablet break and below the rail is a fixed corner knob
        (site.css), so nothing in flow makes room for it. Before the
        2026-09-09 fix the footer's last links sat under it: Portfolio
        and Okos Polip at phone widths, the Site group's Components and
        CSS at tablet widths, where the sitemap's leftmost column starts
-       inside the cluster's span. Every collapsible group is opened
+       inside the knob's span. Every collapsible group is opened
        first so the longest possible footer is what has to clear, and
-       the cluster's own panels stay closed: an open panel covering the
-       page is the design, the closed knobs covering it is the bug. */
+       the knob's own panel stays closed: an open panel covering the
+       page is the design, the closed knob covering it is the bug. */
     if (!browser) throw new Error("no browser (beforeAll failed)");
     const b = browser;
 
@@ -2069,7 +2421,7 @@ describe.skipIf(!enabled)("browser suite", () => {
 
       expect(
         covered,
-        `${viewport.name}: footer text under the corner cluster`,
+        `${viewport.name}: footer text under the corner knob`,
       ).toEqual([]);
 
       await p.close();
@@ -2122,6 +2474,11 @@ describe.skipIf(!enabled)("browser suite", () => {
       input.value = "#2f9e44";
       input.dispatchEvent(new Event("input", { bubbles: true }));
     });
+
+    /* the editor applies, and so stores, a pick on the next frame */
+    await p.waitForFunction(
+      () => localStorage.getItem("hbui-palette") !== null,
+    );
 
     const saved = await p.evaluate(() => localStorage.getItem("hbui-palette"));
     expect(saved, "the editor wrote nothing to storage").not.toBeNull();

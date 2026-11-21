@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { dirname, join } from "node:path";
-import { contrastRatio } from "../src/lib/contrast";
+import { contrastRatio } from "../src/palette/contrast.ts";
 import {
   LIGHT_PAPER,
   DARK_GROUND,
@@ -10,12 +10,12 @@ import {
   CODE_LINE,
   CODE_FG,
   CODE_COMMENT,
-} from "../src/lib/grounds";
+} from "../src/palette/grounds.ts";
 import {
   derivePalette,
   SHIPPED_B1,
   SHIPPED_B2,
-} from "../src/lib/derive-palette";
+} from "../src/palette/derive-palette.ts";
 
 describe("contrastRatio", () => {
   it("matches WCAG reference values", () => {
@@ -25,6 +25,14 @@ describe("contrastRatio", () => {
     /* the a11y lesson this system was tuned around */
     expect(contrastRatio("#a36300", "#ffffff")).toBeGreaterThanOrEqual(4.5);
     expect(contrastRatio("#b5680c", "#ffffff")).toBeLessThan(4.5);
+  });
+
+  it("throws on a color it cannot parse instead of returning NaN", () => {
+    expect(() => contrastRatio("not-a-color", "#ffffff")).toThrow(
+      /unparseable color not-a-color/,
+    );
+
+    expect(() => contrastRatio("#ffffff", "#12")).toThrow(/unparseable/);
   });
 });
 

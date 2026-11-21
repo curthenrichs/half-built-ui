@@ -331,6 +331,85 @@ close box for a site that is not in English.
 Not covered yet: structured content (lists, sub-tables, images),
 triggers on chart marks, and hover previews.
 
+## Toc
+
+`components/Toc.astro` lists a page's sections in one of two forms,
+picked with `form`:
+
+- `form="inline"` (the default) is a collapsed "Sections (N)"
+  disclosure in normal flow, for jumping to a section. It needs no
+  script.
+- `form="panel"` is the open list in a rule box, with the label on its
+  top rule, for a rail or side column. `scripts/toc` marks the section
+  the reader is in as they scroll.
+
+```astro
+---
+import Toc from "@half-built/astro/components/Toc.astro";
+import { tocFromHeadings } from "@half-built/astro/lib/toc.ts";
+
+const { Content, headings } = await render(post);
+---
+
+<article>
+  <Toc items={tocFromHeadings(headings)} />
+  <Content />
+</article>
+```
+
+```js
+import "@half-built/css/toc.css";
+// Only for the panel form:
+import { mountToc } from "@half-built/astro/scripts/toc.ts";
+
+mountToc(document);
+```
+
+The component renders where it is put and never hides itself. Put the
+inline form under the page title, or after a post's hero image; put
+the panel in a rail or column:
+
+```astro
+<aside class="rail">
+  <Toc form="panel" items={items} />
+</aside>
+<article>
+  <h1>{title}</h1>
+  <Toc form="inline" navLabel="Sections menu" items={items} />
+</article>
+```
+
+A page that shows the panel on wide screens and the inline form on
+narrow ones renders both, as above, and hides one with its own media
+queries. The hooks are the forms' roots: `nav.toc-panel` and
+`nav.toc-inline-nav`. Each form is one navigation landmark named
+`navLabel` (default: `label`), so when a page carries both, give one
+of them its own `navLabel`.
+
+The panel's list scrolls inside the box once it is taller than
+`--toc-panel-max-height` (default: the viewport less 6rem). A sticky
+rail that fits itself to the viewport can set it to `none` and size
+the panel itself: the reference site's rail is a flex column capped
+at the viewport, and the panel and its list take `min-height: 0`, so
+the list shrinks to whatever the rail's other controls leave.
+
+`tocFromHeadings(headings, { depth })` takes Astro's `render()` headings.
+`depth: 3` (the default) lists each `##` with its `###` nested under it;
+`depth: 2` lists the `##` only. An `###` before the first `##` is left
+out. A page with hand-built sections passes `{ id, text, children }`
+items directly. `label` (default `Sections`) heads the disclosure and
+the panel. The component renders nothing for an empty list.
+
+In the panel, the current link gets `aria-current="true"`. Inside an
+`###`, its `##` gets an accent rule too, without being announced as
+current. `mountToc` tracks the first `[data-toc]` on the page (the
+panel; pass `{ selector }` for another) and does nothing on a page
+with only the inline form. The disclosure is a native `<details>`: its
+open state is the reader's. With JavaScript off both forms still work;
+the panel just marks nothing.
+
+When to show a TOC, and on which pages, is the consumer's call.
+
 ## StatLedger
 
 `components/StatLedger.astro` sets a few figures side by side in one

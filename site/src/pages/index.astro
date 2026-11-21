@@ -2,6 +2,8 @@
 import { Code } from "astro:components";
 import Base from "../layouts/Base.astro";
 import Rail from "../components/Rail.astro";
+import Toc from "@half-built/astro/components/Toc.astro";
+import { SECTION_TOC } from "../data/sections";
 import Imports from "../components/Imports.astro";
 import EditorNote from "@half-built/astro/content/EditorNote.astro";
 import WhenPublished from "@half-built/astro/content/WhenPublished.astro";
@@ -342,6 +344,11 @@ const npmPackages = [
     <main>
       <article class="static-page bracket-frame">
         <h1>half-built-ui</h1>
+        {/* The package Toc's inline form (#438), under the title where a
+            post would put it after its hero. Shown at the tablet break
+            and below only (site.css); above it the rail carries the
+            panel form. Its own landmark name, so the two navs differ. */}
+        <Toc form="inline" navLabel="Sections menu" items={SECTION_TOC} />
 
         <section id="intro">
           <div class="prose">

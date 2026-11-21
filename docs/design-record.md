@@ -47,6 +47,29 @@ Buttondown list. The endpoint and the copy are props.
   required, and the caller supplies it.
 - `@fontsource/roboto-mono` is the one runtime dependency of
   `@half-built/css`, an exception to "no dependencies".
+- The palette derivation lives in `@half-built/tooling/palette`
+  (2026-11-15), not in the site: a consumer's build derives and
+  asserts the same ramp the reference site's editor prints, and the
+  editor imports it from the package. It is pure math over culori,
+  which is a runtime dependency of tooling for that reason.
+- The page TOC lives in the package (`Toc.astro`, `lib/toc.ts`,
+  `scripts/toc.ts`, `toc.css`; owner, 2026-11-15). It has two forms
+  the consumer places: an inline "Sections" disclosure in normal flow
+  under the title or a post's hero, and an open panel for a rail that
+  marks the current section. The package never measures the page or
+  hides a form; which shows at which width is the consumer's. The
+  blog uses the inline form only, at every width; the reference site
+  puts the panel in its rail under the Palette knob above the tablet
+  break and the inline form under the title below it (owner,
+  2026-11-21). Rejected along the way: a floating tab on small
+  screens, which covered the column's edge (2026-11-18), and an open
+  strip hung in the empty gutter left of the page (2026-11-21). On a
+  small screen every pixel is for content, furniture, or a CTA, and
+  the TOC's job there is jumping, not "where am I". It never goes in
+  the blog's sidebar, which stays in normal flow. It lists one or two
+  heading levels, never the full tree. When to show it is the
+  consumer's call: the threshold and any per-page override live in
+  the consumer.
 
 ## Islands
 
