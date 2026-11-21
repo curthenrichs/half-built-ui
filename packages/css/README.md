@@ -271,8 +271,10 @@ between.
    be a context carries the overlay's rung (the demo's `.site-rail`
    carries `--z-panel` for everything inside it), and the overlay then
    carries the same rung inside it to beat its positioned siblings.
-3. Elements opened with `showModal()` (the plate modal, the popout
-   dialog) live in the browser's top layer and are outside the ladder.
+3. Elements opened with `showModal()` (the plate modal, the popout's
+   phone sheet) live in the browser's top layer and are outside the
+   ladder. The popout's anchored box above phone width opens with
+   `show()`, so it is on the ladder at `--z-popout`.
 
 Rule 2 is why `.site-header-wrapper` no longer sets a z-index: it was
 a context at a low rung around the mobile menu and the search flyout,
@@ -286,8 +288,13 @@ thumbnail, the draft stamp. Two tokens cover them:
 - `--z-raised-top: 2`, over a raised part (the PostCard draft stamp
   over its chips).
 
-They only ever compete inside one component. They never order a
-component against the page.
+Both sit below every page rung. Most of them compete only inside
+their own component, but some sit in the root stacking context (the
+PostCard chips and draft stamp, the Step chip), where they can meet a
+page layer. There they always lose to it, and the css pins hold that
+order: `--z-raised` < `--z-raised-top` < `--z-skip-link` <
+`--z-scroll-top` < `--z-panel` < `--z-popout` < `--z-tooltip` <
+`--z-search-flyout`.
 
 **Extending it.** A consumer adds its own rungs by defining
 `--z-<name>` custom properties in its own tokens, placed relative to
@@ -298,12 +305,23 @@ pass with no config. Anything else fails the rule, including `inherit`, `initial
 **Enforcement.** The tooling preset's stylelint config allows only
 `auto` and `var(--z-[a-z0-9-]+)` for `z-index`, and
 `packages/css/test/css-pins.test.ts` pins the same ban independently
-for the package sources. This rule is new in 0.18.0 and is a breaking
-lint change: a consumer with raw z-index values fails lint at the bump
-and moves them to `--z-raised` / `--z-raised-top`, or to its own
-`--z-<name>` rung. The demo's browser tests also open every overlay
-and assert it is topmost, so a layer that loses to another fails the
-suite rather than shipping.
+for the package sources. The property name matches in any case, so
+`Z-INDEX: 3` fails too. This rule is new in 0.19.0 and is a breaking
+lint change, not autofixable: a consumer with raw z-index values fails
+lint at the bump and moves them to `--z-raised` / `--z-raised-top`, or
+to its own `--z-<name>` rung.
+
+The demo's browser suite checks the overlays the demo renders, in two
+ways. Named on-top tests open the palette panel (at 1440, 1024, and
+390), the mobile menu, the popout (anchored at 1440, the phone sheet
+at 390), and a link tip over the open popout, and assert with
+`elementFromPoint` that each is topmost where it covers something.
+A generic check then opens each of those overlays in turn at 1440,
+1024, and 390 and fails if any element at or over `--z-skip-link`
+sits inside a stacking context with a lower z-index than its own,
+which is rule 2. Only what the demo shows is checked: an overlay
+the demo does not render, the search flyout included, is not covered
+until it is demoed.
 
 ### Prose width
 

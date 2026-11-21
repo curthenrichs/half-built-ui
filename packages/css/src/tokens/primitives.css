@@ -120,10 +120,11 @@
        between an overlay and the root may be a stacking context with a
        lower rung: a context that must exist carries the overlay's
        rung. showModal() elements sit in the top layer, outside the
-       ladder. --z-raised and --z-raised-top (above) are local only and
-       never order a component against the page. A consumer adds a
-       rung as --z-<name> in its own tokens; 49 and 50 are reserved for
-       that. Full model: the css README, Architecture > Stacking. */
+       ladder. --z-raised and --z-raised-top (above) are local and sit
+       below every page rung: where one meets a page layer in the root
+       context, it always loses. A consumer adds a rung as --z-<name>
+       in its own tokens; 49 and 50 are reserved for that. Full model:
+       the css README, Architecture > Stacking. */
 
     --z-skip-link: 10;
     --z-scroll-top: 17;

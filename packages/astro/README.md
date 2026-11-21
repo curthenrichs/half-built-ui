@@ -215,6 +215,11 @@ required and is the fallback when the slot is empty.
 render no search block at all (no button, flyout, or form). The phone
 theme toggle stays.
 
+The header wrapper does not form a stacking context, so the open
+mobile menu and the search flyout compete at their own rung
+(`--z-search-flyout`) and paint over a consumer's fixed layers on
+lower rungs.
+
 ## Search flyout
 
 `scripts/site-header` drives the masthead's search flyout as a

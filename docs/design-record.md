@@ -115,11 +115,16 @@ Not built, on purpose:
   may be a lower-rung stacking context; local decoration uses
   `--z-raised` and `--z-raised-top`; consumers add `--z-<name>` rungs
   (49 and 50 are reserved). The tooling preset allows only `auto` or
-  `var(--z-*)` for `z-index`, a breaking lint change in 0.18.0. It
+  `var(--z-*)` for `z-index`, a breaking lint change in 0.19.0. It
   followed a demo bug: the open Palette panel painted under the rail's
   TOC panel because both were `z-index: auto` and DOM order decided,
-  after a one-off guard was removed as dead code. Browser tests now
-  assert every opened overlay is topmost. One published-component
+  after a one-off guard was removed as dead code. The demo's browser
+  suite now holds it two ways: named on-top tests for the overlays the
+  demo renders (palette panel, mobile menu, popout in both modes, a
+  link tip over the popout), and a generic check that no element on a
+  page rung sits inside a lower stacking context, run with each of
+  those overlays open. Only demoed overlays are covered, so a new one
+  must be demoed to be tested. One published-component
   change: `.site-header-wrapper` dropped its `z-index: 1`, since that
   low-rung context capped the mobile menu and search flyout under a
   consumer's fixed panel. See the css README, Stacking.

@@ -13,7 +13,11 @@ Lint presets, the test kit, and the palette math for half-built sites.
 - `@half-built/tooling/stylelint`: stylelint-config-standard tuned for
   the house CSS (no hex outside tokens, no `ch` widths), with the
   empty-line rules on so rules and comment groups get their own air.
-  Autofixable with `stylelint --fix`.
+  Autofixable with `stylelint --fix`, except the `z-index` rule: new
+  in 0.19.0, it limits `z-index` to `auto` or a `var(--z-*)` token.
+  That is a breaking lint change and not autofixable, since a raw value
+  needs a named rung chosen by hand; see the @half-built/css README,
+  Stacking.
 - `@half-built/tooling/prettier`: Prettier's defaults plus the Astro
   plugin. Prettier is a peer dependency; consumers import the preset
   from `prettier.config.mjs` and add `*.md` to `.prettierignore` if
