@@ -321,12 +321,20 @@ ways. Named on-top tests open the palette panel (at 1440, 1024, and
 390), the mobile menu, the popout (anchored at 1440, the phone sheet
 at 390), and a link tip over the open popout, and assert with
 `elementFromPoint` that each is topmost where it covers something.
-A generic check then opens each of those overlays in turn at 1440,
-1024, and 390 and fails if any element at or over `--z-skip-link`
-sits inside a stacking context with a lower z-index than its own,
-which is rule 2. Only what the demo shows is checked: an overlay
-the demo does not render, the search flyout included, is not covered
-until it is demoed.
+A generic check enforces rule 2. It loads a fresh page for each
+state: nothing open, the palette panel, and the popout at 1440, 1024,
+and 390, plus the mobile menu at 390, the only width where it shows.
+It confirms each overlay really opened and fails if any element at or
+over `--z-skip-link` sits inside a stacking context with a lower
+z-index than its own. The link tip element exists, hidden, from page
+load at 1440 and 1024, so it is checked statically there, not
+hovered; the 390 page is a touch page, where the island mounts no
+tip. The
+popout's phone sheet at 390 is in the top layer and is skipped. The
+pages run with animations off, so a context that exists only
+mid-animation is not seen. Only what the demo shows is checked: an
+overlay the demo does not render, the search flyout included, is not
+covered until it is demoed.
 
 ### Prose width
 

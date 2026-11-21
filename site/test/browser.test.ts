@@ -2807,9 +2807,13 @@ describe.skipIf(!enabled)("browser suite", () => {
      Top-layer dialogs are outside every context and are skipped. The
      check covers what the demo renders: an overlay the demo does not
      show is not checked, so a new overlay must be demoed to be
-     covered. */
-  const cappedLayers = (p: Page): Promise<string[]> =>
-    p.evaluate(() => {
+     covered. Pages run with transitions and animations off (openAt),
+     so a context that exists only mid-animation is not seen. Given a
+     floating selector, the check also reports when that element is not
+     among the page-rung elements it walked (or the skipped top-layer
+     ones), so a check of a closed or missing overlay cannot pass. */
+  const cappedLayers = (p: Page, floating?: string): Promise<string[]> =>
+    p.evaluate((floatingSel: string | null) => {
       const nameOf = (el: Element): string => {
         const id = el.id ? `#${el.id}` : "";
 
@@ -2841,6 +2845,12 @@ describe.skipIf(!enabled)("browser suite", () => {
         "contain",
         "position",
         "z-index",
+        "offset-path",
+        "view-transition-name",
+        "mask-border",
+        "mask-border-source",
+        "-webkit-mask-box-image",
+        "-webkit-mask-box-image-source",
       ]);
 
       /* Why an element forms a stacking context, or "" if it does not. */
@@ -2874,6 +2884,10 @@ describe.skipIf(!enabled)("browser suite", () => {
           "clip-path",
           "mask-image",
           "-webkit-mask-image",
+          "mask-border-source",
+          "-webkit-mask-box-image-source",
+          "offset-path",
+          "view-transition-name",
         ]) {
           const v = cs.getPropertyValue(prop);
           if (v && v !== "none") return `${prop}: ${v}`;
@@ -2911,13 +2925,21 @@ describe.skipIf(!enabled)("browser suite", () => {
       }
 
       const offenders: string[] = [];
+      const seen = new Set<Element>();
 
       for (const el of document.querySelectorAll("*")) {
+        if (el.matches(":modal")) {
+          seen.add(el);
+          continue;
+        }
+
         const cs = getComputedStyle(el);
         if (cs.zIndex === "auto") continue;
 
         const z = Number(cs.zIndex);
-        if (z < floor || el.matches(":modal")) continue;
+        if (z < floor) continue;
+
+        seen.add(el);
 
         for (
           let a = el.parentElement;
@@ -2937,94 +2959,211 @@ describe.skipIf(!enabled)("browser suite", () => {
         }
       }
 
-      return offenders;
-    });
+      if (floatingSel !== null) {
+        const target = document.querySelector(floatingSel);
 
-  /* Each overlay the demo opens, opened the way a user does. */
-  const OVERLAYS: {
-    name: string;
-    open: (p: Page) => Promise<boolean>;
-  }[] = [
-    { name: "nothing open", open: () => Promise.resolve(true) },
+        if (!target || !seen.has(target)) {
+          offenders.push(
+            `${floatingSel} is not among the page-rung or top-layer elements checked`,
+          );
+        }
+      }
+
+      return offenders;
+    }, floating ?? null);
+
+  /* Waits for an overlay's open state: "" once it holds, otherwise
+     what never became true. */
+  const waitOpen = async (
+    p: Page,
+    what: string,
+    check: () => boolean,
+  ): Promise<string> => {
+    try {
+      await p.waitForFunction(check, { timeout: 5000 });
+      return "";
+    } catch {
+      return `${what} never held`;
+    }
+  };
+
+  /* Each overlay the demo opens, opened the way a user does. open
+     returns "" once the overlay is really open, or why it is not;
+     floating is the element that must be among those checked. */
+  const OVERLAYS: Record<
+    string,
     {
-      name: "palette panel",
+      floating: string | null;
+      open: (p: Page, width: number) => Promise<string>;
+    }
+  > = {
+    "nothing open": { floating: null, open: () => Promise.resolve("") },
+    "palette panel": {
+      floating: ".site-toolbar-body",
       open: async (p) => {
         await p.click(".site-knob > summary");
-        return true;
-      },
-    },
-    {
-      name: "mobile menu",
-      open: async (p) => {
-        const shown = await p.$eval(
-          ".menu-toggle",
-          (el) => el.getClientRects().length > 0,
-        );
 
-        if (shown) await p.click(".menu-toggle");
-        return shown;
+        return waitOpen(p, ".site-knob[open]", () =>
+          Boolean(document.querySelector(".site-knob[open]")),
+        );
       },
     },
-    {
-      name: "popout",
+    "mobile menu": {
+      floating: "#primary-menu",
       open: async (p) => {
+        await p.click(".menu-toggle");
+
+        return waitOpen(p, "#primary-menu.open", () =>
+          Boolean(document.querySelector("#primary-menu.open")),
+        );
+      },
+    },
+    popout: {
+      floating: "dialog.popout",
+      open: async (p, width) => {
         await p.$eval("#demo-popout-2", (el) => {
           el.scrollIntoView({ block: "center" });
         });
 
         await p.click("#demo-popout-2");
-        return true;
+
+        const state = await waitOpen(p, "dialog.popout[open]", () => {
+          const d = document.querySelector("dialog.popout");
+          return d instanceof HTMLDialogElement && d.open;
+        });
+
+        if (state) return state;
+
+        /* The phone sheet is modal (top layer); wider, it is not. */
+        const want = width <= 390;
+
+        const modal = await p.$eval("dialog.popout", (d) =>
+          d.matches(":modal"),
+        );
+
+        return modal === want
+          ? ""
+          : `dialog.popout is ${modal ? "" : "not "}modal at ${String(width)}px`;
       },
+    },
+  };
+
+  /* The menu toggle shows only at and below 991px, so the menu runs at
+     390 alone. */
+  const STATES = [
+    {
+      width: 1440,
+      height: 900,
+      open: ["nothing open", "palette panel", "popout"],
+    },
+    {
+      width: 1024,
+      height: 800,
+      open: ["nothing open", "palette panel", "popout"],
+    },
+    {
+      width: 390,
+      height: 844,
+      open: ["nothing open", "palette panel", "mobile menu", "popout"],
     },
   ];
 
   it("no page layer sits inside a lower stacking context, with each overlay open", async () => {
     const found: string[] = [];
-    let checked = 0;
+    const ran: string[] = [];
 
-    for (const [width, height] of [
-      [1440, 900],
-      [1024, 800],
-      [390, 844],
-    ] as const) {
-      for (const overlay of OVERLAYS) {
+    for (const { width, height, open } of STATES) {
+      for (const name of open) {
+        const overlay = OVERLAYS[name];
         const p = await openAt(width, height);
 
-        if (await overlay.open(p)) {
-          checked++;
+        try {
+          const problem = await overlay.open(p, width);
 
-          for (const line of await cappedLayers(p)) {
-            found.push(`${String(width)}px, ${overlay.name}: ${line}`);
+          if (problem) {
+            found.push(
+              `${String(width)}px, ${name}: did not open (${problem})`,
+            );
+          } else {
+            ran.push(`${String(width)}px ${name}`);
+
+            const lines = await cappedLayers(p, overlay.floating ?? undefined);
+
+            for (const line of lines) {
+              found.push(`${String(width)}px, ${name}: ${line}`);
+            }
           }
+        } finally {
+          await closePage(p);
         }
-
-        await closePage(p);
       }
     }
 
-    expect(
-      checked,
-      "every viewport opens at least the palette",
-    ).toBeGreaterThan(6);
-
     expect(found).toEqual([]);
+
+    expect(ran).toEqual(
+      STATES.flatMap(({ width, open }) =>
+        open.map((name) => `${String(width)}px ${name}`),
+      ),
+    );
   }, 120_000);
 
-  it("the stacking-context check catches a planted low context", async () => {
-    /* A control: the check above must be able to fail. A transform on
-       the layout wrapper makes it a z-auto context around the rail. */
-    const p = await openAt(1440, 900);
+  /* Controls: the check must be able to fail, for every trigger it
+     claims to detect. Each plants one context-forming style on the
+     layout wrapper, a z-auto ancestor of the rail, and expects the rail
+     reported as capped by it with that reason. */
+  it.each([
+    ["transform: translateZ(0)", "transform:"],
+    ["translate: 1px", "translate:"],
+    ["rotate: 1deg", "rotate:"],
+    ["scale: 0.99", "scale:"],
+    ["filter: blur(0)", "filter:"],
+    ["backdrop-filter: blur(1px)", "backdrop-filter:"],
+    ["perspective: 100px", "perspective:"],
+    ["clip-path: inset(0)", "clip-path:"],
+    ["mask-image: linear-gradient(black, black)", "mask-image:"],
+    /* Chrome ships mask-border only in its -webkit-mask-box-image
+       form, so that is the one plantable here; the unprefixed name is
+       still detected for engines that have it. */
+    [
+      "-webkit-mask-box-image-source: linear-gradient(black, black)",
+      "-webkit-mask-box-image-source:",
+    ],
+    ['offset-path: path("M 0 0 H 1")', "offset-path:"],
+    ["view-transition-name: planted", "view-transition-name:"],
+    ["opacity: 0.99", "opacity:"],
+    ["isolation: isolate", "isolation: isolate"],
+    ["contain: paint", "contain:"],
+    ["will-change: transform", "will-change: transform"],
+    ["will-change: view-transition-name", "will-change: view-transition-name"],
+    ["mix-blend-mode: multiply", "mix-blend-mode:"],
+    ["container-type: inline-size", "container-type:"],
+    ["position: relative; z-index: 0", "z-index: 0"],
+  ])(
+    "the stacking-context check catches a planted %s",
+    async (style, reason) => {
+      const p = await openAt(1440, 900);
 
-    await p.addStyleTag({
-      content: ".site-layout { transform: translateZ(0); }",
-    });
+      try {
+        await p.addStyleTag({ content: `.site-layout { ${style}; }` });
 
-    const found = await cappedLayers(p);
+        const found = await cappedLayers(p);
 
-    expect(found.some((line) => line.includes("div.site-layout"))).toBe(true);
-
-    await closePage(p);
-  }, 30_000);
+        expect(
+          found.filter(
+            (line) =>
+              line.startsWith("aside.site-rail") &&
+              line.includes("div.site-layout") &&
+              line.includes(reason),
+          ),
+          found.join("\n"),
+        ).toHaveLength(1);
+      } finally {
+        await closePage(p);
+      }
+    },
+    30_000,
+  );
 
   it("the footer's site-info is the copyright line alone", async () => {
     /* The site-name home link under the copyright retired (owner call

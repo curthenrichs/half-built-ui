@@ -125,9 +125,12 @@ Not built, on purpose:
   suite now holds it two ways: named on-top tests for the overlays the
   demo renders (palette panel, mobile menu, popout in both modes, a
   link tip over the popout), and a generic check that no element on a
-  page rung sits inside a lower stacking context, run with each of
-  those overlays open. Only demoed overlays are covered, so a new one
-  must be demoed to be tested. One published-component
+  page rung sits inside a lower stacking context. That check opens the
+  palette panel and the popout at 1440, 1024, and 390 and the mobile
+  menu at 390, confirming each opened; the link tip is checked
+  statically at the desktop widths and the phone sheet, in the top layer, is skipped. Only
+  demoed overlays are covered, so a new one must be demoed to be
+  tested. One published-component
   change: `.site-header-wrapper` dropped its `z-index: 1`, since that
   low-rung context capped the mobile menu and search flyout under a
   consumer's fixed panel. See the css README, Stacking.
