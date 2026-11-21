@@ -257,7 +257,7 @@ in `tokens/primitives.css`:
 | `--z-panel`         | 18    | a consumer's fixed or sticky control panel         |
 | `--z-popout`        | 19    | the popout's anchored box                          |
 | `--z-tooltip`       | 20    | link tips                                          |
-| (49, 50)            |       | reserved for a consumer's own floating elements    |
+| (49, 50)            |       | two rungs reserved for a consumer's own floating elements |
 | `--z-search-flyout` | 99    | the header's search flyout and mobile menu         |
 
 The overlay rule: a layer's z-index lives on the box that floats, or
@@ -291,10 +291,9 @@ component against the page.
 
 **Extending it.** A consumer adds its own rungs by defining
 `--z-<name>` custom properties in its own tokens, placed relative to
-the package ladder (for example `--z-henry: 49`). Pick a value between
-the rungs the layer must sit between; the 49 to 50 gap is reserved for
-this. The lint rule accepts any `var(--z-*)`, so a consumer's rungs
-pass with no config. A new layer gets a name, never a `calc()`.
+the package ladder (for example `--z-chat-widget: 49`). Pick a value between
+the rungs the layer must sit between; the reserved 49 and 50 rungs are for this: two consumer rungs above the tooltip (20) and below the search flyout (99). The lint rule accepts any `var(--z-*)`, so a consumer's rungs
+pass with no config. Anything else fails the rule, including `inherit`, `initial`, `unset`, `0`, bare numbers, and negatives. A new layer gets a name, never a `calc()`.
 
 **Enforcement.** The tooling preset's stylelint config allows only
 `auto` and `var(--z-[a-z0-9-]+)` for `z-index`, and

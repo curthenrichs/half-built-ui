@@ -2430,7 +2430,7 @@ describe.skipIf(!enabled)("browser suite", () => {
   }, 30_000);
 
   /* Every overlay the demo opens is topmost over what it covers
-     (#545, 2026-11-21). The palette panel once painted under the rail's
+     (2026-11-21). The palette panel once painted under the rail's
      TOC panel: both were z-index: auto inside the rail's stacking
      context, so DOM order decided. Each test opens the overlay the way
      a user does, then samples a 4x4 grid inside its box, inset from the
