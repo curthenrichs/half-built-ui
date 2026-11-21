@@ -3,7 +3,8 @@
    of silently drifting. Not a re-test of the blog's own suite, which
    stays behind in half-built-robots-blog. */
 import { describe, it, expect } from "vitest";
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
+import { join } from "node:path";
 
 const read = (path: string) =>
   readFileSync(new URL(path, import.meta.url), "utf-8");
@@ -133,7 +134,6 @@ describe("css pins", () => {
   it("retired tokens are gone from every css file", () => {
     const retired = [
       "--input-border",
-      "--z-raised",
       "--font-size-xxxl",
       "--ink-950",
       "--ink-850",
@@ -162,5 +162,52 @@ describe("css pins", () => {
       );
 
     expect(block?.[0]).toMatch(/scroll-behavior: auto/);
+  });
+
+  it("no raw z-index in the package sources", () => {
+    const files: string[] = [];
+
+    const walk = (dir: string) => {
+      for (const entry of readdirSync(dir, { withFileTypes: true })) {
+        const full = join(dir, entry.name);
+
+        if (entry.isDirectory()) walk(full);
+        else if (/\.(css|astro)$/.test(entry.name)) files.push(full);
+      }
+    };
+
+    walk(new URL("../src", import.meta.url).pathname.replace(/^\/(\w:)/, "$1"));
+
+    walk(
+      new URL("../../astro/src", import.meta.url).pathname.replace(
+        /^\/(\w:)/,
+        "$1",
+      ),
+    );
+
+    expect(files.length).toBeGreaterThan(20);
+
+    const raw: string[] = [];
+
+    for (const file of files) {
+      for (const m of readFileSync(file, "utf-8").matchAll(
+        /z-index:\s*([^;]+);/g,
+      )) {
+        const value = m[1].trim();
+
+        if (value !== "auto" && !/^var\(--z-[a-z0-9-]+\)$/.test(value)) {
+          raw.push(`${file}: ${value}`);
+        }
+      }
+    }
+
+    expect(raw).toEqual([]);
+  });
+
+  it("primitives define the local stacking tokens", () => {
+    const prims = read("../src/tokens/primitives.css");
+
+    expect(prims).toMatch(/--z-raised: 1;/);
+    expect(prims).toMatch(/--z-raised-top: 2;/);
   });
 });

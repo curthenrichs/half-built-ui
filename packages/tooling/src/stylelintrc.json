@@ -28,6 +28,14 @@
     "color-hex-length": null,
     "color-function-alias-notation": null,
     "import-notation": null,
+    "declaration-property-value-allowed-list": [
+      {
+        "z-index": ["auto", "/^var\\(--z-[a-z0-9-]+\\)$/"]
+      },
+      {
+        "message": "z-index takes auto or a var(--z-*) token, never a raw number or calc (see the @half-built/css README, Architecture > Stacking)"
+      }
+    ],
     "declaration-property-value-disallowed-list": [
       {
         "/^(width|min-width|max-width)$/": ["/ch$/"]

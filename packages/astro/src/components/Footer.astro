@@ -129,7 +129,7 @@ const year = new Date().getFullYear();
      site with a viewport-fixed bottom cluster sets it to the room
      that cluster occupies, and the tinted band runs on below the last
      link by that much, so the page scrolls far enough to clear it. */
-  .bottom-footer { padding: 15px 0 calc(20px + var(--dock-bottom, 0px)); z-index: 1; }
+  .bottom-footer { padding: 15px 0 calc(20px + var(--dock-bottom, 0px)); z-index: var(--z-raised); }
 
   .bottom-footer-info {
     display: flex;

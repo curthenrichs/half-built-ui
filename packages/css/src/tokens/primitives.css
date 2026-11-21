@@ -117,6 +117,12 @@
        (scroll-to-top included), under the popout and the tooltip. The
        popout's anchored box sits under the tooltip so a link tip
        inside it still draws on top. */
+
+    /* Local stacking inside one component: a child over its siblings. */
+    --z-raised: 1;
+
+    /* Local stacking: over a --z-raised sibling in the same component. */
+    --z-raised-top: 2;
     --z-skip-link: 10;
     --z-scroll-top: 17;
 

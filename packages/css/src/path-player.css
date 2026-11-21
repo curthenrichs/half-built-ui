@@ -57,7 +57,7 @@
     transform: translateX(-50%);
     display: flex;
     gap: 10px;
-    z-index: 1;
+    z-index: var(--z-raised);
   }
 
   /* Transport buttons are .icon-box; only the glyph size is here. */
