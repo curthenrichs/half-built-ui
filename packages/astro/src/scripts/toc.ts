@@ -65,19 +65,17 @@ export const mountToc: Island<TocOptions> = (
   const parents = new Map<HTMLAnchorElement, HTMLAnchorElement>();
   const targets: HTMLElement[] = [];
 
-  toc
-    .querySelectorAll<HTMLAnchorElement>("a[href^='#']")
-    .forEach((a) => {
-      const id = decodeHash(a.hash);
-      const target = id ? doc.getElementById(id) : null;
-      if (!target) return;
-      links.set(id, a);
-      targets.push(target);
+  toc.querySelectorAll<HTMLAnchorElement>("a[href^='#']").forEach((a) => {
+    const id = decodeHash(a.hash);
+    const target = id ? doc.getElementById(id) : null;
+    if (!target) return;
+    links.set(id, a);
+    targets.push(target);
 
-      const parent = a.closest("li")?.parentElement?.closest("li");
-      const parentLink = parent?.querySelector<HTMLAnchorElement>(":scope > a");
-      if (parentLink) parents.set(a, parentLink);
-    });
+    const parent = a.closest("li")?.parentElement?.closest("li");
+    const parentLink = parent?.querySelector<HTMLAnchorElement>(":scope > a");
+    if (parentLink) parents.set(a, parentLink);
+  });
 
   if (targets.length === 0) return handle;
 

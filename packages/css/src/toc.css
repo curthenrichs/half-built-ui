@@ -41,7 +41,6 @@
 
   /* dvh, so a browser toolbar never hides the list's tail. */
   .toc-panel .toc-links {
-    max-height: var(--toc-panel-max-height, calc(100vh - 6rem));
     max-height: var(--toc-panel-max-height, calc(100dvh - 6rem));
     overflow: auto;
     overscroll-behavior: contain;

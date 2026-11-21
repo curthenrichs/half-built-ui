@@ -120,8 +120,9 @@ const {
     dateStr={formatHeaderDate(new Date())}
     searchAction={false}
   />
-  {/* The palette editor (Rail.astro) and the section TOC (the package
-      Toc, #438) are rendered by the index page, not this layout. */}
+  {/* The palette editor and the TOC panel (Rail.astro) and the inline
+      TOC (the package Toc, #438) are rendered by the index page, not
+      this layout. */}
   <slot />
   <Footer
     slot="footer"

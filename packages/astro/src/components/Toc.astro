@@ -30,8 +30,9 @@ const {
     of them a distinct navLabel. @half-built/css/toc.css styles both.
     Build items with lib/toc.ts's tocFromHeadings; when to show a TOC at
     all is the consumer's call. */}
-{items.length > 0 && (form === "panel"
-  ? <nav class="toc-panel" data-toc aria-label={navLabel}>
+{items.length > 0 &&
+  (form === "panel" ? (
+    <nav class="toc-panel" data-toc aria-label={navLabel}>
       <p class="toc-label boxed-label" aria-hidden="true">{label}</p>
       <ul class="toc-links">
         {items.map((item) => <li>
@@ -44,7 +45,8 @@ const {
         </li>)}
       </ul>
     </nav>
-  : <nav class="toc-inline-nav" aria-label={navLabel}>
+  ) : (
+    <nav class="toc-inline-nav" aria-label={navLabel}>
       <details class="toc-inline" data-toc-inline>
         <summary class="toc-inline-summary">{label} ({items.length})</summary>
         <div class="toc-inline-body">
@@ -60,4 +62,5 @@ const {
           </ul>
         </div>
       </details>
-    </nav>)}
+    </nav>
+  ))}

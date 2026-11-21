@@ -2065,9 +2065,13 @@ describe.skipIf(!enabled)("browser suite", () => {
         if (!panel || !knob || !column) return null;
         const r = panel.getBoundingClientRect();
         const k = knob.getBoundingClientRect();
+
         /* The label straddles the box's top rule, so it reaches about
            10px above the box. */
-        const label = panel.querySelector(".toc-label")?.getBoundingClientRect();
+        const label = panel
+          .querySelector(".toc-label")
+          ?.getBoundingClientRect();
+
         return {
           inRail: panel.closest(".site-rail") !== null,
           belowKnob: (label?.top ?? r.top) >= k.bottom,
