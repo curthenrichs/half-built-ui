@@ -1,62 +1,20 @@
 /* Layer: components. The page TOC (#438; Toc.astro, scripts/toc.ts).
-   Two forms of one list, and exactly one shows:
-   - strip (data-toc-mode="strip"): a zero-height sticky anchor in the
-     column, with the list hung open in the empty gutter left of the
-     page. Its right edge sits 16px short of the reference column's
-     content edge (--toc-edge from the script; --toc-inset is how far
-     inside that edge the component sits), never wider than 260px.
-   - inline (data-toc-mode="inline", or no mode at all, so it works
-     without the script): a boxed <details> in normal flow, the accent
-     press box as its summary and the list in a rule box under it.
-   .toc itself is display: contents, so the strip's sticky containing
-   block is the column the component was placed in (the article), and
-   it sticks for that column's whole length. The strip panel is the
-   Group treatment's rule box with the label straddling its top rule;
-   the list inside owns the scrolling, so the label is never clipped.
-   Nothing here floats over the page in inline mode. */
+   Two forms of one list; the consumer places each and decides which
+   shows at which width:
+   - panel (form="panel"): the Group treatment's rule box, in normal
+     flow, with the label straddling its top rule. The list inside owns
+     the scrolling, so the label is never clipped; a sticky rail can
+     cap it with --toc-panel-max-height.
+   - inline (form="inline"): a boxed <details>, the accent press box as
+     its summary and the list in a rule box under it.
+   Nothing here floats over the page, measures it, or hides a form. */
 @layer components {
-  .toc {
-    display: contents;
-  }
-
-  /* The anchor is as tall as the panel (--toc-strip-height, from the
-     script), so it stops sticking when the panel's bottom, not its
-     top, meets the column's end: the list never hangs past the article
-     into the footer. A negative margin cannot cancel that height,
-     because sticky limits the margin box; a zero-width float takes no
-     room in flow instead (only a clear within the panel's height
-     below the anchor would feel it). Clicks pass through to the page;
-     only the panel takes them. */
-  .toc-strip {
-    display: none;
-    float: left;
-    position: sticky;
-    top: 2rem;
-    width: 0;
-    height: var(--toc-strip-height, 0);
-    z-index: var(--z-panel);
-    pointer-events: none;
-  }
-
-  .toc[data-toc-mode="strip"] .toc-strip {
-    display: block;
-  }
-
-  .toc[data-toc-mode="strip"] .toc-inline {
-    display: none;
-  }
-
   .toc-panel {
-    position: absolute;
-    top: 0;
-    right: calc(100% + var(--toc-inset, 0px) + 16px);
-    width: min(260px, var(--toc-edge, 0px) - 32px);
-    box-sizing: border-box;
+    position: relative;
     padding: 18px 8px 10px;
     color: var(--ink);
     background: var(--surface);
     border: var(--stroke) solid var(--rule);
-    pointer-events: auto;
   }
 
   .toc-label {
@@ -81,10 +39,10 @@
     padding: 0;
   }
 
-  /* dvh, so a browser toolbar never hides the strip list's tail. */
+  /* dvh, so a browser toolbar never hides the list's tail. */
   .toc-panel .toc-links {
-    max-height: calc(100vh - 6rem);
-    max-height: calc(100dvh - 6rem);
+    max-height: var(--toc-panel-max-height, calc(100vh - 6rem));
+    max-height: var(--toc-panel-max-height, calc(100dvh - 6rem));
     overflow: auto;
     overscroll-behavior: contain;
   }

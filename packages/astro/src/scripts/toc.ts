@@ -1,35 +1,21 @@
 /* The page TOC island (#438), grown from the demo site's rail TOC.
-   Toc.astro renders two forms of the same list inside a layout-free
-   root (display: contents), placed under the post's title or hero:
-   - the strip ([data-toc-strip]), a zero-height sticky anchor whose
-     list CSS hangs open in the empty gutter left of the page;
-   - the inline disclosure ([data-toc-inline]), a <details> in normal
-     flow, for screens with no gutter to spare.
-   This script picks one and tracks the reader:
-   - Mode. The gutter is measured from the page's reference column
-     (the nearest ancestor matching `column`, default ".shell", else
-     the root's parent), not from the component, which sits inside the
-     article's padding. With at least TOC_STRIP_MIN_GUTTER px of gutter
-     it writes data-toc-mode="strip", otherwise "inline". The column's
-     content edge goes to --toc-edge and the component's own offset
-     inside it to --toc-inset, so the strip hangs off the column's edge.
-     Re-measured on resize and when the column or the strip's panel
-     changes size. The disclosure's open state is the reader's;
-     the script never touches it.
-   - Tracking. One IntersectionObserver over the elements the strip's
-     links name, marking the current link with aria-current. Inside an
-     h3, the h2 above it gets data-toc-parent-current, not a second
-     aria-current, so assistive tech hears one current section. Only
-     the strip is marked: the inline list is for jumping, not for
-     "where am I".
-   Without the script there is no mode, and the stylesheet shows the
-   inline disclosure and hides the strip, so the list still works.
+   Toc.astro renders one of two forms where the consumer places it:
+   the panel (form="panel", [data-toc]), an open boxed list that sits in
+   a rail or column, and the inline disclosure (form="inline"), a
+   <details> in normal flow. Which form shows at which width is the
+   consumer's CSS; nothing here measures the page.
+   This script tracks the reader in the panel: one IntersectionObserver
+   over the elements its links name, marking the current link with
+   aria-current. Inside an h3, the h2 above it gets
+   data-toc-parent-current, not a second aria-current, so assistive
+   tech hears one current section. The inline form is for jumping, not
+   for "where am I", and needs no script, so a page with only that form
+   mounts nothing. Without the script the panel still shows; it just
+   marks nothing.
    An island like the rest (core/island.ts): mounting twice is a no-op,
    and destroy() drops every listener and the observer. */
 import { claim, release, type Island, type IslandHandle } from "./core/island";
 import { docOf } from "./core/dom";
-
-export const TOC_STRIP_MIN_GUTTER = 220;
 
 /* A hash is whatever the visitor typed or followed, and
    decodeURIComponent throws on a stray "%" ("#50%"). A throw at mount
@@ -45,14 +31,13 @@ function decodeHash(hash: string): string {
 
 export interface TocOptions {
   selector?: string;
-  column?: string;
 }
 
 export const mountToc: Island<TocOptions> = (
   root,
   options = {},
 ): IslandHandle => {
-  const { selector = "[data-toc]", column = ".shell" } = options;
+  const { selector = "[data-toc]" } = options;
   const doc = docOf(root);
   const toc = doc.querySelector<HTMLElement>(selector);
   const view = doc.defaultView;
@@ -61,21 +46,14 @@ export const mountToc: Island<TocOptions> = (
   const controller = new AbortController();
   const on = { signal: controller.signal };
   let observer: IntersectionObserver | null = null;
-  let watcher: ResizeObserver | null = null;
 
   const handle: IslandHandle = {
     destroy(): void {
       controller.abort();
       observer?.disconnect();
-      watcher?.disconnect();
       release(toc, "toc");
     },
   };
-
-  const reference = toc.closest(column) ?? toc.parentElement;
-  const strip = toc.querySelector<HTMLElement>("[data-toc-strip]");
-  const inline = toc.querySelector<HTMLElement>("[data-toc-inline]");
-  const panel = toc.querySelector<HTMLElement>(".toc-panel");
 
   /* Each id maps to its link, and each h3 link to its h2's link (the
      link in the closest li around the h3's own list). Ids are looked
@@ -88,7 +66,7 @@ export const mountToc: Island<TocOptions> = (
   const targets: HTMLElement[] = [];
 
   toc
-    .querySelectorAll<HTMLAnchorElement>("[data-toc-strip] a[href^='#']")
+    .querySelectorAll<HTMLAnchorElement>("a[href^='#']")
     .forEach((a) => {
       const id = decodeHash(a.hash);
       const target = id ? doc.getElementById(id) : null;
@@ -100,60 +78,6 @@ export const mountToc: Island<TocOptions> = (
       const parentLink = parent?.querySelector<HTMLAnchorElement>(":scope > a");
       if (parentLink) parents.set(a, parentLink);
     });
-
-  /* The column's content edge (its padding is page air, not gutter),
-     and the component's offset inside it, read from whichever form is
-     rendered: the hidden one has no box. */
-  const measure = (): void => {
-    const box = reference?.getBoundingClientRect();
-
-    const pad = reference
-      ? parseFloat(view.getComputedStyle(reference).paddingLeft) || 0
-      : 0;
-
-    const edge = Math.round((box?.left ?? 0) + pad);
-    const mode = edge >= TOC_STRIP_MIN_GUTTER ? "strip" : "inline";
-    toc.dataset.tocMode = mode;
-    const shown = mode === "strip" ? strip : inline;
-    const left = shown ? Math.round(shown.getBoundingClientRect().left) : edge;
-    toc.style.setProperty("--toc-edge", `${String(edge)}px`);
-    toc.style.setProperty("--toc-inset", `${String(left - edge)}px`);
-
-    /* The strip anchor takes the panel's height (with an equal negative
-       margin, so it takes no room in flow), so it stops sticking when
-       the panel's bottom, not its top, meets the column's end and the
-       list never hangs past the article into the footer. */
-    if (mode === "strip" && panel) {
-      const height = Math.round(panel.getBoundingClientRect().height);
-      toc.style.setProperty("--toc-strip-height", `${String(height)}px`);
-    }
-  };
-
-  measure();
-
-  let frame = false;
-
-  const remeasure = (): void => {
-    if (frame) return;
-    frame = true;
-
-    view.requestAnimationFrame(() => {
-      frame = false;
-      if (!controller.signal.aborted) measure();
-    });
-  };
-
-  view.addEventListener("resize", remeasure, on);
-
-  /* The column can move with no window resize (a scrollbar arriving
-     late, a consumer's layout toggle), and the panel's height follows
-     its list. Writing the strip's height never resizes the panel, so
-     this cannot loop. */
-  if (typeof ResizeObserver === "function") {
-    watcher = new ResizeObserver(remeasure);
-    if (reference) watcher.observe(reference);
-    if (panel) watcher.observe(panel);
-  }
 
   if (targets.length === 0) return handle;
 

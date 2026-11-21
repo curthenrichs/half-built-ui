@@ -1,10 +1,11 @@
 // @vitest-environment jsdom
 /* DOM runtime test for the page TOC island (#438). jsdom has no layout
-   and no IntersectionObserver, so the reference column's, the two
-   shells', and the headings' rects are stubbed, and the observer is a
-   fake whose callback the tests drive. */
+   and no IntersectionObserver, so the headings' rects are stubbed and
+   the observer is a fake whose callback the tests drive. The island
+   tracks the panel form only; the inline form needs no script. */
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import { mountToc, TOC_STRIP_MIN_GUTTER } from "../src/scripts/toc";
+import * as tocModule from "../src/scripts/toc";
+import { mountToc } from "../src/scripts/toc";
 
 const LIST = `<ul class="toc-links">
   <li><a href="#a">A</a>
@@ -16,14 +17,14 @@ const LIST = `<ul class="toc-links">
   <li><a href="#b">B</a></li>
 </ul>`;
 
-const TOC = `
-  <nav class="toc" data-toc aria-label="Sections">
-    <div class="toc-strip" data-toc-strip>
-      <div class="toc-panel">
-        <p class="toc-label boxed-label" aria-hidden="true">Sections</p>
-        <div class="toc-strip-body">${LIST}</div>
-      </div>
-    </div>
+const PANEL = `
+  <nav class="toc-panel" data-toc aria-label="Sections">
+    <p class="toc-label boxed-label" aria-hidden="true">Sections</p>
+    ${LIST}
+  </nav>`;
+
+const INLINE = `
+  <nav class="toc-inline-nav" aria-label="Sections menu">
     <details class="toc-inline" data-toc-inline>
       <summary class="toc-inline-summary">Sections (2)</summary>
       <div class="toc-inline-body">${LIST}</div>
@@ -32,7 +33,7 @@ const TOC = `
 
 const HEADINGS = `<h2 id="a">A</h2><h3 id="a1">A1</h3><h3 id="a2">A2</h3><h2 id="b">B</h2>`;
 
-const PAGE = `<div class="shell"><article>${TOC}${HEADINGS}</article></div>`;
+const PAGE = `<aside>${PANEL}</aside><article>${INLINE}${HEADINGS}</article>`;
 
 interface FakeEntry {
   isIntersecting: boolean;
@@ -53,31 +54,6 @@ class FakeObserver {
   }
 }
 
-class FakeResizeObserver {
-  static instances: FakeResizeObserver[] = [];
-  callback: () => void;
-  observed: Element[] = [];
-  disconnect = vi.fn();
-  observe = (el: Element): void => {
-    this.observed.push(el);
-  };
-  constructor(callback: () => void) {
-    this.callback = callback;
-    FakeResizeObserver.instances.push(this);
-  }
-}
-
-let frames: FrameRequestCallback[] = [];
-
-function runFrames(): void {
-  const pending = frames;
-  frames = [];
-
-  pending.forEach((cb) => {
-    cb(0);
-  });
-}
-
 function el(selector: string): HTMLElement {
   const node = document.querySelector<HTMLElement>(selector);
   if (!node) throw new Error(`${selector} missing from the fixture`);
@@ -94,40 +70,6 @@ function setTop(node: Element, top: number): void {
   node.getBoundingClientRect = () => new DOMRect(0, top, 10, 10);
 }
 
-let gutter = 300;
-
-function anchor(): HTMLElement {
-  return el("[data-toc]");
-}
-
-function inline(): HTMLDetailsElement {
-  const node = document.querySelector("details[data-toc-inline]");
-
-  if (!(node instanceof HTMLDetailsElement)) {
-    throw new Error("the inline disclosure is missing from the fixture");
-  }
-
-  return node;
-}
-
-/* The reference column sits at the gutter; both shells sit 25px inside
-   it, as the component does inside an article's padding. */
-function stubLayout(column: Element = el(".shell")): void {
-  column.getBoundingClientRect = () => new DOMRect(gutter, 0, 900, 2000);
-
-  el(".toc-panel").getBoundingClientRect = () =>
-    new DOMRect(gutter - 200, 0, 184, 400);
-
-  for (const shell of ["[data-toc-strip]", "[data-toc-inline]"]) {
-    el(shell).getBoundingClientRect = () => new DOMRect(gutter + 25, 0, 600, 0);
-  }
-}
-
-function resize(): void {
-  window.dispatchEvent(new Event("resize"));
-  runFrames();
-}
-
 function observer(): FakeObserver {
   const first = FakeObserver.instances.at(0);
   if (first === undefined) throw new Error("no observer was created");
@@ -139,9 +81,9 @@ function fire(id: string): void {
 }
 
 function current(): string[] {
-  return [
-    ...document.querySelectorAll('[data-toc-strip] [aria-current="true"]'),
-  ].map((a) => a.getAttribute("href")?.slice(1) ?? "");
+  return [...document.querySelectorAll('[data-toc] [aria-current="true"]')].map(
+    (a) => a.getAttribute("href")?.slice(1) ?? "",
+  );
 }
 
 describe("page TOC island (DOM runtime)", () => {
@@ -149,18 +91,7 @@ describe("page TOC island (DOM runtime)", () => {
     document.body.innerHTML = PAGE;
     history.replaceState(null, "", "/");
     FakeObserver.instances = [];
-    FakeResizeObserver.instances = [];
-    frames = [];
-    gutter = 300;
     vi.stubGlobal("IntersectionObserver", FakeObserver);
-    vi.stubGlobal("ResizeObserver", FakeResizeObserver);
-
-    vi.stubGlobal("requestAnimationFrame", (cb: FrameRequestCallback) => {
-      frames.push(cb);
-      return frames.length;
-    });
-
-    stubLayout();
   });
 
   afterEach(() => {
@@ -168,70 +99,15 @@ describe("page TOC island (DOM runtime)", () => {
     vi.useRealTimers();
   });
 
-  it("strip mode at a 220px gutter, inline below", () => {
-    expect(TOC_STRIP_MIN_GUTTER).toBe(220);
-    gutter = 220;
-    stubLayout();
-    mountToc(document);
-
-    expect(anchor().dataset.tocMode).toBe("strip");
-    expect(anchor().style.getPropertyValue("--toc-edge")).toBe("220px");
-    expect(anchor().style.getPropertyValue("--toc-inset")).toBe("25px");
-
-    document.body.innerHTML = PAGE;
-    gutter = 219;
-    stubLayout();
-    mountToc(document);
-
-    expect(anchor().dataset.tocMode).toBe("inline");
-    expect(anchor().style.getPropertyValue("--toc-edge")).toBe("219px");
+  it("exports only the island: no gutter measuring is left", () => {
+    expect(Object.keys(tocModule).sort()).toEqual(["mountToc"]);
   });
 
-  it("re-measures on resize", () => {
+  it("writes no mode and no layout variables", () => {
     mountToc(document);
 
-    expect(anchor().dataset.tocMode).toBe("strip");
-
-    gutter = 100;
-    resize();
-
-    expect(anchor().dataset.tocMode).toBe("inline");
-    expect(anchor().style.getPropertyValue("--toc-edge")).toBe("100px");
-  });
-
-  it("re-measures when the column resizes without a window resize", () => {
-    mountToc(document);
-    const watcher = FakeResizeObserver.instances.at(0);
-
-    expect(watcher?.observed).toContain(el(".shell"));
-
-    gutter = 100;
-    watcher?.callback();
-    runFrames();
-
-    expect(anchor().dataset.tocMode).toBe("inline");
-  });
-
-  it("writes the strip panel's height for the stylesheet", () => {
-    mountToc(document);
-
-    expect(anchor().style.getPropertyValue("--toc-strip-height")).toBe("400px");
-  });
-
-  it("an open inline disclosure stays open across mode changes", () => {
-    gutter = 100;
-    mountToc(document);
-    inline().open = true;
-    gutter = 300;
-    resize();
-
-    expect(anchor().dataset.tocMode).toBe("strip");
-
-    gutter = 100;
-    resize();
-
-    expect(anchor().dataset.tocMode).toBe("inline");
-    expect(inline().open).toBe(true);
+    expect(el("[data-toc]").hasAttribute("data-toc-mode")).toBe(false);
+    expect(el("[data-toc]").getAttribute("style")).toBeNull();
   });
 
   it("marks the observed heading current", () => {
@@ -241,7 +117,7 @@ describe("page TOC island (DOM runtime)", () => {
     expect(current()).toEqual(["b"]);
   });
 
-  it("only the strip's links are tracked", () => {
+  it("never marks the inline form's links", () => {
     mountToc(document);
     fire("a2");
 
@@ -261,9 +137,7 @@ describe("page TOC island (DOM runtime)", () => {
     expect(current()).toEqual(["a2"]);
 
     expect(
-      el('[data-toc-strip] a[href="#a"]').hasAttribute(
-        "data-toc-parent-current",
-      ),
+      el('[data-toc] a[href="#a"]').hasAttribute("data-toc-parent-current"),
     ).toBe(true);
 
     fire("b");
@@ -301,7 +175,7 @@ describe("page TOC island (DOM runtime)", () => {
 
   it("tracks ids that are not valid CSS selectors", () => {
     document
-      .querySelector("[data-toc-strip] .toc-links")
+      .querySelector("[data-toc] .toc-links")
       ?.insertAdjacentHTML(
         "beforeend",
         '<li><a href="#0.17-release">Release</a></li>',
@@ -323,7 +197,7 @@ describe("page TOC island (DOM runtime)", () => {
 
   it("skips a link whose target is missing", () => {
     document
-      .querySelector("[data-toc-strip] .toc-links")
+      .querySelector("[data-toc] .toc-links")
       ?.insertAdjacentHTML("beforeend", '<li><a href="#ghost">Ghost</a></li>');
 
     expect(() => {
@@ -354,29 +228,6 @@ describe("page TOC island (DOM runtime)", () => {
     expect(current()).toEqual(["b"]);
   });
 
-  it("takes a column selector for the reference edge", () => {
-    document.body.innerHTML = `<div class="page-col"><article>${TOC}${HEADINGS}</article></div>`;
-    gutter = 400;
-    stubLayout(el(".page-col"));
-    mountToc(document, { column: ".page-col" });
-
-    expect(anchor().style.getPropertyValue("--toc-edge")).toBe("400px");
-    expect(anchor().dataset.tocMode).toBe("strip");
-  });
-
-  it("falls back to the parent element when no column matches", () => {
-    document.body.innerHTML = `<article>${TOC}${HEADINGS}</article>`;
-    gutter = 50;
-    stubLayout(el("article"));
-
-    expect(() => {
-      mountToc(document);
-    }).not.toThrow();
-
-    expect(anchor().dataset.tocMode).toBe("inline");
-    expect(anchor().style.getPropertyValue("--toc-edge")).toBe("50px");
-  });
-
   it("mounting twice is a no-op", () => {
     mountToc(document);
     mountToc(document);
@@ -384,36 +235,38 @@ describe("page TOC island (DOM runtime)", () => {
     expect(FakeObserver.instances).toHaveLength(1);
   });
 
-  it("destroy stops re-measuring and tracking, and releases the claim", () => {
+  it("destroy stops tracking and releases the claim", () => {
     const handle = mountToc(document);
+    fire("a");
     handle.destroy();
 
     expect(observer().disconnect).toHaveBeenCalled();
-    expect(FakeResizeObserver.instances.at(0)?.disconnect).toHaveBeenCalled();
-    expect(anchor().hasAttribute("data-island-toc")).toBe(false);
+    expect(el("[data-toc]").hasAttribute("data-island-toc")).toBe(false);
 
-    gutter = 100;
-    stubLayout();
-    resize();
+    history.replaceState(null, "", "#b");
+    window.dispatchEvent(new HashChangeEvent("hashchange"));
 
-    expect(anchor().dataset.tocMode).toBe("strip");
+    expect(current()).toEqual(["a"]);
 
     mountToc(document);
 
     expect(FakeObserver.instances).toHaveLength(2);
   });
 
-  it("takes a selector for the anchor", () => {
-    const node = anchor();
+  it("takes a selector for the panel", () => {
+    const node = el("[data-toc]");
     node.removeAttribute("data-toc");
     node.setAttribute("data-page-toc", "");
     mountToc(document, { selector: "[data-page-toc]" });
+    fire("b");
 
-    expect(el("[data-page-toc]").dataset.tocMode).toBe("strip");
+    expect(
+      el('[data-page-toc] a[href="#b"]').getAttribute("aria-current"),
+    ).toBe("true");
   });
 
-  it("does nothing when there is no [data-toc]", () => {
-    document.body.innerHTML = "<p>no toc</p>";
+  it("an inline-only page is a no-op", () => {
+    document.body.innerHTML = `<article>${INLINE}${HEADINGS}</article>`;
 
     expect(() => {
       mountToc(document);
