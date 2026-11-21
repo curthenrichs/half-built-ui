@@ -1386,6 +1386,40 @@ describe.skipIf(!enabled)("browser suite", () => {
     expect(await p.$("main article.static-page")).not.toBeNull();
   });
 
+  it("a guest card wears the Guest badge and names its guest", async () => {
+    const p = await open();
+
+    const card = await p.$$eval("#cards .demo-card-grid article", (cards) => {
+      const guest = cards.find(
+        (c) =>
+          c.querySelector(".entry-title")?.textContent.trim() ===
+          "Sample post, by a guest",
+      );
+
+      return guest
+        ? {
+            chips: [...guest.querySelectorAll(".corner-badges .chip")].map(
+              (c) => c.className,
+            ),
+            label: guest.querySelector(".badge-guest")?.textContent.trim(),
+            author: guest.querySelector(".post-author")?.textContent.trim(),
+          }
+        : null;
+    });
+
+    expect(card).not.toBeNull();
+    expect(card?.label).toBe("Guest");
+    expect(card?.author).toBe("Sam Rivera");
+
+    /* House order: AI Art, Demo, then Guest, the widest chip row the
+       overlap test below meets. */
+    expect(card?.chips.map((c) => /badge-(\w+)/.exec(c)?.[1])).toEqual([
+      "genai",
+      "demo",
+      "guest",
+    ]);
+  });
+
   it("a card's corner badges never overlap its reading-time chip", async () => {
     const p = await open();
 

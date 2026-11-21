@@ -26,3 +26,12 @@ export const DEMO_BADGE: Badge = {
   label: "Demo",
   icon: "play",
 };
+
+/* The post is by a guest author, not the site's owner. The consumer
+   decides who counts as a guest; the glyph is the card's own author
+   icon. */
+export const GUEST_BADGE: Badge = {
+  key: "guest",
+  label: "Guest",
+  icon: "user",
+};

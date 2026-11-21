@@ -46,9 +46,11 @@ readers. Without it the markup is unchanged.
 `CornerBadges.astro` takes its chips as data, `badges: Badge[]` from
 `scripts/core/badges.ts`: a `key` (rendered as the `badge-<key>` class,
 the styling hook), a `label`, and an `icon` name from the registry.
-The two house conventions ship as `GENAI_BADGE` and `DEMO_BADGE`; a
-site's view-model lists the badges a post carries, in order, and can
-add its own without a package change. `PostCardModel.badges` carries
+The three house conventions ship as `GENAI_BADGE` (a generated
+image), `DEMO_BADGE` (an interactive demo), and `GUEST_BADGE` (a post
+by a guest author rather than the site's owner; the site decides who
+counts as a guest). A site's view-model lists the badges a post
+carries, in order, and can add its own without a package change. `PostCardModel.badges` carries
 them to the card. The content components (`BlogImage`, `GalleryImage`,
 `MediaText`) take the same `badges` array, for example
 `badges={[GENAI_BADGE]}` with `GENAI_BADGE` imported from
