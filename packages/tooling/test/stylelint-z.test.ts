@@ -45,10 +45,12 @@ describe("z-index lint rule", () => {
     );
   });
 
-  it.each(["auto", "var(--z-panel)", "var(--z-henry)", "var(--z-henry-under)"])(
-    "allows z-index: %s",
-    async (v) => {
-      expect(await zWarnings(v)).toEqual([]);
-    },
-  );
+  it.each([
+    "auto",
+    "var(--z-panel)",
+    "var(--z-chat-widget)",
+    "var(--z-chat-widget-under)",
+  ])("allows z-index: %s", async (v) => {
+    expect(await zWarnings(v)).toEqual([]);
+  });
 });
