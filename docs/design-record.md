@@ -70,6 +70,13 @@ Buttondown list. The endpoint and the copy are props.
   heading levels, never the full tree. When to show it is the
   consumer's call: the threshold and any per-page override live in
   the consumer.
+- Guest authorship is two package pieces and a consumer decision
+  (owner, 2026-11-21): `GUEST_BADGE` marks a guest post among the
+  house corner badges, and `AuthorBox` credits the author with a name
+  link and a short bio from typed props. Who counts as a guest, and
+  any intro the site adds, are the consumer's; the package holds no
+  author records. The reference site demos both with an invented
+  sample author; real authors live only in a consumer.
 
 ## Islands
 

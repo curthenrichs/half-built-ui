@@ -1420,6 +1420,66 @@ describe.skipIf(!enabled)("browser suite", () => {
     ]);
   });
 
+  /* AuthorBox (owner design 2026-11-21): the credit that closes a guest
+     post. The demo shows an ordinary box and a stress box with a long
+     unbroken handle and a long bio. */
+  it("the author box credits its author with a named link and a bio", async () => {
+    const p = await open();
+
+    const box = await p.$$eval("aside.author-box", (boxes) => {
+      const first = boxes.at(0);
+      if (!first) return null;
+      const labelId = first.getAttribute("aria-labelledby") ?? "";
+
+      return {
+        name: document.getElementById(labelId)?.textContent.trim(),
+        link: first.querySelector(".author-box-name a")?.textContent.trim(),
+        href: first.querySelector(".author-box-name a")?.getAttribute("href"),
+        bio: first.querySelector(".author-box-bio")?.textContent.trim() ?? "",
+      };
+    });
+
+    expect(box).not.toBeNull();
+    expect(box?.name).toBe("About the author");
+    expect(box?.link).toBe("Sam Rivera");
+    expect(box?.href).toBe("https://example.com/");
+    expect(box?.bio.length).toBeGreaterThan(0);
+  });
+
+  it("two author boxes on one page keep distinct labels", async () => {
+    const p = await open();
+
+    const labels = await p.$$eval("aside.author-box", (boxes) =>
+      boxes.map((b) => {
+        const id = b.getAttribute("aria-labelledby") ?? "";
+        const label = document.getElementById(id);
+        return { id, inside: label !== null && b.contains(label) };
+      }),
+    );
+
+    expect(labels.length).toBe(2);
+    expect(labels[0]?.id).not.toBe(labels[1]?.id);
+    expect(labels.every((l) => l.inside)).toBe(true);
+  });
+
+  it("a long author name and bio wrap inside the box at phone width", async () => {
+    const p = await openAt(390, 844);
+
+    try {
+      const fit = await p.$$eval("aside.author-box", (boxes) => ({
+        boxes: boxes.map((b) => b.scrollWidth <= b.clientWidth),
+        page:
+          document.documentElement.scrollWidth <=
+          document.documentElement.clientWidth,
+      }));
+
+      expect(fit.boxes).toEqual([true, true]);
+      expect(fit.page).toBe(true);
+    } finally {
+      await closePage(p);
+    }
+  });
+
   it("a card's corner badges never overlap its reading-time chip", async () => {
     const p = await open();
 

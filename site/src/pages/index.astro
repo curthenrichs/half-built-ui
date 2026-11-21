@@ -6,6 +6,7 @@ import Toc from "@half-built/astro/components/Toc.astro";
 import { SECTION_TOC } from "../data/sections";
 import Imports from "../components/Imports.astro";
 import EditorNote from "@half-built/astro/content/EditorNote.astro";
+import AuthorBox from "@half-built/astro/components/AuthorBox.astro";
 import WhenPublished from "@half-built/astro/content/WhenPublished.astro";
 import PostLink from "@half-built/astro/content/PostLink.astro";
 import { resolvePostHref } from "@half-built/astro/lib/drafts.ts";
@@ -259,7 +260,8 @@ import Gallery from "@half-built/astro/content/Gallery.astro";
 import GalleryImage from "@half-built/astro/content/GalleryImage.astro";
 import BlogImage from "@half-built/astro/content/BlogImage.astro";
 import MediaText from "@half-built/astro/content/MediaText.astro";
-import Popout from "@half-built/astro/components/Popout.astro";`;
+import Popout from "@half-built/astro/components/Popout.astro";
+import AuthorBox from "@half-built/astro/components/AuthorBox.astro";`;
 
 const cssImports = `import "@half-built/css/tokens";
 import "@half-built/css/prose.css";
@@ -836,6 +838,25 @@ const npmPackages = [
               >A demo note, forced visible. It is the only component in the
               system with a dashed rule.</EditorNote
             >
+
+            <h3>Author box</h3>
+            <p>
+              AuthorBox credits the author of a post. It shows the author's name
+              as a link and a short bio, under a boxed label on its top rule.
+              The label reads "About the author" unless the <code>label</code
+              >{" "} prop sets another. The second box has a long unbroken name
+              and a long bio, which wrap inside the box.
+            </p>
+            <AuthorBox
+              name="Sam Rivera"
+              url="https://example.com/"
+              bio="Placeholder bio text standing in for a short author biography. A second sentence stands in for a link to the author's own site."
+            />
+            <AuthorBox
+              name="sam_rivera_with_a_very_long_unbroken_handle_for_wrapping"
+              url="https://example.com/"
+              bio="Placeholder bio text that runs long on purpose, standing in for an author who wrote more than a line or two about themselves, so the box shows how a long biography wraps at a narrow width without widening the column."
+            />
 
             <h3>When published and Post link</h3>
             <p>

@@ -65,6 +65,32 @@ wider preview concept (the blog's SHOW_DRAFTS builds, for example)
 passes its own gate through the `shown` prop; the component reads no
 consumer config itself.
 
+## AuthorBox
+
+`components/AuthorBox.astro` credits the author of a post, typically a
+guest's. Props are an `AuthorModel` (`name`, `url`, `bio`, typed in
+`components/models.ts`) plus an optional `label`, which defaults to
+"About the author". `url` is rendered exactly as given, so a relative
+path to an about page and an absolute link to another site both work.
+The markup hooks are `aside.author-box` (labelled by its label),
+`.author-box-label`, `.author-box-name` (the link), and
+`.author-box-bio`. The label's id derives from `name`, so boxes for
+two different authors on one page keep distinct accessible names.
+Long names and bios wrap inside the box.
+
+A guest post pairs it with the guest badge on the post's card:
+
+```astro
+---
+import AuthorBox from "@half-built/astro/components/AuthorBox.astro";
+import { GUEST_BADGE } from "@half-built/astro/scripts/core/badges.ts";
+---
+
+<AuthorBox name="Sam Rivera" url="https://example.com/" bio="Short bio." />
+```
+
+with `badges: [GUEST_BADGE]` in that post's `PostCardModel`.
+
 ## WhenPublished and PostLink
 
 `content/PostLink.astro` links to a post by slug and resolves the
