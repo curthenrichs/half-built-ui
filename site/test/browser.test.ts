@@ -2623,19 +2623,405 @@ describe.skipIf(!enabled)("browser suite", () => {
     await closePage(p);
   }, 30_000);
 
-  it("the open popout is on top at desktop", async () => {
-    /* A showModal dialog lives in the top layer, outside the ladder;
-       this guards a regression to a non-modal one. */
+  /* The center of one element lands inside another: a single probe
+     where the grid would step over a small target. */
+  const centerLandsIn = (
+    p: Page,
+    probeSel: string,
+    insideSel: string,
+  ): Promise<string> =>
+    p.evaluate(
+      (probe: string, inside: string) => {
+        const target = document.querySelector(probe);
+        const host = document.querySelector(inside);
+
+        if (!target || !host) return `missing ${!target ? probe : inside}`;
+
+        const r = target.getBoundingClientRect();
+        const x = r.left + r.width / 2;
+        const y = r.top + r.height / 2;
+        const hit = document.elementFromPoint(x, y);
+
+        return hit && host.contains(hit)
+          ? ""
+          : `(${String(Math.round(x))},${String(Math.round(y))}) hits ${
+              hit ? hit.tagName.toLowerCase() : "nothing"
+            }.${hit ? (hit.getAttribute("class") ?? "") : ""}`;
+      },
+      probeSel,
+      insideSel,
+    );
+
+  it("the open palette's corner X and the panel over the Sections label are hit where they paint", async () => {
+    const p = await openAt(1440, 900);
+
+    await p.click(".site-knob > summary");
+
+    /* The X straddles the panel's corner, so the grid skips it; it
+       still has to take its own clicks. */
+    expect(
+      await centerLandsIn(p, ".site-toolbar-close", ".site-toolbar-close"),
+    ).toBe("");
+
+    /* The Sections label straddles the toc panel's top rule, right
+       where the open palette panel comes down over it. */
+    expect(
+      await boxesOverlap(p, ".site-toolbar-body", ".toc-panel .toc-label"),
+      "the panel must cover the Sections label or this proves nothing",
+    ).toBe(true);
+
+    expect(
+      await centerLandsIn(p, ".toc-panel .toc-label", ".site-toolbar-body"),
+    ).toBe("");
+
+    await closePage(p);
+  }, 30_000);
+
+  it("the open popout is on top at desktop, anchored on the ladder", async () => {
+    /* Above phone width popout.ts opens its dialog with show(): not
+       modal, so it is not in the top layer and holds its place by
+       --z-popout alone, over the table it drops across. */
     const p = await openAt(1440, 900);
 
     await p.click("#demo-popout-2");
 
     expect(
-      await p.$eval("dialog.popout", (el) => el.open),
-      "the popout did not open",
+      await p.$eval("dialog.popout", (el) => ({
+        open: el.open,
+        modal: el.matches(":modal"),
+      })),
+      "the popout did not open anchored",
+    ).toEqual({ open: true, modal: false });
+
+    expect(
+      await boxesOverlap(p, "dialog.popout", "section.table-scroll table"),
+      "the popout must drop over the table or this proves nothing",
     ).toBe(true);
 
     expect(await coversItself(p, "dialog.popout")).toEqual([]);
+
+    expect(
+      await coversShared(p, "dialog.popout", "section.table-scroll table"),
+    ).toBe("");
+
+    await closePage(p);
+  }, 30_000);
+
+  it("the open popout's phone sheet is on top at 390", async () => {
+    /* At phone width the same dialog opens with showModal() as a
+       bottom sheet in the top layer, outside the ladder. */
+    const p = await openAt(390, 844);
+
+    await p.$eval("#demo-popout-2", (el) => {
+      el.scrollIntoView({ block: "center" });
+    });
+
+    await p.click("#demo-popout-2");
+
+    expect(
+      await p.$eval("dialog.popout", (el) => ({
+        open: el.open,
+        modal: el.matches(":modal"),
+      })),
+      "the popout did not open as the sheet",
+    ).toEqual({ open: true, modal: true });
+
+    expect(
+      await boxesOverlap(p, "dialog.popout", "main"),
+      "the sheet must sit over page content",
+    ).toBe(true);
+
+    expect(await coversItself(p, "dialog.popout")).toEqual([]);
+
+    await closePage(p);
+  }, 30_000);
+
+  it("a link tip from inside the open popout paints over the popout", async () => {
+    const p = await openAt(1440, 900);
+
+    await p.click("#demo-popout-1");
+
+    await p.waitForFunction(() => {
+      const s = document.querySelector("dialog.popout");
+      return s instanceof HTMLDialogElement && s.open;
+    });
+
+    await p.hover("dialog.popout .popout-body a");
+    await p.waitForSelector(".link-tip.is-open", { timeout: 5000 });
+
+    expect(
+      await boxesOverlap(p, ".link-tip", "dialog.popout"),
+      "the tip must reach the popout or this proves nothing",
+    ).toBe(true);
+
+    /* The tip is pointer-events: none so it never steals its own hover,
+       which also hides it from hit testing. It takes hits only for the
+       length of this synchronous probe; nothing moves, so no event
+       fires in between. */
+    const probe = await p.evaluate(() => {
+      const tip = document.querySelector(".link-tip");
+      const box = document.querySelector("dialog.popout");
+
+      if (!(tip instanceof HTMLElement) || !box) return "missing";
+
+      const t = tip.getBoundingClientRect();
+      const b = box.getBoundingClientRect();
+
+      const points = [
+        [t.left + t.width / 2, t.top + t.height / 2],
+        [
+          (Math.max(t.left, b.left) + Math.min(t.right, b.right)) / 2,
+          (Math.max(t.top, b.top) + Math.min(t.bottom, b.bottom)) / 2,
+        ],
+      ];
+
+      tip.style.pointerEvents = "auto";
+
+      const misses = points.flatMap(([x, y]) => {
+        const hit = document.elementFromPoint(x, y);
+
+        return hit && tip.contains(hit)
+          ? []
+          : [
+              `(${String(Math.round(x))},${String(Math.round(y))}) hits ${
+                hit ? hit.tagName.toLowerCase() : "nothing"
+              }.${hit ? (hit.getAttribute("class") ?? "") : ""}`,
+            ];
+      });
+
+      tip.style.pointerEvents = "";
+
+      return misses.join("; ");
+    });
+
+    expect(probe).toBe("");
+
+    await closePage(p);
+  }, 30_000);
+
+  /* The overlay rule's second half, checked over the whole page rather
+     than one overlay at a time: no element on a page rung (z-index at
+     or over --z-skip-link) may sit inside a stacking context with a
+     lower z-index than its own, short of the root. Such a context caps
+     the element at the context's rung, whatever its own z-index says.
+     Top-layer dialogs are outside every context and are skipped. The
+     check covers what the demo renders: an overlay the demo does not
+     show is not checked, so a new overlay must be demoed to be
+     covered. */
+  const cappedLayers = (p: Page): Promise<string[]> =>
+    p.evaluate(() => {
+      const nameOf = (el: Element): string => {
+        const id = el.id ? `#${el.id}` : "";
+
+        const classes = [...el.classList]
+          .slice(0, 3)
+          .map((c) => `.${c}`)
+          .join("");
+
+        return `${el.tagName.toLowerCase()}${id}${classes}`;
+      };
+
+      const zOf = (cs: CSSStyleDeclaration): number =>
+        cs.zIndex === "auto" ? 0 : Number(cs.zIndex);
+
+      const CONTEXT_WILL_CHANGE = new Set([
+        "transform",
+        "translate",
+        "rotate",
+        "scale",
+        "opacity",
+        "filter",
+        "backdrop-filter",
+        "perspective",
+        "clip-path",
+        "mask",
+        "mask-image",
+        "isolation",
+        "mix-blend-mode",
+        "contain",
+        "position",
+        "z-index",
+      ]);
+
+      /* Why an element forms a stacking context, or "" if it does not. */
+      const contextReason = (el: Element): string => {
+        const cs = getComputedStyle(el);
+
+        const parent = el.parentElement
+          ? getComputedStyle(el.parentElement).display
+          : "";
+
+        const item = /\b(flex|grid)\b/.test(parent);
+
+        if (cs.position === "fixed" || cs.position === "sticky") {
+          return `position: ${cs.position}`;
+        }
+
+        if (cs.zIndex !== "auto" && (cs.position !== "static" || item)) {
+          return `z-index: ${cs.zIndex} on a positioned or flex/grid item`;
+        }
+
+        if (Number(cs.opacity) < 1) return `opacity: ${cs.opacity}`;
+
+        for (const prop of [
+          "transform",
+          "translate",
+          "rotate",
+          "scale",
+          "filter",
+          "backdrop-filter",
+          "perspective",
+          "clip-path",
+          "mask-image",
+          "-webkit-mask-image",
+        ]) {
+          const v = cs.getPropertyValue(prop);
+          if (v && v !== "none") return `${prop}: ${v}`;
+        }
+
+        if (cs.isolation === "isolate") return "isolation: isolate";
+
+        if (/\b(paint|layout|strict|content)\b/.test(cs.contain)) {
+          return `contain: ${cs.contain}`;
+        }
+
+        const will = cs.willChange
+          .split(",")
+          .map((w) => w.trim())
+          .filter((w) => CONTEXT_WILL_CHANGE.has(w));
+
+        if (will.length > 0) return `will-change: ${will.join(", ")}`;
+
+        if (cs.mixBlendMode !== "normal") {
+          return `mix-blend-mode: ${cs.mixBlendMode}`;
+        }
+
+        if (cs.containerType !== "normal") {
+          return `container-type: ${cs.containerType}`;
+        }
+
+        return "";
+      };
+
+      const root = getComputedStyle(document.documentElement);
+      const floor = Number(root.getPropertyValue("--z-skip-link").trim());
+
+      if (!Number.isFinite(floor) || floor <= 0) {
+        return [`--z-skip-link did not resolve: "${String(floor)}"`];
+      }
+
+      const offenders: string[] = [];
+
+      for (const el of document.querySelectorAll("*")) {
+        const cs = getComputedStyle(el);
+        if (cs.zIndex === "auto") continue;
+
+        const z = Number(cs.zIndex);
+        if (z < floor || el.matches(":modal")) continue;
+
+        for (
+          let a = el.parentElement;
+          a && a !== document.documentElement;
+          a = a.parentElement
+        ) {
+          if (a.matches(":modal")) break;
+
+          const reason = contextReason(a);
+          const az = zOf(getComputedStyle(a));
+
+          if (reason && az < z) {
+            offenders.push(
+              `${nameOf(el)} (z ${String(z)}) is capped by ${nameOf(a)} (z ${String(az)}, ${reason})`,
+            );
+          }
+        }
+      }
+
+      return offenders;
+    });
+
+  /* Each overlay the demo opens, opened the way a user does. */
+  const OVERLAYS: {
+    name: string;
+    open: (p: Page) => Promise<boolean>;
+  }[] = [
+    { name: "nothing open", open: () => Promise.resolve(true) },
+    {
+      name: "palette panel",
+      open: async (p) => {
+        await p.click(".site-knob > summary");
+        return true;
+      },
+    },
+    {
+      name: "mobile menu",
+      open: async (p) => {
+        const shown = await p.$eval(
+          ".menu-toggle",
+          (el) => el.getClientRects().length > 0,
+        );
+
+        if (shown) await p.click(".menu-toggle");
+        return shown;
+      },
+    },
+    {
+      name: "popout",
+      open: async (p) => {
+        await p.$eval("#demo-popout-2", (el) => {
+          el.scrollIntoView({ block: "center" });
+        });
+
+        await p.click("#demo-popout-2");
+        return true;
+      },
+    },
+  ];
+
+  it("no page layer sits inside a lower stacking context, with each overlay open", async () => {
+    const found: string[] = [];
+    let checked = 0;
+
+    for (const [width, height] of [
+      [1440, 900],
+      [1024, 800],
+      [390, 844],
+    ] as const) {
+      for (const overlay of OVERLAYS) {
+        const p = await openAt(width, height);
+
+        if (await overlay.open(p)) {
+          checked++;
+
+          for (const line of await cappedLayers(p)) {
+            found.push(`${String(width)}px, ${overlay.name}: ${line}`);
+          }
+        }
+
+        await closePage(p);
+      }
+    }
+
+    expect(
+      checked,
+      "every viewport opens at least the palette",
+    ).toBeGreaterThan(6);
+
+    expect(found).toEqual([]);
+  }, 120_000);
+
+  it("the stacking-context check catches a planted low context", async () => {
+    /* A control: the check above must be able to fail. A transform on
+       the layout wrapper makes it a z-auto context around the rail. */
+    const p = await openAt(1440, 900);
+
+    await p.addStyleTag({
+      content: ".site-layout { transform: translateZ(0); }",
+    });
+
+    const found = await cappedLayers(p);
+
+    expect(found.some((line) => line.includes("div.site-layout"))).toBe(true);
 
     await closePage(p);
   }, 30_000);

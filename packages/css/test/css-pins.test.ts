@@ -73,16 +73,6 @@ describe("css pins", () => {
     expect(backstopMatch).not.toBeNull();
   });
 
-  it("the popout sits over scroll-top and under the link tip", () => {
-    const prims = read("../src/tokens/primitives.css");
-
-    const z = (name: string): number =>
-      Number(new RegExp(`--${name}: (\\d+);`).exec(prims)?.[1] ?? NaN);
-
-    expect(z("z-popout")).toBeGreaterThan(z("z-scroll-top"));
-    expect(z("z-popout")).toBeLessThan(z("z-tooltip"));
-  });
-
   it("popout.css carries both modes, the scroll lock, and the reduced-motion guard", () => {
     const css = read("../src/popout.css");
     expect(css).toMatch(/@layer components \{/);
@@ -119,7 +109,7 @@ describe("css pins", () => {
     );
   });
 
-  it("the z ladder has a panel rung between scroll-top and popout", () => {
+  it("the z ladder keeps its documented order, local rungs below every page rung", () => {
     const prims = read("../src/tokens/primitives.css");
 
     const z = (name: string): number => {
@@ -128,8 +118,27 @@ describe("css pins", () => {
       return Number(m[1]);
     };
 
-    expect(z("z-panel")).toBeGreaterThan(z("z-scroll-top"));
-    expect(z("z-panel")).toBeLessThan(z("z-popout"));
+    /* The order the css README's Stacking table documents. The local
+       rungs come first: they may meet a page layer in the root
+       context, and must always lose to it. */
+    const order = [
+      "z-raised",
+      "z-raised-top",
+      "z-skip-link",
+      "z-scroll-top",
+      "z-panel",
+      "z-popout",
+      "z-tooltip",
+      "z-search-flyout",
+    ];
+
+    const values = order.map(z);
+
+    for (let i = 1; i < values.length; i++) {
+      expect(values[i], `--${order[i]} over --${order[i - 1]}`).toBeGreaterThan(
+        values[i - 1],
+      );
+    }
   });
 
   it("retired tokens are gone from every css file", () => {

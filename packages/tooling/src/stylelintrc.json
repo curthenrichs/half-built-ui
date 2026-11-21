@@ -30,7 +30,7 @@
     "import-notation": null,
     "declaration-property-value-allowed-list": [
       {
-        "z-index": ["auto", "/^var\\(--z-[a-z0-9-]+\\)$/"]
+        "/^z-index$/i": ["auto", "/^var\\(--z-[a-z0-9-]+\\)$/"]
       },
       {
         "message": "z-index takes auto or a var(--z-*) token, never a raw number or calc (see the @half-built/css README, Architecture > Stacking)"

@@ -8,10 +8,10 @@ const config = JSON.parse(
 
 /* The preset extends stylelint-config-standard, resolved from the
    tooling package. Only the z-index rule is under test here. */
-const zWarnings = async (value: string) => {
+const zWarnings = async (value: string, property = "z-index") => {
   const result = await stylelint.lint({
     code: `a {
-  z-index: ${value};
+  ${property}: ${value};
 }
 `,
     codeFilename: "x.css",
@@ -41,6 +41,14 @@ describe("z-index lint rule", () => {
     "Var(--z-panel)",
   ])("reports z-index: %s", async (v) => {
     expect(await zWarnings(v)).toContain(
+      "declaration-property-value-allowed-list",
+    );
+  });
+
+  /* CSS property names are case-insensitive, so the browser applies
+     Z-INDEX: 3 exactly like z-index: 3. The rule must see it too. */
+  it.each(["Z-INDEX", "Z-Index"])("reports %s: 3", async (property) => {
+    expect(await zWarnings("3", property)).toContain(
       "declaration-property-value-allowed-list",
     );
   });

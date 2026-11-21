@@ -268,7 +268,7 @@ import Popout from "@half-built/astro/components/Popout.astro";
 ---
 
 <Popout label="Row one">
-  A note can contain a <a href="#components">link</a> and
+  A note can contain a <a href="https://www.npmjs.com/package/@half-built/astro">link</a> and
   <code>inline code</code>.
 </Popout>`;
 
@@ -639,8 +639,12 @@ const npmPackages = [
                     <td>42</td>
                     <td>
                       <Popout label="Row one" id="demo-popout-1">
-                        A note can contain a <a href="#components">link</a> and
-                        <code>inline code</code>.
+                        A note can contain a
+                        <a
+                          href="https://www.npmjs.com/package/@half-built/astro"
+                          >link</a
+                        >
+                        and <code>inline code</code>.
                       </Popout>
                     </td>
                   </tr>
