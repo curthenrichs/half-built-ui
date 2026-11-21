@@ -240,6 +240,72 @@ by `packages/css/test/css-pins.test.ts`, such as both themes defining
 its own sweep the same way; this package's own suite pins only what
 this repository's history has needed pinned.
 
+### Stacking
+
+Two kinds of stacking, two kinds of token. Every `z-index` in the
+packages, the demo, and any consumer using the tooling preset is
+`auto` or a `var(--z-*)` token. No raw numbers.
+
+**Page layers** are the things that float over the page: popups,
+flyouts, menus, panels, tooltips, fixed controls. They use the ladder
+in `tokens/primitives.css`:
+
+| Token               | Value | What sits there                                    |
+| ------------------- | ----- | -------------------------------------------------- |
+| `--z-skip-link`     | 10    | the skip link                                      |
+| `--z-scroll-top`    | 17    | the scroll-to-top button                           |
+| `--z-panel`         | 18    | a consumer's fixed or sticky control panel         |
+| `--z-popout`        | 19    | the popout's anchored box                          |
+| `--z-tooltip`       | 20    | link tips                                          |
+| (49, 50)            |       | reserved for a consumer's own floating elements    |
+| `--z-search-flyout` | 99    | the header's search flyout and mobile menu         |
+
+The overlay rule: a layer's z-index lives on the box that floats, or
+on the element that makes its stacking context, and nowhere in
+between.
+
+1. Anything that opens over the page carries its rung itself. DOM
+   order never decides who is on top.
+2. No ancestor between an overlay and the root may create a stacking
+   context with a lower rung than the overlay's. An ancestor that must
+   be a context carries the overlay's rung (the demo's `.site-rail`
+   carries `--z-panel` for everything inside it), and the overlay then
+   carries the same rung inside it to beat its positioned siblings.
+3. Elements opened with `showModal()` (the plate modal, the popout
+   dialog) live in the browser's top layer and are outside the ladder.
+
+Rule 2 is why `.site-header-wrapper` no longer sets a z-index: it was
+a context at a low rung around the mobile menu and the search flyout,
+which capped both under a consumer's fixed panel.
+
+**Local layers** are a decoration lifted over its own component's
+frame or image: straddling labels, corner close boxes, chips over a
+thumbnail, the draft stamp. Two tokens cover them:
+
+- `--z-raised: 1`, one step over the component's own positioned parts.
+- `--z-raised-top: 2`, over a raised part (the PostCard draft stamp
+  over its chips).
+
+They only ever compete inside one component. They never order a
+component against the page.
+
+**Extending it.** A consumer adds its own rungs by defining
+`--z-<name>` custom properties in its own tokens, placed relative to
+the package ladder (for example `--z-henry: 49`). Pick a value between
+the rungs the layer must sit between; the 49 to 50 gap is reserved for
+this. The lint rule accepts any `var(--z-*)`, so a consumer's rungs
+pass with no config. A new layer gets a name, never a `calc()`.
+
+**Enforcement.** The tooling preset's stylelint config allows only
+`auto` and `var(--z-[a-z0-9-]+)` for `z-index`, and
+`packages/css/test/css-pins.test.ts` pins the same ban independently
+for the package sources. This rule is new in 0.18.0 and is a breaking
+lint change: a consumer with raw z-index values fails lint at the bump
+and moves them to `--z-raised` / `--z-raised-top`, or to its own
+`--z-<name>` rung. The demo's browser tests also open every overlay
+and assert it is topmost, so a layer that loses to another fails the
+suite rather than shipping.
+
 ### Prose width
 
 Prose width is never capped: no `max-width` and no `ch` measure on
@@ -276,6 +342,8 @@ order that converges (Prettier, eslint, stylelint, Prettier again);
   TypeScript files run at the type-checked strict tier. The preset also
   carries `@stylistic`'s `padding-line-between-statements`, autofixed
   by `eslint --fix`.
+- `z-index` is held to `auto` or a `var(--z-*)` token by the same
+  stylelint preset; see Stacking above.
 
 ## Bottom-docked controls
 

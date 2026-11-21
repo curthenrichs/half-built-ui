@@ -110,6 +110,19 @@ Not built, on purpose:
   `max-width` is the `100%` image fit) needs selector context that
   stylelint can't see, so each consumer pins it in its own test. See the
   css README.
+- Stacking is an engineered system (2026-11-21). Page layers use the
+  `--z-*` ladder and carry their rung on the floating box; no ancestor
+  may be a lower-rung stacking context; local decoration uses
+  `--z-raised` and `--z-raised-top`; consumers add `--z-<name>` rungs
+  (49 and 50 are reserved). The tooling preset allows only `auto` or
+  `var(--z-*)` for `z-index`, a breaking lint change in 0.18.0. It
+  followed a demo bug: the open Palette panel painted under the rail's
+  TOC panel because both were `z-index: auto` and DOM order decided,
+  after a one-off guard was removed as dead code. Browser tests now
+  assert every opened overlay is topmost. One published-component
+  change: `.site-header-wrapper` dropped its `z-index: 1`, since that
+  low-rung context capped the mobile menu and search flyout under a
+  consumer's fixed panel. See the css README, Stacking.
 
 ## Consumers
 

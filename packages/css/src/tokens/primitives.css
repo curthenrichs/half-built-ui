@@ -115,14 +115,15 @@
     /* Local stacking: over a --z-raised sibling in the same component. */
     --z-raised-top: 2;
 
-    /* z ladder. Skip link above content, scroll-to-top above the
-       header's search flyout would be wrong, so the flyout tops the
-       ladder; a gap below it is reserved for a consumer's own floating
-       elements, defined consumer-side (step 11.1). --z-panel is a
-       consumer's own fixed panel rung: over every page floater
-       (scroll-to-top included), under the popout and the tooltip. The
-       popout's anchored box sits under the tooltip so a link tip
-       inside it still draws on top. */
+    /* z ladder: page layers, the things that float over the page. Each
+       carries its own rung; DOM order never decides. No ancestor
+       between an overlay and the root may be a stacking context with a
+       lower rung: a context that must exist carries the overlay's
+       rung. showModal() elements sit in the top layer, outside the
+       ladder. --z-raised and --z-raised-top (above) are local only and
+       never order a component against the page. A consumer adds a
+       rung as --z-<name> in its own tokens; 49 and 50 are reserved for
+       that. Full model: the css README, Architecture > Stacking. */
 
     --z-skip-link: 10;
     --z-scroll-top: 17;
@@ -133,7 +134,7 @@
     --z-tooltip: 20;
 
     /* 49 and 50 are reserved for a consumer's own floating elements,
-       defined consumer-side (step 11.1). */
+       defined consumer-side. */
     --z-search-flyout: 99;
 
     /* Fluid type scale */
