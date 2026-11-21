@@ -2540,7 +2540,11 @@ describe.skipIf(!enabled)("browser suite", () => {
 
         const a = overlay.getBoundingClientRect();
         const b = other.getBoundingClientRect();
-        const x = (Math.max(a.left, b.left) + Math.min(a.right, b.right)) / 2;
+
+        const x =
+          (Math.max(a.left, b.left, 0) +
+            Math.min(a.right, b.right, window.innerWidth)) /
+          2;
 
         const y =
           (Math.max(a.top, b.top, 0) +
@@ -2585,6 +2589,15 @@ describe.skipIf(!enabled)("browser suite", () => {
 
       await p.click(".site-knob > summary");
 
+      /* At these widths the knob is a fixed corner control and the
+         panel opens up over the page content; no positioned sibling
+         shares its stacking context, so this is a regression guard
+         that the panel stays over the page it covers. */
+      expect(
+        await boxesOverlap(p, ".site-toolbar-body", "main"),
+        `${String(width)}px: the panel must sit over page content`,
+      ).toBe(true);
+
       expect(
         await coversItself(p, ".site-toolbar-body", ".site-toolbar-close"),
         `${String(width)}px`,
@@ -2616,6 +2629,11 @@ describe.skipIf(!enabled)("browser suite", () => {
     const p = await openAt(1440, 900);
 
     await p.click("#demo-popout-2");
+
+    expect(
+      await p.$eval("dialog.popout", (el) => el.open),
+      "the popout did not open",
+    ).toBe(true);
 
     expect(await coversItself(p, "dialog.popout")).toEqual([]);
 
