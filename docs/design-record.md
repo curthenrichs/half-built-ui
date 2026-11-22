@@ -141,6 +141,22 @@ Not built, on purpose:
   change: `.site-header-wrapper` dropped its `z-index: 1`, since that
   low-rung context capped the mobile menu and search flyout under a
   consumer's fixed panel. See the css README, Stacking.
+- The browser floor is Chrome and Edge 99, Firefox 98, and Safari 15.4
+  on macOS and iOS, with Android Chrome and Firefox at their desktop
+  versions (owner, 2026-11-21). It is the `@layer` floor, set one month
+  later for Firefox because the modals need `<dialog>`. The owner chose
+  it over the old implicit floor (color-mix, Safari 16.2) after 30 days
+  of the blog's Cloudflare traffic showed desktop Safari 16.0 and 15.4
+  among visitors. Older browsers would need `@layer` transpiled in every
+  consumer's build, which is not done. The floor is recorded in
+  `@half-built/tooling/browser-floor` and enforced by the stylelint
+  preset: the Baseline lint at 2021 with an allowlist the tooling tests
+  pin to support data, and `half-built/require-fallback` for
+  `color-mix`, the dynamic viewport units, and the `mask` prefix pair.
+  The demo's engine smoke suite covers Chromium, Firefox, and WebKit,
+  which are current builds, so it proves the pages work across engines
+  but not on old versions. See the tooling README, Browser support
+  floor.
 
 ## Consumers
 
