@@ -7,6 +7,7 @@
 import { claim, release, type Island, type IslandHandle } from "./core/island";
 import { iconButton, docOf } from "./core/dom";
 import { buildPlateModal } from "./plate-modal";
+import { watchImage } from "./image-loading";
 import { ICON_CHEVRON_LEFT, ICON_CHEVRON_RIGHT } from "./core/icons";
 
 export interface ZoomView {
@@ -451,6 +452,11 @@ export const mountLightbox: Island<LightboxOptions> = (
     r.dims.textContent = `${String(item.w)} × ${String(item.h)}`;
     r.counter.textContent = `${String(index + 1).padStart(2, "0")} / ${String(items.length).padStart(2, "0")}`;
     r.img.src = item.thumb;
+    /* Nothing on screen yet (opened before the in-page rendition
+       loaded, or stepped to one that has not): the same loading state
+       as the page's images. The swap to the original below stays
+       silent, since by then a picture is already showing. */
+    watchImage(r.viewbox, r.img);
     swapToFull(r.img, item.href, doc);
     resetToFit(r);
   };

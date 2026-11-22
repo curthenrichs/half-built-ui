@@ -228,4 +228,10 @@ describe("css pins", () => {
       /prefers-reduced-motion: reduce\)\s*\{\s*\.img-loading-dots i\s*\{[^}]*animation: none/,
     );
   });
+
+  it("lightbox.css hides the viewbox image while it loads", () => {
+    expect(read("../src/lightbox.css")).toMatch(
+      /\.lb-viewbox\[data-loading\] \.lb-img\s*\{[^}]*opacity: 0/,
+    );
+  });
 });

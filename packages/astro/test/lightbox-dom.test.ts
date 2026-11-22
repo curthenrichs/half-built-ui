@@ -2,7 +2,7 @@
 /* DOM runtime tests for the lightbox decorator, in the manner of
    code-island-dom.test.ts. Fixture markup mirrors the built output of
    the content components (BlogImage, Gallery, Walkthrough/Step). */
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import {
   mountLightbox,
   swapToFull,
@@ -612,5 +612,74 @@ describe("custom selector grouping", () => {
     expect(dialog().querySelector<HTMLElement>(".lb-counter")?.hidden).toBe(
       false,
     );
+  });
+});
+
+/* The viewbox reuses the image loading state (watchImage) whenever its
+   image has nothing to show yet. jsdom never fetches, so complete is
+   pinned on the prototype for each test and restored after. */
+describe("loading state", () => {
+  const proto = HTMLImageElement.prototype;
+  const original = Object.getOwnPropertyDescriptor(proto, "complete");
+
+  const pinComplete = (value: boolean): void => {
+    Object.defineProperty(proto, "complete", {
+      configurable: true,
+      get: () => value,
+    });
+  };
+
+  afterEach(() => {
+    if (original) Object.defineProperty(proto, "complete", original);
+  });
+
+  const viewbox = (): HTMLElement => {
+    const v = dialog().querySelector<HTMLElement>(".lb-viewbox");
+    if (!v) throw new Error("no viewbox");
+    return v;
+  };
+
+  const lbImg = (): HTMLImageElement => {
+    const i = dialog().querySelector<HTMLImageElement>(".lb-img");
+    if (!i) throw new Error("no lb-img");
+    return i;
+  };
+
+  it("an image with nothing to show yet marks the viewbox loading with one label", () => {
+    pinComplete(false);
+    openViaClick(".blog-image a.lightbox-link");
+    expect(viewbox().hasAttribute("data-loading")).toBe(true);
+    expect(viewbox().querySelectorAll(".img-loading").length).toBe(1);
+  });
+
+  it("the viewbox clears on load", () => {
+    pinComplete(false);
+    openViaClick(".blog-image a.lightbox-link");
+    lbImg().dispatchEvent(new Event("load"));
+    expect(viewbox().hasAttribute("data-loading")).toBe(false);
+  });
+
+  it("the viewbox clears on error", () => {
+    pinComplete(false);
+    openViaClick(".blog-image a.lightbox-link");
+    lbImg().dispatchEvent(new Event("error"));
+    expect(viewbox().hasAttribute("data-loading")).toBe(false);
+  });
+
+  it("next, next before anything loads leaves one label and stays loading", () => {
+    pinComplete(false);
+    openViaClick(".gallery-plates a.lightbox-link");
+    const next = dialog().querySelector<HTMLButtonElement>(".lb-next");
+    next?.click();
+    next?.click();
+    expect(viewbox().hasAttribute("data-loading")).toBe(true);
+    expect(viewbox().querySelectorAll(".img-loading").length).toBe(1);
+  });
+
+  it("a complete in-page rendition opens with no loading state", () => {
+    pinComplete(true);
+    openViaClick(".blog-image a.lightbox-link");
+    expect(viewbox().hasAttribute("data-loading")).toBe(false);
+    expect(viewbox().querySelectorAll(".img-loading").length).toBe(0);
   });
 });
