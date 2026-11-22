@@ -1,13 +1,17 @@
 // @vitest-environment jsdom
 /* DOM runtime test for the image loading island: SmartImage's
-   .img-frame gets a "$> Loading..." label and a data-loading mark while
-   its image downloads, cleared on load or error. jsdom never fetches
-   images, so each test pins img.complete by hand. */
-import { describe, it, expect, beforeEach } from "vitest";
+   .img-frame gets a "$> Loading..." label and, once the grace period
+   passes with the image still downloading, a data-loading mark; both go
+   on load or error. jsdom never fetches images, so each test pins
+   img.complete by hand, and fake timers drive the grace period and the
+   fade-out. */
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import {
   buildLoadingLabel,
   mountImageLoading,
   watchImage,
+  LOADING_GRACE_MS,
+  LOADING_FADE_MS,
 } from "../src/scripts/image-loading";
 
 function setComplete(img: HTMLImageElement, complete: boolean): void {
@@ -31,9 +35,19 @@ function frameWith(complete: boolean): {
 
 const labels = (frame: HTMLElement) => frame.querySelectorAll(".img-loading");
 
+/* Past the grace period, with the image still downloading. */
+const graceOver = (): void => {
+  vi.advanceTimersByTime(LOADING_GRACE_MS);
+};
+
 describe("image loading island (DOM runtime)", () => {
   beforeEach(() => {
     document.body.innerHTML = "";
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   it("builds the label as prompt, word, and three dot spans", () => {
@@ -44,18 +58,37 @@ describe("image loading island (DOM runtime)", () => {
     expect(label.textContent).toBe("$>Loading...");
   });
 
-  it("marks an incomplete image loading and appends one aria-hidden label", () => {
+  it("an image still loading after the grace period is marked loading with one aria-hidden label", () => {
     const { frame } = frameWith(false);
     mountImageLoading(document);
+    graceOver();
     expect(frame.hasAttribute("data-loading")).toBe(true);
     expect(labels(frame).length).toBe(1);
     expect(labels(frame)[0].textContent).toBe("$>Loading...");
     expect(labels(frame)[0].getAttribute("aria-hidden")).toBe("true");
   });
 
+  it("the label is in place, unmarked, before the mark lands, so it fades in", () => {
+    const { frame } = frameWith(false);
+    mountImageLoading(document);
+    expect(labels(frame).length).toBe(1);
+    expect(frame.hasAttribute("data-loading")).toBe(false);
+  });
+
+  it("an image that loads within the grace period never gets the mark", () => {
+    const { frame, img } = frameWith(false);
+    mountImageLoading(document);
+    vi.advanceTimersByTime(LOADING_GRACE_MS - 1);
+    expect(frame.hasAttribute("data-loading")).toBe(false);
+    img.dispatchEvent(new Event("load"));
+    graceOver();
+    expect(frame.hasAttribute("data-loading")).toBe(false);
+  });
+
   it("load clears the loading mark", () => {
     const { frame, img } = frameWith(false);
     mountImageLoading(document);
+    graceOver();
     img.dispatchEvent(new Event("load"));
     expect(frame.hasAttribute("data-loading")).toBe(false);
   });
@@ -63,13 +96,25 @@ describe("image loading island (DOM runtime)", () => {
   it("error clears the loading mark so alt text shows", () => {
     const { frame, img } = frameWith(false);
     mountImageLoading(document);
+    graceOver();
     img.dispatchEvent(new Event("error"));
     expect(frame.hasAttribute("data-loading")).toBe(false);
+  });
+
+  it("the label is removed once the fade-out completes", () => {
+    const { frame, img } = frameWith(false);
+    mountImageLoading(document);
+    graceOver();
+    img.dispatchEvent(new Event("load"));
+    expect(labels(frame).length).toBe(1);
+    vi.advanceTimersByTime(LOADING_FADE_MS);
+    expect(labels(frame).length).toBe(0);
   });
 
   it("a complete image never gets the loading mark or a label", () => {
     const { frame } = frameWith(true);
     mountImageLoading(document);
+    graceOver();
     expect(frame.hasAttribute("data-loading")).toBe(false);
     expect(labels(frame).length).toBe(0);
   });
@@ -78,15 +123,29 @@ describe("image loading island (DOM runtime)", () => {
     const { frame } = frameWith(false);
     mountImageLoading(document);
     mountImageLoading(document);
+    graceOver();
     expect(labels(frame).length).toBe(1);
   });
 
   it("re-watching a frame for a new src keeps one label", () => {
     const { frame, img } = frameWith(false);
     watchImage(frame, img);
+    graceOver();
     img.src = "/b.jpg";
     watchImage(frame, img);
+    graceOver();
     expect(frame.hasAttribute("data-loading")).toBe(true);
+    expect(labels(frame).length).toBe(1);
+  });
+
+  it("a re-watch during the fade-out keeps the label it is about to need", () => {
+    const { frame, img } = frameWith(false);
+    watchImage(frame, img);
+    graceOver();
+    img.dispatchEvent(new Event("load"));
+    img.src = "/b.jpg";
+    watchImage(frame, img);
+    vi.advanceTimersByTime(LOADING_FADE_MS);
     expect(labels(frame).length).toBe(1);
   });
 

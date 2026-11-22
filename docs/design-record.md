@@ -102,8 +102,11 @@ sets `data-loading`, so a no-JS render is a bare image and never a
 label stranded over a finished picture. The dots step `visibility` on
 three spans rather than animating `content`, which Safari does not
 animate, and the hidden dots keep their space so the line never
-re-centers. The lightbox shows the label only when it has nothing on
-screen; its swap to the full original stays silent.
+re-centers. The state waits a 150ms grace period before showing, so a
+cache hit (tens of milliseconds) never flashes it, and the label leaves
+the DOM after its fade so no finished image keeps hidden text or running
+animations. The lightbox shows the label whenever its current item has
+not loaded; its swap to the full original stays silent.
 
 ## Tokens and CSS
 

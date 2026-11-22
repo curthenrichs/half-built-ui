@@ -105,7 +105,12 @@ const heroStyle = heroPosition ? `object-position: ${heroPosition}` : undefined;
     height: 100%;
     aspect-ratio: 4 / 2.8;
     object-fit: cover;
-    transition: all 0.5s ease-in-out;
+
+    /* The opacity fade matches the img-loading pattern's 0.35s, so the
+       image arrives as the loading frame leaves. */
+    transition:
+      transform 0.5s ease-in-out,
+      opacity 0.35s ease;
   }
   .post-item:hover .post-item-image :global(img) { transform: scale(1.07); }
 

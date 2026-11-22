@@ -2,12 +2,13 @@
 /* DOM runtime tests for the lightbox decorator, in the manner of
    code-island-dom.test.ts. Fixture markup mirrors the built output of
    the content components (BlogImage, Gallery, Walkthrough/Step). */
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import {
   mountLightbox,
   swapToFull,
   FALLBACK_BOX,
 } from "../src/scripts/lightbox";
+import { LOADING_GRACE_MS } from "../src/scripts/image-loading";
 import { polyfillDialog } from "./helpers";
 
 const PAGE = `
@@ -629,9 +630,20 @@ describe("loading state", () => {
     });
   };
 
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+
   afterEach(() => {
+    vi.useRealTimers();
     if (original) Object.defineProperty(proto, "complete", original);
   });
+
+  /* The mark lands only once the grace period passes with the image
+     still downloading. */
+  const graceOver = (): void => {
+    vi.advanceTimersByTime(LOADING_GRACE_MS);
+  };
 
   const viewbox = (): HTMLElement => {
     const v = dialog().querySelector<HTMLElement>(".lb-viewbox");
@@ -648,6 +660,7 @@ describe("loading state", () => {
   it("an image with nothing to show yet marks the viewbox loading with one label", () => {
     pinComplete(false);
     openViaClick(".blog-image a.lightbox-link");
+    graceOver();
     expect(viewbox().hasAttribute("data-loading")).toBe(true);
     expect(viewbox().querySelectorAll(".img-loading").length).toBe(1);
   });
@@ -655,6 +668,7 @@ describe("loading state", () => {
   it("the viewbox clears on load", () => {
     pinComplete(false);
     openViaClick(".blog-image a.lightbox-link");
+    graceOver();
     lbImg().dispatchEvent(new Event("load"));
     expect(viewbox().hasAttribute("data-loading")).toBe(false);
   });
@@ -662,6 +676,7 @@ describe("loading state", () => {
   it("the viewbox clears on error", () => {
     pinComplete(false);
     openViaClick(".blog-image a.lightbox-link");
+    graceOver();
     lbImg().dispatchEvent(new Event("error"));
     expect(viewbox().hasAttribute("data-loading")).toBe(false);
   });
@@ -672,6 +687,7 @@ describe("loading state", () => {
     const next = dialog().querySelector<HTMLButtonElement>(".lb-next");
     next?.click();
     next?.click();
+    graceOver();
     expect(viewbox().hasAttribute("data-loading")).toBe(true);
     expect(viewbox().querySelectorAll(".img-loading").length).toBe(1);
   });
@@ -679,6 +695,7 @@ describe("loading state", () => {
   it("a complete in-page rendition opens with no loading state", () => {
     pinComplete(true);
     openViaClick(".blog-image a.lightbox-link");
+    graceOver();
     expect(viewbox().hasAttribute("data-loading")).toBe(false);
     expect(viewbox().querySelectorAll(".img-loading").length).toBe(0);
   });

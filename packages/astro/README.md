@@ -275,8 +275,10 @@ label at three dots. The styles are the `img-loading` pattern in
 `@half-built/css/patterns.css`.
 
 The script sets the mark, never the server, so without JS an image
-renders exactly as a bare `<img>`. An image that is already loaded when
-the script runs never shows the state. `watchImage(frame, img)` and
+renders exactly as a bare `<img>`. The mark waits a 150ms grace period
+(`LOADING_GRACE_MS`), so an image that is already loaded or arrives from
+cache never shows the state, and the label leaves the DOM once its
+0.35s fade-out ends (`LOADING_FADE_MS`). `watchImage(frame, img)` and
 `buildLoadingLabel(doc)` are exported for other image surfaces; the
 lightbox uses `watchImage` on its viewbox.
 
@@ -309,9 +311,9 @@ new window. Any zoom and pan the reader had set is discarded, on
 purpose: the old view was measured against a window that no longer
 exists.
 
-When the viewer has nothing to show yet (it was opened before the
-in-page image loaded, or stepped to one that has not), the viewbox shows
-the same loading label as the page's images. The swap from the in-page
+When the viewer's current item has not loaded yet (it was opened
+before the in-page image loaded, or stepped to one that has not), the
+viewbox shows the same loading label as the page's images. The swap from the in-page
 image to the full-size original stays silent, since a picture is
 already on screen.
 

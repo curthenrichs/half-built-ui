@@ -444,9 +444,13 @@
      centered "$> Loading..." with the dots stepping none, one, two,
      three. On load or error the mark clears and everything crossfades
      over 0.35s; an error leaves the alt text showing. */
+
+  /* Its own stacking context: the frame's band and label stack inside
+     it, so a parent's badges, chips, and stamps sit above it whole. */
   .img-frame {
     display: block;
     position: relative;
+    isolation: isolate;
   }
 
   .img-frame > img {
@@ -522,7 +526,14 @@
 
   .img-loading-dots i {
     font-style: normal;
-    animation: 2s steps(1) infinite;
+  }
+
+  /* Only while loading; the label leaves the DOM after its fade.
+     Longhands, so the per-dot animation-name below survives. */
+  [data-loading] > .img-loading .img-loading-dots i {
+    animation-duration: 2s;
+    animation-timing-function: steps(1);
+    animation-iteration-count: infinite;
   }
 
   .img-loading-dots i:nth-child(1) {
@@ -567,8 +578,10 @@
     }
   }
 
+  /* Matches the loading selector's weight so it outranks the per-dot
+     animation-name rules. */
   @media (prefers-reduced-motion: reduce) {
-    .img-loading-dots i {
+    [data-loading] > .img-loading .img-loading-dots i {
       animation: none;
     }
   }

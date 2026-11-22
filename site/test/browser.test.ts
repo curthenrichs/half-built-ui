@@ -188,7 +188,7 @@ describe.skipIf(!enabled)("browser suite", () => {
      palette editor all mount from a module script with no DOM marker
      to wait on. */
   async function open(
-    options: { ecosystem?: EcosystemMode } = {},
+    options: { ecosystem?: EcosystemMode; animate?: boolean } = {},
   ): Promise<Page> {
     if (!browser) throw new Error("no browser (beforeAll failed)");
     const p = await desktopPage(browser);
@@ -210,11 +210,14 @@ describe.skipIf(!enabled)("browser suite", () => {
     await p.goto(`${ORIGIN}/`, { waitUntil: "networkidle0" });
 
     /* Colors must be settled when axe reads them: a theme flip mid
-       transition can interpolate a color past its passing endpoint. */
-    await p.addStyleTag({
-      content:
-        "*, *::before, *::after { transition: none !important; animation: none !important; }",
-    });
+       transition can interpolate a color past its passing endpoint.
+       A test about motion itself opts out with animate. */
+    if (!options.animate) {
+      await p.addStyleTag({
+        content:
+          "*, *::before, *::after { transition: none !important; animation: none !important; }",
+      });
+    }
 
     return p;
   }
@@ -390,10 +393,6 @@ describe.skipIf(!enabled)("browser suite", () => {
     expect(violations, report("dark", violations)).toEqual([]);
   }, 60_000);
 
-  /* The category row's targets (24px for 2.5.8, plus 2px headroom) must not cost the ring or
-     the one-line ellipsis: each link's border box stays inside the
-     row's clip box, so the inset focus ring keeps all four sides, and
-     the row stays a single line however many categories a card has. */
   /* The loading-state wrapper (.img-frame) must be exactly its image's
      box in every SmartImage consumer, or the frame and label would sit
      off the picture and the wrapper would be a layout change. */
@@ -405,28 +404,33 @@ describe.skipIf(!enabled)("browser suite", () => {
       const out: string[] = [];
 
       for (const c of document.querySelectorAll(sel)) {
+        const imgs = c.querySelectorAll("img");
         const frames = c.querySelectorAll(".img-frame");
 
-        if (frames.length !== 1) {
-          out.push(`${c.className}: ${String(frames.length)} frames`);
-          continue;
+        /* One frame per image: a Step with two photos has two. */
+        if (frames.length !== imgs.length) {
+          out.push(
+            `${c.className}: ${String(frames.length)} frames for ${String(imgs.length)} images`,
+          );
         }
 
-        const img = frames[0].querySelector("img");
+        for (const frame of frames) {
+          const img = frame.querySelector("img");
 
-        if (!img) {
-          out.push(`${c.className}: frame without img`);
-          continue;
-        }
+          if (!img) {
+            out.push(`${c.className}: frame without img`);
+            continue;
+          }
 
-        const f = frames[0].getBoundingClientRect();
-        const i = img.getBoundingClientRect();
+          const f = frame.getBoundingClientRect();
+          const i = img.getBoundingClientRect();
 
-        for (const side of ["left", "top", "right", "bottom"] as const) {
-          if (Math.abs(f[side] - i[side]) > 0.5) {
-            out.push(
-              `${c.className} ${side}: frame ${String(f[side])} img ${String(i[side])}`,
-            );
+          for (const side of ["left", "top", "right", "bottom"] as const) {
+            if (Math.abs(f[side] - i[side]) > 0.5) {
+              out.push(
+                `${c.className} ${side}: frame ${String(f[side])} img ${String(i[side])}`,
+              );
+            }
           }
         }
       }
@@ -464,6 +468,43 @@ describe.skipIf(!enabled)("browser suite", () => {
     expect(m.clip).toBe("hidden");
     expect(m.frame).toBe("none");
     expect(m.img).toMatch(/^matrix\(/);
+  }, 30_000);
+
+  /* Samples the specimen's three dots every 100ms across one 2s loop
+     and reports, per dot, whether it was ever hidden. */
+  async function dotsEverHidden(p: Page): Promise<boolean[]> {
+    return p.evaluate(async () => {
+      const dots = [
+        ...document.querySelectorAll(".demo-img-loading .img-loading-dots i"),
+      ];
+
+      const hidden = dots.map(() => false);
+
+      for (let t = 0; t < 21; t++) {
+        dots.forEach((d, i) => {
+          if (getComputedStyle(d).visibility === "hidden") hidden[i] = true;
+        });
+
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      }
+
+      return hidden;
+    });
+  }
+
+  it("the loading dots step through their loop", async () => {
+    const p = await open({ animate: true });
+    expect(await dotsEverHidden(p)).toEqual([true, true, true]);
+  }, 30_000);
+
+  it("under reduced motion the loading dots hold at three", async () => {
+    const p = await open({ animate: true });
+
+    await p.emulateMediaFeatures([
+      { name: "prefers-reduced-motion", value: "reduce" },
+    ]);
+
+    expect(await dotsEverHidden(p)).toEqual([false, false, false]);
   }, 30_000);
 
   it("the loading specimen shows the frame and the label in both themes", async () => {
@@ -512,6 +553,10 @@ describe.skipIf(!enabled)("browser suite", () => {
     }
   }, 30_000);
 
+  /* The category row's targets (24px for 2.5.8, plus 2px headroom) must not cost the ring or
+     the one-line ellipsis: each link's border box stays inside the
+     row's clip box, so the inset focus ring keeps all four sides, and
+     the row stays a single line however many categories a card has. */
   it("card category links reach 26px inside the row's clip box, on one line", async () => {
     const p = await open();
 

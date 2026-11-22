@@ -30,27 +30,59 @@ export function buildLoadingLabel(doc: Document): HTMLSpanElement {
   return label;
 }
 
-/* A superseded watch needs no cleanup: the browser abandons the old
-   request, so its load never fires, and once-listeners left behind are
-   consumed by the next load harmlessly. */
+/* An image that arrives within the grace period (a cache hit takes
+   tens of milliseconds, and the island often runs before it lands)
+   never shows the state at all. The fade matches the patterns.css
+   transitions; the label leaves the DOM once it has faded, so no
+   finished image keeps hidden text or running dot animations. */
+export const LOADING_GRACE_MS = 150;
+export const LOADING_FADE_MS = 350;
+
+/* One live watch per frame: a new watch (the lightbox reuses its
+   viewbox for every item) cancels the old one's listeners and timers. */
+const watches = new WeakMap<HTMLElement, AbortController>();
+
 export function watchImage(frame: HTMLElement, img: HTMLImageElement): void {
+  watches.get(frame)?.abort();
+  const watch = new AbortController();
+  watches.set(frame, watch);
+  const { signal } = watch;
+  const label = frame.querySelector(":scope > .img-loading");
+
   if (img.complete) {
     delete frame.dataset.loading;
+    label?.remove();
     return;
   }
 
-  if (!frame.querySelector(":scope > .img-loading")) {
-    frame.append(buildLoadingLabel(frame.ownerDocument));
-  }
+  /* In place before the mark, so the mark fades it in rather than
+     inserting it at full strength. */
+  if (!label) frame.append(buildLoadingLabel(frame.ownerDocument));
+  const win = frame.ownerDocument.defaultView ?? window;
 
-  frame.dataset.loading = "";
+  const grace = win.setTimeout(() => {
+    if (!img.complete) frame.dataset.loading = "";
+  }, LOADING_GRACE_MS);
 
   const clear = (): void => {
+    win.clearTimeout(grace);
     delete frame.dataset.loading;
+
+    const fade = win.setTimeout(() => {
+      frame.querySelector(":scope > .img-loading")?.remove();
+    }, LOADING_FADE_MS);
+
+    signal.addEventListener("abort", () => {
+      win.clearTimeout(fade);
+    });
   };
 
-  img.addEventListener("load", clear, { once: true });
-  img.addEventListener("error", clear, { once: true });
+  signal.addEventListener("abort", () => {
+    win.clearTimeout(grace);
+  });
+
+  img.addEventListener("load", clear, { once: true, signal });
+  img.addEventListener("error", clear, { once: true, signal });
 }
 
 export const mountImageLoading: Island = (root): IslandHandle => {

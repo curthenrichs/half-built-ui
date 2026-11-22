@@ -225,13 +225,34 @@ describe("css pins", () => {
     expect(css).toMatch(/@keyframes img-loading-dot-[123]\s*\{[^}]*visibility/);
 
     expect(css).toMatch(
-      /prefers-reduced-motion: reduce\)\s*\{\s*\.img-loading-dots i\s*\{[^}]*animation: none/,
+      /prefers-reduced-motion: reduce\)\s*\{\s*\[data-loading\] > \.img-loading \.img-loading-dots i\s*\{[^}]*animation: none/,
     );
   });
 
   it("lightbox.css hides the viewbox image while it loads", () => {
     expect(read("../src/lightbox.css")).toMatch(
       /\.lb-viewbox\[data-loading\] \.lb-img\s*\{[^}]*opacity: 0/,
+    );
+  });
+
+  it("the loading frame contains its own layers and animates only while loading", () => {
+    const css = read("../src/patterns.css");
+
+    expect(css).toMatch(/\.img-frame\s*\{[^}]*isolation: isolate/);
+
+    /* The dots animate only while their frame is loading. */
+    expect(css).toMatch(
+      /\[data-loading\] > \.img-loading \.img-loading-dots i\s*\{[^}]*animation-duration: 2s/,
+    );
+
+    expect(css).not.toMatch(/^\s*\.img-loading-dots i\s*\{[^}]*animation: 2s/m);
+  });
+
+  it("PostCard fades its image in step with the loading frame", () => {
+    const card = read("../../astro/src/components/PostCard.astro");
+
+    expect(card).toMatch(
+      /\.post-item-image a :global\(img\)\s*\{[^}]*transition:[^;]*opacity 0\.35s ease/,
     );
   });
 });
