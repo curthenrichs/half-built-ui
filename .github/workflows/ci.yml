@@ -53,6 +53,9 @@ jobs:
       - run: npm run build:site
       # Chrome is preinstalled at /usr/bin/google-chrome on ubuntu-latest;
       # test-kit/browser-server.ts's candidate list already finds it, so
-      # no browser install step is needed here.
+      # no browser install step is needed for the Puppeteer suites. The
+      # engine smoke (site/test/engines.test.ts) drives Playwright's own
+      # Chromium, Firefox, and WebKit builds, installed here.
+      - run: npx playwright install --with-deps chromium firefox webkit
       - run: npm run test:browser
         env: { BROWSER_TESTS: "1" }

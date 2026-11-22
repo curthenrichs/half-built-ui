@@ -137,6 +137,12 @@ property (`min-height: 100vh; min-height: 100dvh;`), or sit inside an
 new value keeps the old one. Custom properties are exempt, since the
 declaration that reads them is the one checked.
 
+The lint holds the floor's age. Engine differences are a separate
+question: this repo's demo site also runs a smoke suite over every page
+in Playwright's Chromium, Firefox, and WebKit (`site/test/engines.test.ts`).
+Those are current engine builds, so the suite proves the pages work
+across engines, not on old versions.
+
 ## Requirements
 
 Node `^22.13.0 || >=24`. Required peers: `eslint`, `stylelint`,
