@@ -1,6 +1,9 @@
 {
   "extends": ["stylelint-config-standard"],
-  "plugins": ["stylelint-plugin-use-baseline"],
+  "plugins": [
+    "stylelint-plugin-use-baseline",
+    "./stylelint/require-fallback.mjs"
+  ],
   "ignoreFiles": ["**/dist/**", "**/node_modules/**", "**/public/**"],
   "rules": {
     "color-no-hex": [
@@ -67,7 +70,8 @@
         "ignoreFunctions": ["color-mix"],
         "ignoreUnits": ["dvh", "svh", "lvh"]
       }
-    ]
+    ],
+    "half-built/require-fallback": true
   },
   "overrides": [
     {

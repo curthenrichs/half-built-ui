@@ -103,6 +103,7 @@
     --press-on-accent: var(--on-accent-2);
 
     color: var(--press-accent-ink);
+    background-color: var(--surface);
     background-color: color-mix(
       in srgb,
       var(--press-accent) 6%,
@@ -112,6 +113,7 @@
   }
 
   .press-box-accent:hover {
+    background-color: var(--band);
     background-color: color-mix(
       in srgb,
       var(--press-accent) 14%,
@@ -144,6 +146,7 @@
      tint overlay at 0.2), for a second, non-accent button beside a
      plain one. Held, it inverts like any press box. */
   .press-box-shaded {
+    background-color: var(--band);
     background-color: color-mix(in srgb, var(--ink) 20%, var(--surface));
   }
 

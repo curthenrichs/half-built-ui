@@ -128,6 +128,15 @@ fails if either side is missing. A one-off use that degrades harmlessly
 can take a `stylelint-disable-next-line plugin/use-baseline` comment
 with its reason instead.
 
+`color-mix()` and the dynamic viewport units (`dvh`, `svh`, `lvh`) are
+newer than the floor but fine to use with a fallback, so the preset's
+own rule, `half-built/require-fallback`, checks them instead: the
+declaration must come straight after a plain declaration of the same
+property (`min-height: 100vh; min-height: 100dvh;`), or sit inside an
+`@supports` block that tests the same feature. A browser that drops the
+new value keeps the old one. Custom properties are exempt, since the
+declaration that reads them is the one checked.
+
 ## Requirements
 
 Node `^22.13.0 || >=24`. Required peers: `eslint`, `stylelint`,

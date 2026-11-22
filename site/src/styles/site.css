@@ -154,6 +154,7 @@
     gap: 6px;
     padding: 8px 14px;
     color: var(--accent-1-ink);
+    background: var(--surface);
     background: color-mix(in srgb, var(--accent-1) 6%, var(--surface));
     border: var(--stroke) solid var(--accent-1);
     box-shadow: var(--shadow);
@@ -171,6 +172,7 @@
      so the rim stayed on the knob just tapped (owner report
      2026-09-09). */
   .site-knob > summary:hover {
+    background: var(--band);
     background: color-mix(in srgb, var(--accent-1) 14%, var(--surface));
   }
 
@@ -273,6 +275,7 @@
      effect; a manual pick that matches none leaves every chip plain. */
   .site-toolbar-presets button[aria-pressed="true"] {
     color: var(--accent-1-ink);
+    background: var(--surface);
     background: color-mix(in srgb, var(--accent-1) 6%, var(--surface));
     border-color: var(--accent-1);
   }
