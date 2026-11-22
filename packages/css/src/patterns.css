@@ -435,4 +435,141 @@
       right: 16px;
     }
   }
+
+  /* Image loading state (mountImageLoading in @half-built/astro). The
+     script, never the server, sets data-loading on SmartImage's
+     .img-frame (and on the lightbox viewbox), so without JS nothing
+     here applies. While loading: the bracket frame on the band ground,
+     the image held transparent (its alt text is never drawn), and a
+     centered "$> Loading..." with the dots stepping none, one, two,
+     three. On load or error the mark clears and everything crossfades
+     over 0.35s; an error leaves the alt text showing. */
+  .img-frame {
+    display: block;
+    position: relative;
+  }
+
+  .img-frame > img {
+    display: block;
+    transition: opacity 0.35s ease;
+  }
+
+  .img-frame::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: var(--z-raised);
+    border: var(--stroke) solid var(--rule);
+    border-width: var(--stroke) 0;
+    background:
+      linear-gradient(
+          to bottom,
+          var(--rule) 0%,
+          transparent 35%,
+          transparent 65%,
+          var(--rule) 100%
+        )
+        left top / var(--stroke) 100% no-repeat,
+      linear-gradient(
+          to bottom,
+          var(--rule) 0%,
+          transparent 35%,
+          transparent 65%,
+          var(--rule) 100%
+        )
+        right top / var(--stroke) 100% no-repeat,
+      var(--band);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.35s ease;
+  }
+
+  .img-frame[data-loading]::before {
+    opacity: 1;
+  }
+
+  .img-frame[data-loading] > img {
+    opacity: 0;
+  }
+
+  .img-loading {
+    position: absolute;
+    inset: 0;
+    z-index: var(--z-raised-top);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-body);
+    font-size: var(--font-size-xs);
+    line-height: 1.5;
+    color: var(--ink-muted);
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.35s ease;
+  }
+
+  [data-loading] > .img-loading {
+    opacity: 1;
+  }
+
+  /* Prompt, word, and dots sit in one centered row; hidden dots keep
+     their space, so the row never re-centers as they fill. */
+  .img-loading-prompt {
+    margin-right: 0.6ch;
+    color: var(--accent-1-ink);
+  }
+
+  .img-loading-dots i {
+    font-style: normal;
+    animation: 2s steps(1) infinite;
+  }
+
+  .img-loading-dots i:nth-child(1) {
+    animation-name: img-loading-dot-1;
+  }
+
+  .img-loading-dots i:nth-child(2) {
+    animation-name: img-loading-dot-2;
+  }
+
+  .img-loading-dots i:nth-child(3) {
+    animation-name: img-loading-dot-3;
+  }
+
+  @keyframes img-loading-dot-1 {
+    0% {
+      visibility: hidden;
+    }
+
+    25% {
+      visibility: visible;
+    }
+  }
+
+  @keyframes img-loading-dot-2 {
+    0% {
+      visibility: hidden;
+    }
+
+    50% {
+      visibility: visible;
+    }
+  }
+
+  @keyframes img-loading-dot-3 {
+    0% {
+      visibility: hidden;
+    }
+
+    75% {
+      visibility: visible;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .img-loading-dots i {
+      animation: none;
+    }
+  }
 }

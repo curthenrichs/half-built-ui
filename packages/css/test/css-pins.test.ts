@@ -215,4 +215,17 @@ describe("css pins", () => {
     expect(prims).toMatch(/--z-raised: 1;/);
     expect(prims).toMatch(/--z-raised-top: 2;/);
   });
+
+  it("patterns.css defines the image loading state", () => {
+    const css = read("../src/patterns.css");
+
+    expect(css).toMatch(/\.img-frame\[data-loading\]/);
+    expect(css).toMatch(/\.img-loading-prompt\s*\{[^}]*var\(--accent-1-ink\)/);
+    expect(css).toMatch(/\.img-loading\s*\{[^}]*var\(--ink-muted\)/);
+    expect(css).toMatch(/@keyframes img-loading-dot-[123]\s*\{[^}]*visibility/);
+
+    expect(css).toMatch(
+      /prefers-reduced-motion: reduce\)\s*\{\s*\.img-loading-dots i\s*\{[^}]*animation: none/,
+    );
+  });
 });
