@@ -979,6 +979,12 @@ const npmPackages = [
               caption="A full-width figure with a caption and the AI Art badge."
               badges={[GENAI_BADGE]}
             />
+            <BlogImage
+              src={placeholderSquare}
+              alt="Square placeholder image"
+              caption="A narrow figure."
+              narrow
+            />
 
             <h3>Media text</h3>
             <MediaText src={placeholderTall} alt="Tall placeholder image">
@@ -988,6 +994,14 @@ const npmPackages = [
                 single line. On a phone the image stacks above the prose, which
                 is centered like a figure caption.
               </p>
+            </MediaText>
+            <MediaText
+              src={placeholderSquare}
+              alt="Square placeholder image"
+              mediaSide="right"
+              natural
+            >
+              <p>The natural variant keeps the image at its own size.</p>
             </MediaText>
           </div>
         </section>

@@ -394,6 +394,78 @@ describe.skipIf(!enabled)("browser suite", () => {
      the one-line ellipsis: each link's border box stays inside the
      row's clip box, so the inset focus ring keeps all four sides, and
      the row stays a single line however many categories a card has. */
+  /* The loading-state wrapper (.img-frame) must be exactly its image's
+     box in every SmartImage consumer, or the frame and label would sit
+     off the picture and the wrapper would be a layout change. */
+  async function frameMismatches(p: Page): Promise<string[]> {
+    return p.evaluate(() => {
+      const sel =
+        ".blog-image, .gallery-frame, .media-text-media, .step-media, .post-item-image";
+
+      const out: string[] = [];
+
+      for (const c of document.querySelectorAll(sel)) {
+        const frames = c.querySelectorAll(".img-frame");
+
+        if (frames.length !== 1) {
+          out.push(`${c.className}: ${String(frames.length)} frames`);
+          continue;
+        }
+
+        const img = frames[0].querySelector("img");
+
+        if (!img) {
+          out.push(`${c.className}: frame without img`);
+          continue;
+        }
+
+        const f = frames[0].getBoundingClientRect();
+        const i = img.getBoundingClientRect();
+
+        for (const side of ["left", "top", "right", "bottom"] as const) {
+          if (Math.abs(f[side] - i[side]) > 0.5) {
+            out.push(
+              `${c.className} ${side}: frame ${String(f[side])} img ${String(i[side])}`,
+            );
+          }
+        }
+      }
+
+      return out;
+    });
+  }
+
+  it("every SmartImage wrapper is exactly its image's box, desktop and phone", async () => {
+    expect(await frameMismatches(await open())).toEqual([]);
+    await page?.close();
+    expect(await frameMismatches(await openPhone())).toEqual([]);
+  }, 30_000);
+
+  it("a post card's hover zoom still scales the image, not its wrapper, inside the clip", async () => {
+    const p = await open();
+    await p.hover(".post-item");
+
+    await p.waitForFunction(() => {
+      const img = document.querySelector(".post-item-image img");
+      return img ? getComputedStyle(img).transform !== "none" : false;
+    });
+
+    const m = await p.$eval(".post-item-image", (box) => {
+      const frame = box.querySelector(".img-frame");
+      const img = box.querySelector("img");
+
+      return {
+        clip: getComputedStyle(box).overflow,
+        frame: frame ? getComputedStyle(frame).transform : "missing",
+        img: img ? getComputedStyle(img).transform : "missing",
+      };
+    });
+
+    expect(m.clip).toBe("hidden");
+    expect(m.frame).toBe("none");
+    expect(m.img).toMatch(/^matrix\(/);
+  }, 30_000);
+
   it("card category links reach 26px inside the row's clip box, on one line", async () => {
     const p = await open();
 
