@@ -46,10 +46,12 @@ readers. Without it the markup is unchanged.
 `CornerBadges.astro` takes its chips as data, `badges: Badge[]` from
 `scripts/core/badges.ts`: a `key` (rendered as the `badge-<key>` class,
 the styling hook), a `label`, and an `icon` name from the registry.
-The two house conventions ship as `GENAI_BADGE` and `DEMO_BADGE`; a
-site's view-model lists the badges a post carries, in order, and can
-add its own without a package change. `PostCardModel.badges` carries
-them to the card. The content components (`BlogImage`, `GalleryImage`,
+The three house conventions ship as `GENAI_BADGE` (a generated
+image), `DEMO_BADGE` (an interactive demo), and `GUEST_BADGE` (a post
+by a guest author rather than the site's owner; the site decides who
+counts as a guest). A site's view-model lists the badges a post
+carries, in order, and can add its own without a package change.
+`PostCardModel.badges` carries them to the card. The content components (`BlogImage`, `GalleryImage`,
 `MediaText`) take the same `badges` array, for example
 `badges={[GENAI_BADGE]}` with `GENAI_BADGE` imported from
 `@half-built/astro/scripts/core/badges.ts`.
@@ -62,6 +64,35 @@ dev mode, and a deploy build emits nothing for it. A consumer with a
 wider preview concept (the blog's SHOW_DRAFTS builds, for example)
 passes its own gate through the `shown` prop; the component reads no
 consumer config itself.
+
+## AuthorBox
+
+`components/AuthorBox.astro` credits the author of a post, typically a
+guest's. Props are an `AuthorModel` (`name`, `url`, `bio`, typed in
+`components/models.ts`) plus an optional `label`, which defaults to
+"About the author". `url` is rendered exactly as given, so a relative
+path to an about page and an absolute link to another site both work.
+The markup hooks are `aside.author-box`, `.author-box-label`,
+`.author-box-name` (the link), and `.author-box-bio`. The box is a
+landmark named by its label and the author's name ("About the author
+Sam Rivera"), so boxes for two different authors on one page keep
+distinct accessible names. Its ids derive from `name`; a name with no
+Latin letters or digits falls back to `author-box-author`, so two such
+authors on one page would share ids.
+Long names and bios wrap inside the box.
+
+A guest post pairs it with the guest badge on the post's card:
+
+```astro
+---
+import AuthorBox from "@half-built/astro/components/AuthorBox.astro";
+---
+
+<AuthorBox name="Sam Rivera" url="https://example.com/" bio="Short bio." />
+```
+
+with `badges: [GUEST_BADGE]` in that post's `PostCardModel`
+(`GUEST_BADGE` from `@half-built/astro/scripts/core/badges.ts`).
 
 ## WhenPublished and PostLink
 
@@ -214,6 +245,11 @@ required and is the fallback when the slot is empty.
 `searchAction` defaults to `"/search/"`. Pass `searchAction={false}` to
 render no search block at all (no button, flyout, or form). The phone
 theme toggle stays.
+
+The header wrapper does not form a stacking context, so the open
+mobile menu and the search flyout compete at their own rung
+(`--z-search-flyout`) and paint over a consumer's fixed layers on
+lower rungs.
 
 ## Search flyout
 

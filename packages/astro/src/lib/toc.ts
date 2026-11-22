@@ -1,4 +1,4 @@
-/* The page TOC's data (#438): a page's headings as one or two levels,
+/* The page TOC's data: a page's headings as one or two levels,
    never the full tree. TocHeading is structurally Astro's
    MarkdownHeading, so render()'s headings pass straight in; a page
    with hand-built sections maps its own list to the same shape.

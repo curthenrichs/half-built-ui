@@ -111,7 +111,7 @@
   .pm-label {
     position: absolute;
     padding: 2px 8px;
-    z-index: 1;
+    z-index: var(--z-raised);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -145,7 +145,7 @@
     position: absolute;
     top: -17px;
     right: -17px;
-    z-index: 1;
+    z-index: var(--z-raised);
   }
 
   /* Phone: the corner framing device crowds the edges (owner call

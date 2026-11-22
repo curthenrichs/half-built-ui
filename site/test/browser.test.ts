@@ -719,8 +719,12 @@ describe.skipIf(!enabled)("browser suite", () => {
     expect(second).toEqual({ open: true, label: "Row one", hasLink: true });
   });
 
+  /* The demo keeps search on and points it at a stand-in page; the
+     privacy page opts out, so the false case stays demoed. */
   it("the header renders no search block when searchAction is false", async () => {
     const p = await open();
+
+    await p.goto(`${ORIGIN}/privacy/`, { waitUntil: "networkidle0" });
 
     const found = await p.$eval(".site-header", (h) => ({
       block: h.querySelector(".navigation-search") !== null,
@@ -729,6 +733,45 @@ describe.skipIf(!enabled)("browser suite", () => {
 
     expect(found).toEqual({ block: false, form: false });
   });
+
+  it("the header's search form posts to the stand-in page", async () => {
+    const p = await open();
+
+    const form = await p.$eval('.site-header form[role="search"]', (f) => ({
+      action: f.getAttribute("action"),
+      field: f.querySelector("input[type=search]")?.getAttribute("name"),
+    }));
+
+    expect(form).toEqual({ action: "/search/", field: "s" });
+
+    const sitemap = await (await fetch(`${ORIGIN}/sitemap-0.xml`)).text();
+    expect(sitemap).not.toContain("/search/</loc>");
+
+    const res = await p.goto(`${ORIGIN}/search/?s=sample`, {
+      waitUntil: "networkidle0",
+    });
+
+    expect(res?.status()).toBe(200);
+
+    expect(
+      await p.$eval('meta[name="robots"]', (m) => m.getAttribute("content")),
+    ).toBe("noindex");
+
+    expect(await p.$$eval("main", (els) => els.length)).toBe(1);
+    expect(await p.$$eval("h1", (els) => els.length)).toBe(1);
+
+    for (const theme of ["light", "dark"] as const) {
+      await p.evaluate((t) => {
+        if (t === "dark") document.documentElement.dataset.theme = "dark";
+        else delete document.documentElement.dataset.theme;
+      }, theme);
+
+      await settleFrames(p);
+      const violations = await runAxe(p);
+
+      expect(violations, report(`${theme}, /search/`, violations)).toEqual([]);
+    }
+  }, 60_000);
 
   it("the header home link shows the site name when the title slot is empty", async () => {
     const p = await open();
@@ -1276,6 +1319,10 @@ describe.skipIf(!enabled)("browser suite", () => {
 
     const sitemap = await (await fetch(`${ORIGIN}/sitemap-0.xml`)).text();
 
+    /* Every load is fresh: another test may already have visited a
+       policy page, and a cached revisit answers 304, not 200. */
+    await p.setCacheEnabled(false);
+
     for (const href of hrefs) {
       const res = await p.goto(`${ORIGIN}${href}`, {
         waitUntil: "networkidle0",
@@ -1386,11 +1433,122 @@ describe.skipIf(!enabled)("browser suite", () => {
     expect(await p.$("main article.static-page")).not.toBeNull();
   });
 
+  it("a guest card wears the Guest badge and names its guest", async () => {
+    const p = await open();
+
+    const card = await p.$$eval("#cards .demo-card-grid article", (cards) => {
+      const guest = cards.find(
+        (c) =>
+          c.querySelector(".entry-title")?.textContent.trim() ===
+          "Sample post, by a guest",
+      );
+
+      return guest
+        ? {
+            chips: [...guest.querySelectorAll(".corner-badges .chip")].map(
+              (c) => c.className,
+            ),
+            label: guest.querySelector(".badge-guest")?.textContent.trim(),
+            author: guest.querySelector(".post-author")?.textContent.trim(),
+          }
+        : null;
+    });
+
+    expect(card).not.toBeNull();
+    expect(card?.label).toBe("Guest");
+    expect(card?.author).toBe("Sam Rivera");
+
+    /* House order: AI Art, Demo, then Guest, the widest chip row the
+       overlap test below meets. */
+    expect(card?.chips.map((c) => /badge-(\w+)/.exec(c)?.[1])).toEqual([
+      "genai",
+      "demo",
+      "guest",
+    ]);
+  });
+
+  /* AuthorBox (owner design 2026-11-21): the credit that closes a guest
+     post. The demo shows an ordinary box and a stress box with a long
+     unbroken handle and a long bio. */
+  it("the author box credits its author with a named link and a bio", async () => {
+    const p = await open();
+
+    const box = await p.$$eval("aside.author-box", (boxes) => {
+      const first = boxes.at(0);
+      if (!first) return null;
+      const labelId = first.getAttribute("aria-labelledby") ?? "";
+
+      return {
+        name: document
+          .getElementById(labelId.split(" ")[0] ?? "")
+          ?.textContent.trim(),
+        link: first.querySelector(".author-box-name a")?.textContent.trim(),
+        href: first.querySelector(".author-box-name a")?.getAttribute("href"),
+        bio: first.querySelector(".author-box-bio")?.textContent.trim() ?? "",
+      };
+    });
+
+    expect(box).not.toBeNull();
+    expect(box?.name).toBe("About the author");
+    expect(box?.link).toBe("Sam Rivera");
+    expect(box?.href).toBe("https://example.com/");
+    expect(box?.bio.length).toBeGreaterThan(0);
+  });
+
+  /* Each box is a landmark, so its accessible name must be unique on
+     the page: the label plus the author's name. */
+  it("two author boxes on one page keep distinct accessible names", async () => {
+    const p = await open();
+
+    const names = await p.$$eval("aside.author-box", (boxes) =>
+      boxes.map((b) =>
+        (b.getAttribute("aria-labelledby") ?? "")
+          .split(" ")
+          .map((id) => {
+            const el = document.getElementById(id);
+            return el && b.contains(el) ? el.textContent.trim() : "(missing)";
+          })
+          .join(" "),
+      ),
+    );
+
+    /* The stress box links a relative path, the blog's own about-page
+       shape: url renders exactly as given. */
+    expect(
+      await p.$$eval(".author-box-name a", (as) =>
+        as.map((a) => a.getAttribute("href")),
+      ),
+    ).toEqual(["https://example.com/", "/"]);
+
+    expect(names).toEqual([
+      "About the author Sam Rivera",
+      "About the author sam_rivera_with_a_very_long_unbroken_handle_for_wrapping",
+    ]);
+  });
+
+  it("a long author name and bio wrap inside the box at phone width", async () => {
+    const p = await openAt(390, 844);
+
+    try {
+      const fit = await p.$$eval("aside.author-box", (boxes) => ({
+        boxes: boxes.map((b) => b.scrollWidth <= b.clientWidth),
+        page:
+          document.documentElement.scrollWidth <=
+          document.documentElement.clientWidth,
+      }));
+
+      expect(fit.boxes).toEqual([true, true]);
+      expect(fit.page).toBe(true);
+    } finally {
+      await closePage(p);
+    }
+  });
+
   it("a card's corner badges never overlap its reading-time chip", async () => {
     const p = await open();
 
     /* 900px is where the three-up card grid is narrowest: the reading
-       time plus AI Art plus Demo no longer fit on one line. */
+       time plus AI Art, Demo, and Guest no longer fit on one line. */
     for (const width of [900, 1280, 390]) {
       await p.setViewport({ width, height: 900 });
 
@@ -1999,7 +2157,7 @@ describe.skipIf(!enabled)("browser suite", () => {
     ).toEqual([]);
   }, 30_000);
 
-  /* The package Toc (#438): the panel form in the rail under the
+  /* The package Toc: the panel form in the rail under the
      Palette knob above the tablet break, the inline disclosure under
      the title at and below it (owner, 2026-11-21: the gutter strip was
      rejected). These pages skip open()'s palette clear and axe
@@ -2428,6 +2586,817 @@ describe.skipIf(!enabled)("browser suite", () => {
       page = undefined;
     }
   }, 30_000);
+
+  /* Every overlay the demo opens is topmost over what it covers
+     (2026-11-21). The palette panel once painted under the rail's
+     TOC panel: both were z-index: auto inside the rail's stacking
+     context, so DOM order decided. Each test opens the overlay the way
+     a user does, then samples a 4x4 grid inside its box, inset from the
+     edges, and asks elementFromPoint who is there. A test also asserts
+     that the overlay really overlaps the thing it could lose to, so it
+     cannot pass by never meeting it. */
+  const coversItself = (
+    p: Page,
+    selector: string,
+    skip?: string,
+  ): Promise<string[]> =>
+    p.evaluate(
+      (sel: string, skipSel: string | null) => {
+        const overlay = document.querySelector(sel);
+        if (!overlay) return [`${sel}: not found`];
+
+        /* Clamped to the viewport: elementFromPoint answers null off
+           screen, which says nothing about stacking. */
+        const full = overlay.getBoundingClientRect();
+
+        const r = {
+          left: Math.max(full.left, 0),
+          top: Math.max(full.top, 0),
+          width:
+            Math.min(full.right, window.innerWidth) - Math.max(full.left, 0),
+          height:
+            Math.min(full.bottom, window.innerHeight) - Math.max(full.top, 0),
+        };
+
+        const skipped = skipSel
+          ? [...document.querySelectorAll(skipSel)].map((el) =>
+              el.getBoundingClientRect(),
+            )
+          : [];
+
+        const inset = 6;
+        const misses: string[] = [];
+
+        for (let i = 0; i < 4; i++) {
+          for (let j = 0; j < 4; j++) {
+            const x = r.left + inset + ((r.width - 2 * inset) * i) / 3;
+            const y = r.top + inset + ((r.height - 2 * inset) * j) / 3;
+
+            if (
+              skipped.some(
+                (s) =>
+                  x >= s.left && x <= s.right && y >= s.top && y <= s.bottom,
+              )
+            ) {
+              continue;
+            }
+
+            const hit = document.elementFromPoint(x, y);
+
+            if (!hit || !overlay.contains(hit)) {
+              misses.push(
+                `(${String(Math.round(x))},${String(Math.round(y))}) hits ${
+                  hit ? hit.tagName.toLowerCase() : "nothing"
+                }.${hit ? (hit.getAttribute("class") ?? "") : ""}`,
+              );
+            }
+          }
+        }
+
+        return misses;
+      },
+      selector,
+      skip ?? null,
+    );
+
+  const boxesOverlap = (p: Page, a: string, b: string): Promise<boolean> =>
+    p.evaluate(
+      (selA: string, selB: string) => {
+        const ea = document.querySelector(selA);
+        const eb = document.querySelector(selB);
+
+        if (!ea || !eb) return false;
+
+        const ra = ea.getBoundingClientRect();
+        const rb = eb.getBoundingClientRect();
+
+        return (
+          ra.left < rb.right &&
+          ra.right > rb.left &&
+          ra.top < rb.bottom &&
+          ra.bottom > rb.top
+        );
+      },
+      a,
+      b,
+    );
+
+  /* The grid can step over a small neighbor (the corner knob is 40px
+     under a menu hundreds wide), so the shared region gets its own
+     probes: the center of the intersection of the two boxes. */
+  const coversShared = (
+    p: Page,
+    overlaySel: string,
+    otherSel: string,
+  ): Promise<string> =>
+    p.evaluate(
+      (selA: string, selB: string) => {
+        const overlay = document.querySelector(selA);
+        const other = document.querySelector(selB);
+
+        if (!overlay || !other) return "missing";
+
+        const a = overlay.getBoundingClientRect();
+        const b = other.getBoundingClientRect();
+
+        const x =
+          (Math.max(a.left, b.left, 0) +
+            Math.min(a.right, b.right, window.innerWidth)) /
+          2;
+
+        const y =
+          (Math.max(a.top, b.top, 0) +
+            Math.min(a.bottom, b.bottom, window.innerHeight)) /
+          2;
+
+        const hit = document.elementFromPoint(x, y);
+
+        return hit && overlay.contains(hit)
+          ? ""
+          : `(${String(Math.round(x))},${String(Math.round(y))}) hits ${
+              hit ? hit.tagName.toLowerCase() : "nothing"
+            }`;
+      },
+      overlaySel,
+      otherSel,
+    );
+
+  it("the open palette panel is on top at 1440, over the rail toc panel", async () => {
+    const p = await openAt(1440, 900);
+
+    await p.click(".site-knob > summary");
+
+    expect(
+      await boxesOverlap(p, ".site-toolbar-body", ".toc-panel"),
+      "the panel must reach the toc panel or this proves nothing",
+    ).toBe(true);
+
+    expect(
+      await coversItself(p, ".site-toolbar-body", ".site-toolbar-close"),
+    ).toEqual([]);
+
+    await closePage(p);
+  }, 30_000);
+
+  it("the open palette panel is on top at the tablet corner and the phone", async () => {
+    for (const [width, height] of [
+      [1024, 800],
+      [390, 844],
+    ] as const) {
+      const p = await openAt(width, height);
+
+      await p.click(".site-knob > summary");
+
+      /* At these widths the knob is a fixed corner control and the
+         panel opens up over the page content; no positioned sibling
+         shares its stacking context, so this is a regression guard
+         that the panel stays over the page it covers. */
+      expect(
+        await boxesOverlap(p, ".site-toolbar-body", "main"),
+        `${String(width)}px: the panel must sit over page content`,
+      ).toBe(true);
+
+      expect(
+        await coversItself(p, ".site-toolbar-body", ".site-toolbar-close"),
+        `${String(width)}px`,
+      ).toEqual([]);
+
+      await closePage(p);
+    }
+  }, 60_000);
+
+  it("the open mobile menu is on top of the corner knob", async () => {
+    const p = await openAt(390, 480);
+
+    await p.click(".menu-toggle");
+
+    expect(
+      await boxesOverlap(p, "#primary-menu", ".site-rail"),
+      "the open menu must reach the fixed knob or this proves nothing",
+    ).toBe(true);
+
+    expect(await coversItself(p, "#primary-menu")).toEqual([]);
+    expect(await coversShared(p, "#primary-menu", ".site-rail")).toBe("");
+
+    await closePage(p);
+  }, 30_000);
+
+  /* The search flyout drops from the header's magnifier at its own rung
+     (--z-search-flyout). At a short phone viewport it reaches the
+     fixed corner knob, the one fixed layer it can meet. */
+  const openSearch = async (p: Page): Promise<void> => {
+    await p.click(".navigation-search-icon");
+
+    await p.waitForFunction(() => {
+      const f = document.querySelector(".navigation-search-form");
+      return f !== null && getComputedStyle(f).opacity === "1";
+    });
+  };
+
+  it("the open search flyout is on top", async () => {
+    for (const [width, height] of [
+      [1440, 900],
+      [1024, 800],
+    ] as const) {
+      const p = await openAt(width, height);
+
+      try {
+        await openSearch(p);
+
+        expect(
+          await coversItself(p, ".navigation-search-form"),
+          `${String(width)}px`,
+        ).toEqual([]);
+      } finally {
+        await closePage(p);
+      }
+    }
+
+    const p = await openAt(390, 400);
+
+    try {
+      await openSearch(p);
+
+      expect(
+        await boxesOverlap(p, ".navigation-search-form", ".site-rail"),
+        "the open flyout must reach the fixed knob or this proves nothing",
+      ).toBe(true);
+
+      expect(await coversItself(p, ".navigation-search-form")).toEqual([]);
+
+      expect(
+        await coversShared(p, ".navigation-search-form", ".site-rail"),
+      ).toBe("");
+    } finally {
+      await closePage(p);
+    }
+  }, 60_000);
+
+  /* The center of one element lands inside another: a single probe
+     where the grid would step over a small target. */
+  const centerLandsIn = (
+    p: Page,
+    probeSel: string,
+    insideSel: string,
+  ): Promise<string> =>
+    p.evaluate(
+      (probe: string, inside: string) => {
+        const target = document.querySelector(probe);
+        const host = document.querySelector(inside);
+
+        if (!target || !host) return `missing ${!target ? probe : inside}`;
+
+        const r = target.getBoundingClientRect();
+        const x = r.left + r.width / 2;
+        const y = r.top + r.height / 2;
+        const hit = document.elementFromPoint(x, y);
+
+        return hit && host.contains(hit)
+          ? ""
+          : `(${String(Math.round(x))},${String(Math.round(y))}) hits ${
+              hit ? hit.tagName.toLowerCase() : "nothing"
+            }.${hit ? (hit.getAttribute("class") ?? "") : ""}`;
+      },
+      probeSel,
+      insideSel,
+    );
+
+  it("the open palette's corner X and the panel over the Sections label are hit where they paint", async () => {
+    const p = await openAt(1440, 900);
+
+    await p.click(".site-knob > summary");
+
+    /* The X straddles the panel's corner, so the grid skips it; it
+       still has to take its own clicks. */
+    expect(
+      await centerLandsIn(p, ".site-toolbar-close", ".site-toolbar-close"),
+    ).toBe("");
+
+    /* The Sections label straddles the toc panel's top rule, right
+       where the open palette panel comes down over it. */
+    expect(
+      await boxesOverlap(p, ".site-toolbar-body", ".toc-panel .toc-label"),
+      "the panel must cover the Sections label or this proves nothing",
+    ).toBe(true);
+
+    expect(
+      await centerLandsIn(p, ".toc-panel .toc-label", ".site-toolbar-body"),
+    ).toBe("");
+
+    await closePage(p);
+  }, 30_000);
+
+  it("the open popout is on top at desktop, anchored on the ladder", async () => {
+    /* Above phone width popout.ts opens its dialog with show(): not
+       modal, so it is not in the top layer and holds its place by
+       --z-popout alone, over the table it drops across. */
+    const p = await openAt(1440, 900);
+
+    await p.click("#demo-popout-2");
+
+    expect(
+      await p.$eval("dialog.popout", (el) => ({
+        open: el.open,
+        modal: el.matches(":modal"),
+      })),
+      "the popout did not open anchored",
+    ).toEqual({ open: true, modal: false });
+
+    expect(
+      await boxesOverlap(p, "dialog.popout", "section.table-scroll table"),
+      "the popout must drop over the table or this proves nothing",
+    ).toBe(true);
+
+    expect(await coversItself(p, "dialog.popout")).toEqual([]);
+
+    expect(
+      await coversShared(p, "dialog.popout", "section.table-scroll table"),
+    ).toBe("");
+
+    await closePage(p);
+  }, 30_000);
+
+  it("the open popout's phone sheet is on top at 390", async () => {
+    /* At phone width the same dialog opens with showModal() as a
+       bottom sheet in the top layer, outside the ladder. */
+    const p = await openAt(390, 844);
+
+    await p.$eval("#demo-popout-2", (el) => {
+      el.scrollIntoView({ block: "center" });
+    });
+
+    await p.click("#demo-popout-2");
+
+    expect(
+      await p.$eval("dialog.popout", (el) => ({
+        open: el.open,
+        modal: el.matches(":modal"),
+      })),
+      "the popout did not open as the sheet",
+    ).toEqual({ open: true, modal: true });
+
+    expect(
+      await boxesOverlap(p, "dialog.popout", "main"),
+      "the sheet must sit over page content",
+    ).toBe(true);
+
+    expect(await coversItself(p, "dialog.popout")).toEqual([]);
+
+    await closePage(p);
+  }, 30_000);
+
+  it("a link tip from inside the open popout paints over the popout", async () => {
+    const p = await openAt(1440, 900);
+
+    await p.click("#demo-popout-1");
+
+    await p.waitForFunction(() => {
+      const s = document.querySelector("dialog.popout");
+      return s instanceof HTMLDialogElement && s.open;
+    });
+
+    await p.hover("dialog.popout .popout-body a");
+    await p.waitForSelector(".link-tip.is-open", { timeout: 5000 });
+
+    expect(
+      await boxesOverlap(p, ".link-tip", "dialog.popout"),
+      "the tip must reach the popout or this proves nothing",
+    ).toBe(true);
+
+    /* The tip is pointer-events: none so it never steals its own hover,
+       which also hides it from hit testing. It takes hits only for the
+       length of this synchronous probe; nothing moves, so no event
+       fires in between. */
+    const probe = await p.evaluate(() => {
+      const tip = document.querySelector(".link-tip");
+      const box = document.querySelector("dialog.popout");
+
+      if (!(tip instanceof HTMLElement) || !box) return "missing";
+
+      const t = tip.getBoundingClientRect();
+      const b = box.getBoundingClientRect();
+
+      const points = [
+        [t.left + t.width / 2, t.top + t.height / 2],
+        [
+          (Math.max(t.left, b.left) + Math.min(t.right, b.right)) / 2,
+          (Math.max(t.top, b.top) + Math.min(t.bottom, b.bottom)) / 2,
+        ],
+      ];
+
+      tip.style.pointerEvents = "auto";
+
+      const misses = points.flatMap(([x, y]) => {
+        const hit = document.elementFromPoint(x, y);
+
+        return hit && tip.contains(hit)
+          ? []
+          : [
+              `(${String(Math.round(x))},${String(Math.round(y))}) hits ${
+                hit ? hit.tagName.toLowerCase() : "nothing"
+              }.${hit ? (hit.getAttribute("class") ?? "") : ""}`,
+            ];
+      });
+
+      tip.style.pointerEvents = "";
+
+      return misses.join("; ");
+    });
+
+    expect(probe).toBe("");
+
+    await closePage(p);
+  }, 30_000);
+
+  /* The overlay rule's second half, checked over the whole page rather
+     than one overlay at a time: no element on a page rung (z-index at
+     or over --z-skip-link) may sit inside a stacking context with a
+     lower z-index than its own, short of the root. Such a context caps
+     the element at the context's rung, whatever its own z-index says.
+     Top-layer dialogs are outside every context and are skipped. The
+     check covers what the demo renders: an overlay the demo does not
+     show is not checked, so a new overlay must be demoed to be
+     covered. Pages run with transitions and animations off (openAt),
+     so a context that exists only mid-animation is not seen. Given a
+     floating selector, the check also reports when that element is not
+     among the page-rung elements it walked (or the skipped top-layer
+     ones), so a check of a closed or missing overlay cannot pass. */
+  const cappedLayers = (p: Page, floating?: string): Promise<string[]> =>
+    p.evaluate((floatingSel: string | null) => {
+      const nameOf = (el: Element): string => {
+        const id = el.id ? `#${el.id}` : "";
+
+        const classes = [...el.classList]
+          .slice(0, 3)
+          .map((c) => `.${c}`)
+          .join("");
+
+        return `${el.tagName.toLowerCase()}${id}${classes}`;
+      };
+
+      const zOf = (cs: CSSStyleDeclaration): number =>
+        cs.zIndex === "auto" ? 0 : Number(cs.zIndex);
+
+      const CONTEXT_WILL_CHANGE = new Set([
+        "transform",
+        "translate",
+        "rotate",
+        "scale",
+        "opacity",
+        "filter",
+        "backdrop-filter",
+        "perspective",
+        "clip-path",
+        "mask",
+        "mask-image",
+        "isolation",
+        "mix-blend-mode",
+        "contain",
+        "position",
+        "z-index",
+        "offset-path",
+        "view-transition-name",
+        "mask-border",
+        "mask-border-source",
+        "-webkit-mask-box-image",
+        "-webkit-mask-box-image-source",
+      ]);
+
+      /* Why an element forms a stacking context, or "" if it does not. */
+      const contextReason = (el: Element): string => {
+        const cs = getComputedStyle(el);
+
+        const parent = el.parentElement
+          ? getComputedStyle(el.parentElement).display
+          : "";
+
+        const item = /\b(flex|grid)\b/.test(parent);
+
+        if (cs.position === "fixed" || cs.position === "sticky") {
+          return `position: ${cs.position}`;
+        }
+
+        if (cs.zIndex !== "auto" && (cs.position !== "static" || item)) {
+          return `z-index: ${cs.zIndex} on a positioned or flex/grid item`;
+        }
+
+        if (Number(cs.opacity) < 1) return `opacity: ${cs.opacity}`;
+
+        for (const prop of [
+          "transform",
+          "translate",
+          "rotate",
+          "scale",
+          "filter",
+          "backdrop-filter",
+          "perspective",
+          "clip-path",
+          "mask-image",
+          "-webkit-mask-image",
+          "mask-border-source",
+          "-webkit-mask-box-image-source",
+          "offset-path",
+          "view-transition-name",
+        ]) {
+          const v = cs.getPropertyValue(prop);
+          if (v && v !== "none") return `${prop}: ${v}`;
+        }
+
+        if (cs.isolation === "isolate") return "isolation: isolate";
+
+        if (/\b(paint|layout|strict|content)\b/.test(cs.contain)) {
+          return `contain: ${cs.contain}`;
+        }
+
+        const will = cs.willChange
+          .split(",")
+          .map((w) => w.trim())
+          .filter((w) => CONTEXT_WILL_CHANGE.has(w));
+
+        if (will.length > 0) return `will-change: ${will.join(", ")}`;
+
+        if (cs.mixBlendMode !== "normal") {
+          return `mix-blend-mode: ${cs.mixBlendMode}`;
+        }
+
+        if (cs.containerType !== "normal") {
+          return `container-type: ${cs.containerType}`;
+        }
+
+        return "";
+      };
+
+      const root = getComputedStyle(document.documentElement);
+      const floor = Number(root.getPropertyValue("--z-skip-link").trim());
+
+      if (!Number.isFinite(floor) || floor <= 0) {
+        return [`--z-skip-link did not resolve: "${String(floor)}"`];
+      }
+
+      const offenders: string[] = [];
+      const seen = new Set<Element>();
+
+      for (const el of document.querySelectorAll("*")) {
+        if (el.matches(":modal")) {
+          seen.add(el);
+          continue;
+        }
+
+        const cs = getComputedStyle(el);
+        if (cs.zIndex === "auto") continue;
+
+        const z = Number(cs.zIndex);
+        if (z < floor) continue;
+
+        seen.add(el);
+
+        for (
+          let a = el.parentElement;
+          a && a !== document.documentElement;
+          a = a.parentElement
+        ) {
+          if (a.matches(":modal")) break;
+
+          const reason = contextReason(a);
+          const az = zOf(getComputedStyle(a));
+
+          if (reason && az < z) {
+            offenders.push(
+              `${nameOf(el)} (z ${String(z)}) is capped by ${nameOf(a)} (z ${String(az)}, ${reason})`,
+            );
+          }
+        }
+      }
+
+      if (floatingSel !== null) {
+        const target = document.querySelector(floatingSel);
+
+        if (!target || !seen.has(target)) {
+          offenders.push(
+            `${floatingSel} is not among the page-rung or top-layer elements checked`,
+          );
+        }
+      }
+
+      return offenders;
+    }, floating ?? null);
+
+  /* Waits for an overlay's open state: "" once it holds, otherwise
+     what never became true. */
+  const waitOpen = async (
+    p: Page,
+    what: string,
+    check: () => boolean,
+  ): Promise<string> => {
+    try {
+      await p.waitForFunction(check, { timeout: 5000 });
+      return "";
+    } catch {
+      return `${what} never held`;
+    }
+  };
+
+  /* Each overlay the demo opens, opened the way a user does. open
+     returns "" once the overlay is really open, or why it is not;
+     floating is the element that must be among those checked. */
+  const OVERLAYS: Record<
+    string,
+    {
+      floating: string | null;
+      open: (p: Page, width: number) => Promise<string>;
+    }
+  > = {
+    "nothing open": { floating: null, open: () => Promise.resolve("") },
+    "palette panel": {
+      floating: ".site-toolbar-body",
+      open: async (p) => {
+        await p.click(".site-knob > summary");
+
+        return waitOpen(p, ".site-knob[open]", () =>
+          Boolean(document.querySelector(".site-knob[open]")),
+        );
+      },
+    },
+    "mobile menu": {
+      floating: "#primary-menu",
+      open: async (p) => {
+        await p.click(".menu-toggle");
+
+        return waitOpen(p, "#primary-menu.open", () =>
+          Boolean(document.querySelector("#primary-menu.open")),
+        );
+      },
+    },
+    "search flyout": {
+      floating: ".navigation-search-form",
+      open: async (p) => {
+        await p.click(".navigation-search-icon");
+
+        /* Past the opacity fade: the open class lands at once, the form
+           reaches full opacity a transition later. */
+        return waitOpen(p, ".navigation-search-wrap.search-open", () => {
+          const f = document.querySelector(".navigation-search-form");
+          return (
+            document.querySelector(".navigation-search-wrap.search-open") !==
+              null &&
+            f !== null &&
+            getComputedStyle(f).opacity === "1"
+          );
+        });
+      },
+    },
+    popout: {
+      floating: "dialog.popout",
+      open: async (p, width) => {
+        await p.$eval("#demo-popout-2", (el) => {
+          el.scrollIntoView({ block: "center" });
+        });
+
+        await p.click("#demo-popout-2");
+
+        const state = await waitOpen(p, "dialog.popout[open]", () => {
+          const d = document.querySelector("dialog.popout");
+          return d instanceof HTMLDialogElement && d.open;
+        });
+
+        if (state) return state;
+
+        /* The phone sheet is modal (top layer); wider, it is not. */
+        const want = width <= 390;
+
+        const modal = await p.$eval("dialog.popout", (d) =>
+          d.matches(":modal"),
+        );
+
+        return modal === want
+          ? ""
+          : `dialog.popout is ${modal ? "" : "not "}modal at ${String(width)}px`;
+      },
+    },
+  };
+
+  /* The menu toggle shows only at and below 991px, so the menu runs at
+     390 alone. */
+  const STATES = [
+    {
+      width: 1440,
+      height: 900,
+      open: ["nothing open", "palette panel", "search flyout", "popout"],
+    },
+    {
+      width: 1024,
+      height: 800,
+      open: ["nothing open", "palette panel", "search flyout", "popout"],
+    },
+    {
+      width: 390,
+      height: 844,
+      open: [
+        "nothing open",
+        "palette panel",
+        "mobile menu",
+        "search flyout",
+        "popout",
+      ],
+    },
+  ];
+
+  it("no page layer sits inside a lower stacking context, with each overlay open", async () => {
+    const found: string[] = [];
+    const ran: string[] = [];
+
+    for (const { width, height, open } of STATES) {
+      for (const name of open) {
+        const overlay = OVERLAYS[name];
+        const p = await openAt(width, height);
+
+        try {
+          const problem = await overlay.open(p, width);
+
+          if (problem) {
+            found.push(
+              `${String(width)}px, ${name}: did not open (${problem})`,
+            );
+          } else {
+            ran.push(`${String(width)}px ${name}`);
+
+            const lines = await cappedLayers(p, overlay.floating ?? undefined);
+
+            for (const line of lines) {
+              found.push(`${String(width)}px, ${name}: ${line}`);
+            }
+          }
+        } finally {
+          await closePage(p);
+        }
+      }
+    }
+
+    expect(found).toEqual([]);
+
+    expect(ran).toEqual(
+      STATES.flatMap(({ width, open }) =>
+        open.map((name) => `${String(width)}px ${name}`),
+      ),
+    );
+  }, 120_000);
+
+  /* Controls: the check must be able to fail, for every trigger it
+     claims to detect. Each plants one context-forming style on the
+     layout wrapper, a z-auto ancestor of the rail, and expects the rail
+     reported as capped by it with that reason. */
+  it.each([
+    ["transform: translateZ(0)", "transform:"],
+    ["translate: 1px", "translate:"],
+    ["rotate: 1deg", "rotate:"],
+    ["scale: 0.99", "scale:"],
+    ["filter: blur(0)", "filter:"],
+    ["backdrop-filter: blur(1px)", "backdrop-filter:"],
+    ["perspective: 100px", "perspective:"],
+    ["clip-path: inset(0)", "clip-path:"],
+    ["mask-image: linear-gradient(black, black)", "mask-image:"],
+    /* Chrome ships mask-border only in its -webkit-mask-box-image
+       form, so that is the one plantable here; the unprefixed name is
+       still detected for engines that have it. */
+    [
+      "-webkit-mask-box-image-source: linear-gradient(black, black)",
+      "-webkit-mask-box-image-source:",
+    ],
+    ['offset-path: path("M 0 0 H 1")', "offset-path:"],
+    ["view-transition-name: planted", "view-transition-name:"],
+    ["opacity: 0.99", "opacity:"],
+    ["isolation: isolate", "isolation: isolate"],
+    ["contain: paint", "contain:"],
+    ["will-change: transform", "will-change: transform"],
+    ["will-change: view-transition-name", "will-change: view-transition-name"],
+    ["mix-blend-mode: multiply", "mix-blend-mode:"],
+    ["container-type: inline-size", "container-type:"],
+    ["position: relative; z-index: 0", "z-index: 0"],
+  ])(
+    "the stacking-context check catches a planted %s",
+    async (style, reason) => {
+      const p = await openAt(1440, 900);
+
+      try {
+        await p.addStyleTag({ content: `.site-layout { ${style}; }` });
+
+        const found = await cappedLayers(p);
+
+        expect(
+          found.filter(
+            (line) =>
+              line.startsWith("aside.site-rail") &&
+              line.includes("div.site-layout") &&
+              line.includes(reason),
+          ),
+          found.join("\n"),
+        ).toHaveLength(1);
+      } finally {
+        await closePage(p);
+      }
+    },
+    30_000,
+  );
 
   it("the footer's site-info is the copyright line alone", async () => {
     /* The site-name home link under the copyright retired (owner call

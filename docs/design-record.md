@@ -70,6 +70,13 @@ Buttondown list. The endpoint and the copy are props.
   heading levels, never the full tree. When to show it is the
   consumer's call: the threshold and any per-page override live in
   the consumer.
+- Guest authorship is two package pieces and a consumer decision
+  (owner, 2026-11-21): `GUEST_BADGE` marks a guest post among the
+  house corner badges, and `AuthorBox` credits the author with a name
+  link and a short bio from typed props. Who counts as a guest, and
+  any intro the site adds, are the consumer's; the package holds no
+  author records. The reference site demos both with an invented
+  sample author; real authors live only in a consumer.
 
 ## Islands
 
@@ -110,6 +117,30 @@ Not built, on purpose:
   `max-width` is the `100%` image fit) needs selector context that
   stylelint can't see, so each consumer pins it in its own test. See the
   css README.
+- Stacking is an engineered system (2026-11-21). Page layers use the
+  `--z-*` ladder and carry their rung on the floating box; no ancestor
+  may be a lower-rung stacking context; local decoration uses
+  `--z-raised` and `--z-raised-top`; consumers add `--z-<name>` rungs
+  (49 and 50 are reserved). The link tip tops the ladder at 100, over
+  the search flyout (owner, 2026-11-21): it labels exactly what the
+  pointer is on, is transient and `pointer-events: none`, so nothing
+  should cover it. The tooling preset allows only `auto` or
+  `var(--z-*)` for `z-index`, a breaking lint change in 0.19.0. It
+  followed a demo bug: the open Palette panel painted under the rail's
+  TOC panel because both were `z-index: auto` and DOM order decided,
+  after a one-off guard was removed as dead code. The demo's browser
+  suite now holds it two ways: named on-top tests for the overlays the
+  demo renders (palette panel, mobile menu, popout in both modes, a
+  link tip over the popout), and a generic check that no element on a
+  page rung sits inside a lower stacking context. That check opens the
+  palette panel and the popout at 1440, 1024, and 390 and the mobile
+  menu at 390, confirming each opened; the link tip is checked
+  statically at the desktop widths and the phone sheet, in the top layer, is skipped. Only
+  demoed overlays are covered, so a new one must be demoed to be
+  tested. One published-component
+  change: `.site-header-wrapper` dropped its `z-index: 1`, since that
+  low-rung context capped the mobile menu and search flyout under a
+  consumer's fixed panel. See the css README, Stacking.
 
 ## Consumers
 

@@ -1,0 +1,66 @@
+---
+import type { AuthorModel } from "./models";
+import { slugifyCategory } from "../lib/slug";
+
+interface Props extends AuthorModel {
+  label?: string;
+}
+
+const { name, url, bio, label = "About the author" } = Astro.props;
+
+const idBase = `author-box-${slugifyCategory(name) || "author"}`;
+const labelId = `${idBase}-label`;
+const nameId = `${idBase}-name`;
+---
+
+{/* The author credit that closes a post, typically a guest's: a boxed
+    label on the top rule, the author's name as a link, and a short bio.
+    Data arrives as typed props; the site decides who is credited. The
+    box is a landmark named by its label and the author's name, so boxes
+    for two different authors on one page keep distinct names. */}
+<aside class="author-box rule-box" aria-labelledby={`${labelId} ${nameId}`}>
+  <p class="author-box-label boxed-label" id={labelId}>{label}</p>
+  <p class="author-box-name" id={nameId}><a href={url}>{name}</a></p>
+  <p class="author-box-bio">{bio}</p>
+</aside>
+
+<style>
+  /* Box from .rule-box, label from .boxed-label; the straddle and the
+     spacing are here, on EditorNote's recipe. */
+  .author-box {
+    position: relative;
+    margin: 30px 0;
+  }
+
+  .author-box-label {
+    position: absolute;
+    top: 0;
+    left: 20px;
+
+    /* Center the label on the 2px top rule, not on the padding-box edge. */
+    transform: translateY(calc(-50% - 2px));
+    padding: 4px 10px;
+    font-size: var(--font-size-xs);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    line-height: 1;
+  }
+
+  /* A handle or a URL-like name is one unbroken word: it wraps inside
+     the box instead of pushing it wider than the column. */
+  .author-box-name,
+  .author-box-bio {
+    overflow-wrap: anywhere;
+  }
+
+  .author-box-name {
+    margin: 0 0 8px;
+    font-weight: 700;
+  }
+
+  .author-box-bio {
+    margin: 0;
+    font-size: var(--font-size-sm);
+  }
+</style>

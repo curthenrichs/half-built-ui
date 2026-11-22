@@ -20,6 +20,15 @@ export interface PostCardModel {
   categories: { name: string; href: string }[];
 }
 
+/* The author a post credits (AuthorBox.astro). `url` is rendered as
+   given, relative or absolute; the site maps its own author records to
+   this shape. */
+export interface AuthorModel {
+  name: string;
+  url: string;
+  bio: string;
+}
+
 export interface PostRef {
   href: string;
   title: string;

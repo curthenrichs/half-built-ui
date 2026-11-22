@@ -112,7 +112,7 @@ const heroStyle = heroPosition ? `object-position: ${heroPosition}` : undefined;
   /* Stamp from the .draft-stamp pattern; the card's size and stacking
      (above the hover-zoomed image) are here. */
   .draft-stamp {
-    z-index: 2;
+    z-index: var(--z-raised-top);
     font-size: var(--font-size-xl);
   }
 
@@ -127,7 +127,7 @@ const heroStyle = heroPosition ? `object-position: ${heroPosition}` : undefined;
     right: 10px;
     bottom: 10px;
     left: 10px;
-    z-index: 1;
+    z-index: var(--z-raised);
     display: flex;
     flex-wrap: wrap-reverse;
     gap: 6px;

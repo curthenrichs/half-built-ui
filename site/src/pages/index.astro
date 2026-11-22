@@ -6,6 +6,7 @@ import Toc from "@half-built/astro/components/Toc.astro";
 import { SECTION_TOC } from "../data/sections";
 import Imports from "../components/Imports.astro";
 import EditorNote from "@half-built/astro/content/EditorNote.astro";
+import AuthorBox from "@half-built/astro/components/AuthorBox.astro";
 import WhenPublished from "@half-built/astro/content/WhenPublished.astro";
 import PostLink from "@half-built/astro/content/PostLink.astro";
 import { resolvePostHref } from "@half-built/astro/lib/drafts.ts";
@@ -16,6 +17,7 @@ import Icon from "@half-built/astro/components/Icon.astro";
 import {
   GENAI_BADGE,
   DEMO_BADGE,
+  GUEST_BADGE,
 } from "@half-built/astro/scripts/core/badges.ts";
 import PostNavigation from "@half-built/astro/components/PostNavigation.astro";
 import LinkListWidget from "@half-built/astro/components/LinkListWidget.astro";
@@ -106,6 +108,18 @@ const posts: PostCardModel[] = [
     hero: placeholderWide,
     badges: [GENAI_BADGE, DEMO_BADGE],
     categories: [{ name: "Demo", href: "#" }],
+  },
+  {
+    href: samplePostHref,
+    title: "Sample post, by a guest",
+    excerpt:
+      "A fourth placeholder excerpt. This card is by a guest author and carries all three badges.",
+    author: "Sam Rivera",
+    dateStr: "4, Jan 2026",
+    minutes: 5,
+    hero: placeholderWide,
+    badges: [GENAI_BADGE, DEMO_BADGE, GUEST_BADGE],
+    categories: [{ name: "Sample", href: "#" }],
   },
 ];
 
@@ -246,7 +260,8 @@ import Gallery from "@half-built/astro/content/Gallery.astro";
 import GalleryImage from "@half-built/astro/content/GalleryImage.astro";
 import BlogImage from "@half-built/astro/content/BlogImage.astro";
 import MediaText from "@half-built/astro/content/MediaText.astro";
-import Popout from "@half-built/astro/components/Popout.astro";`;
+import Popout from "@half-built/astro/components/Popout.astro";
+import AuthorBox from "@half-built/astro/components/AuthorBox.astro";`;
 
 const cssImports = `import "@half-built/css/tokens";
 import "@half-built/css/prose.css";
@@ -268,7 +283,7 @@ import Popout from "@half-built/astro/components/Popout.astro";
 ---
 
 <Popout label="Row one">
-  A note can contain a <a href="#components">link</a> and
+  A note can contain a <a href="https://www.npmjs.com/package/@half-built/astro">link</a> and
   <code>inline code</code>.
 </Popout>`;
 
@@ -344,7 +359,7 @@ const npmPackages = [
     <main>
       <article class="static-page bracket-frame">
         <h1>half-built-ui</h1>
-        {/* The package Toc's inline form (#438), under the title where a
+        {/* The package Toc's inline form, under the title where a
             post would put it after its hero. Shown at the tablet break
             and below only (site.css); above it the rail carries the
             panel form. Its own landmark name, so the two navs differ. */}
@@ -413,8 +428,9 @@ const npmPackages = [
               any font change. With the slot empty, <code>siteName</code>{" "}
               renders as plain text. Passing
               <code>searchAction={"{false}"}</code>{" "} removes the search
-              button, flyout, and form from the header. This site does that,
-              because it has no search page.
+              button, flyout, and form from the header. The privacy page here
+              does that. Elsewhere the header's search points at a stand-in
+              page, since this site has no search index.
             </p>
             <div class="demo-title-slot-sample">
               <CodeBlock>
@@ -467,10 +483,11 @@ const npmPackages = [
                 PostCard is the card used on archive pages. The second card here
                 is marked as a draft. The draft badge lets an unfinished post be
                 published while still labeled as unfinished. The third card has
-                both corner badges. One marks an AI-generated image and the
-                other marks a post with an interactive demo. CategoryCard is a
-                smaller tile. It shows an image with the category name on a chip
-                over its bottom edge.
+                the AI Art and Demo badges. One marks an AI-generated image and
+                the other marks a post with an interactive demo. The fourth card
+                is a post by a guest author. It carries the Guest badge after
+                the other two. CategoryCard is a smaller tile. It shows an image
+                with the category name on a chip over its bottom edge.
               </p>
               <p>
                 A card's text is taken from the post body. In the Derived
@@ -639,8 +656,12 @@ const npmPackages = [
                     <td>42</td>
                     <td>
                       <Popout label="Row one" id="demo-popout-1">
-                        A note can contain a <a href="#components">link</a> and
-                        <code>inline code</code>.
+                        A note can contain a
+                        <a
+                          href="https://www.npmjs.com/package/@half-built/astro"
+                          >link</a
+                        >
+                        and <code>inline code</code>.
                       </Popout>
                     </td>
                   </tr>
@@ -818,6 +839,25 @@ const npmPackages = [
               >A demo note, forced visible. It is the only component in the
               system with a dashed rule.</EditorNote
             >
+
+            <h3>Author box</h3>
+            <p>
+              AuthorBox credits the author of a post. It shows the author's name
+              as a link and a short bio, under a boxed label on its top rule.
+              The label reads "About the author" unless the <code>label</code
+              >{" "} prop sets another. The second box has a long unbroken name
+              and a long bio, which wrap inside the box.
+            </p>
+            <AuthorBox
+              name="Sam Rivera"
+              url="https://example.com/"
+              bio="Placeholder bio text standing in for a short author biography."
+            />
+            <AuthorBox
+              name="sam_rivera_with_a_very_long_unbroken_handle_for_wrapping"
+              url="/"
+              bio="Placeholder bio text that runs long on purpose, standing in for an author who wrote more than a line or two about themselves, so the box shows how a long biography wraps at a narrow width without widening the column."
+            />
 
             <h3>When published and Post link</h3>
             <p>

@@ -1,4 +1,4 @@
-/* The page TOC island (#438), grown from the demo site's rail TOC.
+/* The page TOC island, grown from the demo site's rail TOC.
    Toc.astro renders one of two forms where the consumer places it:
    the panel (form="panel", [data-toc]), an open boxed list that sits in
    a rail or column, and the inline disclosure (form="inline"), a

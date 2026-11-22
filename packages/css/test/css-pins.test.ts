@@ -3,7 +3,9 @@
    of silently drifting. Not a re-test of the blog's own suite, which
    stays behind in half-built-robots-blog. */
 import { describe, it, expect } from "vitest";
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
+import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 
 const read = (path: string) =>
   readFileSync(new URL(path, import.meta.url), "utf-8");
@@ -71,16 +73,6 @@ describe("css pins", () => {
     expect(backstopMatch).not.toBeNull();
   });
 
-  it("the popout sits over scroll-top and under the link tip", () => {
-    const prims = read("../src/tokens/primitives.css");
-
-    const z = (name: string): number =>
-      Number(new RegExp(`--${name}: (\\d+);`).exec(prims)?.[1] ?? NaN);
-
-    expect(z("z-popout")).toBeGreaterThan(z("z-scroll-top"));
-    expect(z("z-popout")).toBeLessThan(z("z-tooltip"));
-  });
-
   it("popout.css carries both modes, the scroll lock, and the reduced-motion guard", () => {
     const css = read("../src/popout.css");
     expect(css).toMatch(/@layer components \{/);
@@ -117,7 +109,7 @@ describe("css pins", () => {
     );
   });
 
-  it("the z ladder has a panel rung between scroll-top and popout", () => {
+  it("the z ladder keeps its documented order, local rungs below every page rung", () => {
     const prims = read("../src/tokens/primitives.css");
 
     const z = (name: string): number => {
@@ -126,14 +118,32 @@ describe("css pins", () => {
       return Number(m[1]);
     };
 
-    expect(z("z-panel")).toBeGreaterThan(z("z-scroll-top"));
-    expect(z("z-panel")).toBeLessThan(z("z-popout"));
+    /* The order the css README's Stacking table documents. The local
+       rungs come first: they may meet a page layer in the root
+       context, and must always lose to it. */
+    const order = [
+      "z-raised",
+      "z-raised-top",
+      "z-skip-link",
+      "z-scroll-top",
+      "z-panel",
+      "z-popout",
+      "z-search-flyout",
+      "z-tooltip",
+    ];
+
+    const values = order.map(z);
+
+    for (let i = 1; i < values.length; i++) {
+      expect(values[i], `--${order[i]} over --${order[i - 1]}`).toBeGreaterThan(
+        values[i - 1],
+      );
+    }
   });
 
   it("retired tokens are gone from every css file", () => {
     const retired = [
       "--input-border",
-      "--z-raised",
       "--font-size-xxxl",
       "--ink-950",
       "--ink-850",
@@ -162,5 +172,47 @@ describe("css pins", () => {
       );
 
     expect(block?.[0]).toMatch(/scroll-behavior: auto/);
+  });
+
+  it("no raw z-index in the package sources", () => {
+    const files: string[] = [];
+
+    const walk = (dir: string) => {
+      for (const entry of readdirSync(dir, { withFileTypes: true })) {
+        const full = join(dir, entry.name);
+
+        if (entry.isDirectory()) walk(full);
+        else if (/\.(css|astro)$/.test(entry.name)) files.push(full);
+      }
+    };
+
+    for (const root of ["../src", "../../astro/src"]) {
+      walk(fileURLToPath(new URL(root, import.meta.url)));
+    }
+
+    expect(files.length).toBeGreaterThan(20);
+
+    const raw: string[] = [];
+
+    for (const file of files) {
+      const text = readFileSync(file, "utf-8").replace(/\/\*[\s\S]*?\*\//g, "");
+
+      for (const m of text.matchAll(/z-index:\s*([^;}]+)[;}]/gi)) {
+        const value = m[1].trim();
+
+        if (value !== "auto" && !/^var\(--z-[a-z0-9-]+\)$/.test(value)) {
+          raw.push(`${file}: ${value}`);
+        }
+      }
+    }
+
+    expect(raw).toEqual([]);
+  });
+
+  it("primitives define the local stacking tokens", () => {
+    const prims = read("../src/tokens/primitives.css");
+
+    expect(prims).toMatch(/--z-raised: 1;/);
+    expect(prims).toMatch(/--z-raised-top: 2;/);
   });
 });

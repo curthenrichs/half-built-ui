@@ -240,6 +240,102 @@ by `packages/css/test/css-pins.test.ts`, such as both themes defining
 its own sweep the same way; this package's own suite pins only what
 this repository's history has needed pinned.
 
+### Stacking
+
+Two kinds of stacking, two kinds of token. Every `z-index` in the
+packages, the demo, and any consumer using the tooling preset is
+`auto` or a `var(--z-*)` token. No raw numbers.
+
+**Page layers** are the things that float over the page: popups,
+flyouts, menus, panels, tooltips, fixed controls. They use the ladder
+in `tokens/primitives.css`:
+
+| Token               | Value | What sits there                                    |
+| ------------------- | ----- | -------------------------------------------------- |
+| `--z-skip-link`     | 10    | the skip link                                      |
+| `--z-scroll-top`    | 17    | the scroll-to-top button                           |
+| `--z-panel`         | 18    | a consumer's fixed or sticky control panel         |
+| `--z-popout`        | 19    | the popout's anchored box                          |
+| (49, 50)            |       | two rungs reserved for a consumer's own floating elements |
+| `--z-search-flyout` | 99    | the header's search flyout and mobile menu         |
+| `--z-tooltip`       | 100   | link tips                                          |
+
+The link tip tops the ladder. It labels exactly what the pointer is
+on, it is transient, and it is `pointer-events: none`, so it never
+blocks anything and nothing should ever cover it, the open menu and
+the search flyout included.
+
+The overlay rule: a layer's z-index lives on the box that floats, or
+on the element that makes its stacking context, and nowhere in
+between.
+
+1. Anything that opens over the page carries its rung itself. DOM
+   order never decides who is on top.
+2. No ancestor between an overlay and the root may create a stacking
+   context with a lower rung than the overlay's. An ancestor that must
+   be a context carries the overlay's rung (the demo's `.site-rail`
+   carries `--z-panel` for everything inside it), and the overlay then
+   carries the same rung inside it to beat its positioned siblings.
+3. Elements opened with `showModal()` (the plate modal, the popout's
+   phone sheet) live in the browser's top layer and are outside the
+   ladder. The popout's anchored box above phone width opens with
+   `show()`, so it is on the ladder at `--z-popout`.
+
+Rule 2 is why `.site-header-wrapper` no longer sets a z-index: it was
+a context at a low rung around the mobile menu and the search flyout,
+which capped both under a consumer's fixed panel.
+
+**Local layers** are a decoration lifted over its own component's
+frame or image: straddling labels, corner close boxes, chips over a
+thumbnail, the draft stamp. Two tokens cover them:
+
+- `--z-raised: 1`, one step over the component's own positioned parts.
+- `--z-raised-top: 2`, over a raised part (the PostCard draft stamp
+  over its chips).
+
+Both sit below every page rung. Most of them compete only inside
+their own component, but some sit in the root stacking context (the
+PostCard chips and draft stamp, the Step chip), where they can meet a
+page layer. There they always lose to it, and the css pins hold that
+order: `--z-raised` < `--z-raised-top` < `--z-skip-link` <
+`--z-scroll-top` < `--z-panel` < `--z-popout` < `--z-search-flyout` <
+`--z-tooltip`.
+
+**Extending it.** A consumer adds its own rungs by defining
+`--z-<name>` custom properties in its own tokens, placed relative to
+the package ladder (for example `--z-chat-widget: 49`). Pick a value between
+the rungs the layer must sit between; the reserved 49 and 50 rungs are for this: two consumer rungs above the popout (19) and below the search flyout (99). The lint rule accepts any `var(--z-*)`, so a consumer's rungs
+pass with no config. Anything else fails the rule, including `inherit`, `initial`, `unset`, `0`, bare numbers, and negatives. A new layer gets a name, never a `calc()`.
+
+**Enforcement.** The tooling preset's stylelint config allows only
+`auto` and `var(--z-[a-z0-9-]+)` for `z-index`, and
+`packages/css/test/css-pins.test.ts` pins the same ban independently
+for the package sources. The property name matches in any case, so
+`Z-INDEX: 3` fails too. This rule is new in 0.19.0 and is a breaking
+lint change, not autofixable: a consumer with raw z-index values fails
+lint at the bump and moves them to `--z-raised` / `--z-raised-top`, or
+to its own `--z-<name>` rung.
+
+The demo's browser suite checks the overlays the demo renders, in two
+ways. Named on-top tests open the palette panel (at 1440, 1024, and
+390), the mobile menu, the popout (anchored at 1440, the phone sheet
+at 390), and a link tip over the open popout, and assert with
+`elementFromPoint` that each is topmost where it covers something.
+A generic check enforces rule 2. It loads a fresh page for each
+state: nothing open, the palette panel, and the popout at 1440, 1024,
+and 390, plus the mobile menu at 390, the only width where it shows.
+It confirms each overlay really opened and fails if any element at or
+over `--z-skip-link` sits inside a stacking context with a lower
+z-index than its own. The link tip element exists, hidden, from page
+load at 1440 and 1024, so it is checked statically there, not
+hovered; the 390 page is a touch page, where the island mounts no
+tip. The
+popout's phone sheet at 390 is in the top layer and is skipped. The
+pages run with animations off, so a context that exists only
+mid-animation is not seen. Only what the demo shows is checked: an
+overlay the demo does not render, the search flyout included, is not
+covered until it is demoed.
+
 ### Prose width
 
 Prose width is never capped: no `max-width` and no `ch` measure on
@@ -276,6 +372,8 @@ order that converges (Prettier, eslint, stylelint, Prettier again);
   TypeScript files run at the type-checked strict tier. The preset also
   carries `@stylistic`'s `padding-line-between-statements`, autofixed
   by `eslint --fix`.
+- `z-index` is held to `auto` or a `var(--z-*)` token by the same
+  stylelint preset; see Stacking above.
 
 ## Bottom-docked controls
 

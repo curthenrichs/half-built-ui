@@ -1,0 +1,25 @@
+---
+import Base from "../layouts/Base.astro";
+---
+
+<Base
+  title="Search"
+  description="A stand-in search results page for the half-built-ui reference site."
+  noindex
+>
+  <main>
+    <article class="static-page bracket-frame">
+      <h1>Search</h1>
+      <div class="prose">
+        <p>
+          This page stands in for a search results page. The demo has no search
+          index, so it lists no results. The header's search form sends the
+          query here in the <code>s</code> parameter. A site sets
+          <code>searchAction</code> to its own search page and reads the query
+          there.
+        </p>
+        <p><a href="/">Back to the reference site</a></p>
+      </div>
+    </article>
+  </main>
+</Base>
