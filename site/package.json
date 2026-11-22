@@ -13,13 +13,13 @@
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.4",
-    "@half-built/astro": "0.19.0",
-    "@half-built/css": "0.19.0",
+    "@half-built/astro": "0.20.0",
+    "@half-built/css": "0.20.0",
     "astro": "^5.18.2"
   },
   "devDependencies": {
     "@csstools/postcss-global-data": "^4.0.0",
-    "@half-built/tooling": "0.19.0",
+    "@half-built/tooling": "0.20.0",
     "html-validate": "^9.7.1",
     "postcss-custom-media": "^12.0.1",
     "vitest": "^2.1.9"
