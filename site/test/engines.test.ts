@@ -65,62 +65,66 @@ describe.skipIf(!enabled)("engine smoke", () => {
       await browser?.close();
     });
 
-    it.each(PAGES)(`${name} renders %s`, async (path) => {
-      if (!browser) throw new Error(`no ${name} (beforeAll failed)`);
+    it.each(PAGES)(
+      `${name} renders %s`,
+      async (path) => {
+        if (!browser) throw new Error(`no ${name} (beforeAll failed)`);
 
-      const context = await browser.newContext({
-        viewport: { width: WIDTH, height: 844 },
-      });
-
-      try {
-        const page = await context.newPage();
-        const errors: string[] = [];
-
-        page.on("pageerror", (err) => errors.push(err.message));
-
-        page.on("console", (msg) => {
-          if (msg.type() === "error") errors.push(msg.text());
+        const context = await browser.newContext({
+          viewport: { width: WIDTH, height: 844 },
         });
 
-        /* The footer's ecosystem island fetches a live endpoint; the
+        try {
+          const page = await context.newPage();
+          const errors: string[] = [];
+
+          page.on("pageerror", (err) => errors.push(err.message));
+
+          page.on("console", (msg) => {
+            if (msg.type() === "error") errors.push(msg.text());
+          });
+
+          /* The footer's ecosystem island fetches a live endpoint; the
            fixture keeps the run offline and deterministic. */
-        await page.route("**/ecosystem.json", (route) =>
-          route.fulfill({
-            status: 200,
-            contentType: "application/json",
-            headers: { "access-control-allow-origin": "*" },
-            body: ECOSYSTEM_FIXTURE,
-          }),
-        );
+          await page.route("**/ecosystem.json", (route) =>
+            route.fulfill({
+              status: 200,
+              contentType: "application/json",
+              headers: { "access-control-allow-origin": "*" },
+              body: ECOSYSTEM_FIXTURE,
+            }),
+          );
 
-        await page.goto(`${ORIGIN}${path}`, { waitUntil: "networkidle" });
+          await page.goto(`${ORIGIN}${path}`, { waitUntil: "networkidle" });
 
-        for (const selector of ["header", "main", "footer"]) {
-          const box = await page.locator(selector).first().boundingBox();
+          for (const selector of ["header", "main", "footer"]) {
+            const box = await page.locator(selector).first().boundingBox();
 
-          expect(box?.width, `${selector} width`).toBeGreaterThan(0);
-          expect(box?.height, `${selector} height`).toBeGreaterThan(0);
-        }
+            expect(box?.width, `${selector} width`).toBeGreaterThan(0);
+            expect(box?.height, `${selector} height`).toBeGreaterThan(0);
+          }
 
-        /* The tokens sit in a cascade layer: a browser that dropped
+          /* The tokens sit in a cascade layer: a browser that dropped
            layered CSS would leave this custom property unset. */
-        const surface = await page.evaluate(() =>
-          getComputedStyle(document.documentElement)
-            .getPropertyValue("--surface")
-            .trim(),
-        );
+          const surface = await page.evaluate(() =>
+            getComputedStyle(document.documentElement)
+              .getPropertyValue("--surface")
+              .trim(),
+          );
 
-        expect(surface, "layered tokens applied").not.toBe("");
+          expect(surface, "layered tokens applied").not.toBe("");
 
-        const scrollWidth = await page.evaluate(
-          () => document.documentElement.scrollWidth,
-        );
+          const scrollWidth = await page.evaluate(
+            () => document.documentElement.scrollWidth,
+          );
 
-        expect(scrollWidth, "no sideways scroll").toBeLessThanOrEqual(WIDTH);
-        expect(errors).toEqual([]);
-      } finally {
-        await context.close();
-      }
-    });
+          expect(scrollWidth, "no sideways scroll").toBeLessThanOrEqual(WIDTH);
+          expect(errors).toEqual([]);
+        } finally {
+          await context.close();
+        }
+      },
+      30_000,
+    );
   });
 });

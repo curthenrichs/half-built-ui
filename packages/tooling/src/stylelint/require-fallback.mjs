@@ -1,10 +1,13 @@
-// half-built/require-fallback: a declaration using a feature newer than
-// the browser floor must come straight after a plain declaration of the
-// same property, so a browser that drops the new value keeps the old
-// one. The features are color-mix() and the dynamic viewport units,
-// which the Baseline lint leaves to this rule. Custom properties are
-// exempt: they cannot carry a fallback, and the declaration that reads
-// them is the one checked.
+// half-built/require-fallback: a value newer than the browser floor
+// must come straight after a plain declaration of the same property, so
+// a browser that drops the new value keeps the old one. The values are
+// color-mix() and the dynamic viewport units, which the Baseline lint
+// leaves to this rule; an @supports block testing the same feature also
+// counts. A custom property cannot carry a fallback (the var() reading
+// it wins the cascade and computes to nothing), so there only the
+// @supports guard counts. mask and mask-image are the other case: Chrome
+// below 120 knows only the -webkit- forms, so the unprefixed declaration
+// must come straight after its -webkit- twin.
 import stylelint from "stylelint";
 
 const {
@@ -14,9 +17,15 @@ const {
 
 export const ruleName = "half-built/require-fallback";
 
+const README = "see the @half-built/tooling README, Browser support floor";
+
 export const messages = ruleMessages(ruleName, {
   missing: (prop, feature) =>
-    `${prop} uses ${feature}, newer than the browser floor; put a plain ${prop} declaration directly before it (see the @half-built/tooling README, Browser support floor)`,
+    `${prop} uses ${feature}, newer than the browser floor; put a plain ${prop} declaration directly before it (${README})`,
+  custom: (prop, feature) =>
+    `${prop} uses ${feature}, newer than the browser floor, and a custom property cannot carry a fallback; wrap it in an @supports block that tests the feature (${README})`,
+  prefix: (prop) =>
+    `${prop} needs -webkit-${prop} directly before it: Chrome below 120 knows only the prefixed form (${README})`,
 });
 
 const meta = {
@@ -27,6 +36,8 @@ const FEATURES = [
   { name: "color-mix()", pattern: /\bcolor-mix\(/i },
   { name: "a dynamic viewport unit", pattern: /\d(?:dvh|svh|lvh)\b/i },
 ];
+
+const PREFIXED = new Set(["mask", "mask-image"]);
 
 /* Strings and url() contents can mention a feature without using it. */
 const stripLiterals = (value) =>
@@ -40,39 +51,67 @@ const featureIn = (value) => {
   return FEATURES.find((f) => f.pattern.test(bare));
 };
 
+/* The declaration before this one, comments skipped. */
+const previousDecl = (decl) => {
+  let prev = decl.prev();
+
+  while (prev?.type === "comment") prev = prev.prev();
+
+  return prev?.type === "decl" ? prev : undefined;
+};
+
+const insideSupportsFor = (decl, feature) => {
+  for (let p = decl.parent; p; p = p.parent) {
+    if (
+      p.type === "atrule" &&
+      p.name.toLowerCase() === "supports" &&
+      feature.pattern.test(p.params)
+    ) {
+      return true;
+    }
+  }
+
+  return false;
+};
+
 /* @type {import('stylelint').Rule} */
 const rule = (primary) => (root, result) => {
   if (!validateOptions(result, ruleName, { actual: primary })) return;
 
   root.walkDecls((decl) => {
-    if (decl.prop.startsWith("--")) return;
+    const prop = decl.prop.toLowerCase();
+
+    if (PREFIXED.has(prop)) {
+      if (previousDecl(decl)?.prop.toLowerCase() !== `-webkit-${prop}`) {
+        report({
+          result,
+          ruleName,
+          node: decl,
+          message: messages.prefix(decl.prop),
+        });
+      }
+
+      return;
+    }
 
     const feature = featureIn(decl.value);
 
-    if (!feature) return;
+    if (!feature || insideSupportsFor(decl, feature)) return;
 
-    /* An @supports block that tests the same feature is a fallback
-       too: browsers without it skip the block. */
-    for (let p = decl.parent; p; p = p.parent) {
-      if (
-        p.type === "atrule" &&
-        p.name.toLowerCase() === "supports" &&
-        feature.pattern.test(p.params)
-      ) {
-        return;
-      }
+    if (prop.startsWith("--")) {
+      report({
+        result,
+        ruleName,
+        node: decl,
+        message: messages.custom(decl.prop, feature.name),
+      });
+
+      return;
     }
 
-    let prev = decl.prev();
+    const prev = previousDecl(decl);
 
-    while (prev?.type === "comment") prev = prev.prev();
-
-    const covered =
-      prev?.type === "decl" &&
-      prev.prop.toLowerCase() === decl.prop.toLowerCase() &&
-      !featureIn(prev.value);
-
-    if (covered) return;
+    if (prev?.prop.toLowerCase() === prop && !featureIn(prev.value)) return;
 
     report({
       result,

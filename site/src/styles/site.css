@@ -172,7 +172,7 @@
      so the rim stayed on the knob just tapped (owner report
      2026-09-09). */
   .site-knob > summary:hover {
-    background: var(--band);
+    background: var(--surface);
     background: color-mix(in srgb, var(--accent-1) 14%, var(--surface));
   }
 

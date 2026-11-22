@@ -37,6 +37,11 @@ describe("require-fallback rule", () => {
     [`a { color: red; background: ${MIX}; }`],
     [`a { background: ${MIX}; background: ${MIX}; }`],
     ["a { background: COLOR-MIX(in srgb, red 6%, white); }"],
+    /* A custom property cannot carry a fallback: the var() that reads
+       it wins the cascade and computes to nothing where the value is
+       unsupported, so only an @supports guard covers it. */
+    [`a { --x: ${MIX}; }`],
+    ["a { --h: 100dvh; }"],
   ])("reports %s", async (code) => {
     expect(await rules(code)).toContain(RULE);
   });
@@ -45,13 +50,44 @@ describe("require-fallback rule", () => {
     [`a { background: white; background: ${MIX}; }`],
     [`a { background: white; /* tint */ background: ${MIX}; }`],
     ["a { max-height: calc(100vh - 4rem); max-height: calc(100dvh - 4rem); }"],
-    [`a { --x: ${MIX}; }`],
+    [`@supports (color: color-mix(in srgb, red, red)) { a { --x: ${MIX}; } }`],
     ["@supports (height: 100dvh) { a { max-height: calc(100dvh - 6rem); } }"],
     ['a { content: "100dvh"; }'],
     ['a { background: url("x-100dvh.png"); }'],
     [`a { Background: white; background: ${MIX}; }`],
   ])("passes %s", async (code) => {
     expect(await rules(code)).not.toContain(RULE);
+  });
+
+  /* Chrome below 120 knows only -webkit-mask: a bare mask there leaves
+     the element painting its background as a solid box. */
+  it.each([
+    ["a { mask: url('x.svg') center / contain no-repeat; }"],
+    ["a { mask-image: url('x.svg'); }"],
+    ["a { -webkit-mask: url('x.svg'); color: red; mask: url('x.svg'); }"],
+  ])("reports an unprefixed %s", async (code) => {
+    expect(await rules(code)).toContain(RULE);
+  });
+
+  it.each([
+    ["a { -webkit-mask: url('x.svg'); mask: url('x.svg'); }"],
+    ["a { -webkit-mask-image: url('x.svg'); mask-image: url('x.svg'); }"],
+  ])("passes a prefixed pair %s", async (code) => {
+    expect(await rules(code)).not.toContain(RULE);
+  });
+
+  it("the preset lets the -webkit-mask half of the pair through", async () => {
+    const result = await stylelint.lint({
+      code: `a {
+  -webkit-mask: url('x.svg');
+  mask: url('x.svg');
+}
+`,
+      codeFilename: "x.css",
+      config: { extends: [presetPath] },
+    });
+
+    expect(result.results[0].warnings.map((w) => w.rule)).toEqual([]);
   });
 
   it("names the property and the fix in its message", async () => {

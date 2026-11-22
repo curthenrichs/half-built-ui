@@ -137,7 +137,7 @@
   }
 
   .toc-inline-summary:hover {
-    background: var(--band);
+    background: var(--surface);
     background: color-mix(in srgb, var(--accent-1) 14%, var(--surface));
   }
 

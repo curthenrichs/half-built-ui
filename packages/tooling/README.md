@@ -134,8 +134,13 @@ own rule, `half-built/require-fallback`, checks them instead: the
 declaration must come straight after a plain declaration of the same
 property (`min-height: 100vh; min-height: 100dvh;`), or sit inside an
 `@supports` block that tests the same feature. A browser that drops the
-new value keeps the old one. Custom properties are exempt, since the
-declaration that reads them is the one checked.
+new value keeps the old one. A custom property cannot carry a fallback
+(the `var()` that reads it wins the cascade and computes to nothing),
+so a custom property holding one of these values must sit inside such
+an `@supports` block. The same rule requires `mask` and `mask-image` to
+come straight after their `-webkit-` twins, since Chrome below 120 knows
+only the prefixed forms; the preset's vendor-prefix rule lets those two
+through.
 
 The lint holds the floor's age. Engine differences are a separate
 question: this repo's demo site also runs a smoke suite over every page

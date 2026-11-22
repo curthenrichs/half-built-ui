@@ -71,7 +71,13 @@
         "ignoreUnits": ["dvh", "svh", "lvh"]
       }
     ],
-    "half-built/require-fallback": true
+    "half-built/require-fallback": true,
+    "property-no-vendor-prefix": [
+      true,
+      {
+        "ignoreProperties": ["-webkit-mask", "-webkit-mask-image"]
+      }
+    ]
   },
   "overrides": [
     {

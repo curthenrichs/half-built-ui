@@ -140,7 +140,7 @@ const ALLOWLIST: Row[] = [
     key: "property:mask",
     verdict: "degrades",
     reason:
-      "Chrome below 120 needs the -webkit-mask declaration placed before every unprefixed mask",
+      "Chrome below 120 knows only -webkit-mask; half-built/require-fallback requires that twin directly before every mask and mask-image",
   },
   {
     key: "atRule:custom-media",
