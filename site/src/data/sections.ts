@@ -1,7 +1,6 @@
 import type { TocItem } from "@half-built/astro/lib/toc.ts";
 
-/* The page's anchored sections, in the order they render (step 1, Task
-   4). One list feeds both the <section id> headings in index.astro and
+/* The page's anchored sections, in the order they render. One list feeds both the <section id> headings in index.astro and
    the TOC's links, so the two can never drift apart. */
 export interface SectionEntry {
   id: string;

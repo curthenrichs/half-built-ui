@@ -515,10 +515,10 @@ describe("createPathPlayer", () => {
     expect(caption.hidden).toBe(true);
   });
 
-  /* Step 10: the path player now rides core/frame-loop, which gains it
-     a visibility pause it never had. Playback state is untouched by the
+  /* The path player rides core/frame-loop, which gives it a visibility
+     pause. Playback state is untouched by the
      pause; only the loop halts and resumes. */
-  describe("visibility pause (step 10)", () => {
+  describe("visibility pause", () => {
     afterEach(() => {
       Object.defineProperty(document, "hidden", {
         value: false,

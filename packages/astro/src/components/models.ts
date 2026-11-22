@@ -1,8 +1,6 @@
-/* View-model types for the chrome components (step 6, 2026-08-30).
-   These live with the components, not in lib/: the components are the
-   future @half-built/astro package and must not import site code. The
-   CollectionEntry mapping that produces them is src/lib/view-models.ts,
-   which stays site-side. */
+/* View-model types for the chrome components. They live with the
+   components, which never import site code; each consumer maps its own
+   content entries to these shapes. */
 import type { ImageMetadata } from "astro";
 import type { Badge } from "../scripts/core/badges";
 
@@ -40,7 +38,7 @@ export interface LinkListItem {
   count?: number;
 }
 
-/* Chrome view-models (step 9.5, 2026-08-31): the header renders site
+/* Chrome view-models: the header renders site
    identity it is handed, never a consumer's own config. NavItem is the
    shape a consumer's own site navigation config already used; it moved
    here so the component and the site share one definition without the
@@ -63,7 +61,7 @@ export interface SocialItem {
   icon: string;
 }
 
-/* Footer view-models (step 9.5). These are the interfaces a consumer's
+/* Footer view-models. These are the interfaces a consumer's
    own footer-sitemap comment called "the future component-library
    schema"; this is that move. A consumer's own footer data stays in its
    own config, not here. */

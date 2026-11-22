@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 /* The day/night toggle island: stamps data-theme on <html>, remembers
    the choice, and keeps the button's state current. The storage key is
-   a mount option now (step 11.2), not a package literal; these tests
+   a mount option now, not a package literal; these tests
    supply their own key rather than the blog's, except where they are
    deliberately checking the no-key degradation. */
 import { describe, it, expect, beforeEach, vi } from "vitest";

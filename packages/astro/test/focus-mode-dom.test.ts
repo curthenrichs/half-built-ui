@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
-/* DOM runtime test for the focus-mode island (step 11.2: joins the mount
-   contract, package-bound per owner decision 2, 2026-08-31). Mirrors the
+/* DOM runtime test for the focus-mode island and its mount contract.
+   Mirrors the
    scroll-top island's claim/destroy idioms. Every mount is destroyed in
    afterEach: mountFocusMode listens on window by default, so a handle
    left undestroyed would keep firing into later tests. */

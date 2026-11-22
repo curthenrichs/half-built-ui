@@ -1,7 +1,6 @@
 // @vitest-environment jsdom
-/* The shared rAF loop with dt clamp (step 10), one home for the
-   pattern henry-loose.ts and path-player.ts each carried. rAF is
-   stubbed onto the fake-timer clock (16ms frames). */
+/* The shared rAF loop with dt clamp, one home for a pattern several
+   islands each carried. rAF is stubbed onto the fake-timer clock (16ms frames). */
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { createFrameLoop } from "../src/scripts/core/frame-loop";
 import { stubRafOnFakeTimers } from "./helpers";

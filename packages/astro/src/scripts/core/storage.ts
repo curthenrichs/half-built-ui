@@ -1,4 +1,4 @@
-/* The localStorage read/validate/write codec (step 10), one home for
+/* The localStorage read/validate/write codec, one home for
    a pattern that used to be scattered across the site's own scripts:
    parse is
    the validator (junk parses to null and read() then removes the key),

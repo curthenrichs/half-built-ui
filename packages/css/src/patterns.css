@@ -266,7 +266,7 @@
      input's highlight when clicked into; a keyboard focus always shows
      the site ring instead, told apart by the root's data-focus stamp,
      which comes from the packaged focus-mode island's mountFocusMode
-     (step 11.2)). The subscribe panel sets them from its
+    ). The subscribe panel sets them from its
      --panel-* roles; the button takes no knob, so it reads the same on
      the panel as anywhere else. */
   .field-join {

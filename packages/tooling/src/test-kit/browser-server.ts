@@ -1,5 +1,5 @@
 /* One preview server and one headless Chrome for a consumer's browser
-   suites. Adapted from a single-repo test helper (step 11.3 task 5):
+   suites. Adapted from a single-repo test helper:
    that helper imported its Chrome finder from a sibling script, which
    existed because that repo keeps a repo-wide scripts/ directory shared
    by more than one tool. The tooling package has no such directory of

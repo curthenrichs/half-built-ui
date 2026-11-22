@@ -1,4 +1,4 @@
-/* Pins for the verbatim move (step 11.3 task 2): concrete facts the
+/* Pins for the verbatim move: concrete facts the
    brief calls out so a later edit to these files trips a test instead
    of silently drifting. Not a re-test of the blog's own suite, which
    stays behind in half-built-robots-blog. */

@@ -22,7 +22,7 @@
        phone width; under it the viewport scrolls horizontally as one
        intact unit instead of clipping card heroes and text (owner call
        2026-08-20, found squeezing devtools toward 222px). An overridable
-       house default, not a system constant (step 11.1). */
+       house default, not a system constant. */
     min-width: 360px;
   }
 

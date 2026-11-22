@@ -2,7 +2,7 @@ import { claim, release, type Island, type IslandHandle } from "./core/island";
 import { formatHeaderDate } from "../lib/header-date";
 import { docOf } from "./core/dom";
 
-/* The masthead header island (step 9): the date-box refresh, the
+/* The masthead header island: the date-box refresh, the
    phone menu toggle, and the search flyout, born from SiteHeader.astro's
    inline script. The halves are unconditional and independent,
    mirroring the original: the date box refreshes on every mount
@@ -32,7 +32,7 @@ export interface SiteHeaderOptions {
   formatDate?: (d: Date) => string;
 }
 
-/* One pop-out over the page, the menu's manners (step 9): the button
+/* One pop-out over the page, the menu's manners: the button
    toggles, a press anywhere outside closes, Escape closes and hands
    focus back to the button. The open state is a class on `panel` and
    aria-expanded on the button. The flyout adds the two focus manners

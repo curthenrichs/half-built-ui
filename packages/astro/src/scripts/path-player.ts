@@ -372,7 +372,7 @@ export function createPathPlayer<S>(
   const win = doc.defaultView as Window;
   const loop = createFrameLoop(win, frame, { clamp: 0.1, firstDt: 0 });
 
-  /* Visibility pause (step 10): the loop halts while the tab is hidden
+  /* Visibility pause: the loop halts while the tab is hidden
      and resumes when it returns with the dialog still open. Playback
      state is untouched; the frame loop's clock reset means the hidden
      gap never arrives as one giant dt. Registered once at build and

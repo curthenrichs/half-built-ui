@@ -1,5 +1,5 @@
 /* Image lightbox. Exported pure math plus mountLightbox, on the island
-   contract (step 9): mount(root, options?) returns a destroy handle;
+   contract: mount(root, options?) returns a destroy handle;
    claim() makes a second mount over an already-wired link a no-op.
    Called from the consumer's layout script block and testable under
    jsdom. */
@@ -164,9 +164,8 @@ export interface LightboxOptions {
   selector?: string;
   /* Ancestors whose contained links form one navigable set. The defaults
      are the containers the package's own Gallery and Walkthrough render.
-     Grouping keys on the mount's selector (step 9.5; it used to query the
-     default class literally, so an overridden selector silently broke
-     sets). */
+     Grouping keys on the mount's selector, not the default class, so an
+     overridden selector still forms sets. */
   groupSelector?: string;
   labels?: Partial<LightboxLabels>;
 }

@@ -1,4 +1,4 @@
-/* The rAF loop with dt clamp (step 10), one home for a pattern that
+/* The rAF loop with dt clamp, one home for a pattern that
    used to be scattered across the site's own scripts and path-player.ts.
    now is the rAF
    timestamp: monotonic in a real browser, unlike Date.now(), which a

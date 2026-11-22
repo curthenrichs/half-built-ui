@@ -1,5 +1,5 @@
 /* Shared test utilities for consumers of @half-built/tooling. Adapted from
-   a single-repo test helper (step 11.3 task 5): two content-specific
+   a single-repo test helper: two content-specific
    exports were dropped since neither means anything outside that repo.
    One was a post slug shared by a few of that repo's own suites; the
    other walked a built dist/ tree looking for that repo's own content

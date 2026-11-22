@@ -89,7 +89,7 @@
     --frame-pad: 25px;
     --column-gap: 30px;
 
-    /* The shell (step 11.1): --shell-max is the ONLY width authority on
+    /* The shell: --shell-max is the ONLY width authority on
        the page column (the never-cap-prose rule's positive statement);
        --shell-pad its gutter; --header-clear the content offset under
        the header (live theme used 50px; bumped by owner preference). */

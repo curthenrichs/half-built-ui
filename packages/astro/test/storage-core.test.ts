@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
-/* The shared localStorage codec (step 10): read/validate/write with
-   private-mode degradation, extracted from henry-loose.ts and
-   stasis-state.ts. */
+/* The shared localStorage codec: read/validate/write with
+   private-mode degradation, one home for a pattern several islands
+   each carried. */
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { storedJson } from "../src/scripts/core/storage";
 

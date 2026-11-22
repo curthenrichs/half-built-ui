@@ -226,7 +226,7 @@ describe("gallery sets", () => {
     const d = dialog();
     const viewbox = d.querySelector(".lb-viewbox");
 
-    /* jsdom lacks a PointerEvent constructor (see henry-loose-dom.test.ts);
+    /* jsdom lacks a PointerEvent constructor;
        dispatch MouseEvents typed as pointer events and attach pointerId,
        the only pointer-specific field the listeners read. */
     const pointer = (
@@ -504,7 +504,7 @@ describe("modified clicks fall through to the browser", () => {
   });
 });
 
-describe("island lifecycle (step 9)", () => {
+describe("island lifecycle", () => {
   it("mounting twice on the same fixture still builds one dialog", () => {
     document.body.innerHTML = PAGE;
     mountLightbox(document);
@@ -573,7 +573,7 @@ describe("island lifecycle (step 9)", () => {
   });
 });
 
-describe("custom selector grouping (step 9.5)", () => {
+describe("custom selector grouping", () => {
   const CUSTOM = `
     <main>
       <div class="gallery-plates">

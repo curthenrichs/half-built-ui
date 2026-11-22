@@ -1,7 +1,7 @@
 import { claim, release, type Island, type IslandHandle } from "./core/island";
 import { docOf } from "./core/dom";
 
-/* Scroll-to-top floater island (step 9), born from the consumer's
+/* Scroll-to-top floater island, born from the consumer's
    layout's inline script: shows once the header leaves the viewport. */
 
 export interface ScrollTopOptions {

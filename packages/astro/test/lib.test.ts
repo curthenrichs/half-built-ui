@@ -70,7 +70,7 @@ describe("internalHrefKey", () => {
 
   it("fragments and queries are stripped before lookup", () => {
     expect(internalHrefKey("/about/#bio")).toBe("/about/");
-    expect(internalHrefKey("/search/?s=henry")).toBe("/search/");
+    expect(internalHrefKey("/search/?s=robot")).toBe("/search/");
   });
 
   it("the site's own absolute origins reduce to their path", () => {

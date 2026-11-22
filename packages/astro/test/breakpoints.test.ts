@@ -1,4 +1,4 @@
-/* The cross-language breakpoint pin (step 11.1): the CSS definitions
+/* The cross-language breakpoint pin: the CSS definitions
    and the JS mirror cannot drift apart silently.
 
    Adapted (task 3): the CSS definitions now live in the sibling

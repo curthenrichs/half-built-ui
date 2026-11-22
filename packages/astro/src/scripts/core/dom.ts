@@ -1,4 +1,4 @@
-/* Small DOM builders shared by the islands (step 9): el() came from the
+/* Small DOM builders shared by the islands: el() came from the
    search page's inline script, iconButton() from lightbox.ts. One home,
    per the review's Islands findings; the deliberately-not-included
    focus trap stays not included (native <dialog> owns that). */
@@ -29,7 +29,7 @@ export function iconButton(
 }
 
 /* Every island's root.ownerDocument ?? (root as Document) fallback, in one
-   place (step 11.2 docOf sweep): a root that is itself a Document (no
+   place: a root that is itself a Document (no
    ownerDocument) resolves to itself. */
 export function docOf(root: ParentNode): Document {
   return root.ownerDocument ?? (root as Document);
