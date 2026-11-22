@@ -466,6 +466,52 @@ describe.skipIf(!enabled)("browser suite", () => {
     expect(m.img).toMatch(/^matrix\(/);
   }, 30_000);
 
+  it("the loading specimen shows the frame and the label in both themes", async () => {
+    const p = await open();
+
+    for (const theme of ["light", "dark"]) {
+      await p.evaluate((t) => {
+        document.documentElement.dataset.theme = t;
+      }, theme);
+
+      /* The label crossfades in over 0.35s; wait for it to land. */
+      await p.waitForFunction(
+        () => {
+          const label = document.querySelector(
+            ".demo-img-loading .img-loading",
+          );
+
+          return label ? getComputedStyle(label).opacity === "1" : false;
+        },
+        { timeout: 5000 },
+      );
+
+      const m = await p.evaluate(() => {
+        const frame = document.querySelector(".demo-img-loading");
+        const label = frame?.querySelector(".img-loading");
+        const prompt = frame?.querySelector(".img-loading-prompt");
+        const probe = document.createElement("span");
+        probe.style.color = "var(--accent-1-ink)";
+        document.body.append(probe);
+        const accent = getComputedStyle(probe).color;
+        probe.remove();
+
+        return {
+          loading: frame?.hasAttribute("data-loading") ?? false,
+          frameOn: frame ? getComputedStyle(frame, "::before").opacity : "",
+          text: label?.textContent ?? "",
+          prompt: prompt ? getComputedStyle(prompt).color : "",
+          accent,
+        };
+      });
+
+      expect(m.loading, theme).toBe(true);
+      expect(m.text, theme).toBe("$>Loading...");
+      expect(m.prompt, theme).toBe(m.accent);
+      expect(m.frameOn, theme).toBe("1");
+    }
+  }, 30_000);
+
   it("card category links reach 26px inside the row's clip box, on one line", async () => {
     const p = await open();
 

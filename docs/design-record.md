@@ -93,6 +93,18 @@ Not built, on purpose:
   mode, the footer's phone collapse). Moving them into islands would
   change when they run.
 
+The image loading state (2026-11-21, settled by mock with the owner):
+a static bracket frame on `--band` with a centered `$> Loading...`, the
+prompt in `--accent-1-ink` and the rest in `--ink-muted`, the dots
+stepping none to three at 0.5s a beat. A shimmer sweep and a breathing
+frame were tried and rejected as generic. The island, not the server,
+sets `data-loading`, so a no-JS render is a bare image and never a
+label stranded over a finished picture. The dots step `visibility` on
+three spans rather than animating `content`, which Safari does not
+animate, and the hidden dots keep their space so the line never
+re-centers. The lightbox shows the label only when it has nothing on
+screen; its swap to the full original stays silent.
+
 ## Tokens and CSS
 
 - Components read roles, never primitives. That split is what makes the

@@ -261,6 +261,25 @@ marks the wrap `data-search-js`; without it, the stylesheet's
 focus-within rule opens the flyout on focus alone, so it still works
 with no script.
 
+## Image loading state
+
+`SmartImage` renders its image inside a `<span class="img-frame">` and
+mounts `scripts/image-loading`. While the image downloads, the frame
+carries `data-loading`: it shows the `.bracket-frame` look on the
+`--band` ground with a centered `$> Loading...` label, the prompt in
+`--accent-1-ink` and the rest in `--ink-muted`, and the dots step from
+none to three. The image stays transparent, so the browser never draws
+its alt text. On `load` or `error` the mark clears and the image fades
+in; a broken image then shows its alt text. Reduced motion holds the
+label at three dots. The styles are the `img-loading` pattern in
+`@half-built/css/patterns.css`.
+
+The script sets the mark, never the server, so without JS an image
+renders exactly as a bare `<img>`. An image that is already loaded when
+the script runs never shows the state. `watchImage(frame, img)` and
+`buildLoadingLabel(doc)` are exported for other image surfaces; the
+lightbox uses `watchImage` on its viewbox.
+
 ## Lightbox
 
 `scripts/lightbox` opens the images the content components link
@@ -289,6 +308,12 @@ A resize or rotation while the viewer is open refits the image to the
 new window. Any zoom and pan the reader had set is discarded, on
 purpose: the old view was measured against a window that no longer
 exists.
+
+When the viewer has nothing to show yet (it was opened before the
+in-page image loaded, or stepped to one that has not), the viewbox shows
+the same loading label as the page's images. The swap from the in-page
+image to the full-size original stays silent, since a picture is
+already on screen.
 
 `mountLightbox` takes options: `selector` (default `a.lightbox-link`)
 picks the links, `groupSelector` names the containers whose links form

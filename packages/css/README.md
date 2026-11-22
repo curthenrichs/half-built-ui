@@ -108,6 +108,14 @@ in scoped styles.
   pseudo-element.
 - `.bracket-frame`: 2px top and bottom rules with 2px edge verticals
   fading through the middle, the layout's signature enclosure.
+- `.img-frame` (with `.img-loading`, `.img-loading-prompt`,
+  `.img-loading-dots`): the image loading state. `SmartImage` wraps its
+  image in `.img-frame`; while the frame carries `data-loading` (set by
+  `@half-built/astro`'s `scripts/image-loading`, never by the server) it
+  draws the bracket frame on `--band`, holds the image transparent, and
+  shows the centered `$> Loading...` label. Any `[data-loading]` parent
+  shows an `.img-loading` child, which is how the lightbox viewbox reuses
+  the label.
 - `.boxed-label`: a bordered 2px label box on the page background,
   meant to straddle a frame rule; the straddle offset is contextual and
   stays in the component.
