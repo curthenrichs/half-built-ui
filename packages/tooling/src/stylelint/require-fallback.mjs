@@ -60,11 +60,14 @@ const previousDecl = (decl) => {
   return prev?.type === "decl" ? prev : undefined;
 };
 
+/* A positive @supports test for the feature; @supports not (...) runs
+   exactly where the feature is missing, so it never counts. */
 const insideSupportsFor = (decl, feature) => {
   for (let p = decl.parent; p; p = p.parent) {
     if (
       p.type === "atrule" &&
       p.name.toLowerCase() === "supports" &&
+      !/^\s*not\b/i.test(p.params) &&
       feature.pattern.test(p.params)
     ) {
       return true;
@@ -111,7 +114,14 @@ const rule = (primary) => (root, result) => {
 
     const prev = previousDecl(decl);
 
-    if (prev?.prop.toLowerCase() === prop && !featureIn(prev.value)) return;
+    /* An !important fallback would beat the new value everywhere. */
+    if (
+      prev?.prop.toLowerCase() === prop &&
+      !featureIn(prev.value) &&
+      !prev.important
+    ) {
+      return;
+    }
 
     report({
       result,

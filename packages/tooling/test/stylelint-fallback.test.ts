@@ -37,6 +37,11 @@ describe("require-fallback rule", () => {
     [`a { color: red; background: ${MIX}; }`],
     [`a { background: ${MIX}; background: ${MIX}; }`],
     ["a { background: COLOR-MIX(in srgb, red 6%, white); }"],
+    /* @supports not(...) runs exactly where the feature is missing. */
+    ["@supports not (height: 100dvh) { a { min-height: 100dvh; } }"],
+    /* An !important plain value beats the later color-mix everywhere,
+       so the pair would never show the mix. */
+    [`a { background: white !important; background: ${MIX}; }`],
     /* A custom property cannot carry a fallback: the var() that reads
        it wins the cascade and computes to nothing where the value is
        unsupported, so only an @supports guard covers it. */

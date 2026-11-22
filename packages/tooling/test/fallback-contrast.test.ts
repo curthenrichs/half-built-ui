@@ -117,5 +117,18 @@ describe("color-mix fallback contrast", () => {
 
       expect(contrastRatio(ink, ground)).toBeGreaterThanOrEqual(4.5);
     });
+
+    /* The shaded box is told apart from a plain one by its ground
+       alone, so the fallback ground must still read as a tint. */
+    it(`${theme}: the shaded box's fallback reads apart from the surface`, () => {
+      const ground = resolve(
+        tokens,
+        fallbackToken("packages/css/src/patterns.css", ".press-box-shaded {"),
+      );
+
+      expect(
+        contrastRatio(ground, resolve(tokens, "--surface")),
+      ).toBeGreaterThanOrEqual(1.2);
+    });
   }
 });

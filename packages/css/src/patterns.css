@@ -146,7 +146,7 @@
      tint overlay at 0.2), for a second, non-accent button beside a
      plain one. Held, it inverts like any press box. */
   .press-box-shaded {
-    background-color: var(--band);
+    background-color: var(--hairline);
     background-color: color-mix(in srgb, var(--ink) 20%, var(--surface));
   }
 

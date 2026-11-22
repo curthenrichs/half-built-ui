@@ -110,7 +110,8 @@ with type stripping (on by default from 22.18).
 ## Browser support floor
 
 The packages support Chrome 99, Edge 99, Firefox 98, and Safari 15.4
-on macOS and iOS (early 2022). Below that, `@layer` is missing and
+on macOS and iOS (early 2022), with Chrome and Firefox for Android at
+their desktop versions. Below that, `@layer` is missing and
 every layered rule drops, and the modals' `<dialog>` is missing in
 Firefox 97. The floor is recorded once, in
 `@half-built/tooling/browser-floor` (a JSON map of web-features browser
@@ -121,12 +122,13 @@ at `available: 2021`, a bucket entirely below the floor, so anything
 newer is reported. The features between that bucket and the floor are
 allowlisted in the preset. Each one is either supported at the floor
 (the package tests check its support data against `browser-floor`),
-degrades harmlessly below it, or is compiled away at build time. To
-allow a new feature, add it to the preset's ignore lists and add a row
-to the allowlist table in `test/stylelint-baseline.test.ts`; the test
-fails if either side is missing. A one-off use that degrades harmlessly
-can take a `stylelint-disable-next-line plugin/use-baseline` comment
-with its reason instead.
+degrades harmlessly below it, or is compiled away at build time. The
+allowlist is maintained in this repository: a new entry means a row in
+the allowlist table in `packages/tooling/test/stylelint-baseline.test.ts`
+(not shipped in the tarball), which fails if the preset and the table
+disagree. A consumer that needs a harmless one-off can use a
+`stylelint-disable-next-line plugin/use-baseline` comment with its
+reason.
 
 `color-mix()` and the dynamic viewport units (`dvh`, `svh`, `lvh`) are
 newer than the floor but fine to use with a fallback, so the preset's
