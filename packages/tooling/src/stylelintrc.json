@@ -1,5 +1,6 @@
 {
   "extends": ["stylelint-config-standard"],
+  "plugins": ["stylelint-plugin-use-baseline"],
   "ignoreFiles": ["**/dist/**", "**/node_modules/**", "**/public/**"],
   "rules": {
     "color-no-hex": [
@@ -42,6 +43,29 @@
       },
       {
         "message": "never-cap-prose: a ch measure exists to cap prose width and has no legitimate non-prose use, so this half of the guard is safe as a blanket, selector-blind rule. The other half, that a prose stylesheet's only max-width is the 100% image-fit exception, needs to know which selectors are prose and which are not; stylelint's property/value rules cannot see selector context, so that half stays a consumer's own test: read the prose stylesheet directly and assert its max-width declarations are exactly [\"max-width: 100%;\"] (see the @half-built/css README for the prose-width rule)."
+      }
+    ],
+    "plugin/use-baseline": [
+      true,
+      {
+        "available": 2021,
+        "ignoreAtRules": ["layer", "custom-media"],
+        "ignoreSelectors": ["focus-visible", "backdrop"],
+        "ignoreProperties": {
+          "overflow-wrap": ["anywhere"],
+          "align-self": ["start"],
+          "scroll-behavior": ["/^.+$/"],
+          "appearance": ["/^.+$/"],
+          "color-scheme": ["/^.+$/"],
+          "outline": ["/^.+$/"],
+          "overscroll-behavior": ["/^.+$/"],
+          "backdrop-filter": ["/^.+$/"],
+          "scrollbar-gutter": ["/^.+$/"],
+          "forced-color-adjust": ["/^.+$/"],
+          "mask": ["/^.+$/"]
+        },
+        "ignoreFunctions": ["color-mix"],
+        "ignoreUnits": ["dvh", "svh", "lvh"]
       }
     ]
   },

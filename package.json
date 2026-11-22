@@ -30,6 +30,7 @@
     "puppeteer-core": "^25.8.0",
     "stylelint": "^17.15.0",
     "typescript": "^5.9.3",
-    "vitest": "^2.1.9"
+    "vitest": "^2.1.9",
+    "web-features": "^3.47.0"
   }
 }

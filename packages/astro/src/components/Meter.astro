@@ -72,6 +72,8 @@ const share = top > 0 ? (now / top) * 100 : 0;
     pointer-events: none;
   }
 
+  /* Only forced-colors browsers apply this, so older ones lose nothing. */
+  /* stylelint-disable-next-line plugin/use-baseline -- forced-colors mode only */
   @media (forced-colors: active) {
     .meter-fill {
       forced-color-adjust: none;

@@ -155,7 +155,7 @@
        beats .pm-label-bl regardless of stylesheet order. */
     .pp-plate .pp-source {
       left: 50%;
-      translate: -50% 0;
+      transform: translateX(-50%);
       max-width: calc(100% - 50px);
     }
 
