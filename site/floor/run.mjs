@@ -341,6 +341,14 @@ for (const [name, engine, floor] of ENGINES) {
               if (!(await el.isVisible())) continue;
               await el.hover();
 
+              /* axe resolves a transparent box against the surface
+                 behind it and passes, so the ground is checked too. */
+              assert.notEqual(
+                await el.evaluate((e) => getComputedStyle(e).backgroundColor),
+                "rgba(0, 0, 0, 0)",
+                `${theme} hovering ${selector} paints a ground`,
+              );
+
               assert.deepEqual(
                 await contrastViolations(page),
                 [],
@@ -356,8 +364,8 @@ for (const [name, engine, floor] of ENGINES) {
       });
     }
 
-    test(`${name} shows the image loading state: isolated frame, centered label, stepping dots`, async () => {
-      const { context, page } = await openPage(browser, origin, "/", {
+    test(`${name} shows the image loading state: isolated frame, centered label, stepping dots, cleared on load`, async () => {
+      const { context, page, release } = await openPage(browser, origin, "/", {
         width: 1280,
         holdImages: true,
       });
@@ -400,6 +408,34 @@ for (const [name, engine, floor] of ENGINES) {
           true,
           true,
         ]);
+
+        /* Tag the frame so it can be found once its mark clears, then
+           let the images through: the mark, the label, and the image's
+           hold all go. */
+        await page.$eval(TARGET, (frame) => {
+          frame.setAttribute("data-floor-target", "");
+          frame.scrollIntoView();
+        });
+
+        await release();
+
+        await page.waitForFunction(
+          () => {
+            const frame = document.querySelector("[data-floor-target]");
+            const img = frame?.querySelector("img");
+
+            return (
+              frame !== null &&
+              !frame.hasAttribute("data-loading") &&
+              !frame.querySelector(".img-loading") &&
+              img !== null &&
+              img !== undefined &&
+              getComputedStyle(img).opacity === "1"
+            );
+          },
+          undefined,
+          { timeout: 15_000 },
+        );
       } finally {
         await context.close();
       }

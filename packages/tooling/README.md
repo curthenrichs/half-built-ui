@@ -133,13 +133,15 @@ reason.
 `color-mix()` and the dynamic viewport units (`dvh`, `svh`, `lvh`) are
 newer than the floor but fine to use with a fallback, so the preset's
 own rule, `half-built/require-fallback`, checks them instead. A plain
-value works as the fallback only when the new value holds no `var()`:
-then the declaration must come straight after a plain declaration of
-the same property (`min-height: 100vh; min-height: 100dvh;`), and a
-browser that drops the new value keeps the old one. A value that holds
-`var()` parses everywhere, so a browser without the feature drops it at
-computed time and the property falls to its initial value (a
-transparent background, not the plain value before it). Such a value,
+value works as the fallback only when the new value holds no `var()`
+or `env()`: then the declaration must come straight after a plain
+declaration of the same property (`min-height: 100vh; min-height:
+100dvh;`), and a browser that drops the new value keeps the old one. A
+value that holds `var()` or `env()` parses everywhere, so a browser
+without the feature drops it at computed time and the property acts as
+`unset`, not as the plain value before it: a non-inherited property
+such as `background` goes to its initial value (transparent), an
+inherited one such as `color` takes the parent's. Such a value,
 and any custom property holding one of these features, must sit inside
 an `@supports` block that tests the same feature:
 

@@ -4,8 +4,8 @@
    One was a post slug shared by a few of that repo's own suites; the
    other walked a built dist/ tree looking for that repo's own content
    pages. What is left is generic: DOM and canvas test scaffolding any
-   consumer's suite can use. This repo's own package suites import it
-   too, so what ships is what the packages are tested with. */
+   consumer's suite can use. The @half-built packages' own suites
+   import it too, so what ships is what the packages are tested with. */
 import { vi } from "vitest";
 
 /* rAF driven by the fake-timer clock, for suites under vi.useFakeTimers.

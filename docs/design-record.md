@@ -168,9 +168,9 @@ not loaded; its swap to the full original stays silent.
   preset: the Baseline lint at 2021 with an allowlist the tooling tests
   pin to support data, and `half-built/require-fallback` for
   `color-mix`, the dynamic viewport units, and the `mask` prefix pair.
-  A feature value holding `var()` goes behind `@supports`, never after
-  a plain fallback: the floor engines drop such a value at computed
-  time to the initial value, which painted every color-mix tint
+  A feature value holding `var()` or `env()` goes behind `@supports`,
+  never after a plain fallback: the floor engines drop such a value at
+  computed time to `unset`, which painted every color-mix tint
   transparent until the floor suite caught it (2026-11-22). The demo
   runs its pages in current Chromium, Firefox, and WebKit
   (`site/test/engines.test.ts`) and in the floor engines themselves

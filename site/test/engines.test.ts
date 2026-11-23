@@ -138,9 +138,19 @@ describe.skipIf(!enabled)("engine smoke", () => {
     /* The color-mix tints sit behind @supports; a wrong query would
        drop every tint in every browser and still pass the floor suite,
        which only sees the plain grounds. Current engines have
-       color-mix, so here each tinted box must paint something other
-       than the plain surface. */
-    it(`${name} paints the color-mix tints`, async () => {
+       color-mix, so each tinted box must paint something other than
+       its own plain ground, at rest and, where it tints on hover,
+       under the pointer. */
+    const TINTS: [selector: string, plain: string][] = [
+      [".press-box-accent", "--surface"],
+      [".press-box-shaded", "--hairline"],
+      [".site-description", "--surface"],
+      [".site-knob > summary", "--surface"],
+    ];
+
+    const HOVER_TINTS = [".press-box-accent", ".site-knob > summary"];
+
+    it(`${name} paints the color-mix tints, at rest and on hover`, async () => {
       if (!browser) throw new Error(`no ${name} (beforeAll failed)`);
 
       const context = await browser.newContext({
@@ -151,30 +161,53 @@ describe.skipIf(!enabled)("engine smoke", () => {
         const page = await context.newPage();
         await page.goto(`${ORIGIN}/`, { waitUntil: "networkidle" });
 
-        const m = await page.evaluate(() => {
-          const probe = document.createElement("span");
-          probe.style.backgroundColor = "var(--surface)";
-          document.body.append(probe);
-          const surface = getComputedStyle(probe).backgroundColor;
-          probe.remove();
-
-          return {
-            surface,
-            grounds: [
-              ".press-box-accent",
-              ".press-box-shaded",
-              ".site-description",
-              ".site-knob > summary",
-            ].map((s) => {
-              const el = document.querySelector(s);
-              return [s, el ? getComputedStyle(el).backgroundColor : "missing"];
-            }),
+        const grounds = await page.evaluate((tints) => {
+          const resolve = (token: string): string => {
+            const probe = document.createElement("span");
+            probe.style.backgroundColor = `var(${token})`;
+            document.body.append(probe);
+            const value = getComputedStyle(probe).backgroundColor;
+            probe.remove();
+            return value;
           };
-        });
 
-        for (const [selector, ground] of m.grounds) {
-          expect(ground, selector).not.toBe("missing");
-          expect(ground, selector).not.toBe(m.surface);
+          return tints.map(([s, token]) => {
+            const el = document.querySelector(s);
+
+            return {
+              s,
+              plain: resolve(token),
+              ground: el ? getComputedStyle(el).backgroundColor : "missing",
+            };
+          });
+        }, TINTS);
+
+        for (const { s, plain, ground } of grounds) {
+          expect(ground, s).not.toBe("missing");
+          expect(ground, s).not.toBe(plain);
+        }
+
+        for (const selector of HOVER_TINTS) {
+          const rest = await page.$eval(
+            selector,
+            (el) => getComputedStyle(el).backgroundColor,
+          );
+
+          await page.hover(selector);
+
+          /* .press-box eases its ground over 0.1s; wait it out. */
+          await page.waitForFunction(
+            ([sel, before]) => {
+              const el = document.querySelector(sel);
+              return el
+                ? getComputedStyle(el).backgroundColor !== before
+                : false;
+            },
+            [selector, rest] as const,
+            { timeout: 2000 },
+          );
+
+          await page.mouse.move(0, 0);
         }
       } finally {
         await context.close();

@@ -47,15 +47,18 @@ describe("require-fallback rule", () => {
        unsupported, so only an @supports guard covers it. */
     [`a { --x: ${MIX}; }`],
     ["a { --h: 100dvh; }"],
-    /* A value holding var() parses everywhere, so the plain value
-       before it never takes over: where the feature is missing, the
-       browser drops the value at computed time and the property falls
-       to its initial value (a transparent background in Safari 15.4,
-       Firefox 98, and Chrome 99). Only an @supports guard covers it. */
+    /* A value holding var() or env() parses everywhere, so the plain
+       value before it never takes over: where the feature is missing,
+       the browser drops the value at computed time and the property
+       acts as unset (a transparent background in Safari 15.4, Firefox
+       98, and Chrome 99). Only an @supports guard covers it. */
     [
       "a { background: white; background: color-mix(in srgb, var(--a) 6%, white); }",
     ],
     ["a { max-height: 100vh; max-height: calc(100dvh - var(--gap)); }"],
+    [
+      "a { min-height: 100vh; min-height: calc(100dvh - env(safe-area-inset-bottom)); }",
+    ],
   ])("reports %s", async (code) => {
     expect(await rules(code)).toContain(RULE);
   });
