@@ -1829,6 +1829,53 @@ describe.skipIf(!enabled)("browser suite", () => {
     }
   }, 120_000);
 
+  /* The accent tints deepen on hover, which the page-wide axe runs
+     never see (they check the resting page). Each tinted box is
+     hovered in both themes and axe's contrast rule run on it alone;
+     the inline TOC's summary shows only at phone width. */
+  it("the accent tints hold AA contrast under the pointer, both themes", async () => {
+    const TINTED: [width: "desktop" | "phone", selector: string][] = [
+      ["desktop", ".press-box-accent-1"],
+      ["desktop", ".press-box-accent-2"],
+      ["desktop", ".site-knob > summary"],
+      ["phone", ".toc-inline-summary"],
+    ];
+
+    for (const theme of ["light", "dark"] as const) {
+      for (const [width, selector] of TINTED) {
+        const p = width === "phone" ? await openPhone() : await open();
+
+        await p.evaluate((t) => {
+          if (t === "dark") document.documentElement.dataset.theme = "dark";
+          else delete document.documentElement.dataset.theme;
+        }, theme);
+
+        const el = await p.$(`${selector}:not([hidden])`);
+        if (!el) throw new Error(`no ${selector}`);
+        await el.scrollIntoView();
+        await el.hover();
+
+        /* .press-box eases its ground over 0.1s. */
+        await new Promise((resolve) => setTimeout(resolve, 250));
+
+        const results = await new AxePuppeteer(p)
+          .include(selector)
+          .withRules(["color-contrast"])
+          .analyze();
+
+        expect(
+          results.violations.flatMap((v) =>
+            v.nodes.map((n) => n.failureSummary),
+          ),
+          `${theme} hovering ${selector}`,
+        ).toEqual([]);
+
+        await p.close();
+        page = undefined;
+      }
+    }
+  }, 120_000);
+
   /* The demo turns scrubbing on: the timeline is a slider that the
      keys and a drag both seek, with the site's focus ring. Opened
      paused (reduced motion) so the readout holds still between

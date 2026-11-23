@@ -1,6 +1,11 @@
 import { describe, it, expect } from "vitest";
 import { contrastRatio } from "../src/palette/contrast.ts";
-import { LIGHT_PAPER, DARK_GROUND } from "../src/palette/grounds.ts";
+import {
+  LIGHT_PAPER,
+  DARK_GROUND,
+  TINT_MAX,
+  tintGround,
+} from "../src/palette/grounds.ts";
 import {
   derivePalette,
   readBases,
@@ -9,6 +14,20 @@ import {
 } from "../src/palette/derive-palette.ts";
 
 const HEX_RE = /^#[0-9a-f]{6}$/;
+
+/* The light text stops sit on paper and on the accent's own tints,
+   the strongest of which is TINT_MAX of the 500 into paper. */
+const expectTextStopsHoldOnTints = (p: PaletteOverride): void => {
+  for (const n of ["1", "2"] as const) {
+    const ink = p[`--brand-${n}-700`];
+    const tint = tintGround(p[`--brand-${n}-500`], LIGHT_PAPER, TINT_MAX);
+
+    expect(
+      contrastRatio(ink, tint),
+      `brand-${n}-700 on its tint`,
+    ).toBeGreaterThanOrEqual(4.5);
+  }
+};
 
 describe("derivePalette", () => {
   it("returns exactly the shipped defaults for the amber/cyan anchor, and they clear the contrast gates", () => {
@@ -19,10 +38,10 @@ describe("derivePalette", () => {
       "--brand-1-500": "#ffaa3c",
       "--brand-1-vivid": "#e07c14",
       "--brand-1-600": "#d1820f",
-      "--brand-1-700": "#a36300",
+      "--brand-1-700": "#995a00",
       "--brand-2-300": "#8ee6f2",
       "--brand-2-500": "#3cc7dd",
-      "--brand-2-700": "#1a7f90",
+      "--brand-2-700": "#067687",
       "--code-bg": "#1b140c",
       "--code-line": "#3b2e1e",
       "--code-fg": "#e8d9c3",
@@ -66,6 +85,7 @@ describe("derivePalette", () => {
     /* the two 500 stops echo the inputs */
     expect(contrastRatio(p["--brand-1-500"], "#ffaa3c")).toBeCloseTo(1, 5);
     expect(contrastRatio(p["--brand-2-500"], "#3cc7dd")).toBeCloseTo(1, 5);
+    expectTextStopsHoldOnTints(p);
   });
 
   it("clears the contrast gates for a green pair", () => {
@@ -105,6 +125,7 @@ describe("derivePalette", () => {
 
     expect(contrastRatio(p["--brand-1-500"], "#2f9e44")).toBeCloseTo(1, 5);
     expect(contrastRatio(p["--brand-2-500"], "#0ca678")).toBeCloseTo(1, 5);
+    expectTextStopsHoldOnTints(p);
   });
 
   it("still clears every threshold for near-white and near-black pathological bases", () => {
@@ -117,6 +138,7 @@ describe("derivePalette", () => {
 
     for (const [base1, base2] of pairs) {
       const p = derivePalette(base1, base2);
+      expectTextStopsHoldOnTints(p);
 
       expect(
         contrastRatio(p["--brand-1-700"], LIGHT_PAPER),

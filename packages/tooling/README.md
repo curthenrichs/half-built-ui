@@ -86,8 +86,11 @@ it also runs in a browser bundle (the editor imports it that way).
 - `derivePalette(base1, base2)`: the full override for two accent
   bases: both brand ramps plus the code island's chrome, each stop
   walked in OKLCH until it clears its WCAG gate against the ground it
-  renders on. The shipped amber pair returns the package's own tokens
-  exactly.
+  renders on. The light text stops (the 700s) must hold 4.5:1 on the
+  paper and on the accent's strongest tint, `TINT_MAX` of the base
+  mixed into the paper (`tintGround`), since accent text sits on those
+  tints in buttons and summaries. The shipped amber pair returns the
+  package's own tokens exactly.
 - `readBases(base1, base2)`: the bases' own ratios and pass flags (as
   text on the dark ground, as a fill on light paper, and for base 1,
   as code keyword ink on its derived code ground).

@@ -45,23 +45,26 @@
        600 stop (retuned 2026-09-27). Brand-1-700 is tuned here for this
        site the way brand-2-700 was: the amber hue at full saturation,
        taken down until it clears WCAG AA (4.5:1) as body text on the
-       white surface (4.84) and on the
-       accent's 6% tint (4.66). It replaced #b5680c, a value borrowed
+       white surface and on the accent's tints up to the 14% hover
+       ground (5.50 on white, 5.03 on that tint; retuned 2026-11-23
+       from #a36300, which fell to 4.42 there). It replaced #b5680c, a value borrowed
        from BEADZ that sat at 4.24:1 on white (owner call 2026-09-03;
        BEADZ is not a source of values). Family 2 (owner request
        2026-08-26) was chosen to sit where family 1 sits: brand-2-500
        matches brand-1-500's contrast on both grounds (line and fill,
        not text on white) and brand-2-700 is its legible kin for text on
-       the light ground. Brand-1-600 was retuned 2026-09-05 (owner call)
+       the light ground and its tints (retuned 2026-11-23 from #1a7f90,
+       4.50 on the 6% tint and 4.24 on the 14%; now 5.32 on white, 4.81
+       on the 14% tint). Brand-1-600 was retuned 2026-09-05 (owner call)
        from #d98a1f, which sat at 2.76:1 on white: walked down in OKLCH
        with hue and chroma held until it clears 3:1 as a non-text chart
        line on the light paper (now 3.04). */
     --brand-1-500: #ffaa3c;
     --brand-1-600: #d1820f;
-    --brand-1-700: #a36300;
+    --brand-1-700: #995a00;
     --brand-2-300: #8ee6f2;
     --brand-2-500: #3cc7dd;
-    --brand-2-700: #1a7f90;
+    --brand-2-700: #067687;
 
     /* Code-viewer kin of family 1:
        the values the Shiki theme has always baked, promoted to

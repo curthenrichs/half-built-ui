@@ -402,10 +402,10 @@ families, three stops each. Override any or all of them in your
 |---|---|---|
 | `--brand-1-500` | `#ffaa3c` | Base: lines and fills, dark-theme text ink. |
 | `--brand-1-600` | `#d1820f` | Chart kin; light-theme track-x. |
-| `--brand-1-700` | `#a36300` | Text ink on the light paper; light-theme focus ring. |
+| `--brand-1-700` | `#995a00` | Text ink on the light paper and its accent tints; light-theme focus ring. |
 | `--brand-2-300` | `#8ee6f2` | Light kin: dark-theme text ink and track-y. |
 | `--brand-2-500` | `#3cc7dd` | Base: lines and fills, dark-theme focus ring. |
-| `--brand-2-700` | `#1a7f90` | Text ink on the light paper; light-theme track-y. |
+| `--brand-2-700` | `#067687` | Text ink on the light paper and its accent tints; light-theme track-y. |
 
 An override looks like this:
 
