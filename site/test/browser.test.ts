@@ -19,6 +19,7 @@ import type { ChildProcess } from "node:child_process";
 import { readFileSync } from "node:fs";
 import type { Browser, HTTPRequest, Page } from "puppeteer-core";
 import { AxePuppeteer } from "@axe-core/puppeteer";
+import { contrastRatio } from "@half-built/tooling/palette";
 import type { RunOptions } from "axe-core";
 import {
   startPreview,
@@ -188,7 +189,7 @@ describe.skipIf(!enabled)("browser suite", () => {
      palette editor all mount from a module script with no DOM marker
      to wait on. */
   async function open(
-    options: { ecosystem?: EcosystemMode } = {},
+    options: { ecosystem?: EcosystemMode; animate?: boolean } = {},
   ): Promise<Page> {
     if (!browser) throw new Error("no browser (beforeAll failed)");
     const p = await desktopPage(browser);
@@ -210,11 +211,14 @@ describe.skipIf(!enabled)("browser suite", () => {
     await p.goto(`${ORIGIN}/`, { waitUntil: "networkidle0" });
 
     /* Colors must be settled when axe reads them: a theme flip mid
-       transition can interpolate a color past its passing endpoint. */
-    await p.addStyleTag({
-      content:
-        "*, *::before, *::after { transition: none !important; animation: none !important; }",
-    });
+       transition can interpolate a color past its passing endpoint.
+       A test about motion itself opts out with animate. */
+    if (!options.animate) {
+      await p.addStyleTag({
+        content:
+          "*, *::before, *::after { transition: none !important; animation: none !important; }",
+      });
+    }
 
     return p;
   }
@@ -389,6 +393,166 @@ describe.skipIf(!enabled)("browser suite", () => {
     const violations = await runAxe(p);
     expect(violations, report("dark", violations)).toEqual([]);
   }, 60_000);
+
+  /* The loading-state wrapper (.img-frame) must be exactly its image's
+     box in every SmartImage consumer, or the frame and label would sit
+     off the picture and the wrapper would be a layout change. */
+  async function frameMismatches(p: Page): Promise<string[]> {
+    return p.evaluate(() => {
+      const sel =
+        ".blog-image, .gallery-frame, .media-text-media, .step-media, .post-item-image";
+
+      const out: string[] = [];
+
+      for (const c of document.querySelectorAll(sel)) {
+        const imgs = c.querySelectorAll("img");
+        const frames = c.querySelectorAll(".img-frame");
+
+        /* One frame per image: a Step with two photos has two. */
+        if (frames.length !== imgs.length) {
+          out.push(
+            `${c.className}: ${String(frames.length)} frames for ${String(imgs.length)} images`,
+          );
+        }
+
+        for (const frame of frames) {
+          const img = frame.querySelector("img");
+
+          if (!img) {
+            out.push(`${c.className}: frame without img`);
+            continue;
+          }
+
+          const f = frame.getBoundingClientRect();
+          const i = img.getBoundingClientRect();
+
+          for (const side of ["left", "top", "right", "bottom"] as const) {
+            if (Math.abs(f[side] - i[side]) > 0.5) {
+              out.push(
+                `${c.className} ${side}: frame ${String(f[side])} img ${String(i[side])}`,
+              );
+            }
+          }
+        }
+      }
+
+      return out;
+    });
+  }
+
+  it("every SmartImage wrapper is exactly its image's box, desktop and phone", async () => {
+    expect(await frameMismatches(await open())).toEqual([]);
+    await page?.close();
+    expect(await frameMismatches(await openPhone())).toEqual([]);
+  }, 30_000);
+
+  it("a post card's hover zoom still scales the image, not its wrapper, inside the clip", async () => {
+    const p = await open();
+    await p.hover(".post-item");
+
+    await p.waitForFunction(() => {
+      const img = document.querySelector(".post-item-image img");
+      return img ? getComputedStyle(img).transform !== "none" : false;
+    });
+
+    const m = await p.$eval(".post-item-image", (box) => {
+      const frame = box.querySelector(".img-frame");
+      const img = box.querySelector("img");
+
+      return {
+        clip: getComputedStyle(box).overflow,
+        frame: frame ? getComputedStyle(frame).transform : "missing",
+        img: img ? getComputedStyle(img).transform : "missing",
+      };
+    });
+
+    expect(m.clip).toBe("hidden");
+    expect(m.frame).toBe("none");
+    expect(m.img).toMatch(/^matrix\(/);
+  }, 30_000);
+
+  /* Samples the specimen's three dots every 100ms across one 2s loop
+     and reports, per dot, whether it was ever hidden. */
+  async function dotsEverHidden(p: Page): Promise<boolean[]> {
+    return p.evaluate(async () => {
+      const dots = [
+        ...document.querySelectorAll(".demo-img-loading .img-loading-dots i"),
+      ];
+
+      const hidden = dots.map(() => false);
+
+      for (let t = 0; t < 21; t++) {
+        dots.forEach((d, i) => {
+          if (getComputedStyle(d).visibility === "hidden") hidden[i] = true;
+        });
+
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      }
+
+      return hidden;
+    });
+  }
+
+  it("the loading dots step through their loop", async () => {
+    const p = await open({ animate: true });
+    expect(await dotsEverHidden(p)).toEqual([true, true, true]);
+  }, 30_000);
+
+  it("under reduced motion the loading dots hold at three", async () => {
+    const p = await open({ animate: true });
+
+    await p.emulateMediaFeatures([
+      { name: "prefers-reduced-motion", value: "reduce" },
+    ]);
+
+    expect(await dotsEverHidden(p)).toEqual([false, false, false]);
+  }, 30_000);
+
+  it("the loading specimen shows the frame and the label in both themes", async () => {
+    const p = await open();
+
+    for (const theme of ["light", "dark"]) {
+      await p.evaluate((t) => {
+        document.documentElement.dataset.theme = t;
+      }, theme);
+
+      /* The label crossfades in over 0.35s; wait for it to land. */
+      await p.waitForFunction(
+        () => {
+          const label = document.querySelector(
+            ".demo-img-loading .img-loading",
+          );
+
+          return label ? getComputedStyle(label).opacity === "1" : false;
+        },
+        { timeout: 5000 },
+      );
+
+      const m = await p.evaluate(() => {
+        const frame = document.querySelector(".demo-img-loading");
+        const label = frame?.querySelector(".img-loading");
+        const prompt = frame?.querySelector(".img-loading-prompt");
+        const probe = document.createElement("span");
+        probe.style.color = "var(--accent-1-ink)";
+        document.body.append(probe);
+        const accent = getComputedStyle(probe).color;
+        probe.remove();
+
+        return {
+          loading: frame?.hasAttribute("data-loading") ?? false,
+          frameOn: frame ? getComputedStyle(frame, "::before").opacity : "",
+          text: label?.textContent ?? "",
+          prompt: prompt ? getComputedStyle(prompt).color : "",
+          accent,
+        };
+      });
+
+      expect(m.loading, theme).toBe(true);
+      expect(m.text, theme).toBe("$>Loading...");
+      expect(m.prompt, theme).toBe(m.accent);
+      expect(m.frameOn, theme).toBe("1");
+    }
+  }, 30_000);
 
   /* The category row's targets (24px for 2.5.8, plus 2px headroom) must not cost the ring or
      the one-line ellipsis: each link's border box stays inside the
@@ -1665,6 +1829,240 @@ describe.skipIf(!enabled)("browser suite", () => {
       page = undefined;
     }
   }, 120_000);
+
+  /* The raster demo figure links its webp; the lightbox fetches the
+     original from data-lb-original once opened, and skips it when the
+     browser reports data saver (stubbed here, since headless Chrome
+     reports none). */
+  it("the lightbox loads the original on open, and not under data saver", async () => {
+    for (const saveData of [false, true]) {
+      if (!browser) throw new Error("no browser (beforeAll failed)");
+      const p = await desktopPage(browser);
+      page = p;
+
+      if (saveData) {
+        await p.evaluateOnNewDocument(() => {
+          Object.defineProperty(navigator, "connection", {
+            value: { saveData: true, effectiveType: "4g" },
+            configurable: true,
+          });
+        });
+      }
+
+      const requested: string[] = [];
+
+      p.on("request", (r) => {
+        requested.push(new URL(r.url()).pathname);
+      });
+
+      await p.goto(`${ORIGIN}/`, { waitUntil: "networkidle0" });
+
+      const original = await p.$eval(
+        "a.lightbox-link[data-lb-original]",
+        (a) => a.getAttribute("data-lb-original") ?? "",
+      );
+
+      expect(
+        requested,
+        "the page itself never fetches the original",
+      ).not.toContain(original);
+
+      await p.click("a.lightbox-link[data-lb-original]");
+      await p.waitForSelector("dialog.lb-dialog[open]");
+      await p.waitForNetworkIdle({ idleTime: 300 });
+
+      if (saveData) {
+        expect(requested).not.toContain(original);
+      } else {
+        expect(requested).toContain(original);
+
+        await p.waitForFunction(
+          (src) =>
+            document.querySelector(".lb-img")?.getAttribute("src") === src,
+          {},
+          original,
+        );
+      }
+
+      await p.close();
+      page = undefined;
+    }
+  });
+
+  /* Every straddled label (.boxed-label-straddle) sits centered on
+     its box's top rule, in both themes: the label's middle lands on the
+     middle of the rule, within half a pixel. */
+  it("straddled labels sit centered on their box's top rule", async () => {
+    for (const theme of ["light", "dark"] as const) {
+      const p = await open();
+
+      await p.evaluate((t) => {
+        if (t === "dark") document.documentElement.dataset.theme = "dark";
+        else delete document.documentElement.dataset.theme;
+      }, theme);
+
+      const offsets = await p.$$eval(".boxed-label-straddle", (labels) =>
+        labels
+          .filter((l) => l.getClientRects().length > 0)
+          .map((l) => {
+            const box = l.parentElement;
+            if (!box) return [l.className, Number.NaN] as const;
+            const b = box.getBoundingClientRect();
+            const r = l.getBoundingClientRect();
+            const rule = parseFloat(getComputedStyle(box).borderTopWidth);
+
+            return [
+              l.className,
+              r.top + r.height / 2 - (b.top + rule / 2),
+            ] as const;
+          }),
+      );
+
+      /* EditorNote, Callout, AuthorBox, and the Toc panel all render
+         on the index. */
+      expect(offsets.length, theme).toBeGreaterThanOrEqual(4);
+
+      for (const [label, off] of offsets) {
+        expect(Math.abs(off), `${theme} ${label}`).toBeLessThanOrEqual(0.5);
+      }
+
+      await p.close();
+      page = undefined;
+    }
+  });
+
+  /* The accent tints deepen on hover, which the page-wide axe runs
+     never see (they check the resting page). Each tinted box is
+     hovered in both themes and axe's contrast rule run on it alone;
+     the inline TOC's summary shows only at phone width. */
+  it("the accent tints hold AA contrast under the pointer, both themes", async () => {
+    const TINTED: [width: "desktop" | "phone", selector: string][] = [
+      ["desktop", ".press-box-accent-1"],
+      ["desktop", ".press-box-accent-2"],
+      ["desktop", ".site-knob > summary"],
+      ["phone", ".toc-inline-summary"],
+    ];
+
+    for (const theme of ["light", "dark"] as const) {
+      for (const [width, selector] of TINTED) {
+        const p = width === "phone" ? await openPhone() : await open();
+
+        await p.evaluate((t) => {
+          if (t === "dark") document.documentElement.dataset.theme = "dark";
+          else delete document.documentElement.dataset.theme;
+        }, theme);
+
+        const el = await p.$(`${selector}:not([hidden])`);
+        if (!el) throw new Error(`no ${selector}`);
+        await el.scrollIntoView();
+        await el.hover();
+
+        /* .press-box eases its ground over 0.1s. */
+        await new Promise((resolve) => setTimeout(resolve, 250));
+
+        const results = await new AxePuppeteer(p)
+          .include(selector)
+          .withRules(["color-contrast"])
+          .analyze();
+
+        expect(
+          results.violations.flatMap((v) =>
+            v.nodes.map((n) => n.failureSummary),
+          ),
+          `${theme} hovering ${selector}`,
+        ).toEqual([]);
+
+        /* axe files a node it cannot measure (a pseudo-element in the
+           stack, as on the demo buttons) under incomplete, which would
+           pass unchecked. The tint is the box's own opaque ground, so
+           its text is measured against it directly as well. */
+        const { ink, ground } = await el.evaluate((e) => {
+          const cs = getComputedStyle(e);
+          return { ink: cs.color, ground: cs.backgroundColor };
+        });
+
+        expect(ground, `${theme} ${selector} ground is opaque`).not.toMatch(
+          /rgba\(|\/ 0?\.\d/,
+        );
+
+        expect(
+          contrastRatio(ink, ground),
+          `${theme} hovering ${selector}: ${ink} on ${ground}`,
+        ).toBeGreaterThanOrEqual(4.5);
+
+        await p.close();
+        page = undefined;
+      }
+    }
+  }, 120_000);
+
+  /* The demo turns scrubbing on: the timeline is a slider that the
+     keys and a drag both seek, with the site's focus ring. Opened
+     paused (reduced motion) so the readout holds still between
+     steps. */
+  it("the path player's timeline seeks by key and by drag", async () => {
+    const p = await open();
+
+    await p.emulateMediaFeatures([
+      { name: "prefers-reduced-motion", value: "reduce" },
+    ]);
+
+    await p.click(".demo-path-player");
+    await settleFrames(p);
+
+    const readout = (): Promise<string> =>
+      p.$eval(".pp-readout", (el) => el.textContent);
+
+    const slider = await p.$eval(".pp-timeline", (el) => {
+      const cs = getComputedStyle(el);
+
+      return {
+        role: el.getAttribute("role"),
+        label: el.getAttribute("aria-label"),
+        touchAction: cs.touchAction,
+        cursor: cs.cursor,
+      };
+    });
+
+    expect(slider).toEqual({
+      role: "slider",
+      label: "Timeline",
+      touchAction: "none",
+      cursor: "pointer",
+    });
+
+    await p.focus(".pp-timeline");
+    await p.keyboard.press("End");
+    await settleFrames(p);
+    expect(await readout()).toBe("T+08.0 / 8.0s");
+
+    const ring = await p.$eval(".pp-timeline", (el) => ({
+      visible: el.matches(":focus-visible"),
+      outline: getComputedStyle(el).outlineStyle,
+      valueNow: el.getAttribute("aria-valuenow"),
+    }));
+
+    expect(ring).toEqual({ visible: true, outline: "solid", valueNow: "8" });
+
+    await p.keyboard.press("Home");
+    await settleFrames(p);
+    expect(await readout()).toBe("T+00.0 / 8.0s");
+
+    const box = await (await p.$(".pp-timeline"))?.boundingBox();
+    if (!box) throw new Error("no timeline box");
+    await p.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    await p.mouse.down();
+    await p.mouse.up();
+    await settleFrames(p);
+
+    const t = Number(/T\+(\d+\.\d)/.exec(await readout())?.[1]);
+    expect(t).toBeGreaterThan(3.8);
+    expect(t).toBeLessThan(4.2);
+
+    expect(
+      await p.$eval(".pp-play", (b) => b.getAttribute("aria-pressed")),
+    ).toBe("false");
+  });
 
   /* The frame's geometry, read the same way for the inline pattern and
      the open plate modal: the zone padding as the plate's inset in its

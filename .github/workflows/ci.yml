@@ -34,10 +34,21 @@ jobs:
           cache: npm
       - run: npm ci
         env: { PUPPETEER_SKIP_DOWNLOAD: "1" }
-      - run: npm test
+      # The suite with a v8 coverage report in the log; reported, never
+      # a gate (vitest.config.ts says what it measures).
+      - run: npm run test:coverage
       - run: npm run lint
       - run: npm run build:site
       - run: npm run typecheck
+      # The floor job runs this build in the old engines. Hidden files
+      # (.well-known) ride along so the copy is the whole build; a week
+      # of retention lets a failed floor job be re-run on its own.
+      - uses: actions/upload-artifact@v4
+        with:
+          name: site-dist
+          path: site/dist
+          include-hidden-files: true
+          retention-days: 7
 
   browser:
     runs-on: ubuntu-latest
@@ -53,6 +64,42 @@ jobs:
       - run: npm run build:site
       # Chrome is preinstalled at /usr/bin/google-chrome on ubuntu-latest;
       # test-kit/browser-server.ts's candidate list already finds it, so
-      # no browser install step is needed here.
+      # no browser install step is needed for the Puppeteer suites. The
+      # engine smoke (site/test/engines.test.ts) drives Playwright's own
+      # Chromium, Firefox, and WebKit builds, installed here.
+      - run: npx playwright install --with-deps chromium firefox webkit
       - run: npm run test:browser
         env: { BROWSER_TESTS: "1" }
+
+  # The demo in the browsers at the support floor (site/floor/run.mjs):
+  # Chromium 99 from Playwright 1.18, Firefox 98 and WebKit 15.4 from
+  # Playwright 1.21. Those builds need the system libraries of the
+  # Ubuntu they were made for, so the job runs in Playwright 1.21's own
+  # focal image. That image ships Node 16, which has no node:test, so
+  # setup-node brings 22. site/floor is its own package: only this job
+  # installs the old releases.
+  floor:
+    needs: test
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    container: mcr.microsoft.com/playwright:v1.21.1-focal
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: site/floor/package-lock.json
+      - uses: actions/download-artifact@v4
+        with:
+          name: site-dist
+          path: site/dist
+      - run: npm ci --prefix site/floor
+        env: { PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1" }
+      - run: npm run install-browsers --prefix site/floor
+      # The container runs as root while GitHub points HOME at a mount
+      # owned by the runner user, and Firefox refuses to start as root
+      # in another user's home. Only this step moves HOME: the npm
+      # cache above lives under the runner's.
+      - run: npm test --prefix site/floor
+        env: { HOME: /root }

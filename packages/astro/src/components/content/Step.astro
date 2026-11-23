@@ -33,12 +33,7 @@ const photos: Photo[] = hasMany ? images : [{ src: src as ImageMetadata, alt }];
   <div class="step-media">
     {photos.map((p) => {
       const a = p.alt ?? "";
-      return <LightboxLink
-        href={p.src.src}
-        w={p.src.width}
-        h={p.src.height}
-        caption={a}
-      >
+      return <LightboxLink src={p.src} width={400} caption={a}>
         <SmartImage
           src={p.src}
           alt={a}
@@ -90,8 +85,8 @@ const photos: Photo[] = hasMany ? images : [{ src: src as ImageMetadata, alt }];
      numbered walkthrough, chip or not, so rows stay aligned. Decorative:
      the <ol> already carries list position for assistive tech. Whether
      the chip shows is the parent's call: Walkthrough sets
-     --step-chip-display and --step-media-margin on its numbered variant
-     (step 5 replaced the :global(.walkthrough-numbered) parent-read). */
+     --step-chip-display and --step-media-margin on its numbered variant,
+     so Step never reads its parent's class. */
   /* stylelint-disable-next-line no-duplicate-selectors -- split from the
      grid rule above so the contract stays grouped with its own comment. */
   .step-media { margin: var(--step-media-margin, 0); }

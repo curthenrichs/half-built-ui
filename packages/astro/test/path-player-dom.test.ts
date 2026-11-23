@@ -9,7 +9,7 @@ import {
   stubRafOnFakeTimers,
   recordingContext,
   type RecordingContext,
-} from "./helpers";
+} from "../../tooling/src/test-kit/helpers";
 
 /* The blog's copy of this suite typed SAMPLES against fluid/path-pipeline's
    TimelineSample. path-player.ts is generic over the sample type (it "knows
@@ -38,7 +38,9 @@ type SinkSpies = Record<
 let sink: SinkSpies;
 
 /* Every test uses the beforeEach sink; makePlayer closes over it. */
-function makePlayer() {
+function makePlayer(
+  extra: Partial<Parameters<typeof createPathPlayer>[1]> = {},
+) {
   return createPathPlayer(document, {
     title: "PATH PLAYER",
     source: "TEST",
@@ -51,6 +53,7 @@ function makePlayer() {
       return true;
     },
     sink,
+    ...extra,
   });
 }
 
@@ -515,10 +518,10 @@ describe("createPathPlayer", () => {
     expect(caption.hidden).toBe(true);
   });
 
-  /* Step 10: the path player now rides core/frame-loop, which gains it
-     a visibility pause it never had. Playback state is untouched by the
+  /* The path player rides core/frame-loop, which gives it a visibility
+     pause. Playback state is untouched by the
      pause; only the loop halts and resumes. */
-  describe("visibility pause (step 10)", () => {
+  describe("visibility pause", () => {
     afterEach(() => {
       Object.defineProperty(document, "hidden", {
         value: false,
@@ -567,6 +570,275 @@ describe("createPathPlayer", () => {
       const t = Number(/T\+(\d+\.\d)/.exec(txt)?.[1]);
       expect(t).toBeLessThan(0.2); // clamped to one frame, not a 5s smear
       player.close();
+    });
+  });
+
+  /* Scrubbing is opt-in per caller: a simulation that cannot rewind
+     (the blog's fluid) leaves it off, a player whose stage is a pure
+     function of time turns it on. */
+  describe("scrubbing", () => {
+    const timelineEl = (): HTMLElement => {
+      const el = document.querySelector<HTMLElement>(".pp-timeline");
+      if (!el) throw new Error("no timeline");
+      return el;
+    };
+
+    /* jsdom has no layout and no pointer capture: a 200px-wide timeline
+       at the left edge, and a capture spy. */
+    const layOut = (el: HTMLElement): ReturnType<typeof vi.fn> => {
+      vi.spyOn(el, "getBoundingClientRect").mockReturnValue({
+        left: 0,
+        top: 0,
+        width: 200,
+        height: 40,
+        right: 200,
+        bottom: 40,
+        x: 0,
+        y: 0,
+        toJSON: () => ({}),
+      });
+
+      const capture = vi.fn();
+      el.setPointerCapture = capture;
+      return capture;
+    };
+
+    /* jsdom lacks a PointerEvent constructor; MouseEvents typed as
+       pointer events carry the fields the handlers read. */
+    const pointer = (type: string, clientX: number, button = 0): MouseEvent => {
+      const ev = new MouseEvent(type, { bubbles: true, clientX, button });
+      Object.defineProperty(ev, "pointerId", { value: 1 });
+      return ev;
+    };
+
+    const key = (el: HTMLElement, k: string): boolean =>
+      el.dispatchEvent(
+        new KeyboardEvent("keydown", {
+          key: k,
+          bubbles: true,
+          cancelable: true,
+        }),
+      );
+
+    const pause = (): void => {
+      document
+        .querySelector<HTMLButtonElement>(".pp-play")
+        ?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    };
+
+    it("is off by default: the timeline is not a control and ignores the pointer", () => {
+      const player = makePlayer();
+      player.open(null);
+      const el = timelineEl();
+      layOut(el);
+      sink.start.mockClear();
+
+      expect(el.getAttribute("role")).toBeNull();
+      expect(el.hasAttribute("tabindex")).toBe(false);
+
+      el.dispatchEvent(pointer("pointerdown", 100));
+      expect(sink.start).not.toHaveBeenCalled();
+      expect(player.isPlaying()).toBe(true);
+      expect(key(el, "End")).toBe(true);
+    });
+
+    it("on, the timeline is a focusable slider over the duration", () => {
+      makePlayer({ scrub: true }).open(null);
+      const el = timelineEl();
+
+      expect(el.getAttribute("role")).toBe("slider");
+      expect(el.tabIndex).toBe(0);
+      expect(el.getAttribute("aria-label")).toBe("Timeline");
+      expect(el.getAttribute("aria-valuemin")).toBe("0");
+      expect(el.getAttribute("aria-valuemax")).toBe("2");
+      expect(el.getAttribute("aria-valuenow")).toBe("0");
+      expect(el.getAttribute("aria-valuetext")).toBe("0.0 of 2.0 seconds");
+    });
+
+    it("the slider's name comes from labels.timeline when given", () => {
+      makePlayer({ scrub: true, labels: { timeline: "Zeitleiste" } }).open(
+        null,
+      );
+
+      expect(timelineEl().getAttribute("aria-label")).toBe("Zeitleiste");
+    });
+
+    it("a drag pauses the clock, seeks the sink, and resumes on release", () => {
+      const player = makePlayer({ scrub: true });
+      player.open(null);
+      const el = timelineEl();
+      const capture = layOut(el);
+      sink.start.mockClear();
+
+      el.dispatchEvent(pointer("pointerdown", 100));
+      expect(capture).toHaveBeenCalledWith(1);
+      expect(sink.start).toHaveBeenLastCalledWith(SAMPLES[30]);
+      expect(player.isPlaying()).toBe(false);
+      expect(el.getAttribute("aria-valuenow")).toBe("1");
+
+      el.dispatchEvent(pointer("pointermove", 150));
+      expect(sink.move).toHaveBeenLastCalledWith(SAMPLES[45]);
+
+      /* The clock holds while the drag does. */
+      vi.advanceTimersByTime(500);
+
+      expect(document.querySelector(".pp-readout")?.textContent).toBe(
+        "T+01.5 / 2.0s",
+      );
+
+      el.dispatchEvent(pointer("pointerup", 150));
+      expect(player.isPlaying()).toBe(true);
+
+      /* Past either edge clamps to the timeline. */
+      el.dispatchEvent(pointer("pointerdown", 900));
+      expect(sink.start).toHaveBeenLastCalledWith(SAMPLES[59]);
+      el.dispatchEvent(pointer("pointermove", -50));
+      expect(sink.move).toHaveBeenLastCalledWith(SAMPLES[0]);
+      el.dispatchEvent(pointer("pointerup", -50));
+    });
+
+    it("a drag that starts paused stays paused on release", () => {
+      const player = makePlayer({ scrub: true });
+      player.open(null);
+      pause();
+      const el = timelineEl();
+      layOut(el);
+
+      el.dispatchEvent(pointer("pointerdown", 100));
+      el.dispatchEvent(pointer("pointerup", 100));
+      expect(player.isPlaying()).toBe(false);
+    });
+
+    it("a cancelled drag ends the drag and restores play", () => {
+      const player = makePlayer({ scrub: true });
+      player.open(null);
+      const el = timelineEl();
+      layOut(el);
+
+      el.dispatchEvent(pointer("pointerdown", 100));
+      el.dispatchEvent(pointer("pointercancel", 100));
+      expect(player.isPlaying()).toBe(true);
+
+      sink.move.mockClear();
+      el.dispatchEvent(pointer("pointermove", 150));
+      expect(sink.move).not.toHaveBeenCalled();
+    });
+
+    it("a stray release with no drag leaves play alone", () => {
+      const player = makePlayer({ scrub: true });
+      player.open(null);
+      const el = timelineEl();
+      layOut(el);
+
+      el.dispatchEvent(pointer("pointerup", 100));
+      expect(player.isPlaying()).toBe(true);
+    });
+
+    it("only the primary button starts a drag", () => {
+      const player = makePlayer({ scrub: true });
+      player.open(null);
+      const el = timelineEl();
+      layOut(el);
+      sink.start.mockClear();
+
+      el.dispatchEvent(pointer("pointerdown", 100, 2));
+      expect(sink.start).not.toHaveBeenCalled();
+      expect(player.isPlaying()).toBe(true);
+    });
+
+    it("arrow, page, Home, and End keys seek and are consumed", () => {
+      const player = makePlayer({ scrub: true });
+      player.open(null);
+      pause();
+      const el = timelineEl();
+      sink.start.mockClear();
+      sink.stop.mockClear();
+
+      /* Page steps a tenth of the duration, arrows a hundredth. */
+      expect(key(el, "PageUp")).toBe(false);
+      expect(el.getAttribute("aria-valuenow")).toBe("0.2");
+      expect(sink.start).toHaveBeenLastCalledWith(SAMPLES[6]);
+      expect(sink.stop).toHaveBeenCalled();
+      expect(player.isPlaying()).toBe(false);
+
+      expect(key(el, "ArrowRight")).toBe(false);
+      expect(key(el, "ArrowUp")).toBe(false);
+      expect(el.getAttribute("aria-valuenow")).toBe("0.24");
+
+      expect(document.querySelector(".pp-readout")?.textContent).toBe(
+        "T+00.2 / 2.0s",
+      );
+
+      expect(key(el, "ArrowLeft")).toBe(false);
+      expect(key(el, "ArrowDown")).toBe(false);
+      expect(key(el, "PageDown")).toBe(false);
+      expect(el.getAttribute("aria-valuenow")).toBe("0");
+
+      expect(key(el, "End")).toBe(false);
+      expect(sink.start).toHaveBeenLastCalledWith(SAMPLES[59]);
+      expect(el.getAttribute("aria-valuetext")).toBe("2.0 of 2.0 seconds");
+
+      expect(key(el, "Home")).toBe(false);
+      expect(sink.start).toHaveBeenLastCalledWith(SAMPLES[0]);
+
+      /* Other keys pass through. */
+      expect(key(el, "a")).toBe(true);
+    });
+
+    it("a key seek while playing keeps playing", () => {
+      const player = makePlayer({ scrub: true });
+      player.open(null);
+      const el = timelineEl();
+      sink.stop.mockClear();
+
+      key(el, "PageUp");
+      expect(player.isPlaying()).toBe(true);
+      expect(sink.stop).not.toHaveBeenCalled();
+    });
+
+    /* A focused slider announces each value change, so playback moves
+       it in whole seconds rather than every frame; a pause settles it
+       on the exact time. */
+    it("the slider follows playback in whole seconds, exact on pause", () => {
+      makePlayer({ scrub: true }).open(null);
+      const el = timelineEl();
+      const writes = vi.spyOn(el, "setAttribute");
+
+      vi.advanceTimersByTime(1500);
+
+      const nowWrites = writes.mock.calls.filter(
+        ([name]) => name === "aria-valuenow",
+      );
+
+      expect(nowWrites.length).toBeLessThanOrEqual(2);
+      expect(el.getAttribute("aria-valuenow")).toBe("1");
+      expect(el.getAttribute("aria-valuetext")).toBe("1.0 of 2.0 seconds");
+
+      pause();
+      const exact = Number(el.getAttribute("aria-valuenow"));
+      expect(exact).toBeGreaterThan(1.4);
+      expect(exact).toBeLessThan(1.6);
+    });
+
+    it("with no stage the timeline is not a control even with scrub on", () => {
+      createPathPlayer(document, {
+        title: "T",
+        source: "S",
+        caption: "C",
+        duration: 2,
+        samples: SAMPLES,
+        tracks: [],
+        buildStage: () => false,
+        sink,
+        scrub: true,
+      }).open(null);
+
+      const el = timelineEl();
+      layOut(el);
+      expect(el.getAttribute("role")).toBeNull();
+      expect(el.hasAttribute("tabindex")).toBe(false);
+      el.dispatchEvent(pointer("pointerdown", 100));
+      expect(sink.start).not.toHaveBeenCalled();
     });
   });
 });

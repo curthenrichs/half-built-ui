@@ -2,13 +2,15 @@
 /* DOM runtime tests for the lightbox decorator, in the manner of
    code-island-dom.test.ts. Fixture markup mirrors the built output of
    the content components (BlogImage, Gallery, Walkthrough/Step). */
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import {
   mountLightbox,
   swapToFull,
+  prefersLeanData,
   FALLBACK_BOX,
 } from "../src/scripts/lightbox";
-import { polyfillDialog } from "./helpers";
+import { LOADING_GRACE_MS } from "../src/scripts/image-loading";
+import { polyfillDialog } from "../../tooling/src/test-kit/helpers";
 
 const PAGE = `
   <main class="prose">
@@ -147,6 +149,14 @@ describe("full-resolution swap", () => {
     expect(target.src).toContain("/full/solo.jpg");
   });
 
+  it("an item already showing its full source clears an earlier pending load", () => {
+    const target = document.createElement("img");
+    target.setAttribute("src", "/full/self.svg");
+    target.dataset.pending = "/full/previous.jpg";
+    expect(swapToFull(target, "/full/self.svg", document)).toBeNull();
+    expect(target.dataset.pending).toBeUndefined();
+  });
+
   it("ignores a stale load after navigating away", () => {
     const target = document.createElement("img");
     target.src = "/thumb/g1.jpg";
@@ -154,6 +164,102 @@ describe("full-resolution swap", () => {
     target.dataset.pending = "/full/g2.jpg";
     probe?.dispatchEvent(new Event("load"));
     expect(target.src).toContain("/thumb/g1.jpg");
+  });
+});
+
+/* The original's URL rides in data-lb-original, out of the href that
+   crawlers follow; the href is the in-page rendition. The lightbox
+   swaps to the original unless the browser reports data saver or a
+   slow connection (navigator.connection, Chromium only). */
+describe("original source and lean connections", () => {
+  const ORIGINAL = `<a class="lightbox-link" id="orig" href="/r/photo.webp" data-lb-original="/o/photo.jpg" data-lb-w="1600" data-lb-h="1200" data-lb-caption="Photo"><img src="/r/photo-640.webp" alt="Photo"></a>`;
+
+  const setConnection = (value: unknown): void => {
+    Object.defineProperty(navigator, "connection", {
+      value,
+      configurable: true,
+    });
+  };
+
+  const pending = (): string | undefined =>
+    dialog().querySelector<HTMLImageElement>(".lb-img")?.dataset.pending;
+
+  beforeEach(() => {
+    document.body.innerHTML = ORIGINAL;
+    mountLightbox(document);
+  });
+
+  afterEach(() => {
+    Reflect.deleteProperty(navigator, "connection");
+  });
+
+  it("swaps to data-lb-original, not the href", () => {
+    openViaClick("#orig");
+    expect(pending()).toBe("/o/photo.jpg");
+  });
+
+  it("without data-lb-original it swaps to the href, as before", () => {
+    document.body.innerHTML = ORIGINAL.replace(
+      ' data-lb-original="/o/photo.jpg"',
+      "",
+    );
+
+    mountLightbox(document);
+    openViaClick("#orig");
+    expect(pending()).toBe("/r/photo.webp");
+  });
+
+  it.each([
+    [{ saveData: true, effectiveType: "4g" }],
+    [{ saveData: false, effectiveType: "slow-2g" }],
+    [{ saveData: false, effectiveType: "2g" }],
+    [{ saveData: false, effectiveType: "3g" }],
+  ])(
+    "loads the link's webp, not the original, on a lean connection %j",
+    (connection) => {
+      setConnection(connection);
+      openViaClick("#orig");
+      expect(pending()).toBe("/r/photo.webp");
+
+      expect(dialog().querySelector(".lb-img")?.getAttribute("src")).toBe(
+        "/r/photo-640.webp",
+      );
+    },
+  );
+
+  /* swapToFull lands a load only while dataset.pending still names
+     it, so a lean step must replace the last item's marker or that
+     original arrives over the new item. */
+  it("a load still in flight from the last item never lands after a lean step", () => {
+    document.body.innerHTML = `<div class="gallery-plates">${ORIGINAL}${ORIGINAL.replace(/photo/g, "other").replace('id="orig"', 'id="orig2"')}</div>`;
+    mountLightbox(document);
+    openViaClick("#orig");
+    expect(pending()).toBe("/o/photo.jpg");
+
+    setConnection({ saveData: true });
+    dialog().querySelector<HTMLButtonElement>(".lb-next")?.click();
+
+    expect(pending()).toBe("/r/other.webp");
+
+    expect(dialog().querySelector(".lb-img")?.getAttribute("src")).toBe(
+      "/r/other-640.webp",
+    );
+  });
+
+  it("a fast connection without data saver still swaps", () => {
+    setConnection({ saveData: false, effectiveType: "4g" });
+    openViaClick("#orig");
+    expect(pending()).toBe("/o/photo.jpg");
+  });
+
+  it("prefersLeanData reads the connection, and no connection means no", () => {
+    expect(prefersLeanData(navigator)).toBe(false);
+    setConnection({ saveData: true });
+    expect(prefersLeanData(navigator)).toBe(true);
+    setConnection({ effectiveType: "3g" });
+    expect(prefersLeanData(navigator)).toBe(true);
+    setConnection({ effectiveType: "4g", saveData: false });
+    expect(prefersLeanData(navigator)).toBe(false);
   });
 });
 
@@ -226,7 +332,7 @@ describe("gallery sets", () => {
     const d = dialog();
     const viewbox = d.querySelector(".lb-viewbox");
 
-    /* jsdom lacks a PointerEvent constructor (see henry-loose-dom.test.ts);
+    /* jsdom lacks a PointerEvent constructor;
        dispatch MouseEvents typed as pointer events and attach pointerId,
        the only pointer-specific field the listeners read. */
     const pointer = (
@@ -504,7 +610,7 @@ describe("modified clicks fall through to the browser", () => {
   });
 });
 
-describe("island lifecycle (step 9)", () => {
+describe("island lifecycle", () => {
   it("mounting twice on the same fixture still builds one dialog", () => {
     document.body.innerHTML = PAGE;
     mountLightbox(document);
@@ -573,7 +679,7 @@ describe("island lifecycle (step 9)", () => {
   });
 });
 
-describe("custom selector grouping (step 9.5)", () => {
+describe("custom selector grouping", () => {
   const CUSTOM = `
     <main>
       <div class="gallery-plates">
@@ -612,5 +718,169 @@ describe("custom selector grouping (step 9.5)", () => {
     expect(dialog().querySelector<HTMLElement>(".lb-counter")?.hidden).toBe(
       false,
     );
+  });
+});
+
+/* The viewbox reuses the image loading state (watchImage) whenever its
+   image has nothing to show yet. jsdom never fetches, so complete is
+   pinned on the prototype for each test and restored after. */
+describe("loading state", () => {
+  const proto = HTMLImageElement.prototype;
+  const original = Object.getOwnPropertyDescriptor(proto, "complete");
+
+  const pinComplete = (value: boolean): void => {
+    Object.defineProperty(proto, "complete", {
+      configurable: true,
+      get: () => value,
+    });
+  };
+
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    if (original) Object.defineProperty(proto, "complete", original);
+  });
+
+  /* The mark lands only once the grace period passes with the image
+     still downloading. */
+  const graceOver = (): void => {
+    vi.advanceTimersByTime(LOADING_GRACE_MS);
+  };
+
+  const viewbox = (): HTMLElement => {
+    const v = dialog().querySelector<HTMLElement>(".lb-viewbox");
+    if (!v) throw new Error("no viewbox");
+    return v;
+  };
+
+  const lbImg = (): HTMLImageElement => {
+    const i = dialog().querySelector<HTMLImageElement>(".lb-img");
+    if (!i) throw new Error("no lb-img");
+    return i;
+  };
+
+  it("an image with nothing to show yet marks the viewbox loading with one label", () => {
+    pinComplete(false);
+    openViaClick(".blog-image a.lightbox-link");
+    graceOver();
+    expect(viewbox().hasAttribute("data-loading")).toBe(true);
+    expect(viewbox().querySelectorAll(".img-loading").length).toBe(1);
+  });
+
+  it("the viewbox clears on load", () => {
+    pinComplete(false);
+    openViaClick(".blog-image a.lightbox-link");
+    graceOver();
+    lbImg().dispatchEvent(new Event("load"));
+    expect(viewbox().hasAttribute("data-loading")).toBe(false);
+  });
+
+  it("the viewbox clears on error", () => {
+    pinComplete(false);
+    openViaClick(".blog-image a.lightbox-link");
+    graceOver();
+    lbImg().dispatchEvent(new Event("error"));
+    expect(viewbox().hasAttribute("data-loading")).toBe(false);
+  });
+
+  it("next, next before anything loads leaves one label and stays loading", () => {
+    pinComplete(false);
+    openViaClick(".gallery-plates a.lightbox-link");
+    const next = dialog().querySelector<HTMLButtonElement>(".lb-next");
+    next?.click();
+    next?.click();
+    graceOver();
+    expect(viewbox().hasAttribute("data-loading")).toBe(true);
+    expect(viewbox().querySelectorAll(".img-loading").length).toBe(1);
+  });
+
+  it("a complete in-page rendition opens with no loading state", () => {
+    pinComplete(true);
+    openViaClick(".blog-image a.lightbox-link");
+    graceOver();
+    expect(viewbox().hasAttribute("data-loading")).toBe(false);
+    expect(viewbox().querySelectorAll(".img-loading").length).toBe(0);
+  });
+});
+
+describe("navigation and pointer edges", () => {
+  const press = (type: string, pointerId: number): Event =>
+    Object.assign(
+      new MouseEvent(type, {
+        bubbles: true,
+        cancelable: true,
+        clientX: 400,
+        clientY: 300,
+      }),
+      { pointerId },
+    );
+
+  it("the prev arrow steps back, wrapping to the last plate", () => {
+    openViaClick(".gallery-plates a.lightbox-link");
+    const d = dialog();
+    d.querySelector<HTMLButtonElement>(".lb-prev")?.click();
+    expect(d.querySelector(".lb-counter")?.textContent).toBe("03 / 03");
+    expect(d.querySelector(".lb-caption")?.textContent).toBe("Plate three");
+  });
+
+  it("navigating scrolls the active thumb into view", () => {
+    const scrolled: Element[] = [];
+
+    /* jsdom has no scrollIntoView; the island guards for that, so the
+       test supplies one to see the call. */
+    Object.defineProperty(HTMLElement.prototype, "scrollIntoView", {
+      configurable: true,
+      writable: true,
+      value: function (this: HTMLElement) {
+        scrolled.push(this);
+      },
+    });
+
+    try {
+      openViaClick(".gallery-plates a.lightbox-link");
+      const d = dialog();
+      d.querySelector<HTMLButtonElement>(".lb-next")?.click();
+      expect(scrolled.at(-1)).toBe(d.querySelectorAll(".lb-thumb")[1]);
+    } finally {
+      Reflect.deleteProperty(HTMLElement.prototype, "scrollIntoView");
+    }
+  });
+
+  it("a drag press captures its pointer on the viewbox", () => {
+    openViaClick(".blog-image a.lightbox-link");
+    const viewbox = dialog().querySelector<HTMLElement>(".lb-viewbox");
+    if (!viewbox) throw new Error("no viewbox");
+    const captured: number[] = [];
+
+    viewbox.setPointerCapture = (id: number) => {
+      captured.push(id);
+    };
+
+    viewbox.dispatchEvent(press("pointerdown", 7));
+    expect(captured).toEqual([7]);
+  });
+
+  it("a link with no image opens on its href as the in-page rendition", () => {
+    document.body.innerHTML = `<a class="lightbox-link" id="bare" href="/full/bare.jpg" data-lb-w="800" data-lb-h="600" data-lb-caption="Bare">Bare</a>`;
+    mountLightbox(document);
+    openViaClick("#bare");
+
+    expect(dialog().querySelector(".lb-img")?.getAttribute("src")).toBe(
+      "/full/bare.jpg",
+    );
+  });
+
+  it("a page with no lightbox links mounts nothing, and its destroy is safe", () => {
+    document.body.innerHTML = "<main><p>No images here.</p></main>";
+    const handle = mountLightbox(document);
+
+    expect(() => {
+      handle.destroy();
+    }).not.toThrow();
+
+    expect(document.querySelector("dialog.lb-dialog")).toBeNull();
   });
 });

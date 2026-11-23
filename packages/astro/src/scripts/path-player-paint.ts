@@ -1,8 +1,9 @@
 /* Canvas painters for the path-player timeline; each takes a Painter
    and paints one thing at a given top. Pure over the context they are
-   handed, so tests drive them with a recording context (test/helpers.ts)
-   and never need a real canvas. The transport in path-player.ts composes
-   them once per layout onto an offscreen canvas. */
+   handed, so tests drive them with the tooling test kit's
+   recordingContext and never need a real canvas. The transport in
+   path-player.ts composes them once per layout onto an offscreen
+   canvas. */
 import {
   normalizeSeries,
   brightChannel,

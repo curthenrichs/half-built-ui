@@ -149,6 +149,7 @@ const {
       import { mountPaletteEditor } from "../scripts/palette-editor";
       import { mountTokenHexes } from "../scripts/token-hexes";
       import { mountPathDemo } from "../scripts/path-demo";
+      import { mountLoadingDemo } from "../scripts/loading-demo";
       import { THEME_STORAGE_KEY } from "../lib/theme-key";
       import { PALETTE_STORAGE_KEY } from "../lib/palette-key";
       import { ECOSYSTEM_SELF_KEY, ECOSYSTEM_ENDPOINT } from "../lib/ecosystem-config";
@@ -165,6 +166,7 @@ const {
       mountPaletteEditor(document, { storageKey: PALETTE_STORAGE_KEY });
       mountTokenHexes(document);
       mountPathDemo(document);
+      mountLoadingDemo(document);
       /* Guarded, so a site with no endpoint configured makes no
          request at all. Bundlers drop the island entirely while the
          constant is null. */

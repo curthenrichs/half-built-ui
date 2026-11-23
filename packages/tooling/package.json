@@ -1,6 +1,6 @@
 {
   "name": "@half-built/tooling",
-  "version": "0.19.0",
+  "version": "0.20.0",
   "description": "Lint presets, the test kit, and the palette math for half-built sites.",
   "license": "MIT",
   "repository": {
@@ -18,7 +18,8 @@
     "./htmlvalidate": "./src/htmlvalidate.json",
     "./test-kit/*": "./src/test-kit/*",
     "./prettier": "./src/prettier.config.mjs",
-    "./palette": "./src/palette/index.ts"
+    "./palette": "./src/palette/index.ts",
+    "./browser-floor": "./src/browser-floor.json"
   },
   "dependencies": {
     "@eslint/js": "^10.0.1",
@@ -30,14 +31,15 @@
     "postcss-html": "^2.0.0",
     "prettier-plugin-astro": "^1.0.0",
     "stylelint-config-standard": "^40.0.0",
+    "stylelint-plugin-use-baseline": "^1.4.8",
     "typescript-eslint": "^8.65.0"
   },
   "peerDependencies": {
     "eslint": "^10.8.0",
     "html-validate": "^9.7.1",
+    "prettier": "^3.9.6",
     "stylelint": "^17.14.1",
-    "vitest": "^2.1.9",
-    "prettier": "^3.9.6"
+    "vitest": "^2.1.9"
   },
   "peerDependenciesMeta": {
     "html-validate": {

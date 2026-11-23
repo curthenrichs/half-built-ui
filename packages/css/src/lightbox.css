@@ -55,6 +55,14 @@
     max-width: none;
     border: 0;
     cursor: grab;
+    transition: opacity 0.35s ease;
+  }
+
+  /* Nothing to show yet: the viewbox keeps its own mat and border and
+     carries the shared "$> Loading..." label (img-loading pattern in
+     patterns.css); the image stays transparent until it arrives. */
+  .lb-viewbox[data-loading] .lb-img {
+    opacity: 0;
   }
 
   /* Generous air after the caption before the bottom rule (owner request

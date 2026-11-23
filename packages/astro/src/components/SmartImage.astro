@@ -30,36 +30,46 @@ const fixed = !passthrough && widths === undefined;
 const imgLoading = loading === "eager" ? undefined : loading;
 ---
 
-{passthrough && (
-  <img
-    src={src.src}
-    width={src.width}
-    height={src.height}
-    alt={alt}
-    class={className}
-    loading={imgLoading}
-    style={style}
-    fetchpriority={fetchpriority}
-  />
-)}{responsive && (
-  <Image
-    src={src}
-    widths={widths}
-    sizes={sizes}
-    alt={alt}
-    class={className}
-    loading={loading}
-    style={style}
-    fetchpriority={fetchpriority}
-  />
-)}{fixed && (
-  <Image
-    src={src}
-    width={src.width}
-    alt={alt}
-    class={className}
-    loading={loading}
-    style={style}
-    fetchpriority={fetchpriority}
-  />
-)}
+{/* .img-frame carries the loading state (img-loading pattern in
+   @half-built/css); the script below sets it only while the image is
+   still downloading, so server HTML and no-JS renders are unchanged. */}
+<span class="img-frame"
+  >{passthrough && (
+    <img
+      src={src.src}
+      width={src.width}
+      height={src.height}
+      alt={alt}
+      class={className}
+      loading={imgLoading}
+      style={style}
+      fetchpriority={fetchpriority}
+    />
+  )}{responsive && (
+    <Image
+      src={src}
+      widths={widths}
+      sizes={sizes}
+      alt={alt}
+      class={className}
+      loading={loading}
+      style={style}
+      fetchpriority={fetchpriority}
+    />
+  )}{fixed && (
+    <Image
+      src={src}
+      width={src.width}
+      alt={alt}
+      class={className}
+      loading={loading}
+      style={style}
+      fetchpriority={fetchpriority}
+    />
+  )}</span
+>
+
+<script>
+  import { mountImageLoading } from "../scripts/image-loading";
+  mountImageLoading(document);
+</script>

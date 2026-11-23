@@ -50,6 +50,8 @@ import type {
   LinkListItem,
 } from "@half-built/astro/components/models.ts";
 import placeholderWide from "../assets/placeholder-wide.svg";
+import placeholderWideRaster from "../assets/placeholder-wide-raster.png";
+import placeholderSquareSmall from "../assets/placeholder-square-raster-small.png";
 import placeholderSquare from "../assets/placeholder-square.svg";
 import placeholderTall from "../assets/placeholder-tall.svg";
 
@@ -710,7 +712,9 @@ const npmPackages = [
               controls and a timeline. The caller supplies the samples, the
               tracks under the stage, and the stage itself. The stage in this
               demo is a point moving on a closed curve. When reduced motion is
-              set, the player opens paused.
+              set, the player opens paused. This demo turns on scrubbing, so
+              dragging along the timeline or pressing the arrow keys moves
+              playback to that point.
             </p>
             <p class="button-row">
               <Button variant="accent-1" class="demo-path-player"
@@ -944,7 +948,9 @@ const npmPackages = [
               <Step src={placeholderSquare} alt="Placeholder step photo, one"
                 >First step. One placeholder photo beside its text.</Step
               >
-              <Step src={placeholderSquare} alt="Placeholder step photo, two"
+              <Step
+                src={placeholderSquareSmall}
+                alt="Placeholder step photo, two"
                 >Second step. The step number is on a chip in the corner of the
                 image.</Step
               >
@@ -974,11 +980,24 @@ const npmPackages = [
 
             <h3>Blog image</h3>
             <BlogImage
-              src={placeholderWide}
+              src={placeholderWideRaster}
               alt="Wide placeholder image"
               caption="A full-width figure with a caption and the AI Art badge."
               badges={[GENAI_BADGE]}
             />
+            <BlogImage
+              src={placeholderSquare}
+              alt="Square placeholder image"
+              caption="A narrow figure, capped at 495px wide."
+              narrow
+            />
+            <figure class="demo-img-loading-figure">
+              <span class="img-frame demo-img-loading"></span>
+              <figcaption class="caption">
+                SmartImage shows this frame while its image downloads. Here it
+                is held on for the demo.
+              </figcaption>
+            </figure>
 
             <h3>Media text</h3>
             <MediaText src={placeholderTall} alt="Tall placeholder image">
@@ -987,6 +1006,17 @@ const npmPackages = [
                 the caption slot. It holds a short paragraph rather than a
                 single line. On a phone the image stacks above the prose, which
                 is centered like a figure caption.
+              </p>
+            </MediaText>
+            <MediaText
+              src={placeholderSquare}
+              alt="Square placeholder image"
+              mediaSide="right"
+              natural
+            >
+              <p>
+                The natural variant shows the image at its own size instead of
+                filling its side.
               </p>
             </MediaText>
           </div>
@@ -1166,6 +1196,21 @@ const npmPackages = [
                   </tr>
                   <tr>
                     <td>
+                      <div class="rule-box demo-straddle-specimen">
+                        <span class="boxed-label boxed-label-straddle"
+                          >Label</span
+                        >
+                      </div>
+                    </td>
+                    <td><code>.boxed-label-straddle</code></td>
+                    <td>
+                      Boxed label centered on its box's top rule. Used for the
+                      editor note, callout, and author box labels, and in its
+                      compact size for the TOC panel.
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
                       <button
                         type="button"
                         class="icon-box"
@@ -1228,6 +1273,11 @@ const npmPackages = [
     gap: 20px;
     margin: 20px 0;
   }
+
+  /* The pinned loading specimen stands in for a wide image's box. */
+  .demo-img-loading-figure { margin: 20px 0; }
+  .demo-img-loading { aspect-ratio: 3 / 2; }
+  .demo-img-loading-figure figcaption { margin-top: 5px; text-align: center; }
   .demo-card-grid-narrow { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
 
   /* The TwoColumn demo: a ruled frame standing in for the page the row

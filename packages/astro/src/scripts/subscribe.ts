@@ -17,7 +17,7 @@
    finish it on Buttondown's own page. Only a thrown fetch (the network
    itself failing) writes the couldn't-reach line.
 
-   On the island contract (step 9): mount(root, options?) returns a
+   On the island contract: mount(root, options?) returns a
    destroy handle, and claim() makes a second mount over an already-wired
    form a no-op. */
 
@@ -32,8 +32,8 @@ export const MSG = {
   failed: "Couldn't reach the list. Try again in a minute.",
   /* Composes the failure line when the form names a public sign-up page.
      A function member so an overridden register controls the whole
-     sentence, joiner included (step 9.5; the generalization review found
-     the joiner was the one baked phrase left in this script). */
+     sentence, joiner included, and no phrase stays baked into this
+     script. */
   failedAt: (failed: string, url: string): string =>
     `${failed.replace(/\.$/, "")}, or sign up at ${url}.`,
 };

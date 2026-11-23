@@ -5,6 +5,7 @@ import {
   normalizeSeries,
   playheadX,
   formatReadout,
+  formatPosition,
   brightChannel,
   columnIndex,
   seriesY,
@@ -35,6 +36,11 @@ describe("playheadX and readout", () => {
   it("formats the instrument readout", () => {
     expect(formatReadout(6.04, 18.7)).toBe("T+06.0 / 18.7s");
     expect(formatReadout(0, 18.7)).toBe("T+00.0 / 18.7s");
+  });
+
+  it("formats the timeline slider's spoken position", () => {
+    expect(formatPosition(6.04, 18.7)).toBe("6.0 of 18.7 seconds");
+    expect(formatPosition(0, 8)).toBe("0.0 of 8.0 seconds");
   });
 });
 

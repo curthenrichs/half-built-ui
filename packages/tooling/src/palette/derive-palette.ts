@@ -7,6 +7,8 @@ import {
   CODE_LINE,
   CODE_FG,
   CODE_COMMENT,
+  TINT_MAX,
+  tintGround,
 } from "./grounds.ts";
 
 const toOklch = converter("oklch");
@@ -107,10 +109,10 @@ const SHIPPED_DEFAULTS: PaletteOverride = {
   "--brand-1-500": "#ffaa3c",
   "--brand-1-vivid": "#e07c14",
   "--brand-1-600": "#d1820f",
-  "--brand-1-700": "#a36300",
+  "--brand-1-700": "#995a00",
   "--brand-2-300": "#8ee6f2",
   "--brand-2-500": "#3cc7dd",
-  "--brand-2-700": "#1a7f90",
+  "--brand-2-700": "#067687",
   "--code-bg": CODE_GROUND,
   "--code-line": CODE_LINE,
   "--code-fg": CODE_FG,
@@ -205,11 +207,22 @@ export function derivePalette(base1: string, base2: string): PaletteOverride {
     ...deriveCodeKin(b1, chrome["--code-bg"]),
     "--brand-1-500": b1,
     "--brand-1-600": walk(b1, -1, (c) => contrastRatio(c, LIGHT_PAPER) >= 3),
-    "--brand-1-700": walk(b1, -1, (c) => contrastRatio(c, LIGHT_PAPER) >= 4.5),
+    "--brand-1-700": walk(b1, -1, textOnPaperAndTint(b1)),
     "--brand-2-300": walk(b2, 1, (c) => contrastRatio(c, DARK_GROUND) >= 4.5),
     "--brand-2-500": b2,
-    "--brand-2-700": walk(b2, -1, (c) => contrastRatio(c, LIGHT_PAPER) >= 4.5),
+    "--brand-2-700": walk(b2, -1, textOnPaperAndTint(b2)),
   };
+}
+
+/* The 700s are the light theme's accent text, which sits on paper and
+   on the accent's own tints (up to TINT_MAX of the base into paper,
+   the hover grounds), so a stop passes only when it holds AA on both;
+   the tint is the darker ground and the one that binds. */
+function textOnPaperAndTint(base: string): (c: string) => boolean {
+  const tint = tintGround(base, LIGHT_PAPER, TINT_MAX);
+
+  return (c) =>
+    contrastRatio(c, LIGHT_PAPER) >= 4.5 && contrastRatio(c, tint) >= 4.5;
 }
 
 function readBase(base: string): BaseReadout {

@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
-/* DOM runtime test for the focus-mode island (step 11.2: joins the mount
-   contract, package-bound per owner decision 2, 2026-08-31). Mirrors the
+/* DOM runtime test for the focus-mode island and its mount contract.
+   Mirrors the
    scroll-top island's claim/destroy idioms. Every mount is destroyed in
    afterEach: mountFocusMode listens on window by default, so a handle
    left undestroyed would keep firing into later tests. */
@@ -46,6 +46,25 @@ describe("focus-mode island (DOM runtime)", () => {
     f?.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true }));
     f?.dispatchEvent(new KeyboardEvent("keydown", { key: "a", bubbles: true }));
     expect(document.documentElement.dataset.focus).toBe("pointer");
+  });
+
+  it.each([
+    ["a textarea", '<textarea id="f"></textarea>'],
+    ["a select", '<select id="f"><option>a</option></select>'],
+  ])("typing in %s keeps the pointer stamp", (_name, html) => {
+    mount();
+    document.body.innerHTML = html;
+    const f = document.getElementById("f");
+    f?.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true }));
+    f?.dispatchEvent(new KeyboardEvent("keydown", { key: "a", bubbles: true }));
+    expect(document.documentElement.dataset.focus).toBe("pointer");
+  });
+
+  it("a second mount on a claimed root is a no-op, and its destroy leaves the first listening", () => {
+    mount();
+    mount().destroy();
+    window.dispatchEvent(new KeyboardEvent("keydown"));
+    expect(document.documentElement.dataset.focus).toBe("keyboard");
   });
 
   it("Tab from a text field stamps keyboard", () => {

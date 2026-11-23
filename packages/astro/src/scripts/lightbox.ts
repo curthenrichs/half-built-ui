@@ -1,5 +1,5 @@
 /* Image lightbox. Exported pure math plus mountLightbox, on the island
-   contract (step 9): mount(root, options?) returns a destroy handle;
+   contract: mount(root, options?) returns a destroy handle;
    claim() makes a second mount over an already-wired link a no-op.
    Called from the consumer's layout script block and testable under
    jsdom. */
@@ -7,6 +7,7 @@
 import { claim, release, type Island, type IslandHandle } from "./core/island";
 import { iconButton, docOf } from "./core/dom";
 import { buildPlateModal } from "./plate-modal";
+import { watchImage } from "./image-loading";
 import { ICON_CHEVRON_LEFT, ICON_CHEVRON_RIGHT } from "./core/icons";
 
 export interface ZoomView {
@@ -164,9 +165,8 @@ export interface LightboxOptions {
   selector?: string;
   /* Ancestors whose contained links form one navigable set. The defaults
      are the containers the package's own Gallery and Walkthrough render.
-     Grouping keys on the mount's selector (step 9.5; it used to query the
-     default class literally, so an overridden selector silently broke
-     sets). */
+     Grouping keys on the mount's selector, not the default class, so an
+     overridden selector still forms sets. */
   groupSelector?: string;
   labels?: Partial<LightboxLabels>;
 }
@@ -183,6 +183,10 @@ const DEFAULT_LABELS: LightboxLabels = {
 
 interface Item {
   href: string;
+  /* What the swap loads: data-lb-original when the link carries it
+     (kept out of the href so crawlers following links never reach the
+     camera original), else the href. */
+  full: string;
   w: number;
   h: number;
   caption: string;
@@ -208,8 +212,11 @@ interface Refs {
 
 function itemFor(link: HTMLAnchorElement): Item {
   const img = link.querySelector("img");
+  const href = link.getAttribute("href") ?? "";
+
   return {
-    href: link.getAttribute("href") ?? "",
+    href,
+    full: link.dataset.lbOriginal ?? href,
     w: Number(link.dataset.lbW ?? "0"),
     h: Number(link.dataset.lbH ?? "0"),
     caption: link.dataset.lbCaption ?? "",
@@ -233,6 +240,25 @@ function setFor(
   return [...set.querySelectorAll<HTMLAnchorElement>(selector)];
 }
 
+/* True when the browser asks for less data: data saver on, or a slow
+   connection estimate. Only Chromium exposes navigator.connection;
+   elsewhere this is false and the lightbox loads the original as
+   always. */
+const LEAN_TYPES = new Set(["slow-2g", "2g", "3g"]);
+
+export function prefersLeanData(nav: Navigator): boolean {
+  const connection = (
+    nav as { connection?: { saveData?: boolean; effectiveType?: string } }
+  ).connection;
+
+  if (!connection) return false;
+
+  return (
+    connection.saveData === true ||
+    LEAN_TYPES.has(connection.effectiveType ?? "")
+  );
+}
+
 /* The in-page rendition shows instantly; the untransformed original swaps
    in when loaded. dataset.pending guards against stale loads after
    navigating within a set. Returns the probe for tests. */
@@ -241,7 +267,12 @@ export function swapToFull(
   href: string,
   doc: Document,
 ): HTMLImageElement | null {
-  if (target.getAttribute("src") === href) return null;
+  if (target.getAttribute("src") === href) {
+    /* Already showing it: an earlier item's load must not land now. */
+    delete target.dataset.pending;
+    return null;
+  }
+
   target.dataset.pending = href;
   const probe = doc.createElement("img");
 
@@ -452,7 +483,20 @@ export const mountLightbox: Island<LightboxOptions> = (
     r.dims.textContent = `${String(item.w)} × ${String(item.h)}`;
     r.counter.textContent = `${String(index + 1).padStart(2, "0")} / ${String(items.length).padStart(2, "0")}`;
     r.img.src = item.thumb;
-    swapToFull(r.img, item.href, doc);
+    /* Nothing on screen yet (opened before the in-page rendition
+       loaded, or stepped to one that has not): the same loading state
+       as the page's images. The swap to the original below stays
+       silent, since by then a picture is already showing. */
+    watchImage(r.viewbox, r.img);
+
+    /* On a lean connection the swap stops at the link's own href, the
+       page's largest rendition, rather than the original, which can
+       run to megabytes. */
+    const lean =
+      doc.defaultView !== null && prefersLeanData(doc.defaultView.navigator);
+
+    swapToFull(r.img, lean ? item.href : item.full, doc);
+
     resetToFit(r);
   };
 

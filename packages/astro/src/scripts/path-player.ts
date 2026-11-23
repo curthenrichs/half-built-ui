@@ -1,13 +1,19 @@
 /* Generic transport-and-timeline player over a plate-modal. Knows nothing about fluids: samples, tracks, and the
    sink come from the caller, and the sample type S is the caller's
    too; the player only indexes the array and hands samples to the
-   sink. Scrubbing is implemented but ships off (owner call
-   2026-08-22); flip SCRUB to re-enable. */
+   sink. Scrubbing is the caller's choice (config.scrub, off unless
+   asked for): a stage that is a pure function of time can seek, a
+   simulation that cannot rewind leaves it off. */
 import { buildPlateModal } from "./plate-modal";
 import { createFrameLoop } from "./core/frame-loop";
 import { BP_PHONE_MAX } from "./core/breakpoints";
 import { ICON_PLAY, ICON_PAUSE, ICON_ROTATE_CCW } from "./core/icons";
-import { playheadX, formatReadout, columnIndex } from "./path-player-math";
+import {
+  playheadX,
+  formatReadout,
+  formatPosition,
+  columnIndex,
+} from "./path-player-math";
 import {
   type Painter,
   paintBand,
@@ -17,13 +23,6 @@ import {
   INK,
 } from "./path-player-paint";
 
-/* Widened to `boolean` via assertion (not a `: boolean` annotation,
-   which no-inferrable-types rejects on a literal) so flipping this to
-   re-enable scrubbing is a one-line change: a literal type here would
-   make the `if (SCRUB)` below statically always-false and trip the
-   no-unnecessary-condition lint rule. Same widening idea as this
-   file's own matchMedia guard below. */
-const SCRUB = false as boolean;
 const AXIS_H = 14;
 const TRACK_GAP = 5;
 /* Caption ids: one player per page today, but aria-controls needs a
@@ -64,10 +63,20 @@ export interface PathPlayerConfig<S> {
     pause?: () => void;
     resume?: () => void;
   };
-  /* Transport and caption-toggle text, defaulting to the English copy
-     this player shipped with. A caller with its own site voice (or a
-     future translation) overrides one, two, or all three. */
-  labels?: { play?: string; restart?: string; about?: string };
+  /* Drag or keyboard seeking on the timeline, off unless true. The
+     sink then gets start at the seek point and move along a drag, so
+     turn it on only when the stage can show any moment on demand. */
+  scrub?: boolean;
+  /* Transport, caption-toggle, and timeline text, defaulting to the
+     English copy this player shipped with. A caller with its own site
+     voice (or a future translation) overrides any of them. timeline
+     names the seek slider and is used only with scrub on. */
+  labels?: {
+    play?: string;
+    restart?: string;
+    about?: string;
+    timeline?: string;
+  };
 }
 
 export interface PathPlayerHandle {
@@ -83,20 +92,25 @@ interface TransportState {
   lastIdx: number;
 }
 
-/* Read-only timeline shipped (owner call 2026-08-22). When enabled:
-   pointer drag pauses the clock and paints the emitter along the path;
-   the fluid itself is never seekable, only the input. */
-function attachScrub(
-  timeline: HTMLElement,
-  state: TransportState,
-  duration: number,
-  applyCurrent: (useStart: boolean) => void,
-  setPlaying: (playing: boolean) => void,
-): void {
+/* What the scrub handlers need from the player: its transport state,
+   a seek that moves the clock and repaints, and the play toggle. */
+interface ScrubHost {
+  state: TransportState;
+  duration: number;
+  seek: (t: number, useStart: boolean) => void;
+  setPlaying: (playing: boolean) => void;
+}
+
+/* The timeline as a slider: a drag pauses the clock and seeks along
+   the strip, resuming on release if it was playing; the keys step it
+   (arrows a hundredth of the duration, Page keys a tenth, Home and End
+   to the ends). A key seek leaves the play state alone. */
+function attachScrub(timeline: HTMLElement, host: ScrubHost): void {
+  const { state, duration, seek, setPlaying } = host;
   let active = false;
   let wasPlaying = false;
 
-  const seek = (ev: PointerEvent): void => {
+  const timeAt = (ev: PointerEvent): number => {
     const rect = timeline.getBoundingClientRect();
 
     const frac = Math.max(
@@ -104,27 +118,52 @@ function attachScrub(
       Math.min(1, (ev.clientX - rect.left) / (rect.width || 1)),
     );
 
-    state.t = frac * duration;
+    return frac * duration;
   };
 
   timeline.addEventListener("pointerdown", (ev) => {
+    if (ev.button !== 0) return;
     active = true;
     wasPlaying = state.playing;
     state.playing = false;
     timeline.setPointerCapture(ev.pointerId);
-    seek(ev);
-    applyCurrent(true);
+    seek(timeAt(ev), true);
   });
 
   timeline.addEventListener("pointermove", (ev) => {
     if (!active) return;
-    seek(ev);
-    applyCurrent(false);
+    seek(timeAt(ev), false);
   });
 
-  timeline.addEventListener("pointerup", () => {
+  /* A cancel (the browser took the gesture, or capture was lost) ends
+     the drag the same way a release does. */
+  const end = (): void => {
+    if (!active) return;
     active = false;
     setPlaying(wasPlaying);
+  };
+
+  timeline.addEventListener("pointerup", end);
+  timeline.addEventListener("pointercancel", end);
+
+  const KEY_STEP: Record<string, (t: number) => number> = {
+    ArrowRight: (t) => t + duration / 100,
+    ArrowUp: (t) => t + duration / 100,
+    ArrowLeft: (t) => t - duration / 100,
+    ArrowDown: (t) => t - duration / 100,
+    PageUp: (t) => t + duration / 10,
+    PageDown: (t) => t - duration / 10,
+    Home: () => 0,
+    End: () => duration,
+  };
+
+  timeline.addEventListener("keydown", (ev) => {
+    if (!Object.hasOwn(KEY_STEP, ev.key)) return;
+    ev.preventDefault();
+    seek(KEY_STEP[ev.key](state.t), true);
+    /* Paused, the sink is stopped again after it is placed, the way
+       the end of a paused drag leaves it. */
+    if (!state.playing) setPlaying(false);
   });
 }
 
@@ -136,6 +175,7 @@ export function createPathPlayer<S>(
     play = "Play or pause",
     restart = "Restart",
     about = "ABOUT",
+    timeline: timelineLabel = "Timeline",
   } = config.labels ?? {};
 
   const pm = buildPlateModal(doc, { ariaLabel: config.title });
@@ -240,6 +280,10 @@ export function createPathPlayer<S>(
   pm.plate.append(viewbox, timeline, captionToggle, caption, transport);
 
   const state: TransportState = { t: 0, playing: false, lastIdx: -1 };
+
+  /* Without a stage there is nothing to seek: the transport is
+     disabled, and the timeline stays a plain strip. */
+  const scrubbing = config.scrub === true && stageReady;
 
   /* All tracks, their gaps, and the axis: the canvas's CSS height. */
   const timelineHeight =
@@ -349,6 +393,22 @@ export function createPathPlayer<S>(
      per-frame body. dt is 0 on the first frame after any loop.start(),
      which preserves the old skip-first-frame behavior without a
      dedicated lastNow field. */
+  /* The slider's value, kept in step with the clock while scrubbing
+     is on. A screen reader announces each change on a focused slider,
+     so playback moves it in whole seconds; a seek or a pause writes the
+     exact time. Written only when it changes. */
+  let shownPosition = "";
+
+  function syncPosition(): void {
+    if (!scrubbing) return;
+    const t = state.playing ? Math.floor(state.t) : state.t;
+    const now = String(Math.round(t * 100) / 100);
+    if (now === shownPosition) return;
+    shownPosition = now;
+    timeline.setAttribute("aria-valuenow", now);
+    timeline.setAttribute("aria-valuetext", formatPosition(t, config.duration));
+  }
+
   function frame(dt: number): void {
     if (state.playing) {
       state.t += dt;
@@ -363,6 +423,7 @@ export function createPathPlayer<S>(
 
     drawFrame();
     readout.textContent = formatReadout(state.t, config.duration);
+    syncPosition();
   }
 
   /* Cast, not an optional fallback: this player is always built against
@@ -372,7 +433,7 @@ export function createPathPlayer<S>(
   const win = doc.defaultView as Window;
   const loop = createFrameLoop(win, frame, { clamp: 0.1, firstDt: 0 });
 
-  /* Visibility pause (step 10): the loop halts while the tab is hidden
+  /* Visibility pause: the loop halts while the tab is hidden
      and resumes when it returns with the dialog still open. Playback
      state is untouched; the frame loop's clock reset means the hidden
      gap never arrives as one giant dt. Registered once at build and
@@ -391,6 +452,7 @@ export function createPathPlayer<S>(
     playBtn.setAttribute("aria-pressed", `${playing}`);
     if (playing) applyCurrent(true);
     else config.sink.stop();
+    syncPosition();
   }
 
   playBtn.addEventListener("click", () => {
@@ -418,8 +480,27 @@ export function createPathPlayer<S>(
     win.removeEventListener("resize", onResize);
   });
 
-  if (SCRUB) {
-    attachScrub(timeline, state, config.duration, applyCurrent, setPlaying);
+  if (scrubbing) {
+    timeline.tabIndex = 0;
+    timeline.setAttribute("role", "slider");
+    timeline.setAttribute("aria-label", timelineLabel);
+    timeline.setAttribute("aria-valuemin", "0");
+    timeline.setAttribute("aria-valuemax", String(config.duration));
+    syncPosition();
+
+    attachScrub(timeline, {
+      state,
+      duration: config.duration,
+      /* A seek repaints at once rather than waiting on the next frame. */
+      seek: (t, useStart) => {
+        state.t = Math.max(0, Math.min(config.duration, t));
+        applyCurrent(useStart);
+        drawFrame();
+        readout.textContent = formatReadout(state.t, config.duration);
+        syncPosition();
+      },
+      setPlaying,
+    });
   }
 
   return {

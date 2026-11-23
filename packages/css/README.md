@@ -108,9 +108,25 @@ in scoped styles.
   pseudo-element.
 - `.bracket-frame`: 2px top and bottom rules with 2px edge verticals
   fading through the middle, the layout's signature enclosure.
+- `.img-frame` (with `.img-loading`, `.img-loading-prompt`,
+  `.img-loading-dots`): the image loading state. `SmartImage` wraps its
+  image in `.img-frame`; while the frame carries `data-loading` (set by
+  `@half-built/astro`'s `scripts/image-loading`, never by the server) it
+  draws the bracket frame on `--band`, holds the image transparent, and
+  shows the centered `$> Loading...` label. Any `[data-loading]` parent
+  shows an `.img-loading` child, which is how the lightbox viewbox reuses
+  the label.
 - `.boxed-label`: a bordered 2px label box on the page background,
-  meant to straddle a frame rule; the straddle offset is contextual and
-  stays in the component.
+  meant to straddle a frame rule.
+- `.boxed-label-straddle`: places a `.boxed-label` centered on its
+  box's top rule, inset 20px from the left, in the xs bold uppercase
+  label type (EditorNote, Callout, AuthorBox). The box needs
+  `position: relative` and a top border of `var(--stroke)`, the
+  width the centering assumes. Add `.boxed-label-straddle-compact` for
+  a narrow box: a 10px inset and tighter padding (the Toc panel). The
+  placement sits in the patterns layer, so a components or site rule
+  that sets the label's padding or type wins over it. Other straddles
+  (the header's date box, plate labels) keep their own offsets.
 - `.icon-box`: a 30x30 bordered 2px interactive square (icon buttons, a
   search magnifier).
 - `.field-join` (with `.field-join-input` and `.field-join-button`): a
@@ -394,10 +410,10 @@ families, three stops each. Override any or all of them in your
 |---|---|---|
 | `--brand-1-500` | `#ffaa3c` | Base: lines and fills, dark-theme text ink. |
 | `--brand-1-600` | `#d1820f` | Chart kin; light-theme track-x. |
-| `--brand-1-700` | `#a36300` | Text ink on the light paper; light-theme focus ring. |
+| `--brand-1-700` | `#995a00` | Text ink on the light paper and its accent tints; light-theme focus ring. |
 | `--brand-2-300` | `#8ee6f2` | Light kin: dark-theme text ink and track-y. |
 | `--brand-2-500` | `#3cc7dd` | Base: lines and fills, dark-theme focus ring. |
-| `--brand-2-700` | `#1a7f90` | Text ink on the light paper; light-theme track-y. |
+| `--brand-2-700` | `#067687` | Text ink on the light paper and its accent tints; light-theme track-y. |
 
 An override looks like this:
 

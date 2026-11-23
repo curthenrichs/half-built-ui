@@ -261,6 +261,27 @@ marks the wrap `data-search-js`; without it, the stylesheet's
 focus-within rule opens the flyout on focus alone, so it still works
 with no script.
 
+## Image loading state
+
+`SmartImage` renders its image inside a `<span class="img-frame">` and
+mounts `scripts/image-loading`. While the image downloads, the frame
+carries `data-loading`: it shows the `.bracket-frame` look on the
+`--band` ground with a centered `$> Loading...` label, the prompt in
+`--accent-1-ink` and the rest in `--ink-muted`, and the dots step from
+none to three. The image stays transparent, so the browser never draws
+its alt text. On `load` or `error` the mark clears and the image fades
+in; a broken image then shows its alt text. Reduced motion holds the
+label at three dots. The styles are the `img-loading` pattern in
+`@half-built/css/patterns.css`.
+
+The script sets the mark, never the server, so without JS an image
+renders exactly as a bare `<img>`. The mark waits a 150ms grace period
+(`LOADING_GRACE_MS`), so an image that is already loaded or arrives from
+cache never shows the state, and the label leaves the DOM once its
+0.35s fade-out ends (`LOADING_FADE_MS`). `watchImage(frame, img)` and
+`buildLoadingLabel(doc)` are exported for other image surfaces; the
+lightbox uses `watchImage` on its viewbox.
+
 ## Lightbox
 
 `scripts/lightbox` opens the images the content components link
@@ -290,10 +311,63 @@ new window. Any zoom and pan the reader had set is discarded, on
 purpose: the old view was measured against a window that no longer
 exists.
 
+When the viewer's current item has not loaded yet (it was opened
+before the in-page image loaded, or stepped to one that has not), the
+viewbox shows the same loading label as the page's images. The swap from the in-page
+image to the full-size original stays silent, since a picture is
+already on screen.
+
+Crawlers follow links, and a multi-megabyte original fetched by every
+bot adds up, so keep the original out of the `href`. `LightboxLink`
+given the image (`src`) and the width of the largest rendition the
+page shows (`width`) links that webp and puts the original in
+`data-lb-original`, which the viewer swaps to once open; the content
+components above use this form. The plain form (`href`, `w`, `h`, and
+an optional `original`) links whatever `href` you pass, so a hand-built
+link to the original still exposes it; pass the page's rendition as
+`href` and the original as `original` instead. The image form assumes
+no global `image.layout` in the Astro config: with one set, Astro adds
+its own `fit` to the page's renditions and the link's webp would be a
+separate file. When the browser reports data saver or a slow
+connection (`navigator.connection`, Chromium only), the viewer stops
+at the link's `href` and skips the original; `prefersLeanData` is
+exported for the same check elsewhere.
+
 `mountLightbox` takes options: `selector` (default `a.lightbox-link`)
 picks the links, `groupSelector` names the containers whose links form
 one set, and `labels` renames the viewer's controls for a site that is
 not in English.
+
+## Path player
+
+`scripts/path-player.ts` builds a playback modal over a timeline of
+samples: the caller supplies the samples, the tracks drawn under the
+stage, the stage itself (`buildStage`), and a `sink` that receives
+each sample as the clock moves. It opens paused under reduced motion.
+
+```js
+import "@half-built/css/plate-modal.css";
+import "@half-built/css/path-player.css";
+import { createPathPlayer } from "@half-built/astro/scripts/path-player.ts";
+
+const player = createPathPlayer(document, {
+  title, source, caption, duration, samples, tracks,
+  buildStage: (viewbox) => { /* append the stage, return true */ },
+  sink: { start, move, stop },
+  scrub: true, // optional
+});
+
+button.addEventListener("click", () => player.open(button));
+```
+
+`scrub: true` makes the timeline a seek slider: a drag pauses the
+clock and seeks, and the arrow, Page, Home, and End keys step it. The
+sink then gets `start` at the seek point and `move` along a drag, so
+turn it on only when the stage can show any moment on demand; leave
+it off (the default) for a simulation that cannot rewind. While
+playing, the slider's value moves in whole seconds, so a screen
+reader on the focused slider is not flooded. `labels` renames the
+transport, the caption toggle, and the slider (`timeline`).
 
 ## Plate frame
 

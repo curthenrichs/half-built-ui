@@ -30,7 +30,9 @@ local working files, gitignored and never committed.
   a source of values or design authority. Tune new values for the
   blog's accessibility gates (WCAG AA).
 - The demo site uses neutral sample data and geometric placeholder
-  SVGs, never blog content or photos.
+  images, never blog content or photos: SVGs, plus raster copies of
+  the same placeholders where the image pipeline needs a raster to
+  run (SVGs pass through untransformed).
 
 ## Workflow and releases
 
@@ -51,8 +53,11 @@ local working files, gitignored and never committed.
 - CI (`ci.yml`) runs tests, `npm run lint` (eslint, stylelint, and the
   Prettier check, all from the tooling presets), the site build, and
   then the type gate (`tsc --noEmit` over every project, `astro
-  check` on the site) on branch pushes (no `pull_request` trigger);
-  a tag push fires only `release.yml`, which calls CI itself.
+  check` on the site) on branch pushes (no `pull_request` trigger),
+  plus the browser suites in current Chromium, Firefox, and WebKit and
+  the floor job (`site/floor`, the demo in Chromium 99, Firefox 98, and
+  WebKit 15.4); a tag push fires only `release.yml`, which calls CI
+  itself, so a release waits on all of them.
 
 ## House style
 

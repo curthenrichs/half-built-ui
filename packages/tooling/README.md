@@ -17,7 +17,8 @@ Lint presets, the test kit, and the palette math for half-built sites.
   in 0.19.0, it limits `z-index` to `auto` or a `var(--z-*)` token.
   That is a breaking lint change and not autofixable, since a raw value
   needs a named rung chosen by hand; see the @half-built/css README,
-  Stacking.
+  Stacking. The browser-floor rules (below) are new in 0.20.0 and are
+  breaking lint changes too, also not autofixable.
 - `@half-built/tooling/prettier`: Prettier's defaults plus the Astro
   plugin. Prettier is a peer dependency; consumers import the preset
   from `prettier.config.mjs` and add `*.md` to `.prettierignore` if
@@ -63,8 +64,8 @@ From `test-kit/helpers.ts`:
 - `stubRafOnFakeTimers()`: stubs `requestAnimationFrame` and
   `cancelAnimationFrame` on a self-advancing frame clock, for suites
   under `vi.useFakeTimers()`. Undo with `vi.unstubAllGlobals()`.
-- `polyfillDialog()`: fills in `HTMLDialogElement.prototype.showModal`
-  and `.close` where jsdom has not implemented them, so a suite
+- `polyfillDialog()`: fills in `HTMLDialogElement.prototype.showModal`,
+  `.show`, and `.close` where jsdom has not implemented them, so a suite
   exercises the component's logic rather than jsdom's gaps.
 - `recordingContext()`: returns a `RecordingContext` whose `ctx` is a
   fake 2D canvas context recording every draw call (with the style
@@ -86,8 +87,11 @@ it also runs in a browser bundle (the editor imports it that way).
 - `derivePalette(base1, base2)`: the full override for two accent
   bases: both brand ramps plus the code island's chrome, each stop
   walked in OKLCH until it clears its WCAG gate against the ground it
-  renders on. The shipped amber pair returns the package's own tokens
-  exactly.
+  renders on. The light text stops (the 700s) must hold 4.5:1 on the
+  paper and on the accent's strongest tint, `TINT_MAX` of the base
+  mixed into the paper (`tintGround`), since accent text sits on those
+  tints in buttons and summaries. The shipped amber pair returns the
+  package's own tokens exactly.
 - `readBases(base1, base2)`: the bases' own ratios and pass flags (as
   text on the dark ground, as a fill on light paper, and for base 1,
   as code keyword ink on its derived code ground).
@@ -106,6 +110,75 @@ it also runs in a browser bundle (the editor imports it that way).
 The module ships as TypeScript source with `.ts` import specifiers,
 like the test kit: Vite and Astro load it as is, and so does Node
 with type stripping (on by default from 22.18).
+
+## Browser support floor
+
+New in 0.20.0, and a breaking lint change: a consumer's CSS that uses
+a feature above the floor without a fallback, or puts a `var()` or
+`env()` value straight after a plain fallback, fails lint at the bump
+and moves the value behind `@supports` as shown below.
+
+The packages support Chrome 99, Edge 99, Firefox 98, and Safari 15.4
+on macOS and iOS (early 2022), with Chrome and Firefox for Android at
+their desktop versions. Below that, `@layer` is missing and
+every layered rule drops, and the modals' `<dialog>` is missing in
+Firefox 97. The floor is recorded once, in
+`@half-built/tooling/browser-floor` (a JSON map of web-features browser
+ids to versions).
+
+The stylelint preset enforces it with `stylelint-plugin-use-baseline`
+at `available: 2021`, a bucket entirely below the floor, so anything
+newer is reported. The features between that bucket and the floor are
+allowlisted in the preset. Each one is either supported at the floor
+(the package tests check its support data against `browser-floor`),
+degrades harmlessly below it, or is compiled away at build time. The
+allowlist is maintained in this repository: a new entry means a row in
+the allowlist table in `packages/tooling/test/stylelint-baseline.test.ts`
+(not shipped in the tarball), which fails if the preset and the table
+disagree. A consumer that needs a harmless one-off can use a
+`stylelint-disable-next-line plugin/use-baseline` comment with its
+reason.
+
+`color-mix()` and the dynamic viewport units (`dvh`, `svh`, `lvh`) are
+newer than the floor but fine to use with a fallback, so the preset's
+own rule, `half-built/require-fallback`, checks them instead. A plain
+value works as the fallback only when the new value holds no `var()`
+or `env()`: then the declaration must come straight after a plain
+declaration of the same property (`min-height: 100vh; min-height:
+100dvh;`), and a browser that drops the new value keeps the old one. A
+value that holds `var()` or `env()` parses everywhere, so a browser
+without the feature drops it at computed time and the property acts as
+`unset`, not as the plain value before it: a non-inherited property
+such as `background` goes to its initial value (transparent), an
+inherited one such as `color` takes the parent's. Such a value,
+and any custom property holding one of these features, must sit inside
+an `@supports` block that tests the same feature:
+
+```css
+.box {
+  background: var(--surface);
+}
+
+@supports (color: color-mix(in srgb, red, red)) {
+  .box {
+    background: color-mix(in srgb, var(--accent-1) 6%, var(--surface));
+  }
+}
+```
+
+The same rule requires `mask` and `mask-image` to come straight after
+their `-webkit-` twins, since Chrome below 120 knows only the prefixed
+forms; the preset's vendor-prefix rule lets those two through.
+
+The lint holds the floor's age, and this repo's demo site checks it in
+browsers two ways. `site/test/engines.test.ts` runs every page, and the
+image loading state, in Playwright's current Chromium, Firefox, and
+WebKit, for engine differences. `site/floor/run.mjs` runs the pages,
+the fallback grounds (axe contrast at rest and on hover, both themes),
+and the image loading state in the floor engines themselves: Chromium
+99 from Playwright 1.18, and Firefox 98 and WebKit 15.4 from Playwright
+1.21. It is a separate package with its own install, so the old
+releases' browser downloads never reach a normal install.
 
 ## Requirements
 

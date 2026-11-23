@@ -18,12 +18,7 @@ const { src, alt = "", caption, badges = [], class: className } = Astro.props;
 
 <figure class:list={["gallery-plate", className]}>
   <div class="gallery-frame">
-    <LightboxLink
-      href={src.src}
-      w={src.width}
-      h={src.height}
-      caption={caption ?? alt}
-    >
+    <LightboxLink src={src} width={640} caption={caption ?? alt}>
       <SmartImage
         src={src}
         alt={alt}

@@ -1,4 +1,4 @@
-/* Package self-containment (step 11.3 task 4): a transitive-closure
+/* Package self-containment: a transitive-closure
    walk of every .astro file in the package, reduced from the blog's
    component-api "closure stays inside src/components or
    src/scripts/core" test to a plain boundary check. Every relative

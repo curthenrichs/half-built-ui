@@ -51,4 +51,55 @@ describe.skipIf(!enabled)("built html", () => {
 
     expect(failures).toEqual([]);
   });
+
+  /* Crawlers follow hrefs, so no lightbox link may point at a raster
+     original: the href is the page's own webp rendition and the
+     original rides in data-lb-original for the lightbox script. SVGs
+     pass through untransformed and link themselves. */
+  it("no lightbox link's href is a raster original", () => {
+    const links = htmlFiles(DIST).flatMap((file) =>
+      [
+        ...readFileSync(file, "utf-8").matchAll(
+          /<a\b[^>]*class="lightbox-link[^"]*"[^>]*>/g,
+        ),
+      ].map((m) => [file, m[0]] as const),
+    );
+
+    expect(links.length).toBeGreaterThan(0);
+
+    for (const [file, tag] of links) {
+      const href = /\shref="([^"]+)"/.exec(tag)?.[1] ?? "";
+      expect(href, `${file}: ${tag}`).not.toMatch(/\.(?:png|jpe?g)$/i);
+    }
+  });
+
+  /* Each raster figure (the wide BlogImage, and a Step photo smaller
+     than its 400px rendition, so the width clamps) links a webp the
+     page already serves in that figure's srcset, not an extra file,
+     and carries the original. */
+  it("each raster figure links a webp from its own srcset and carries the original", () => {
+    const html = readFileSync(join(DIST, "index.html"), "utf-8");
+
+    const figures = [
+      ...html.matchAll(/<a\b[^>]*data-lb-original="[^"]+"[^>]*>[\s\S]*?<\/a>/g),
+    ].map((m) => m[0]);
+
+    expect(figures.length).toBeGreaterThanOrEqual(2);
+
+    for (const figure of figures) {
+      const href = /\shref="([^"]+)"/.exec(figure)?.[1] ?? "";
+      const original = /data-lb-original="([^"]+)"/.exec(figure)?.[1] ?? "";
+      const srcset = /srcset="([^"]+)"/.exec(figure)?.[1] ?? "";
+
+      expect(href, figure).toMatch(/\.webp$/);
+      expect(original, figure).toMatch(/\.png$/);
+
+      expect(
+        srcset.split(",").map((c) => c.trim().split(" ")[0]),
+        figure,
+      ).toContain(href);
+
+      expect(existsSync(join(DIST, original)), original).toBe(true);
+    }
+  });
 });

@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-/* DOM runtime test for the site-header island (step 9): the masthead's
+/* DOM runtime test for the site-header island: the masthead's
    date-box refresh and the phone menu toggle, born from SiteHeader.astro's
    inline script. */
 import { describe, it, expect, beforeEach } from "vitest";

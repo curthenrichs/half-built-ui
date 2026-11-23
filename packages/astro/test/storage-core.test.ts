@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
-/* The shared localStorage codec (step 10): read/validate/write with
-   private-mode degradation, extracted from henry-loose.ts and
-   stasis-state.ts. */
+/* The shared localStorage codec: read/validate/write with
+   private-mode degradation, one home for a pattern several islands
+   each carried. */
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { storedJson } from "../src/scripts/core/storage";
 
@@ -70,6 +70,16 @@ describe("storedJson", () => {
 
     expect(() => {
       storedJson<Toy>("toy", parse).write({ n: 1 });
+    }).not.toThrow();
+  });
+
+  it("clear swallows storage errors", () => {
+    vi.spyOn(Storage.prototype, "removeItem").mockImplementation(() => {
+      throw new Error("blocked");
+    });
+
+    expect(() => {
+      storedJson<Toy>("toy", parse).clear();
     }).not.toThrow();
   });
 

@@ -1,6 +1,6 @@
 // Flat ESLint config: JS/TS plus Astro component linting, shared across
 // half-built packages and any site that consumes them. Adapted from a
-// single-repo config (step 11.3 task 5): ignores and exemptions specific
+// single-repo config: ignores and exemptions specific
 // to that repo's own tooling and content are gone, since none of that
 // exists here, and the file-scoped overrides below are widened from
 // root-anchored globs to "**/"-prefixed ones so they still find

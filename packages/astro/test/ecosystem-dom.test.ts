@@ -378,6 +378,89 @@ describe("loadDocument", () => {
 
     expect(doc?.entries).toHaveLength(5);
   });
+
+  it("falls back to nothing when the fetch fails and the storage throws", async () => {
+    const hostile = {
+      getItem: () => {
+        throw new Error("blocked");
+      },
+    } as unknown as Storage;
+
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("offline")));
+
+    expect(
+      await loadDocument("https://e.test/x.json", hostile, 1000, NO_DELAY),
+    ).toBeNull();
+  });
+
+  /* A server that accepts the request and never answers: each attempt
+     gives up at three seconds rather than leaving the footer waiting
+     on a promise that never settles. */
+  it("aborts a hung attempt after three seconds and retries", async () => {
+    vi.useFakeTimers();
+
+    try {
+      const signals: AbortSignal[] = [];
+
+      const fetchMock = vi.fn(
+        (_url: string, init: RequestInit) =>
+          new Promise<Response>((_resolve, reject) => {
+            const signal = init.signal;
+            if (!signal) throw new Error("fetch called without a signal");
+            signals.push(signal);
+
+            signal.addEventListener("abort", () => {
+              reject(new Error("aborted"));
+            });
+          }),
+      );
+
+      vi.stubGlobal("fetch", fetchMock);
+
+      const pending = loadDocument(
+        "https://e.test/x.json",
+        null,
+        1000,
+        NO_DELAY,
+      );
+
+      await vi.advanceTimersByTimeAsync(2999);
+      expect(signals[0]?.aborted).toBe(false);
+      await vi.advanceTimersByTimeAsync(1);
+      expect(signals[0]?.aborted).toBe(true);
+      await vi.advanceTimersByTimeAsync(6100);
+
+      expect(await pending).toBeNull();
+      expect(fetchMock).toHaveBeenCalledTimes(3);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("retries a body that fails mid-read", async () => {
+    const broken = {
+      ok: true,
+      status: 200,
+      text: () => Promise.reject(new Error("connection reset")),
+    } as unknown as Response;
+
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(broken)
+      .mockResolvedValueOnce(jsonResponse(DOC));
+
+    vi.stubGlobal("fetch", fetchMock);
+
+    const doc = await loadDocument(
+      "https://e.test/x.json",
+      null,
+      1000,
+      NO_DELAY,
+    );
+
+    expect(doc?.entries).toHaveLength(5);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
 });
 
 const BASELINE = `
@@ -406,6 +489,30 @@ describe("mountEcosystem", () => {
 
   afterEach(() => {
     vi.unstubAllGlobals();
+  });
+
+  /* Some privacy modes throw on the localStorage getter itself. */
+  it("still renders the fetched list when localStorage cannot be read", async () => {
+    const list = mountFixture();
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(jsonResponse(DOC)));
+
+    const blocked = vi
+      .spyOn(window, "localStorage", "get")
+      .mockImplementation(() => {
+        throw new Error("SecurityError");
+      });
+
+    try {
+      await mountEcosystem(document, {
+        endpoint: "https://e.test/x.json",
+        selfKey: "ui",
+        retryDelaysMs: NO_DELAY,
+      });
+    } finally {
+      blocked.mockRestore();
+    }
+
+    expect(list.querySelectorAll("li")).toHaveLength(5);
   });
 
   it("replaces the baseline with the fetched list in sorted order", async () => {

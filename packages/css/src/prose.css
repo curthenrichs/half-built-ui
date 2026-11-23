@@ -105,8 +105,11 @@
     margin-bottom: 0;
   }
 
-  /* The small attribution line (Quote component) sits close under the quote
-   text: whatever element precedes it sheds most of its 1.5em margin. */
+  /* The small attribution line (Quote component) sits close under the
+     quote text: whatever element precedes it sheds most of its 1.5em
+     margin. Browsers below :has() support keep the default margin, so
+     this is the floor lint's one selector exception. */
+  /* stylelint-disable-next-line plugin/use-baseline -- degrades to the default margin */
   .prose blockquote > :has(+ .quote-attribution) {
     margin-bottom: 0.5em;
   }

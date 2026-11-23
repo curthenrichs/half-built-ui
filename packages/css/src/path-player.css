@@ -89,6 +89,14 @@
     margin-top: 24px;
   }
 
+  /* With scrubbing on (the caller's choice) the strip is a slider: a
+     touch drag seeks instead of scrolling the plate. The focus ring is
+     reset.css's. */
+  .pp-timeline[role="slider"] {
+    cursor: pointer;
+    touch-action: none;
+  }
+
   .pp-tracks {
     width: 100%;
     display: block;
@@ -155,7 +163,7 @@
        beats .pm-label-bl regardless of stylesheet order. */
     .pp-plate .pp-source {
       left: 50%;
-      translate: -50% 0;
+      transform: translateX(-50%);
       max-width: calc(100% - 50px);
     }
 

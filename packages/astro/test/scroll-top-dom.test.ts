@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-/* DOM runtime test for the scroll-top island (step 9): the floater that
+/* DOM runtime test for the scroll-top island: the floater that
    shows once the masthead leaves the viewport, born from Base.astro's
    inline script. jsdom has no IntersectionObserver, so this stubs one and
    captures the callback to drive it directly. */

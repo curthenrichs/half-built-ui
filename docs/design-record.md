@@ -93,6 +93,21 @@ Not built, on purpose:
   mode, the footer's phone collapse). Moving them into islands would
   change when they run.
 
+The image loading state (2026-11-21, settled by mock with the owner):
+a static bracket frame on `--band` with a centered `$> Loading...`, the
+prompt in `--accent-1-ink` and the rest in `--ink-muted`, the dots
+stepping none to three at 0.5s a beat. A shimmer sweep and a breathing
+frame were tried and rejected as generic. The island, not the server,
+sets `data-loading`, so a no-JS render is a bare image and never a
+label stranded over a finished picture. The dots step `visibility` on
+three spans rather than animating `content`, which Safari does not
+animate, and the hidden dots keep their space so the line never
+re-centers. The state waits a 150ms grace period before showing, so a
+cache hit (tens of milliseconds) never flashes it, and the label leaves
+the DOM after its fade so no finished image keeps hidden text or running
+animations. The lightbox shows the label whenever its current item has
+not loaded; its swap to the full original stays silent.
+
 ## Tokens and CSS
 
 - Components read roles, never primitives. That split is what makes the
@@ -141,6 +156,26 @@ Not built, on purpose:
   change: `.site-header-wrapper` dropped its `z-index: 1`, since that
   low-rung context capped the mobile menu and search flyout under a
   consumer's fixed panel. See the css README, Stacking.
+- The browser floor is Chrome and Edge 99, Firefox 98, and Safari 15.4
+  on macOS and iOS, with Android Chrome and Firefox at their desktop
+  versions (owner, 2026-11-21). It is the `@layer` floor, set one month
+  later for Firefox because the modals need `<dialog>`. The owner chose
+  it over the old implicit floor (color-mix, Safari 16.2) after 30 days
+  of the blog's Cloudflare traffic showed desktop Safari 16.0 and 15.4
+  among visitors. Older browsers would need `@layer` transpiled in every
+  consumer's build, which is not done. The floor is recorded in
+  `@half-built/tooling/browser-floor` and enforced by the stylelint
+  preset: the Baseline lint at 2021 with an allowlist the tooling tests
+  pin to support data, and `half-built/require-fallback` for
+  `color-mix`, the dynamic viewport units, and the `mask` prefix pair.
+  A feature value holding `var()` or `env()` goes behind `@supports`,
+  never after a plain fallback: the floor engines drop such a value at
+  computed time to `unset`, which painted every color-mix tint
+  transparent until the floor suite caught it (2026-11-22). The demo
+  runs its pages in current Chromium, Firefox, and WebKit
+  (`site/test/engines.test.ts`) and in the floor engines themselves
+  (`site/floor`, old Playwright releases: Chromium 99, Firefox 98,
+  WebKit 15.4). See the tooling README, Browser support floor.
 
 ## Consumers
 

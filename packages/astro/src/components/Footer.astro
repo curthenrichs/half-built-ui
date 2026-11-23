@@ -110,7 +110,7 @@ const year = new Date().getFullYear();
            script decides layout. Inline so it
            runs before the footer paints; without script the groups stay
            open, which is the graceful state.
-           The value rides define:vars from core/breakpoints.ts (step 11.1). */
+           The value rides define:vars from core/breakpoints.ts. */
         if (window.matchMedia(`(max-width: ${bpPhoneMax}px)`).matches) {
           document.querySelectorAll(".footer-sitemap-collapsible:not([data-phone-open])").forEach((d) => {
             d.removeAttribute("open");
@@ -230,7 +230,7 @@ const year = new Date().getFullYear();
       position: absolute;
       left: 0;
       top: 50%;
-      translate: 0 -50%;
+      transform: translateY(-50%);
       width: 1.2em;
       height: 1.2em;
       line-height: 1.1em;
