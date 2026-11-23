@@ -17,7 +17,8 @@ Lint presets, the test kit, and the palette math for half-built sites.
   in 0.19.0, it limits `z-index` to `auto` or a `var(--z-*)` token.
   That is a breaking lint change and not autofixable, since a raw value
   needs a named rung chosen by hand; see the @half-built/css README,
-  Stacking.
+  Stacking. The browser-floor rules (below) are new in 0.20.0 and are
+  breaking lint changes too, also not autofixable.
 - `@half-built/tooling/prettier`: Prettier's defaults plus the Astro
   plugin. Prettier is a peer dependency; consumers import the preset
   from `prettier.config.mjs` and add `*.md` to `.prettierignore` if
@@ -111,6 +112,11 @@ like the test kit: Vite and Astro load it as is, and so does Node
 with type stripping (on by default from 22.18).
 
 ## Browser support floor
+
+New in 0.20.0, and a breaking lint change: a consumer's CSS that uses
+a feature above the floor without a fallback, or puts a `var()` or
+`env()` value straight after a plain fallback, fails lint at the bump
+and moves the value behind `@supports` as shown below.
 
 The packages support Chrome 99, Edge 99, Firefox 98, and Safari 15.4
 on macOS and iOS (early 2022), with Chrome and Firefox for Android at
