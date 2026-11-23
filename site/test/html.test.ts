@@ -73,27 +73,33 @@ describe.skipIf(!enabled)("built html", () => {
     }
   });
 
-  it("a raster figure links its own largest webp and carries the original", () => {
+  /* Each raster figure (the wide BlogImage, and a Step photo smaller
+     than its 400px rendition, so the width clamps) links a webp the
+     page already serves in that figure's srcset, not an extra file,
+     and carries the original. */
+  it("each raster figure links a webp from its own srcset and carries the original", () => {
     const html = readFileSync(join(DIST, "index.html"), "utf-8");
 
-    const figure = /<a\b[^>]*data-lb-original="[^"]+"[^>]*>[\s\S]*?<\/a>/.exec(
-      html,
-    )?.[0];
+    const figures = [
+      ...html.matchAll(/<a\b[^>]*data-lb-original="[^"]+"[^>]*>[\s\S]*?<\/a>/g),
+    ].map((m) => m[0]);
 
-    if (!figure) throw new Error("no lightbox link carries data-lb-original");
+    expect(figures.length).toBeGreaterThanOrEqual(2);
 
-    const href = /\shref="([^"]+)"/.exec(figure)?.[1] ?? "";
-    const original = /data-lb-original="([^"]+)"/.exec(figure)?.[1] ?? "";
-    const srcset = /srcset="([^"]+)"/.exec(figure)?.[1] ?? "";
+    for (const figure of figures) {
+      const href = /\shref="([^"]+)"/.exec(figure)?.[1] ?? "";
+      const original = /data-lb-original="([^"]+)"/.exec(figure)?.[1] ?? "";
+      const srcset = /srcset="([^"]+)"/.exec(figure)?.[1] ?? "";
 
-    expect(href).toMatch(/\.webp$/);
-    expect(original).toMatch(/\.png$/);
+      expect(href, figure).toMatch(/\.webp$/);
+      expect(original, figure).toMatch(/\.png$/);
 
-    /* The rendition the page already serves, not an extra file. */
-    expect(srcset.split(",").map((c) => c.trim().split(" ")[0])).toContain(
-      href,
-    );
+      expect(
+        srcset.split(",").map((c) => c.trim().split(" ")[0]),
+        figure,
+      ).toContain(href);
 
-    expect(existsSync(join(DIST, original))).toBe(true);
+      expect(existsSync(join(DIST, original)), original).toBe(true);
+    }
   });
 });

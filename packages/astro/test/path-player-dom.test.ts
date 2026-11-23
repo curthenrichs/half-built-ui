@@ -796,12 +796,49 @@ describe("createPathPlayer", () => {
       expect(sink.stop).not.toHaveBeenCalled();
     });
 
-    it("the slider value follows playback", () => {
+    /* A focused slider announces each value change, so playback moves
+       it in whole seconds rather than every frame; a pause settles it
+       on the exact time. */
+    it("the slider follows playback in whole seconds, exact on pause", () => {
       makePlayer({ scrub: true }).open(null);
-      vi.advanceTimersByTime(1000);
-      const now = Number(timelineEl().getAttribute("aria-valuenow"));
-      expect(now).toBeGreaterThan(0.9);
-      expect(now).toBeLessThan(1.1);
+      const el = timelineEl();
+      const writes = vi.spyOn(el, "setAttribute");
+
+      vi.advanceTimersByTime(1500);
+
+      const nowWrites = writes.mock.calls.filter(
+        ([name]) => name === "aria-valuenow",
+      );
+
+      expect(nowWrites.length).toBeLessThanOrEqual(2);
+      expect(el.getAttribute("aria-valuenow")).toBe("1");
+      expect(el.getAttribute("aria-valuetext")).toBe("1.0 of 2.0 seconds");
+
+      pause();
+      const exact = Number(el.getAttribute("aria-valuenow"));
+      expect(exact).toBeGreaterThan(1.4);
+      expect(exact).toBeLessThan(1.6);
+    });
+
+    it("with no stage the timeline is not a control even with scrub on", () => {
+      createPathPlayer(document, {
+        title: "T",
+        source: "S",
+        caption: "C",
+        duration: 2,
+        samples: SAMPLES,
+        tracks: [],
+        buildStage: () => false,
+        sink,
+        scrub: true,
+      }).open(null);
+
+      const el = timelineEl();
+      layOut(el);
+      expect(el.getAttribute("role")).toBeNull();
+      expect(el.hasAttribute("tabindex")).toBe(false);
+      el.dispatchEvent(pointer("pointerdown", 100));
+      expect(sink.start).not.toHaveBeenCalled();
     });
   });
 });

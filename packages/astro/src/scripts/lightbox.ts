@@ -267,7 +267,12 @@ export function swapToFull(
   href: string,
   doc: Document,
 ): HTMLImageElement | null {
-  if (target.getAttribute("src") === href) return null;
+  if (target.getAttribute("src") === href) {
+    /* Already showing it: an earlier item's load must not land now. */
+    delete target.dataset.pending;
+    return null;
+  }
+
   target.dataset.pending = href;
   const probe = doc.createElement("img");
 
@@ -484,13 +489,13 @@ export const mountLightbox: Island<LightboxOptions> = (
        silent, since by then a picture is already showing. */
     watchImage(r.viewbox, r.img);
 
-    /* On a lean connection the in-page rendition stays: the original
-       can run to megabytes. */
-    if (doc.defaultView && prefersLeanData(doc.defaultView.navigator)) {
-      delete r.img.dataset.pending;
-    } else {
-      swapToFull(r.img, item.full, doc);
-    }
+    /* On a lean connection the swap stops at the link's own href, the
+       page's largest rendition, rather than the original, which can
+       run to megabytes. */
+    const lean =
+      doc.defaultView !== null && prefersLeanData(doc.defaultView.navigator);
+
+    swapToFull(r.img, lean ? item.href : item.full, doc);
 
     resetToFit(r);
   };

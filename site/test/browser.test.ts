@@ -19,6 +19,7 @@ import type { ChildProcess } from "node:child_process";
 import { readFileSync } from "node:fs";
 import type { Browser, HTTPRequest, Page } from "puppeteer-core";
 import { AxePuppeteer } from "@axe-core/puppeteer";
+import { contrastRatio } from "@half-built/tooling/palette";
 import type { RunOptions } from "axe-core";
 import {
   startPreview,
@@ -1970,6 +1971,24 @@ describe.skipIf(!enabled)("browser suite", () => {
           ),
           `${theme} hovering ${selector}`,
         ).toEqual([]);
+
+        /* axe files a node it cannot measure (a pseudo-element in the
+           stack, as on the demo buttons) under incomplete, which would
+           pass unchecked. The tint is the box's own opaque ground, so
+           its text is measured against it directly as well. */
+        const { ink, ground } = await el.evaluate((e) => {
+          const cs = getComputedStyle(e);
+          return { ink: cs.color, ground: cs.backgroundColor };
+        });
+
+        expect(ground, `${theme} ${selector} ground is opaque`).not.toMatch(
+          /rgba\(|\/ 0?\.\d/,
+        );
+
+        expect(
+          contrastRatio(ink, ground),
+          `${theme} hovering ${selector}: ${ink} on ${ground}`,
+        ).toBeGreaterThanOrEqual(4.5);
 
         await p.close();
         page = undefined;

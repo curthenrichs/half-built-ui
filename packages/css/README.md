@@ -121,10 +121,12 @@ in scoped styles.
 - `.boxed-label-straddle`: places a `.boxed-label` centered on its
   box's top rule, inset 20px from the left, in the xs bold uppercase
   label type (EditorNote, Callout, AuthorBox). The box needs
-  `position: relative`. Add `.boxed-label-straddle-compact` for a
-  narrow box: a 10px inset and tighter padding (the Toc panel). Other
-  straddles (the header's date box, plate labels) keep their own
-  offsets.
+  `position: relative` and a top border of `var(--stroke)`, the
+  width the centering assumes. Add `.boxed-label-straddle-compact` for
+  a narrow box: a 10px inset and tighter padding (the Toc panel). The
+  placement sits in the patterns layer, so a components or site rule
+  that sets the label's padding or type wins over it. Other straddles
+  (the header's date box, plate labels) keep their own offsets.
 - `.icon-box`: a 30x30 bordered 2px interactive square (icon buttons, a
   search magnifier).
 - `.field-join` (with `.field-join-input` and `.field-join-button`): a

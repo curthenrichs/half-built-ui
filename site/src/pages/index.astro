@@ -51,6 +51,7 @@ import type {
 } from "@half-built/astro/components/models.ts";
 import placeholderWide from "../assets/placeholder-wide.svg";
 import placeholderWideRaster from "../assets/placeholder-wide-raster.png";
+import placeholderSquareSmall from "../assets/placeholder-square-raster-small.png";
 import placeholderSquare from "../assets/placeholder-square.svg";
 import placeholderTall from "../assets/placeholder-tall.svg";
 
@@ -947,7 +948,9 @@ const npmPackages = [
               <Step src={placeholderSquare} alt="Placeholder step photo, one"
                 >First step. One placeholder photo beside its text.</Step
               >
-              <Step src={placeholderSquare} alt="Placeholder step photo, two"
+              <Step
+                src={placeholderSquareSmall}
+                alt="Placeholder step photo, two"
                 >Second step. The step number is on a chip in the corner of the
                 image.</Step
               >

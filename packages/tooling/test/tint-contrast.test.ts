@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { contrastRatio } from "../src/palette/contrast.ts";
 import { TINT_MAX, tintGround } from "../src/palette/grounds.ts";
 
@@ -168,15 +168,44 @@ describe("color-mix tint contrast", () => {
     }
   });
 
-  /* A new tint in one of these files must get a row. */
-  it("every tint in these files has a row", () => {
-    const files = [...new Set(ROWS.map((r) => r.file))];
+  /* Every color-mix in the packages and the site (bar the @supports
+     queries themselves) must be an accent-into-surface tint this test
+     can read, and each must have a row: a new tint anywhere, or one
+     written another way, fails here rather than going unchecked. */
+  it("every color-mix in the packages and the site is a tint with a row", () => {
+    const dirs = [
+      "packages/css/src",
+      "packages/astro/src",
+      "packages/tooling/src",
+      "site/src",
+    ];
 
-    const found = files.reduce(
-      (n, f) => n + [...read(f).matchAll(MIX)].length,
-      0,
+    const files = dirs.flatMap((d) =>
+      readdirSync(new URL(d, ROOT), { recursive: true })
+        .map(String)
+        .filter((f) => /\.(?:css|astro)$/.test(f))
+        .map((f) => `${d}/${f.replaceAll("\\", "/")}`),
     );
 
-    expect(found).toBe(ROWS.length);
+    let tints = 0;
+
+    for (const file of files) {
+      const css = read(file);
+      const all = css.split("color-mix(").length - 1;
+      const queries = css.split(SUPPORTS).length - 1;
+      const readable = [...css.matchAll(MIX)].length;
+
+      expect(readable, `${file}: a color-mix this test cannot read`).toBe(
+        all - queries,
+      );
+
+      expect(readable, `${file}: tints without rows`).toBe(
+        ROWS.filter((r) => r.file === file).length,
+      );
+
+      tints += readable;
+    }
+
+    expect(tints).toBe(ROWS.length);
   });
 });

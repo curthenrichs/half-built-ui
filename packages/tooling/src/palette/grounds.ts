@@ -8,11 +8,6 @@ export const LIGHT_PAPER = "#ffffff";
 export const DARK_GROUND = "#111111";
 export const CODE_GROUND = "#1b140c";
 
-/* The rest of the code island's chrome (owner call 2026-09-06: the
-   whole island follows accent 1's hue under an override, because
-   every one of these "neutrals" is in truth a low-chroma amber).
-   These are the amber reference values the hue swap starts from;
-   contrast.test.ts pins each to the installed package. */
 /* The strongest accent tint the packages paint under text: the 14%
    hover grounds (color-mix of an accent into the surface). The light
    text stops walk until they hold AA on this ground as well as on
@@ -41,6 +36,11 @@ export function tintGround(
     .join("")}`;
 }
 
+/* The rest of the code island's chrome (owner call 2026-09-06: the
+   whole island follows accent 1's hue under an override, because
+   every one of these "neutrals" is in truth a low-chroma amber).
+   These are the amber reference values the hue swap starts from;
+   contrast.test.ts pins each to the installed package. */
 export const CODE_LINE = "#3b2e1e";
 export const CODE_FG = "#e8d9c3";
 export const CODE_COMMENT = "#8e7e67";

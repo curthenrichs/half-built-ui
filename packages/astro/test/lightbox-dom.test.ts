@@ -149,6 +149,14 @@ describe("full-resolution swap", () => {
     expect(target.src).toContain("/full/solo.jpg");
   });
 
+  it("an item already showing its full source clears an earlier pending load", () => {
+    const target = document.createElement("img");
+    target.setAttribute("src", "/full/self.svg");
+    target.dataset.pending = "/full/previous.jpg";
+    expect(swapToFull(target, "/full/self.svg", document)).toBeNull();
+    expect(target.dataset.pending).toBeUndefined();
+  });
+
   it("ignores a stale load after navigating away", () => {
     const target = document.createElement("img");
     target.src = "/thumb/g1.jpg";
@@ -206,18 +214,21 @@ describe("original source and lean connections", () => {
     [{ saveData: false, effectiveType: "slow-2g" }],
     [{ saveData: false, effectiveType: "2g" }],
     [{ saveData: false, effectiveType: "3g" }],
-  ])("keeps the in-page rendition on a lean connection %j", (connection) => {
-    setConnection(connection);
-    openViaClick("#orig");
-    expect(pending()).toBeUndefined();
+  ])(
+    "loads the link's webp, not the original, on a lean connection %j",
+    (connection) => {
+      setConnection(connection);
+      openViaClick("#orig");
+      expect(pending()).toBe("/r/photo.webp");
 
-    expect(dialog().querySelector(".lb-img")?.getAttribute("src")).toBe(
-      "/r/photo-640.webp",
-    );
-  });
+      expect(dialog().querySelector(".lb-img")?.getAttribute("src")).toBe(
+        "/r/photo-640.webp",
+      );
+    },
+  );
 
   /* swapToFull lands a load only while dataset.pending still names
-     it, so a lean step must clear the last item's marker or that
+     it, so a lean step must replace the last item's marker or that
      original arrives over the new item. */
   it("a load still in flight from the last item never lands after a lean step", () => {
     document.body.innerHTML = `<div class="gallery-plates">${ORIGINAL}${ORIGINAL.replace(/photo/g, "other").replace('id="orig"', 'id="orig2"')}</div>`;
@@ -228,7 +239,7 @@ describe("original source and lean connections", () => {
     setConnection({ saveData: true });
     dialog().querySelector<HTMLButtonElement>(".lb-next")?.click();
 
-    expect(pending()).toBeUndefined();
+    expect(pending()).toBe("/r/other.webp");
 
     expect(dialog().querySelector(".lb-img")?.getAttribute("src")).toBe(
       "/r/other-640.webp",

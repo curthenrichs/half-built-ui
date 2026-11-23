@@ -30,7 +30,9 @@ local working files, gitignored and never committed.
   a source of values or design authority. Tune new values for the
   blog's accessibility gates (WCAG AA).
 - The demo site uses neutral sample data and geometric placeholder
-  SVGs, never blog content or photos.
+  images, never blog content or photos: SVGs, plus raster copies of
+  the same placeholders where the image pipeline needs a raster to
+  run (SVGs pass through untransformed).
 
 ## Workflow and releases
 

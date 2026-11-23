@@ -317,22 +317,57 @@ viewbox shows the same loading label as the page's images. The swap from the in-
 image to the full-size original stays silent, since a picture is
 already on screen.
 
-The link's `href` is never the camera original, since crawlers follow
-links and a multi-megabyte original fetched by every bot adds up.
-`LightboxLink` given the image (`src`) and the width of the largest
-rendition the page shows (`width`) links that webp and puts the
-original in `data-lb-original`, which the viewer swaps to once open;
-the content components above use this form. The plain form
-(`href`, `w`, `h`, and an optional `original`) still works for a link
-built by hand. When the browser reports data saver or a slow
-connection (`navigator.connection`, Chromium only), the viewer keeps
-the in-page rendition and skips the original; `prefersLeanData` is
+Crawlers follow links, and a multi-megabyte original fetched by every
+bot adds up, so keep the original out of the `href`. `LightboxLink`
+given the image (`src`) and the width of the largest rendition the
+page shows (`width`) links that webp and puts the original in
+`data-lb-original`, which the viewer swaps to once open; the content
+components above use this form. The plain form (`href`, `w`, `h`, and
+an optional `original`) links whatever `href` you pass, so a hand-built
+link to the original still exposes it; pass the page's rendition as
+`href` and the original as `original` instead. The image form assumes
+no global `image.layout` in the Astro config: with one set, Astro adds
+its own `fit` to the page's renditions and the link's webp would be a
+separate file. When the browser reports data saver or a slow
+connection (`navigator.connection`, Chromium only), the viewer stops
+at the link's `href` and skips the original; `prefersLeanData` is
 exported for the same check elsewhere.
 
 `mountLightbox` takes options: `selector` (default `a.lightbox-link`)
 picks the links, `groupSelector` names the containers whose links form
 one set, and `labels` renames the viewer's controls for a site that is
 not in English.
+
+## Path player
+
+`scripts/path-player.ts` builds a playback modal over a timeline of
+samples: the caller supplies the samples, the tracks drawn under the
+stage, the stage itself (`buildStage`), and a `sink` that receives
+each sample as the clock moves. It opens paused under reduced motion.
+
+```js
+import "@half-built/css/plate-modal.css";
+import "@half-built/css/path-player.css";
+import { createPathPlayer } from "@half-built/astro/scripts/path-player.ts";
+
+const player = createPathPlayer(document, {
+  title, source, caption, duration, samples, tracks,
+  buildStage: (viewbox) => { /* append the stage, return true */ },
+  sink: { start, move, stop },
+  scrub: true, // optional
+});
+
+button.addEventListener("click", () => player.open(button));
+```
+
+`scrub: true` makes the timeline a seek slider: a drag pauses the
+clock and seeks, and the arrow, Page, Home, and End keys step it. The
+sink then gets `start` at the seek point and `move` along a drag, so
+turn it on only when the stage can show any moment on demand; leave
+it off (the default) for a simulation that cannot rewind. While
+playing, the slider's value moves in whole seconds, so a screen
+reader on the focused slider is not flooded. `labels` renames the
+transport, the caption toggle, and the slider (`timeline`).
 
 ## Plate frame
 

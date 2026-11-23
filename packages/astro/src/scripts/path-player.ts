@@ -281,6 +281,10 @@ export function createPathPlayer<S>(
 
   const state: TransportState = { t: 0, playing: false, lastIdx: -1 };
 
+  /* Without a stage there is nothing to seek: the transport is
+     disabled, and the timeline stays a plain strip. */
+  const scrubbing = config.scrub === true && stageReady;
+
   /* All tracks, their gaps, and the axis: the canvas's CSS height. */
   const timelineHeight =
     config.tracks.reduce((h, tr) => h + tr.height + TRACK_GAP, 0) + AXIS_H;
@@ -390,21 +394,19 @@ export function createPathPlayer<S>(
      which preserves the old skip-first-frame behavior without a
      dedicated lastNow field. */
   /* The slider's value, kept in step with the clock while scrubbing
-     is on; written only when it changes so playback does not touch
-     the attributes every frame. */
+     is on. A screen reader announces each change on a focused slider,
+     so playback moves it in whole seconds; a seek or a pause writes the
+     exact time. Written only when it changes. */
   let shownPosition = "";
 
   function syncPosition(): void {
-    if (!config.scrub) return;
-    const now = String(Math.round(state.t * 100) / 100);
+    if (!scrubbing) return;
+    const t = state.playing ? Math.floor(state.t) : state.t;
+    const now = String(Math.round(t * 100) / 100);
     if (now === shownPosition) return;
     shownPosition = now;
     timeline.setAttribute("aria-valuenow", now);
-
-    timeline.setAttribute(
-      "aria-valuetext",
-      formatPosition(state.t, config.duration),
-    );
+    timeline.setAttribute("aria-valuetext", formatPosition(t, config.duration));
   }
 
   function frame(dt: number): void {
@@ -450,6 +452,7 @@ export function createPathPlayer<S>(
     playBtn.setAttribute("aria-pressed", `${playing}`);
     if (playing) applyCurrent(true);
     else config.sink.stop();
+    syncPosition();
   }
 
   playBtn.addEventListener("click", () => {
@@ -477,7 +480,7 @@ export function createPathPlayer<S>(
     win.removeEventListener("resize", onResize);
   });
 
-  if (config.scrub) {
+  if (scrubbing) {
     timeline.tabIndex = 0;
     timeline.setAttribute("role", "slider");
     timeline.setAttribute("aria-label", timelineLabel);
