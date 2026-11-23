@@ -38,6 +38,12 @@ jobs:
       - run: npm run lint
       - run: npm run build:site
       - run: npm run typecheck
+      # The floor job runs this build in the old engines.
+      - uses: actions/upload-artifact@v4
+        with:
+          name: site-dist
+          path: site/dist
+          retention-days: 1
 
   browser:
     runs-on: ubuntu-latest
@@ -59,3 +65,31 @@ jobs:
       - run: npx playwright install --with-deps chromium firefox webkit
       - run: npm run test:browser
         env: { BROWSER_TESTS: "1" }
+
+  # The demo in the browsers at the support floor (site/floor/run.mjs):
+  # Chromium 99 from Playwright 1.18, Firefox 98 and WebKit 15.4 from
+  # Playwright 1.21. Those builds need the system libraries of the
+  # Ubuntu they were made for, so the job runs in Playwright 1.21's own
+  # focal image. That image ships Node 16, which has no node:test, so
+  # setup-node brings 22. site/floor is its own package: only this job
+  # installs the old releases.
+  floor:
+    needs: test
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    container: mcr.microsoft.com/playwright:v1.21.1-focal
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: site/floor/package-lock.json
+      - uses: actions/download-artifact@v4
+        with:
+          name: site-dist
+          path: site/dist
+      - run: npm ci --prefix site/floor
+        env: { PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1" }
+      - run: npm run install-browsers --prefix site/floor
+      - run: npm test --prefix site/floor

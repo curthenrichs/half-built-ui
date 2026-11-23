@@ -1,0 +1,16 @@
+{
+  "name": "@half-built/site-floor",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "The demo's pages in browsers at the support floor: old Playwright releases, kept out of the workspace so their browser downloads and CLIs never reach a normal install.",
+  "scripts": {
+    "install-browsers": "node node_modules/playwright-chromium-99/cli.js install chromium && node node_modules/playwright/cli.js install firefox webkit",
+    "test": "node --test run.mjs"
+  },
+  "devDependencies": {
+    "axe-core": "4.13.0",
+    "playwright": "npm:playwright@1.21.1",
+    "playwright-chromium-99": "npm:playwright@1.18.1"
+  }
+}

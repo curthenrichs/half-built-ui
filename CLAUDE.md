@@ -51,8 +51,11 @@ local working files, gitignored and never committed.
 - CI (`ci.yml`) runs tests, `npm run lint` (eslint, stylelint, and the
   Prettier check, all from the tooling presets), the site build, and
   then the type gate (`tsc --noEmit` over every project, `astro
-  check` on the site) on branch pushes (no `pull_request` trigger);
-  a tag push fires only `release.yml`, which calls CI itself.
+  check` on the site) on branch pushes (no `pull_request` trigger),
+  plus the browser suites in current Chromium, Firefox, and WebKit and
+  the floor job (`site/floor`, the demo in Chromium 99, Firefox 98, and
+  WebKit 15.4); a tag push fires only `release.yml`, which calls CI
+  itself, so a release waits on all of them.
 
 ## House style
 

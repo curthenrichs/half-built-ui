@@ -168,10 +168,14 @@ not loaded; its swap to the full original stays silent.
   preset: the Baseline lint at 2021 with an allowlist the tooling tests
   pin to support data, and `half-built/require-fallback` for
   `color-mix`, the dynamic viewport units, and the `mask` prefix pair.
-  The demo's engine smoke suite covers Chromium, Firefox, and WebKit,
-  which are current builds, so it proves the pages work across engines
-  but not on old versions. See the tooling README, Browser support
-  floor.
+  A feature value holding `var()` goes behind `@supports`, never after
+  a plain fallback: the floor engines drop such a value at computed
+  time to the initial value, which painted every color-mix tint
+  transparent until the floor suite caught it (2026-11-22). The demo
+  runs its pages in current Chromium, Firefox, and WebKit
+  (`site/test/engines.test.ts`) and in the floor engines themselves
+  (`site/floor`, old Playwright releases: Chromium 99, Firefox 98,
+  WebKit 15.4). See the tooling README, Browser support floor.
 
 ## Consumers
 

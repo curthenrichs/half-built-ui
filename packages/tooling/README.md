@@ -132,23 +132,42 @@ reason.
 
 `color-mix()` and the dynamic viewport units (`dvh`, `svh`, `lvh`) are
 newer than the floor but fine to use with a fallback, so the preset's
-own rule, `half-built/require-fallback`, checks them instead: the
-declaration must come straight after a plain declaration of the same
-property (`min-height: 100vh; min-height: 100dvh;`), or sit inside an
-`@supports` block that tests the same feature. A browser that drops the
-new value keeps the old one. A custom property cannot carry a fallback
-(the `var()` that reads it wins the cascade and computes to nothing),
-so a custom property holding one of these values must sit inside such
-an `@supports` block. The same rule requires `mask` and `mask-image` to
-come straight after their `-webkit-` twins, since Chrome below 120 knows
-only the prefixed forms; the preset's vendor-prefix rule lets those two
-through.
+own rule, `half-built/require-fallback`, checks them instead. A plain
+value works as the fallback only when the new value holds no `var()`:
+then the declaration must come straight after a plain declaration of
+the same property (`min-height: 100vh; min-height: 100dvh;`), and a
+browser that drops the new value keeps the old one. A value that holds
+`var()` parses everywhere, so a browser without the feature drops it at
+computed time and the property falls to its initial value (a
+transparent background, not the plain value before it). Such a value,
+and any custom property holding one of these features, must sit inside
+an `@supports` block that tests the same feature:
 
-The lint holds the floor's age. Engine differences are a separate
-question: this repo's demo site also runs a smoke suite over every page
-in Playwright's Chromium, Firefox, and WebKit (`site/test/engines.test.ts`).
-Those are current engine builds, so the suite proves the pages work
-across engines, not on old versions.
+```css
+.box {
+  background: var(--surface);
+}
+
+@supports (color: color-mix(in srgb, red, red)) {
+  .box {
+    background: color-mix(in srgb, var(--accent-1) 6%, var(--surface));
+  }
+}
+```
+
+The same rule requires `mask` and `mask-image` to come straight after
+their `-webkit-` twins, since Chrome below 120 knows only the prefixed
+forms; the preset's vendor-prefix rule lets those two through.
+
+The lint holds the floor's age, and this repo's demo site checks it in
+browsers two ways. `site/test/engines.test.ts` runs every page, and the
+image loading state, in Playwright's current Chromium, Firefox, and
+WebKit, for engine differences. `site/floor/run.mjs` runs the pages,
+the fallback grounds (axe contrast at rest and on hover, both themes),
+and the image loading state in the floor engines themselves: Chromium
+99 from Playwright 1.18, and Firefox 98 and WebKit 15.4 from Playwright
+1.21. It is a separate package with its own install, so the old
+releases' browser downloads never reach a normal install.
 
 ## Requirements
 
