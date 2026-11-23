@@ -19,6 +19,12 @@ export function formatReadout(t: number, duration: number): string {
   return `T+${t.toFixed(1).padStart(4, "0")} / ${duration.toFixed(1)}s`;
 }
 
+/* The timeline slider's aria-valuetext: the readout's numbers in words
+   a screen reader speaks cleanly. */
+export function formatPosition(t: number, duration: number): string {
+  return `${t.toFixed(1)} of ${duration.toFixed(1)} seconds`;
+}
+
 export function brightChannel(c: number): number {
   return Math.min(255, Math.round((c / 0.15) * 255));
 }

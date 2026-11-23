@@ -1829,6 +1829,74 @@ describe.skipIf(!enabled)("browser suite", () => {
     }
   }, 120_000);
 
+  /* The demo turns scrubbing on: the timeline is a slider that the
+     keys and a drag both seek, with the site's focus ring. Opened
+     paused (reduced motion) so the readout holds still between
+     steps. */
+  it("the path player's timeline seeks by key and by drag", async () => {
+    const p = await open();
+
+    await p.emulateMediaFeatures([
+      { name: "prefers-reduced-motion", value: "reduce" },
+    ]);
+
+    await p.click(".demo-path-player");
+    await settleFrames(p);
+
+    const readout = (): Promise<string> =>
+      p.$eval(".pp-readout", (el) => el.textContent);
+
+    const slider = await p.$eval(".pp-timeline", (el) => {
+      const cs = getComputedStyle(el);
+
+      return {
+        role: el.getAttribute("role"),
+        label: el.getAttribute("aria-label"),
+        touchAction: cs.touchAction,
+        cursor: cs.cursor,
+      };
+    });
+
+    expect(slider).toEqual({
+      role: "slider",
+      label: "Timeline",
+      touchAction: "none",
+      cursor: "pointer",
+    });
+
+    await p.focus(".pp-timeline");
+    await p.keyboard.press("End");
+    await settleFrames(p);
+    expect(await readout()).toBe("T+08.0 / 8.0s");
+
+    const ring = await p.$eval(".pp-timeline", (el) => ({
+      visible: el.matches(":focus-visible"),
+      outline: getComputedStyle(el).outlineStyle,
+      valueNow: el.getAttribute("aria-valuenow"),
+    }));
+
+    expect(ring).toEqual({ visible: true, outline: "solid", valueNow: "8" });
+
+    await p.keyboard.press("Home");
+    await settleFrames(p);
+    expect(await readout()).toBe("T+00.0 / 8.0s");
+
+    const box = await (await p.$(".pp-timeline"))?.boundingBox();
+    if (!box) throw new Error("no timeline box");
+    await p.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    await p.mouse.down();
+    await p.mouse.up();
+    await settleFrames(p);
+
+    const t = Number(/T\+(\d+\.\d)/.exec(await readout())?.[1]);
+    expect(t).toBeGreaterThan(3.8);
+    expect(t).toBeLessThan(4.2);
+
+    expect(
+      await p.$eval(".pp-play", (b) => b.getAttribute("aria-pressed")),
+    ).toBe("false");
+  });
+
   /* The frame's geometry, read the same way for the inline pattern and
      the open plate modal: the zone padding as the plate's inset in its
      frame, and the corner box's offsets from the plate's top-right. */

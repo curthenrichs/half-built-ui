@@ -136,6 +136,9 @@ export function mountPathDemo(doc: Document): void {
       "A point moving on a closed curve. PATH plots its X and Y position over one loop. MIX blends the two brand colors by X. The line on the MIX track shows the point's speed.",
     duration: DURATION,
     samples,
+    /* The stage is drawn from the sample alone, so any moment can be
+       shown on demand. */
+    scrub: true,
     tracks: [
       {
         kind: "band",
