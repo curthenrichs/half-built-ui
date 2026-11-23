@@ -8,6 +8,7 @@
   ],
   "scripts": {
     "test": "vitest run --passWithNoTests",
+    "test:coverage": "vitest run --passWithNoTests --coverage",
     "test:browser": "npm run test:browser --workspace site",
     "build:site": "npm run build --workspace site",
     "lint:js": "eslint .",
@@ -23,6 +24,7 @@
     "@axe-core/puppeteer": "^4.13.0",
     "@types/js-yaml": "^4.0.9",
     "@types/node": "^22.0.0",
+    "@vitest/coverage-v8": "^2.1.9",
     "axe-core": "^4.13.0",
     "js-yaml": "^4.3.2",
     "jsdom": "^29.1.1",

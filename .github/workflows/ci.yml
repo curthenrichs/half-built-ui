@@ -34,7 +34,9 @@ jobs:
           cache: npm
       - run: npm ci
         env: { PUPPETEER_SKIP_DOWNLOAD: "1" }
-      - run: npm test
+      # The suite with a v8 coverage report in the log; reported, never
+      # a gate (vitest.config.ts says what it measures).
+      - run: npm run test:coverage
       - run: npm run lint
       - run: npm run build:site
       - run: npm run typecheck

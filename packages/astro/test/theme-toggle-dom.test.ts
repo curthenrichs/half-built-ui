@@ -47,6 +47,43 @@ describe("theme toggle", () => {
     expect(readStored(fakeStorage({ [KEY]: "dark" }))).toBeNull();
   });
 
+  /* Private modes and blocked site data throw from storage calls. */
+  const throwing = {
+    getItem: () => {
+      throw new Error("blocked");
+    },
+    setItem: () => {
+      throw new Error("blocked");
+    },
+  } as unknown as Storage;
+
+  it("readStored treats a throwing storage as nothing stored", () => {
+    expect(readStored(throwing, KEY)).toBeNull();
+  });
+
+  it("a click still flips the theme when storage throws", () => {
+    mountThemeToggle(document, { storage: throwing, storageKey: KEY });
+    document.querySelector<HTMLButtonElement>(".theme-toggle")?.click();
+    expect(document.documentElement.dataset.theme).toBe("dark");
+  });
+
+  it("a click still flips the theme when the localStorage getter throws", () => {
+    const blocked = vi
+      .spyOn(window, "localStorage", "get")
+      .mockImplementation(() => {
+        throw new Error("SecurityError");
+      });
+
+    try {
+      mountThemeToggle(document, { storageKey: KEY });
+      document.querySelector<HTMLButtonElement>(".theme-toggle")?.click();
+    } finally {
+      blocked.mockRestore();
+    }
+
+    expect(document.documentElement.dataset.theme).toBe("dark");
+  });
+
   it("apply stamps dark and clears light", () => {
     apply(document, "dark");
     expect(document.documentElement.dataset.theme).toBe("dark");

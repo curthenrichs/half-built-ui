@@ -73,6 +73,16 @@ describe("storedJson", () => {
     }).not.toThrow();
   });
 
+  it("clear swallows storage errors", () => {
+    vi.spyOn(Storage.prototype, "removeItem").mockImplementation(() => {
+      throw new Error("blocked");
+    });
+
+    expect(() => {
+      storedJson<Toy>("toy", parse).clear();
+    }).not.toThrow();
+  });
+
   it("a custom serializer is used", () => {
     const store = storedJson<Toy>("toy", parse, (v) =>
       JSON.stringify({ n: v.n }),

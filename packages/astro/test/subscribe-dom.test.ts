@@ -180,6 +180,42 @@ describe("subscribe form (DOM runtime)", () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
+  it("destroy unbinds the submit handler, so a later submit never posts", () => {
+    document.body.innerHTML = `
+      <section>
+        <form class="subscribe-form" action="${ACTION}">
+          <input class="subscribe-email" type="email" name="email" />
+          <button class="subscribe-submit" type="submit">Subscribe</button>
+        </form>
+        <p class="subscribe-status" role="status"></p>
+      </section>`;
+
+    const handle = mountSubscribe(document);
+    handle.destroy();
+    const form = document.querySelector<HTMLFormElement>(".subscribe-form");
+    const input = document.querySelector<HTMLInputElement>(".subscribe-email");
+    if (!form || !input) throw new Error("fixture missing");
+    input.value = "a@b.co";
+    submit(form);
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(form.hasAttribute("data-island-subscribe")).toBe(false);
+  });
+
+  it("a form missing its status line does nothing on submit", () => {
+    document.body.innerHTML = `
+      <form class="subscribe-form" action="${ACTION}">
+        <input class="subscribe-email" type="email" name="email" />
+      </form>`;
+
+    mountSubscribe(document);
+    const form = document.querySelector<HTMLFormElement>(".subscribe-form");
+    const input = document.querySelector<HTMLInputElement>(".subscribe-email");
+    if (!form || !input) throw new Error("fixture missing");
+    input.value = "a@b.co";
+    submit(form);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
   it("a messages option overrides the default invalid-address line", () => {
     const { form, input, status } = mount({
       messages: { invalid: "Try a real address, please." },
