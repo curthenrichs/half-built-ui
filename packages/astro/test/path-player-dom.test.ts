@@ -9,7 +9,7 @@ import {
   stubRafOnFakeTimers,
   recordingContext,
   type RecordingContext,
-} from "./helpers";
+} from "../../tooling/src/test-kit/helpers";
 
 /* The blog's copy of this suite typed SAMPLES against fluid/path-pipeline's
    TimelineSample. path-player.ts is generic over the sample type (it "knows

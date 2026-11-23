@@ -63,8 +63,8 @@ From `test-kit/helpers.ts`:
 - `stubRafOnFakeTimers()`: stubs `requestAnimationFrame` and
   `cancelAnimationFrame` on a self-advancing frame clock, for suites
   under `vi.useFakeTimers()`. Undo with `vi.unstubAllGlobals()`.
-- `polyfillDialog()`: fills in `HTMLDialogElement.prototype.showModal`
-  and `.close` where jsdom has not implemented them, so a suite
+- `polyfillDialog()`: fills in `HTMLDialogElement.prototype.showModal`,
+  `.show`, and `.close` where jsdom has not implemented them, so a suite
   exercises the component's logic rather than jsdom's gaps.
 - `recordingContext()`: returns a `RecordingContext` whose `ctx` is a
   fake 2D canvas context recording every draw call (with the style

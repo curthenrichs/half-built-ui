@@ -3,7 +3,7 @@
    islands each carried. rAF is stubbed onto the fake-timer clock (16ms frames). */
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { createFrameLoop } from "../src/scripts/core/frame-loop";
-import { stubRafOnFakeTimers } from "./helpers";
+import { stubRafOnFakeTimers } from "../../tooling/src/test-kit/helpers";
 
 describe("createFrameLoop", () => {
   beforeEach(() => {

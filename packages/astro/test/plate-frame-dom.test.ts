@@ -5,7 +5,7 @@
    to the corner box. */
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { mountPlateFrames } from "../src/scripts/plate-frame";
-import { polyfillDialog } from "./helpers";
+import { polyfillDialog } from "../../tooling/src/test-kit/helpers";
 
 const FRAME = `
   <div class="plate-frame" data-plate-label="Sample view" data-plate-class="wide-plate" data-zone-class="wide-zone">

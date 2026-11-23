@@ -21,7 +21,10 @@ import {
   playheadX,
   brightChannel,
 } from "../src/scripts/path-player-math";
-import { recordingContext, type RecordingContext } from "./helpers";
+import {
+  recordingContext,
+  type RecordingContext,
+} from "../../tooling/src/test-kit/helpers";
 
 const WIDTH = 100;
 const DURATION = 5;

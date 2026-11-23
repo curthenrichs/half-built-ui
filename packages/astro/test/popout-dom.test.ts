@@ -7,7 +7,7 @@ import {
   isSwipeClose,
   nextFocusableAfter,
 } from "../src/scripts/popout";
-import { polyfillDialog } from "./helpers";
+import { polyfillDialog } from "../../tooling/src/test-kit/helpers";
 import type { IslandHandle } from "../src/scripts/core/island";
 
 polyfillDialog();
@@ -681,6 +681,84 @@ describe("popout island (DOM runtime)", () => {
       await new Promise((r) => setTimeout(r, 5));
       expect(surface().open).toBe(false);
     });
+  });
+
+  it("a scroll that leaves the trigger in view keeps the box open and re-places it", async () => {
+    /* jsdom lays nothing out, so the viewport is sized by hand. */
+    const html = document.documentElement;
+
+    Object.defineProperty(html, "clientWidth", {
+      configurable: true,
+      value: 800,
+    });
+
+    Object.defineProperty(html, "clientHeight", {
+      configurable: true,
+      value: 600,
+    });
+
+    await withTimerRaf(async () => {
+      handle = mountPopouts(document);
+      const t1 = byId("t1");
+      click(t1);
+
+      t1.getBoundingClientRect = () =>
+        ({
+          left: 10,
+          right: 50,
+          top: 100,
+          bottom: 120,
+          width: 40,
+          height: 20,
+        }) as DOMRect;
+
+      surface().style.left = "999px";
+      document.dispatchEvent(new Event("scroll"));
+      await new Promise((r) => setTimeout(r, 5));
+      expect(surface().open).toBe(true);
+      expect(surface().style.left).not.toBe("999px");
+    }).finally(() => {
+      Reflect.deleteProperty(html, "clientWidth");
+      Reflect.deleteProperty(html, "clientHeight");
+    });
+  });
+
+  /* A close that lands between a scroll and its frame must cancel the
+     frame, or the frame would run against a box that is gone. */
+  it("closing with a scroll frame pending cancels the frame", async () => {
+    const cancelled: number[] = [];
+
+    Object.defineProperty(view(), "cancelAnimationFrame", {
+      configurable: true,
+      writable: true,
+      value: (id: number) => {
+        cancelled.push(id);
+        clearTimeout(id);
+      },
+    });
+
+    try {
+      await withTimerRaf(async () => {
+        handle = mountPopouts(document);
+        click(byId("t1"));
+        document.dispatchEvent(new Event("scroll"));
+        click(byId("t1"));
+        expect(surface().open).toBe(false);
+        expect(cancelled).toHaveLength(1);
+        await new Promise((r) => setTimeout(r, 5));
+        expect(surface().open).toBe(false);
+      });
+    } finally {
+      Reflect.deleteProperty(view(), "cancelAnimationFrame");
+    }
+  });
+
+  it("a swipe on the anchored box never closes it; only the sheet swipes", () => {
+    handle = mountPopouts(document);
+    click(byId("t1"));
+    surface().dispatchEvent(touch("touchstart", 100));
+    surface().dispatchEvent(touch("touchend", 400));
+    expect(surface().open).toBe(true);
   });
 
   it("the mode flips at the phone breakpoint: 768 is the sheet, 769 anchored", () => {

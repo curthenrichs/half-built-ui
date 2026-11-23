@@ -3,7 +3,7 @@
    lightbox-dom.test.ts. */
 import { describe, it, expect, beforeEach } from "vitest";
 import { buildPlateModal } from "../src/scripts/plate-modal";
-import { polyfillDialog } from "./helpers";
+import { polyfillDialog } from "../../tooling/src/test-kit/helpers";
 
 describe("buildPlateModal", () => {
   beforeEach(() => {

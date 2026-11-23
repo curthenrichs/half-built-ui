@@ -9,7 +9,7 @@ import {
   FALLBACK_BOX,
 } from "../src/scripts/lightbox";
 import { LOADING_GRACE_MS } from "../src/scripts/image-loading";
-import { polyfillDialog } from "./helpers";
+import { polyfillDialog } from "../../tooling/src/test-kit/helpers";
 
 const PAGE = `
   <main class="prose">
@@ -698,5 +698,84 @@ describe("loading state", () => {
     graceOver();
     expect(viewbox().hasAttribute("data-loading")).toBe(false);
     expect(viewbox().querySelectorAll(".img-loading").length).toBe(0);
+  });
+});
+
+describe("navigation and pointer edges", () => {
+  const press = (type: string, pointerId: number): Event =>
+    Object.assign(
+      new MouseEvent(type, {
+        bubbles: true,
+        cancelable: true,
+        clientX: 400,
+        clientY: 300,
+      }),
+      { pointerId },
+    );
+
+  it("the prev arrow steps back, wrapping to the last plate", () => {
+    openViaClick(".gallery-plates a.lightbox-link");
+    const d = dialog();
+    d.querySelector<HTMLButtonElement>(".lb-prev")?.click();
+    expect(d.querySelector(".lb-counter")?.textContent).toBe("03 / 03");
+    expect(d.querySelector(".lb-caption")?.textContent).toBe("Plate three");
+  });
+
+  it("navigating scrolls the active thumb into view", () => {
+    const scrolled: Element[] = [];
+
+    /* jsdom has no scrollIntoView; the island guards for that, so the
+       test supplies one to see the call. */
+    Object.defineProperty(HTMLElement.prototype, "scrollIntoView", {
+      configurable: true,
+      writable: true,
+      value: function (this: HTMLElement) {
+        scrolled.push(this);
+      },
+    });
+
+    try {
+      openViaClick(".gallery-plates a.lightbox-link");
+      const d = dialog();
+      d.querySelector<HTMLButtonElement>(".lb-next")?.click();
+      expect(scrolled.at(-1)).toBe(d.querySelectorAll(".lb-thumb")[1]);
+    } finally {
+      Reflect.deleteProperty(HTMLElement.prototype, "scrollIntoView");
+    }
+  });
+
+  it("a drag press captures its pointer on the viewbox", () => {
+    openViaClick(".blog-image a.lightbox-link");
+    const viewbox = dialog().querySelector<HTMLElement>(".lb-viewbox");
+    if (!viewbox) throw new Error("no viewbox");
+    const captured: number[] = [];
+
+    viewbox.setPointerCapture = (id: number) => {
+      captured.push(id);
+    };
+
+    viewbox.dispatchEvent(press("pointerdown", 7));
+    expect(captured).toEqual([7]);
+  });
+
+  it("a link with no image opens on its href as the in-page rendition", () => {
+    document.body.innerHTML = `<a class="lightbox-link" id="bare" href="/full/bare.jpg" data-lb-w="800" data-lb-h="600" data-lb-caption="Bare">Bare</a>`;
+    mountLightbox(document);
+    openViaClick("#bare");
+
+    expect(dialog().querySelector(".lb-img")?.getAttribute("src")).toBe(
+      "/full/bare.jpg",
+    );
+  });
+
+  it("a page with no lightbox links mounts nothing, and its destroy is safe", () => {
+    document.body.innerHTML = "<main><p>No images here.</p></main>";
+    const handle = mountLightbox(document);
+
+    expect(() => {
+      handle.destroy();
+    }).not.toThrow();
+
+    expect(document.querySelector("dialog.lb-dialog")).toBeNull();
   });
 });
