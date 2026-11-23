@@ -317,6 +317,18 @@ viewbox shows the same loading label as the page's images. The swap from the in-
 image to the full-size original stays silent, since a picture is
 already on screen.
 
+The link's `href` is never the camera original, since crawlers follow
+links and a multi-megabyte original fetched by every bot adds up.
+`LightboxLink` given the image (`src`) and the width of the largest
+rendition the page shows (`width`) links that webp and puts the
+original in `data-lb-original`, which the viewer swaps to once open;
+the content components above use this form. The plain form
+(`href`, `w`, `h`, and an optional `original`) still works for a link
+built by hand. When the browser reports data saver or a slow
+connection (`navigator.connection`, Chromium only), the viewer keeps
+the in-page rendition and skips the original; `prefersLeanData` is
+exported for the same check elsewhere.
+
 `mountLightbox` takes options: `selector` (default `a.lightbox-link`)
 picks the links, `groupSelector` names the containers whose links form
 one set, and `labels` renames the viewer's controls for a site that is

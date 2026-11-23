@@ -33,12 +33,7 @@ const photos: Photo[] = hasMany ? images : [{ src: src as ImageMetadata, alt }];
   <div class="step-media">
     {photos.map((p) => {
       const a = p.alt ?? "";
-      return <LightboxLink
-        href={p.src.src}
-        w={p.src.width}
-        h={p.src.height}
-        caption={a}
-      >
+      return <LightboxLink src={p.src} width={400} caption={a}>
         <SmartImage
           src={p.src}
           alt={a}

@@ -6,6 +6,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import {
   mountLightbox,
   swapToFull,
+  prefersLeanData,
   FALLBACK_BOX,
 } from "../src/scripts/lightbox";
 import { LOADING_GRACE_MS } from "../src/scripts/image-loading";
@@ -155,6 +156,99 @@ describe("full-resolution swap", () => {
     target.dataset.pending = "/full/g2.jpg";
     probe?.dispatchEvent(new Event("load"));
     expect(target.src).toContain("/thumb/g1.jpg");
+  });
+});
+
+/* The original's URL rides in data-lb-original, out of the href that
+   crawlers follow; the href is the in-page rendition. The lightbox
+   swaps to the original unless the browser reports data saver or a
+   slow connection (navigator.connection, Chromium only). */
+describe("original source and lean connections", () => {
+  const ORIGINAL = `<a class="lightbox-link" id="orig" href="/r/photo.webp" data-lb-original="/o/photo.jpg" data-lb-w="1600" data-lb-h="1200" data-lb-caption="Photo"><img src="/r/photo-640.webp" alt="Photo"></a>`;
+
+  const setConnection = (value: unknown): void => {
+    Object.defineProperty(navigator, "connection", {
+      value,
+      configurable: true,
+    });
+  };
+
+  const pending = (): string | undefined =>
+    dialog().querySelector<HTMLImageElement>(".lb-img")?.dataset.pending;
+
+  beforeEach(() => {
+    document.body.innerHTML = ORIGINAL;
+    mountLightbox(document);
+  });
+
+  afterEach(() => {
+    Reflect.deleteProperty(navigator, "connection");
+  });
+
+  it("swaps to data-lb-original, not the href", () => {
+    openViaClick("#orig");
+    expect(pending()).toBe("/o/photo.jpg");
+  });
+
+  it("without data-lb-original it swaps to the href, as before", () => {
+    document.body.innerHTML = ORIGINAL.replace(
+      ' data-lb-original="/o/photo.jpg"',
+      "",
+    );
+
+    mountLightbox(document);
+    openViaClick("#orig");
+    expect(pending()).toBe("/r/photo.webp");
+  });
+
+  it.each([
+    [{ saveData: true, effectiveType: "4g" }],
+    [{ saveData: false, effectiveType: "slow-2g" }],
+    [{ saveData: false, effectiveType: "2g" }],
+    [{ saveData: false, effectiveType: "3g" }],
+  ])("keeps the in-page rendition on a lean connection %j", (connection) => {
+    setConnection(connection);
+    openViaClick("#orig");
+    expect(pending()).toBeUndefined();
+
+    expect(dialog().querySelector(".lb-img")?.getAttribute("src")).toBe(
+      "/r/photo-640.webp",
+    );
+  });
+
+  /* swapToFull lands a load only while dataset.pending still names
+     it, so a lean step must clear the last item's marker or that
+     original arrives over the new item. */
+  it("a load still in flight from the last item never lands after a lean step", () => {
+    document.body.innerHTML = `<div class="gallery-plates">${ORIGINAL}${ORIGINAL.replace(/photo/g, "other").replace('id="orig"', 'id="orig2"')}</div>`;
+    mountLightbox(document);
+    openViaClick("#orig");
+    expect(pending()).toBe("/o/photo.jpg");
+
+    setConnection({ saveData: true });
+    dialog().querySelector<HTMLButtonElement>(".lb-next")?.click();
+
+    expect(pending()).toBeUndefined();
+
+    expect(dialog().querySelector(".lb-img")?.getAttribute("src")).toBe(
+      "/r/other-640.webp",
+    );
+  });
+
+  it("a fast connection without data saver still swaps", () => {
+    setConnection({ saveData: false, effectiveType: "4g" });
+    openViaClick("#orig");
+    expect(pending()).toBe("/o/photo.jpg");
+  });
+
+  it("prefersLeanData reads the connection, and no connection means no", () => {
+    expect(prefersLeanData(navigator)).toBe(false);
+    setConnection({ saveData: true });
+    expect(prefersLeanData(navigator)).toBe(true);
+    setConnection({ effectiveType: "3g" });
+    expect(prefersLeanData(navigator)).toBe(true);
+    setConnection({ effectiveType: "4g", saveData: false });
+    expect(prefersLeanData(navigator)).toBe(false);
   });
 });
 

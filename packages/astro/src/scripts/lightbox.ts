@@ -183,6 +183,10 @@ const DEFAULT_LABELS: LightboxLabels = {
 
 interface Item {
   href: string;
+  /* What the swap loads: data-lb-original when the link carries it
+     (kept out of the href so crawlers following links never reach the
+     camera original), else the href. */
+  full: string;
   w: number;
   h: number;
   caption: string;
@@ -208,8 +212,11 @@ interface Refs {
 
 function itemFor(link: HTMLAnchorElement): Item {
   const img = link.querySelector("img");
+  const href = link.getAttribute("href") ?? "";
+
   return {
-    href: link.getAttribute("href") ?? "",
+    href,
+    full: link.dataset.lbOriginal ?? href,
     w: Number(link.dataset.lbW ?? "0"),
     h: Number(link.dataset.lbH ?? "0"),
     caption: link.dataset.lbCaption ?? "",
@@ -231,6 +238,25 @@ function setFor(
   const set = link.closest(groupSelector);
   if (!set) return [link];
   return [...set.querySelectorAll<HTMLAnchorElement>(selector)];
+}
+
+/* True when the browser asks for less data: data saver on, or a slow
+   connection estimate. Only Chromium exposes navigator.connection;
+   elsewhere this is false and the lightbox loads the original as
+   always. */
+const LEAN_TYPES = new Set(["slow-2g", "2g", "3g"]);
+
+export function prefersLeanData(nav: Navigator): boolean {
+  const connection = (
+    nav as { connection?: { saveData?: boolean; effectiveType?: string } }
+  ).connection;
+
+  if (!connection) return false;
+
+  return (
+    connection.saveData === true ||
+    LEAN_TYPES.has(connection.effectiveType ?? "")
+  );
 }
 
 /* The in-page rendition shows instantly; the untransformed original swaps
@@ -457,7 +483,15 @@ export const mountLightbox: Island<LightboxOptions> = (
        as the page's images. The swap to the original below stays
        silent, since by then a picture is already showing. */
     watchImage(r.viewbox, r.img);
-    swapToFull(r.img, item.href, doc);
+
+    /* On a lean connection the in-page rendition stays: the original
+       can run to megabytes. */
+    if (doc.defaultView && prefersLeanData(doc.defaultView.navigator)) {
+      delete r.img.dataset.pending;
+    } else {
+      swapToFull(r.img, item.full, doc);
+    }
+
     resetToFit(r);
   };
 

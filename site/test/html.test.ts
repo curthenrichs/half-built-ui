@@ -51,4 +51,49 @@ describe.skipIf(!enabled)("built html", () => {
 
     expect(failures).toEqual([]);
   });
+
+  /* Crawlers follow hrefs, so no lightbox link may point at a raster
+     original: the href is the page's own webp rendition and the
+     original rides in data-lb-original for the lightbox script. SVGs
+     pass through untransformed and link themselves. */
+  it("no lightbox link's href is a raster original", () => {
+    const links = htmlFiles(DIST).flatMap((file) =>
+      [
+        ...readFileSync(file, "utf-8").matchAll(
+          /<a\b[^>]*class="lightbox-link[^"]*"[^>]*>/g,
+        ),
+      ].map((m) => [file, m[0]] as const),
+    );
+
+    expect(links.length).toBeGreaterThan(0);
+
+    for (const [file, tag] of links) {
+      const href = /\shref="([^"]+)"/.exec(tag)?.[1] ?? "";
+      expect(href, `${file}: ${tag}`).not.toMatch(/\.(?:png|jpe?g)$/i);
+    }
+  });
+
+  it("a raster figure links its own largest webp and carries the original", () => {
+    const html = readFileSync(join(DIST, "index.html"), "utf-8");
+
+    const figure = /<a\b[^>]*data-lb-original="[^"]+"[^>]*>[\s\S]*?<\/a>/.exec(
+      html,
+    )?.[0];
+
+    if (!figure) throw new Error("no lightbox link carries data-lb-original");
+
+    const href = /\shref="([^"]+)"/.exec(figure)?.[1] ?? "";
+    const original = /data-lb-original="([^"]+)"/.exec(figure)?.[1] ?? "";
+    const srcset = /srcset="([^"]+)"/.exec(figure)?.[1] ?? "";
+
+    expect(href).toMatch(/\.webp$/);
+    expect(original).toMatch(/\.png$/);
+
+    /* The rendition the page already serves, not an extra file. */
+    expect(srcset.split(",").map((c) => c.trim().split(" ")[0])).toContain(
+      href,
+    );
+
+    expect(existsSync(join(DIST, original))).toBe(true);
+  });
 });

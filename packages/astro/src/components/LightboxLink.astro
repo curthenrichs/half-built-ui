@@ -1,5 +1,7 @@
 ---
 import type { HTMLAttributes } from "astro/types";
+import type { ImageMetadata } from "astro";
+import { getImage } from "astro:assets";
 
 type Owned =
   | "href"
@@ -7,20 +9,71 @@ type Owned =
   | "data-lb-w"
   | "data-lb-h"
   | "data-lb-caption"
+  | "data-lb-original"
   | "class"
   | "class:list";
 
-interface Props extends Omit<HTMLAttributes<"a">, Owned> {
-  href: string;
-  w: number;
-  h: number;
-  caption?: string;
-  class?: string;
-}
+type Source =
+  | {
+      src: ImageMetadata;
+      width: number;
+      href?: never;
+      original?: never;
+      w?: never;
+      h?: never;
+    }
+  | {
+      href: string;
+      original?: string;
+      w: number;
+      h: number;
+      src?: never;
+      width?: never;
+    };
 
-const { href, w, h, caption = "", class: className, ...rest } = Astro.props;
+type Props = Omit<HTMLAttributes<"a">, Owned> &
+  Source & {
+    caption?: string;
+    class?: string;
+  };
+
+const {
+  src,
+  width,
+  href: givenHref,
+  original: givenOriginal,
+  w: givenW,
+  h: givenH,
+  caption = "",
+  class: className,
+  ...rest
+} = Astro.props;
+
+let href = givenHref ?? "";
+let original = givenOriginal;
+let w = givenW ?? 0;
+let h = givenH ?? 0;
+
+if (src) {
+  w = src.width;
+  h = src.height;
+
+  if (src.format === "gif" || src.format === "svg") {
+    href = src.src;
+  } else {
+    href = (await getImage({ src, width: Math.min(width, src.width) })).src;
+    original = src.src;
+  }
+}
 ---
 
+{/* Two ways in. Given the image (src) and the width of the largest
+   rendition the page already shows, the link points at that webp and
+   carries the original in data-lb-original, so crawlers following
+   links never reach the camera original while the lightbox still
+   loads it; gif and svg pass through untransformed (as in SmartImage)
+   and link themselves. Given an href, it links there as before, and
+   an original, when passed, rides in data-lb-original the same way. */}
 <a
   {...rest}
   class:list={["lightbox-link", className]}
@@ -28,6 +81,7 @@ const { href, w, h, caption = "", class: className, ...rest } = Astro.props;
   data-lb-w={w}
   data-lb-h={h}
   data-lb-caption={caption}
+  data-lb-original={original}
   aria-label={`View full-size image${caption ? `: ${caption}` : ""}`}
   ><slot
 /></a>

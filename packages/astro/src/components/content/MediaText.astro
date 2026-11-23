@@ -33,7 +33,7 @@ const {
   ]}
 >
   <div class="media-text-media">
-    <LightboxLink href={src.src} w={src.width} h={src.height} caption={alt}>
+    <LightboxLink src={src} width={natural ? src.width : 960} caption={alt}>
       {natural ? (
         /* No responsive widths/sizes here: a `sizes` attribute makes the
            browser report that size as the intrinsic width, which defeats

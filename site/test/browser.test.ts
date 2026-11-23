@@ -1829,6 +1829,65 @@ describe.skipIf(!enabled)("browser suite", () => {
     }
   }, 120_000);
 
+  /* The raster demo figure links its webp; the lightbox fetches the
+     original from data-lb-original once opened, and skips it when the
+     browser reports data saver (stubbed here, since headless Chrome
+     reports none). */
+  it("the lightbox loads the original on open, and not under data saver", async () => {
+    for (const saveData of [false, true]) {
+      if (!browser) throw new Error("no browser (beforeAll failed)");
+      const p = await desktopPage(browser);
+      page = p;
+
+      if (saveData) {
+        await p.evaluateOnNewDocument(() => {
+          Object.defineProperty(navigator, "connection", {
+            value: { saveData: true, effectiveType: "4g" },
+            configurable: true,
+          });
+        });
+      }
+
+      const requested: string[] = [];
+
+      p.on("request", (r) => {
+        requested.push(new URL(r.url()).pathname);
+      });
+
+      await p.goto(`${ORIGIN}/`, { waitUntil: "networkidle0" });
+
+      const original = await p.$eval(
+        "a.lightbox-link[data-lb-original]",
+        (a) => a.getAttribute("data-lb-original") ?? "",
+      );
+
+      expect(
+        requested,
+        "the page itself never fetches the original",
+      ).not.toContain(original);
+
+      await p.click("a.lightbox-link[data-lb-original]");
+      await p.waitForSelector("dialog.lb-dialog[open]");
+      await p.waitForNetworkIdle({ idleTime: 300 });
+
+      if (saveData) {
+        expect(requested).not.toContain(original);
+      } else {
+        expect(requested).toContain(original);
+
+        await p.waitForFunction(
+          (src) =>
+            document.querySelector(".lb-img")?.getAttribute("src") === src,
+          {},
+          original,
+        );
+      }
+
+      await p.close();
+      page = undefined;
+    }
+  });
+
   /* Every straddled label (.boxed-label-straddle) sits centered on
      its box's top rule, in both themes: the label's middle lands on the
      middle of the rule, within half a pixel. */
