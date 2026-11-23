@@ -155,11 +155,18 @@
     padding: 8px 14px;
     color: var(--accent-1-ink);
     background: var(--surface);
-    background: color-mix(in srgb, var(--accent-1) 6%, var(--surface));
     border: var(--stroke) solid var(--accent-1);
     box-shadow: var(--shadow);
     font-size: var(--font-size-sm);
     white-space: nowrap;
+  }
+
+  /* The tints hold var(): behind @supports, or a browser without
+     color-mix drops them to a transparent ground. */
+  @supports (color: color-mix(in srgb, red, red)) {
+    .site-knob > summary {
+      background: color-mix(in srgb, var(--accent-1) 6%, var(--surface));
+    }
   }
 
   .site-knob > summary::-webkit-details-marker {
@@ -171,9 +178,10 @@
      accent border, and touch browsers keep :hover applied after a tap,
      so the rim stayed on the knob just tapped (owner report
      2026-09-09). */
-  .site-knob > summary:hover {
-    background: var(--surface);
-    background: color-mix(in srgb, var(--accent-1) 14%, var(--surface));
+  @supports (color: color-mix(in srgb, red, red)) {
+    .site-knob > summary:hover {
+      background: color-mix(in srgb, var(--accent-1) 14%, var(--surface));
+    }
   }
 
   .site-toolbar-swatch {
@@ -276,8 +284,13 @@
   .site-toolbar-presets button[aria-pressed="true"] {
     color: var(--accent-1-ink);
     background: var(--surface);
-    background: color-mix(in srgb, var(--accent-1) 6%, var(--surface));
     border-color: var(--accent-1);
+  }
+
+  @supports (color: color-mix(in srgb, red, red)) {
+    .site-toolbar-presets button[aria-pressed="true"] {
+      background: color-mix(in srgb, var(--accent-1) 6%, var(--surface));
+    }
   }
 
   .site-toolbar-readouts {

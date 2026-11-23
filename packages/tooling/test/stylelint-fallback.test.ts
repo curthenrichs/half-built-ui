@@ -47,6 +47,15 @@ describe("require-fallback rule", () => {
        unsupported, so only an @supports guard covers it. */
     [`a { --x: ${MIX}; }`],
     ["a { --h: 100dvh; }"],
+    /* A value holding var() parses everywhere, so the plain value
+       before it never takes over: where the feature is missing, the
+       browser drops the value at computed time and the property falls
+       to its initial value (a transparent background in Safari 15.4,
+       Firefox 98, and Chrome 99). Only an @supports guard covers it. */
+    [
+      "a { background: white; background: color-mix(in srgb, var(--a) 6%, white); }",
+    ],
+    ["a { max-height: 100vh; max-height: calc(100dvh - var(--gap)); }"],
   ])("reports %s", async (code) => {
     expect(await rules(code)).toContain(RULE);
   });
@@ -57,6 +66,9 @@ describe("require-fallback rule", () => {
     ["a { max-height: calc(100vh - 4rem); max-height: calc(100dvh - 4rem); }"],
     [`@supports (color: color-mix(in srgb, red, red)) { a { --x: ${MIX}; } }`],
     ["@supports (height: 100dvh) { a { max-height: calc(100dvh - 6rem); } }"],
+    [
+      "@supports (color: color-mix(in srgb, red, red)) { a { background: color-mix(in srgb, var(--a) 6%, white); } }",
+    ],
     ['a { content: "100dvh"; }'],
     ['a { background: url("x-100dvh.png"); }'],
     [`a { Background: white; background: ${MIX}; }`],
@@ -104,6 +116,18 @@ describe("require-fallback rule", () => {
 
     expect(result.results[0].warnings[0]?.text).toContain(
       "put a plain background declaration directly before it",
+    );
+  });
+
+  it("names the @supports fix for a value holding var()", async () => {
+    const result = await stylelint.lint({
+      code: "a { background: white; background: color-mix(in srgb, var(--a) 6%, white); }",
+      codeFilename: "x.css",
+      config: { plugins: [pluginPath], rules: { [RULE]: true } },
+    });
+
+    expect(result.results[0].warnings[0]?.text).toContain(
+      "wrap it in an @supports block",
     );
   });
 

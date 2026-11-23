@@ -111,11 +111,19 @@
     padding: 8px 14px;
     color: var(--accent-1-ink);
     background: var(--surface);
-    background: color-mix(in srgb, var(--accent-1) 6%, var(--surface));
     border: var(--stroke) solid var(--accent-1);
     font-size: var(--font-size-sm);
     list-style: none;
     cursor: pointer;
+  }
+
+  /* The tint holds var(): behind @supports, or a browser without
+     color-mix drops it to a transparent ground (patterns.css,
+     press-box-accent). */
+  @supports (color: color-mix(in srgb, red, red)) {
+    .toc-inline-summary {
+      background: color-mix(in srgb, var(--accent-1) 6%, var(--surface));
+    }
   }
 
   .toc-inline-summary::-webkit-details-marker {
@@ -136,9 +144,10 @@
     content: "\2212" / "";
   }
 
-  .toc-inline-summary:hover {
-    background: var(--surface);
-    background: color-mix(in srgb, var(--accent-1) 14%, var(--surface));
+  @supports (color: color-mix(in srgb, red, red)) {
+    .toc-inline-summary:hover {
+      background: color-mix(in srgb, var(--accent-1) 14%, var(--surface));
+    }
   }
 
   .toc-inline-body {

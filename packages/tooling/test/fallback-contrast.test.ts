@@ -2,12 +2,15 @@ import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { contrastRatio } from "../src/palette/contrast.ts";
 
-/* A browser below the floor's color-mix support paints the plain
-   fallback declared before each color-mix, so the fallback ground must
-   hold AA for the text on it in both themes, the same bar the mixed
-   ground meets. Each row names the rule and the text token it renders
-   (read from the rule or the component it belongs to); the fallback is
-   read from the stylesheet, so changing it re-runs the check. */
+/* A browser below the floor's color-mix support skips the @supports
+   block that holds each tint and paints the rule's plain ground, so
+   that ground must hold AA for the text on it in both themes, the same
+   bar the mixed ground meets. Hover tints sit in the same blocks, so
+   on hover such a browser keeps the resting ground. Each row names the
+   rule and the text token it renders (read from the rule or the
+   component it belongs to); the ground is read from the stylesheet, so
+   changing it re-runs the check. site/floor paints these boxes in the
+   floor engines themselves. */
 const ROOT = new URL("../../../", import.meta.url);
 const read = (path: string) => readFileSync(new URL(path, ROOT), "utf-8");
 
@@ -15,11 +18,6 @@ const ROWS: { file: string; selector: string; text: string }[] = [
   {
     file: "packages/css/src/patterns.css",
     selector: ".press-box-accent {",
-    text: "--accent-2-ink",
-  },
-  {
-    file: "packages/css/src/patterns.css",
-    selector: ".press-box-accent:hover {",
     text: "--accent-2-ink",
   },
   {
@@ -33,11 +31,6 @@ const ROWS: { file: string; selector: string; text: string }[] = [
     text: "--accent-1-ink",
   },
   {
-    file: "packages/css/src/toc.css",
-    selector: ".toc-inline-summary:hover {",
-    text: "--accent-1-ink",
-  },
-  {
     file: "packages/astro/src/components/SiteHeader.astro",
     selector: ".site-description {",
     text: "--accent-1-ink",
@@ -45,11 +38,6 @@ const ROWS: { file: string; selector: string; text: string }[] = [
   {
     file: "site/src/styles/site.css",
     selector: ".site-knob > summary {",
-    text: "--accent-1-ink",
-  },
-  {
-    file: "site/src/styles/site.css",
-    selector: ".site-knob > summary:hover {",
     text: "--accent-1-ink",
   },
   {
@@ -90,7 +78,13 @@ const resolve = (theme: Map<string, string>, token: string): string => {
   return value;
 };
 
-/* The token in the declaration directly before the rule's color-mix. */
+/* The plain ground in the rule's own block (its first occurrence,
+   before the @supports block that tints it). Throws unless the file
+   also tints the same selector behind a color-mix @supports, so a row
+   whose tint moved or went away fails here rather than passing on a
+   stale ground. */
+const SUPPORTS = "@supports (color: color-mix(in srgb, red, red)) {";
+
 const fallbackToken = (file: string, selector: string): string => {
   const css = read(file);
   const start = css.indexOf(selector);
@@ -98,13 +92,16 @@ const fallbackToken = (file: string, selector: string): string => {
   if (start < 0) throw new Error(`${selector} not found in ${file}`);
 
   const block = css.slice(start, css.indexOf("}", start));
+  const m = /background(?:-color)?:\s*var\((--[a-z0-9-]+)\);/.exec(block);
 
-  const m =
-    /background(?:-color)?:\s*var\((--[a-z0-9-]+)\);\s*background(?:-color)?:\s*color-mix\(/.exec(
-      block,
-    );
+  if (!m) throw new Error(`no plain ground in ${selector}`);
 
-  if (!m) throw new Error(`no fallback before color-mix in ${selector}`);
+  const guarded = css.indexOf(SUPPORTS, start + 1);
+  const tinted = css.indexOf(selector, start + 1);
+
+  if (guarded < 0 || tinted < guarded) {
+    throw new Error(`${selector} has no color-mix @supports tint after it`);
+  }
 
   return m[1];
 };

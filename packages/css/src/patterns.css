@@ -104,21 +104,29 @@
 
     color: var(--press-accent-ink);
     background-color: var(--surface);
-    background-color: color-mix(
-      in srgb,
-      var(--press-accent) 6%,
-      var(--surface)
-    );
     border-color: var(--press-accent);
   }
 
-  .press-box-accent:hover {
-    background-color: var(--surface);
-    background-color: color-mix(
-      in srgb,
-      var(--press-accent) 14%,
-      var(--surface)
-    );
+  /* The tints hold var(), so a browser without color-mix would drop
+     them to a transparent ground rather than keep a plain value before
+     them: they sit behind @supports, and below it the box keeps the
+     plain surface at rest and on hover. */
+  @supports (color: color-mix(in srgb, red, red)) {
+    .press-box-accent {
+      background-color: color-mix(
+        in srgb,
+        var(--press-accent) 6%,
+        var(--surface)
+      );
+    }
+
+    .press-box-accent:hover {
+      background-color: color-mix(
+        in srgb,
+        var(--press-accent) 14%,
+        var(--surface)
+      );
+    }
   }
 
   .press-box-accent:active {
@@ -147,7 +155,12 @@
      plain one. Held, it inverts like any press box. */
   .press-box-shaded {
     background-color: var(--hairline);
-    background-color: color-mix(in srgb, var(--ink) 20%, var(--surface));
+  }
+
+  @supports (color: color-mix(in srgb, red, red)) {
+    .press-box-shaded {
+      background-color: color-mix(in srgb, var(--ink) 20%, var(--surface));
+    }
   }
 
   /* Button row: a run of buttons side by side with air between them,

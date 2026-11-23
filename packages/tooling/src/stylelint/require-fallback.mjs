@@ -3,9 +3,14 @@
 // a browser that drops the new value keeps the old one. The values are
 // color-mix() and the dynamic viewport units, which the Baseline lint
 // leaves to this rule; an @supports block testing the same feature also
-// counts. A custom property cannot carry a fallback (the var() reading
-// it wins the cascade and computes to nothing), so there only the
-// @supports guard counts. mask and mask-image are the other case: Chrome
+// counts. Two cases cannot carry a fallback, so there only the
+// @supports guard counts: a custom property (the var() reading it wins
+// the cascade and computes to nothing), and any value that itself holds
+// var(). Such a value parses everywhere, so the plain declaration
+// before it never takes over; where the feature is missing the browser
+// drops the value at computed time and the property falls to its
+// initial value. The floor engines (site/floor) paint those
+// backgrounds transparent. mask and mask-image are the other case: Chrome
 // below 120 knows only the -webkit- forms, so the unprefixed declaration
 // must come straight after its -webkit- twin.
 import stylelint from "stylelint";
@@ -24,6 +29,8 @@ export const messages = ruleMessages(ruleName, {
     `${prop} uses ${feature}, newer than the browser floor; put a plain ${prop} declaration directly before it (${README})`,
   custom: (prop, feature) =>
     `${prop} uses ${feature}, newer than the browser floor, and a custom property cannot carry a fallback; wrap it in an @supports block that tests the feature (${README})`,
+  withVar: (prop, feature) =>
+    `${prop} uses ${feature} with var(), newer than the browser floor; a browser without the feature drops the whole value at computed time rather than keeping a plain declaration before it, so wrap it in an @supports block that tests the feature (${README})`,
   prefix: (prop) =>
     `${prop} needs -webkit-${prop} directly before it: Chrome below 120 knows only the prefixed form (${README})`,
 });
@@ -107,6 +114,17 @@ const rule = (primary) => (root, result) => {
         ruleName,
         node: decl,
         message: messages.custom(decl.prop, feature.name),
+      });
+
+      return;
+    }
+
+    if (/\bvar\(/i.test(stripLiterals(decl.value))) {
+      report({
+        result,
+        ruleName,
+        node: decl,
+        message: messages.withVar(decl.prop, feature.name),
       });
 
       return;

@@ -263,7 +263,14 @@ const isCurrent = (href: string) =>
     border: var(--stroke) solid var(--accent-1);
     color: var(--accent-1-ink);
     background-color: var(--surface);
-    background-color: color-mix(in srgb, var(--accent-1) 6%, var(--surface));
+  }
+
+  /* The tint holds var(): behind @supports, or a browser without
+     color-mix drops it to a transparent ground. */
+  @supports (color: color-mix(in srgb, red, red)) {
+    .site-description {
+      background-color: color-mix(in srgb, var(--accent-1) 6%, var(--surface));
+    }
   }
 
   /* Bottom band straddles the bottom rule. */

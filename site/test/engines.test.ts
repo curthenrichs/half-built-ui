@@ -134,6 +134,52 @@ describe.skipIf(!enabled)("engine smoke", () => {
       },
       30_000,
     );
+
+    /* The color-mix tints sit behind @supports; a wrong query would
+       drop every tint in every browser and still pass the floor suite,
+       which only sees the plain grounds. Current engines have
+       color-mix, so here each tinted box must paint something other
+       than the plain surface. */
+    it(`${name} paints the color-mix tints`, async () => {
+      if (!browser) throw new Error(`no ${name} (beforeAll failed)`);
+
+      const context = await browser.newContext({
+        viewport: { width: 1280, height: 900 },
+      });
+
+      try {
+        const page = await context.newPage();
+        await page.goto(`${ORIGIN}/`, { waitUntil: "networkidle" });
+
+        const m = await page.evaluate(() => {
+          const probe = document.createElement("span");
+          probe.style.backgroundColor = "var(--surface)";
+          document.body.append(probe);
+          const surface = getComputedStyle(probe).backgroundColor;
+          probe.remove();
+
+          return {
+            surface,
+            grounds: [
+              ".press-box-accent",
+              ".press-box-shaded",
+              ".site-description",
+              ".site-knob > summary",
+            ].map((s) => {
+              const el = document.querySelector(s);
+              return [s, el ? getComputedStyle(el).backgroundColor : "missing"];
+            }),
+          };
+        });
+
+        for (const [selector, ground] of m.grounds) {
+          expect(ground, selector).not.toBe("missing");
+          expect(ground, selector).not.toBe(m.surface);
+        }
+      } finally {
+        await context.close();
+      }
+    }, 30_000);
   });
 
   /* The image loading state (mountImageLoading, and the lightbox's
