@@ -1829,6 +1829,48 @@ describe.skipIf(!enabled)("browser suite", () => {
     }
   }, 120_000);
 
+  /* Every straddled label (.boxed-label-straddle) sits centered on
+     its box's top rule, in both themes: the label's middle lands on the
+     middle of the rule, within half a pixel. */
+  it("straddled labels sit centered on their box's top rule", async () => {
+    for (const theme of ["light", "dark"] as const) {
+      const p = await open();
+
+      await p.evaluate((t) => {
+        if (t === "dark") document.documentElement.dataset.theme = "dark";
+        else delete document.documentElement.dataset.theme;
+      }, theme);
+
+      const offsets = await p.$$eval(".boxed-label-straddle", (labels) =>
+        labels
+          .filter((l) => l.getClientRects().length > 0)
+          .map((l) => {
+            const box = l.parentElement;
+            if (!box) return [l.className, Number.NaN] as const;
+            const b = box.getBoundingClientRect();
+            const r = l.getBoundingClientRect();
+            const rule = parseFloat(getComputedStyle(box).borderTopWidth);
+
+            return [
+              l.className,
+              r.top + r.height / 2 - (b.top + rule / 2),
+            ] as const;
+          }),
+      );
+
+      /* EditorNote, Callout, AuthorBox, and the Toc panel all render
+         on the index. */
+      expect(offsets.length, theme).toBeGreaterThanOrEqual(4);
+
+      for (const [label, off] of offsets) {
+        expect(Math.abs(off), `${theme} ${label}`).toBeLessThanOrEqual(0.5);
+      }
+
+      await p.close();
+      page = undefined;
+    }
+  });
+
   /* The accent tints deepen on hover, which the page-wide axe runs
      never see (they check the resting page). Each tinted box is
      hovered in both themes and axe's contrast rule run on it alone;

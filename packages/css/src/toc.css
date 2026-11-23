@@ -17,21 +17,6 @@
     border: var(--stroke) solid var(--rule);
   }
 
-  .toc-label {
-    position: absolute;
-    top: 0;
-    left: 10px;
-
-    /* Center the label on the top rule, not the padding edge. */
-    transform: translateY(calc(-50% - 1px));
-    padding: 3px 8px;
-    font-size: var(--font-size-xs);
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    line-height: 1;
-  }
-
   .toc-links,
   .toc-links ul {
     list-style: none;

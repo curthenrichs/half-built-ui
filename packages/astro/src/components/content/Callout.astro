@@ -22,7 +22,9 @@ const label = title ?? type;
   ]}
   role="note"
 >
-  <strong class="callout-label boxed-label">{label}</strong>
+  <strong class="callout-label boxed-label boxed-label-straddle"
+    >{label}</strong
+  >
   <div class="callout-body"><slot /></div>
 </div>
 
@@ -38,19 +40,8 @@ const label = title ?? type;
   }
   .callout::before { pointer-events: none; }
 
+  /* Placement from .boxed-label-straddle; the type's colors are here. */
   .callout-label {
-    position: absolute;
-    top: 0;
-    left: 20px;
-
-    /* Center the label on the 2px top rule, not on the padding-box edge. */
-    transform: translateY(calc(-50% - 2px));
-    padding: 4px 10px;
-    font-size: var(--font-size-xs);
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    line-height: 1;
     color: var(--callout-ink);
     border-color: var(--callout-line);
   }

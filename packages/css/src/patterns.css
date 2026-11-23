@@ -39,13 +39,40 @@
   }
 
   /* Boxed label: bordered box on the page background, typically straddling
-     a frame rule (date box, Latest Posts title). Padding and straddle
-     offsets are contextual and stay in the component. */
+     a frame rule (date box, Latest Posts title). A label centered on its
+     box's top rule takes .boxed-label-straddle below; other straddles
+     keep their offsets in the component. */
   .boxed-label {
     margin: 0;
     color: var(--ink);
     border: var(--stroke) solid var(--rule);
     background-color: var(--surface);
+  }
+
+  /* Straddled boxed label: a .boxed-label centered on its box's top
+     rule, inset from the left, the way EditorNote, Callout, AuthorBox,
+     and the Toc panel name their boxes. The box needs position:
+     relative; the label's ink and border color stay with the component.
+     top: 0 is the box's padding edge, just inside the rule, so lifting
+     the label by half its height and half the rule centers it on the
+     rule. The compact size is the Toc panel's, for a narrow rail box. */
+  .boxed-label-straddle {
+    position: absolute;
+    top: 0;
+    left: 20px;
+    transform: translateY(calc(-50% - var(--stroke) / 2));
+    padding: 4px 10px;
+    font-size: var(--font-size-xs);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    line-height: 1;
+  }
+
+  .boxed-label-straddle-compact {
+    left: 10px;
+    padding: 3px 8px;
+    letter-spacing: 0.08em;
   }
 
   /* Icon box: 30x30 bordered interactive square (social icons, magnifier). */

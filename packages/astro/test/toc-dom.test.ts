@@ -19,7 +19,7 @@ const LIST = `<ul class="toc-links">
 
 const PANEL = `
   <nav class="toc-panel" data-toc aria-label="Sections">
-    <p class="toc-label boxed-label" aria-hidden="true">Sections</p>
+    <p class="toc-label boxed-label boxed-label-straddle boxed-label-straddle-compact" aria-hidden="true">Sections</p>
     ${LIST}
   </nav>`;
 

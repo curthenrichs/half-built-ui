@@ -117,8 +117,14 @@ in scoped styles.
   shows an `.img-loading` child, which is how the lightbox viewbox reuses
   the label.
 - `.boxed-label`: a bordered 2px label box on the page background,
-  meant to straddle a frame rule; the straddle offset is contextual and
-  stays in the component.
+  meant to straddle a frame rule.
+- `.boxed-label-straddle`: places a `.boxed-label` centered on its
+  box's top rule, inset 20px from the left, in the xs bold uppercase
+  label type (EditorNote, Callout, AuthorBox). The box needs
+  `position: relative`. Add `.boxed-label-straddle-compact` for a
+  narrow box: a 10px inset and tighter padding (the Toc panel). Other
+  straddles (the header's date box, plate labels) keep their own
+  offsets.
 - `.icon-box`: a 30x30 bordered 2px interactive square (icon buttons, a
   search magnifier).
 - `.field-join` (with `.field-join-input` and `.field-join-button`): a

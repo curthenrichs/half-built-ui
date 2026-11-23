@@ -15,7 +15,9 @@ const label = title ? `Editor's Note: ${title}` : "Editor's Note";
 ---
 
 {shown && <div class:list={["editor-note", "rule-box", className]} role="note">
-  <strong class="editor-note-label boxed-label">{label}</strong>
+  <strong class="editor-note-label boxed-label boxed-label-straddle"
+    >{label}</strong
+  >
   <div class="editor-note-body"><slot /></div>
 </div>}
 
@@ -28,19 +30,8 @@ const label = title ? `Editor's Note: ${title}` : "Editor's Note";
     margin: 30px 0;
   }
 
+  /* Placement from .boxed-label-straddle; the amber is here. */
   .editor-note-label {
-    position: absolute;
-    top: 0;
-    left: 20px;
-
-    /* Center the label on the 2px top rule, not on the padding-box edge. */
-    transform: translateY(calc(-50% - 2px));
-    padding: 4px 10px;
-    font-size: var(--font-size-xs);
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    line-height: 1;
     color: var(--accent-1-ink);
     border-color: var(--accent-1);
   }

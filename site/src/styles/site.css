@@ -133,6 +133,14 @@
     min-width: 11em;
   }
 
+  /* The straddle specimen: room above for the label and an empty box
+     under it. */
+  .demo-straddle-specimen {
+    position: relative;
+    min-height: 40px;
+    margin-top: 14px;
+  }
+
   /* The rail's knob (the palette details). All colors are
      theme tokens (var(--surface) and kin), so they follow day/night
      like the rest of the chrome. Each knob wears the accent-box

@@ -33,7 +33,12 @@ const {
 {items.length > 0 &&
   (form === "panel" ? (
     <nav class="toc-panel" data-toc aria-label={navLabel}>
-      <p class="toc-label boxed-label" aria-hidden="true">{label}</p>
+      <p
+        class="toc-label boxed-label boxed-label-straddle boxed-label-straddle-compact"
+        aria-hidden="true"
+      >
+        {label}
+      </p>
       <ul class="toc-links">
         {items.map((item) => <li>
           <a href={`#${item.id}`}>{item.text}</a>
