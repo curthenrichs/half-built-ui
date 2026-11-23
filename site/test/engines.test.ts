@@ -1,7 +1,9 @@
 /* Engine smoke: every demo page in Chromium, Firefox, and WebKit
    through Playwright, at a phone width. Playwright ships current
    engines, so this catches engine differences, not age: the stylelint
-   preset's browser-floor lint is what holds the floor. Gated behind
+   preset's browser-floor lint is what holds the floor. A second block
+   holds the page's image requests open to check the image loading
+   state each engine paints, page and lightbox. Gated behind
    BROWSER_TESTS=1 like browser.test.ts, and run through the site
    workspace's test:browser script for the same reason (startPreview
    spawns astro preview in the working directory). Needs
@@ -10,7 +12,13 @@ import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import type { ChildProcess } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { chromium, firefox, webkit } from "playwright";
-import type { Browser, BrowserType } from "playwright";
+import type {
+  Browser,
+  BrowserContext,
+  BrowserType,
+  Page,
+  Route,
+} from "playwright";
 import {
   startPreview,
   stopPreview,
@@ -126,5 +134,212 @@ describe.skipIf(!enabled)("engine smoke", () => {
       },
       30_000,
     );
+  });
+
+  /* The image loading state (mountImageLoading, and the lightbox's
+     reuse of it) across engines. Holding the page's image requests
+     open keeps every frame loading for as long as a check needs; the
+     unit suite owns the grace-period timing, this owns what each
+     engine paints. */
+  describe.each(ENGINES)("%s image loading", (name, engine) => {
+    let browser: Browser | undefined;
+
+    beforeAll(async () => {
+      browser = await engine.launch();
+    }, 60_000);
+
+    afterAll(async () => {
+      await browser?.close();
+    });
+
+    /* Built images live under /_astro/; nothing else is held. */
+    async function holdImages(page: Page): Promise<() => Promise<void>> {
+      const held: Route[] = [];
+      let open = false;
+
+      await page.route(
+        "**/_astro/*.{webp,avif,png,jpg,jpeg,gif,svg}",
+        (route) => {
+          if (open) return route.continue();
+          held.push(route);
+        },
+      );
+
+      return async () => {
+        open = true;
+        await Promise.all(held.splice(0).map((r) => r.continue()));
+      };
+    }
+
+    async function openHeld(
+      reducedMotion: "reduce" | "no-preference" = "no-preference",
+    ): Promise<{
+      context: BrowserContext;
+      page: Page;
+      release: () => Promise<void>;
+    }> {
+      if (!browser) throw new Error(`no ${name} (beforeAll failed)`);
+
+      const context = await browser.newContext({
+        viewport: { width: 1280, height: 900 },
+        reducedMotion,
+      });
+
+      const page = await context.newPage();
+
+      await page.route("**/ecosystem.json", (route) =>
+        route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          headers: { "access-control-allow-origin": "*" },
+          body: ECOSYSTEM_FIXTURE,
+        }),
+      );
+
+      const release = await holdImages(page);
+      await page.goto(`${ORIGIN}/`, { waitUntil: "domcontentloaded" });
+      return { context, page, release };
+    }
+
+    /* The first real (not the demo specimen's) frame still loading. */
+    const TARGET = ".img-frame[data-loading]:not(.demo-img-loading)";
+
+    /* Samples the target's three dots every 100ms across one 2s loop
+       and reports, per dot, whether it was ever hidden. */
+    async function dotsEverHidden(page: Page): Promise<boolean[]> {
+      return page.evaluate(async (target) => {
+        const frame = document.querySelector(target);
+
+        const dots = [
+          ...(frame?.querySelectorAll(".img-loading-dots i") ?? []),
+        ];
+
+        const hidden = dots.map(() => false);
+
+        for (let t = 0; t < 21; t++) {
+          dots.forEach((d, i) => {
+            if (getComputedStyle(d).visibility === "hidden") hidden[i] = true;
+          });
+
+          await new Promise((resolve) => setTimeout(resolve, 100));
+        }
+
+        return hidden;
+      }, TARGET);
+    }
+
+    it(`${name}: a held image shows the centered label, steps its dots, and clears on load`, async () => {
+      const { context, page, release } = await openHeld();
+
+      try {
+        await page.waitForSelector(TARGET, { timeout: 5000 });
+
+        await page.waitForFunction(
+          (target) => {
+            const label = document.querySelector(`${target} > .img-loading`);
+            return label ? getComputedStyle(label).opacity === "1" : false;
+          },
+          TARGET,
+          { timeout: 5000 },
+        );
+
+        const geometry = await page.$eval(TARGET, (frame) => {
+          const label = frame.querySelector(".img-loading");
+          const range = document.createRange();
+          if (label) range.selectNodeContents(label);
+          const f = frame.getBoundingClientRect();
+          const t = range.getBoundingClientRect();
+
+          return {
+            dx: Math.abs(f.left + f.width / 2 - (t.left + t.width / 2)),
+            dy: Math.abs(f.top + f.height / 2 - (t.top + t.height / 2)),
+            text: label?.textContent ?? "",
+            img: getComputedStyle(frame.querySelector("img") ?? frame).opacity,
+          };
+        });
+
+        expect(geometry.text).toBe("$>Loading...");
+        expect(geometry.dx, "label centered across").toBeLessThanOrEqual(2);
+        expect(geometry.dy, "label centered down").toBeLessThanOrEqual(2);
+
+        expect(Number(geometry.img), "image held transparent").toBeLessThan(
+          0.01,
+        );
+
+        expect(await dotsEverHidden(page)).toEqual([true, true, true]);
+
+        /* Tag the frame so it can be found once its mark clears. */
+        await page.$eval(TARGET, (frame) => {
+          frame.setAttribute("data-engine-target", "");
+          frame.scrollIntoView();
+        });
+
+        await release();
+        const target = "[data-engine-target]";
+
+        await page.waitForFunction(
+          (sel) => !document.querySelector(sel)?.hasAttribute("data-loading"),
+          target,
+          { timeout: 10_000 },
+        );
+
+        await page.waitForFunction(
+          (sel) => {
+            const img = document.querySelector(`${sel} > img`);
+            return img ? getComputedStyle(img).opacity === "1" : false;
+          },
+          target,
+          { timeout: 5000 },
+        );
+
+        await page.waitForFunction(
+          (sel) => !document.querySelector(`${sel} > .img-loading`),
+          target,
+          { timeout: 2000 },
+        );
+      } finally {
+        await context.close();
+      }
+    }, 30_000);
+
+    it(`${name}: under reduced motion a held image's dots hold at three`, async () => {
+      const { context, page } = await openHeld("reduce");
+
+      try {
+        await page.waitForSelector(TARGET, { timeout: 5000 });
+        expect(await dotsEverHidden(page)).toEqual([false, false, false]);
+      } finally {
+        await context.close();
+      }
+    }, 30_000);
+
+    it(`${name}: the lightbox viewbox shows the loading state while its image is held`, async () => {
+      const { context, page, release } = await openHeld();
+
+      try {
+        await page.waitForSelector("a.lightbox-link[data-island-lightbox]", {
+          timeout: 5000,
+        });
+
+        await page.locator("a.lightbox-link").first().click();
+
+        await page.waitForSelector(".lb-viewbox[data-loading]", {
+          timeout: 5000,
+        });
+
+        await release();
+
+        await page.waitForFunction(
+          () =>
+            !document
+              .querySelector(".lb-viewbox")
+              ?.hasAttribute("data-loading"),
+          undefined,
+          { timeout: 10_000 },
+        );
+      } finally {
+        await context.close();
+      }
+    }, 30_000);
   });
 });
