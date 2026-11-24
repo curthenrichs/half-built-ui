@@ -235,5 +235,17 @@ const heroStyle = heroPosition ? `object-position: ${heroPosition}` : undefined;
     align-items: center;
     gap: 5px;
   }
+
+  /* The author is a real person's name, shown as given: no
+     recapitalizing ("danah boyd" stays lowercase), and a handle with no
+     break point wraps inside the card instead of widening it. min-width
+     lets the item shrink below the name's length; anywhere lowers the
+     text's min-content so the anonymous flex item beside the icon can
+     shrink too. */
+  .entry-meta .post-author {
+    text-transform: none;
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
   .post-content { font-size: var(--font-size-sm); }
 </style>

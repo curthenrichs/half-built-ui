@@ -123,6 +123,19 @@ const posts: PostCardModel[] = [
     badges: [GENAI_BADGE, DEMO_BADGE, GUEST_BADGE],
     categories: [{ name: "Sample", href: "#" }],
   },
+  {
+    href: samplePostHref,
+    title: "Sample post, by a guest with a long handle",
+    excerpt:
+      "A fifth placeholder excerpt. This card's author name is one long lowercase handle.",
+    author:
+      "sam_rivera_makes_small_walking_robots_out_of_old_coat_hangers_and_tape",
+    dateStr: "5, Jan 2026",
+    minutes: 2,
+    hero: placeholderWide,
+    badges: [GUEST_BADGE],
+    categories: [{ name: "Sample", href: "#" }],
+  },
 ];
 
 const excerptSampleBody = `A short aside that opens the sample post and
@@ -488,8 +501,11 @@ const npmPackages = [
                 the AI Art and Demo badges. One marks an AI-generated image and
                 the other marks a post with an interactive demo. The fourth card
                 is a post by a guest author. It carries the Guest badge after
-                the other two. CategoryCard is a smaller tile. It shows an image
-                with the category name on a chip over its bottom edge.
+                the other two. The fifth card is by a guest whose name is one
+                long handle in lowercase. The name wraps inside the card and
+                keeps its own capitalization. CategoryCard is a smaller tile. It
+                shows an image with the category name on a chip over its bottom
+                edge.
               </p>
               <p>
                 A card's text is taken from the post body. In the Derived
