@@ -192,6 +192,31 @@ describe("publication ordering", () => {
 
     expect(+publishedAt(dateOnly)).toBe(+dateOnly.data.date);
   });
+
+  /* A content loader yields entries in no fixed order, so posts that
+     share a publish instant must not inherit it: the same posts in any
+     input order sort the same way, by slug. */
+  it("byNewest orders exact ties by slug, whatever order they arrive in", async () => {
+    const { byNewest } = await import("../src/lib/ordering");
+
+    const tie = (slug: string) => ({
+      data: { slug, date: new Date("2026-08-30") },
+    });
+
+    const newer = {
+      data: { slug: "zz-newer", date: new Date("2026-08-31") },
+    };
+
+    const slugs = (ps: { data: { slug: string } }[]) =>
+      ps.map((p) => p.data.slug);
+
+    const a = [tie("prusa-mini"), newer, tie("bambu-lab-p1s"), tie("hp-zbook")];
+    const b = [tie("hp-zbook"), tie("bambu-lab-p1s"), tie("prusa-mini"), newer];
+    const expected = ["zz-newer", "bambu-lab-p1s", "hp-zbook", "prusa-mini"];
+
+    expect(slugs([...a].sort(byNewest))).toEqual(expected);
+    expect(slugs([...b].sort(byNewest))).toEqual(expected);
+  });
 });
 
 describe("assertPageRoutable", () => {
