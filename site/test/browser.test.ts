@@ -477,6 +477,9 @@ describe.skipIf(!enabled)("browser suite", () => {
             cardOverflow: card.scrollWidth - card.clientWidth,
             authorRight: a.right,
             contentRight: c.right,
+            /* The wrapping name must not squeeze the person glyph. */
+            iconWidth: author.querySelector("svg")?.getBoundingClientRect()
+              .width,
             docOverflow:
               document.documentElement.scrollWidth -
               document.documentElement.clientWidth,
@@ -490,6 +493,7 @@ describe.skipIf(!enabled)("browser suite", () => {
       expect(m?.cardOverflow).toBeLessThanOrEqual(0);
       expect(m?.authorRight).toBeLessThanOrEqual((m?.contentRight ?? 0) + 0.5);
       expect(m?.docOverflow).toBeLessThanOrEqual(0);
+      expect(m?.iconWidth).toBe(11);
     }, 30_000);
   }
 

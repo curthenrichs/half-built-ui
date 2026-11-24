@@ -247,5 +247,8 @@ const heroStyle = heroPosition ? `object-position: ${heroPosition}` : undefined;
     min-width: 0;
     overflow-wrap: anywhere;
   }
+
+  /* The name wraps; the person glyph beside it keeps its size. */
+  .entry-meta .post-author :global(svg) { flex-shrink: 0; }
   .post-content { font-size: var(--font-size-sm); }
 </style>
