@@ -6,7 +6,9 @@
    state each engine paints, page and lightbox. Gated behind
    BROWSER_TESTS=1 like browser.test.ts, and run through the site
    workspace's test:browser script for the same reason (startPreview
-   spawns astro preview in the working directory). Needs
+   spawns astro preview in the working directory). It needs no Chrome
+   of its own (requireChrome: false), so CI runs it in Playwright's
+   image, which has none. Locally it needs
    `npx playwright install chromium firefox webkit` once. */
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import type { ChildProcess } from "node:child_process";
@@ -55,7 +57,7 @@ describe.skipIf(!enabled)("engine smoke", () => {
   let server: ChildProcess | undefined;
 
   beforeAll(async () => {
-    server = await startPreview(PORT, "/");
+    server = await startPreview(PORT, "/", { requireChrome: false });
   }, 90_000);
 
   afterAll(() => {

@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 const spawned = { pid: 4242, exitCode: null as number | null };
+let didSpawn = false;
 
 const spawnSync = vi.fn(
   (...args: unknown[]): { status: number; args: unknown[] } => ({
@@ -12,13 +13,17 @@ const spawnSync = vi.fn(
 const kill = vi.spyOn(process, "kill").mockImplementation(() => true);
 
 vi.mock("node:child_process", () => ({
-  spawn: vi.fn(() => spawned),
+  spawn: vi.fn(() => {
+    didSpawn = true;
+    return spawned;
+  }),
   spawnSync: (...args: unknown[]) => spawnSync(...args),
 }));
 
 describe("startPreview", () => {
   beforeEach(() => {
     process.env.CHROME_PATH = process.execPath; // any existing file satisfies findChrome
+    didSpawn = false;
     spawnSync.mockClear();
     kill.mockClear();
   });
@@ -29,13 +34,10 @@ describe("startPreview", () => {
   });
 
   it("kills the spawned server when the ready path 404s", async () => {
-    let calls = 0;
-
     vi.stubGlobal(
       "fetch",
       vi.fn((): Response => {
-        calls++;
-        if (calls === 1) throw new Error("nothing on the port yet");
+        if (!didSpawn) throw new Error("nothing on the port yet");
         return new Response("", { status: 404 });
       }),
     );

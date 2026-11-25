@@ -195,7 +195,9 @@ const isCurrent = (href: string) =>
 </header>
 
 <style>
-  .site-header { margin-block: 30px 10px; }
+  .site-header {
+    margin-block: 30px 10px;
+  }
 
   /* Top band straddles the top rule via the negative margin. */
   .masthead-top {
@@ -214,11 +216,19 @@ const isCurrent = (href: string) =>
 
   /* Date box and the day/night toggle sit together on the left of the
      top band, spaced like the social icons on the right. */
-  .header-tools { display: flex; align-items: center; gap: 10px; }
+  .header-tools {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
 
   /* Bottom band's right end: the phone toggle (hidden on desktop) beside
      the search icon, spaced like the top band's tools. */
-  .header-end { display: flex; align-items: center; gap: 10px; }
+  .header-end {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
 
   /* No background on the list itself: the header's top rule must stay
      visible in the gaps between the boxed icons. */
@@ -236,7 +246,12 @@ const isCurrent = (href: string) =>
     justify-content: center;
     padding-block: 20px;
   }
-  .site-branding { padding-block: 10px; text-align: center; width: 100%; }
+
+  .site-branding {
+    padding-block: 10px;
+    text-align: center;
+    width: 100%;
+  }
 
   .site-title {
     font-size: var(--font-size-xl);
@@ -244,7 +259,11 @@ const isCurrent = (href: string) =>
     font-weight: 700;
     margin: 0;
   }
-  .site-title a { text-decoration: none; color: var(--ink); }
+
+  .site-title a {
+    text-decoration: none;
+    color: var(--ink);
+  }
 
   /* The tagline wears the accent box (owner call 2026-09-03): the
      callout's combination, the same one the press box and the demo
@@ -305,11 +324,22 @@ const isCurrent = (href: string) =>
     font-weight: bold;
     display: block;
   }
-  .menu-item { position: relative; }
-  .current-menu-item > a { --tint-opacity: 0.2; }
-  .main-navigation .menu a:hover { outline: var(--stroke) solid var(--rule); }
 
-  .menu-toggle { display: none; }
+  .menu-item {
+    position: relative;
+  }
+
+  .current-menu-item > a {
+    --tint-opacity: 0.2;
+  }
+
+  .main-navigation .menu a:hover {
+    outline: var(--stroke) solid var(--rule);
+  }
+
+  .menu-toggle {
+    display: none;
+  }
 
   @media (--bp-sidebar) {
     .menu-toggle {
@@ -334,9 +364,18 @@ const isCurrent = (href: string) =>
       left: 50%;
       transform: translateX(-50%);
     }
-    .menu-toggle span:nth-child(1) { top: 7px; }
-    .menu-toggle span:nth-child(2) { top: 14px; }
-    .menu-toggle span:nth-child(3) { top: 21px; }
+
+    .menu-toggle span:nth-child(1) {
+      top: 7px;
+    }
+
+    .menu-toggle span:nth-child(2) {
+      top: 14px;
+    }
+
+    .menu-toggle span:nth-child(3) {
+      top: 21px;
+    }
 
     /* The open menu is a pop-out under the hamburger, floating over the
        page like the search flyout (same z tier), not a block that grows
@@ -344,7 +383,9 @@ const isCurrent = (href: string) =>
        keeps its height, so the band keeps its desktop straddle of the
        bottom rule: hamburger, toggle, and magnifier hang off the rule
        instead of sitting inside the frame. */
-    .main-navigation { position: relative; }
+    .main-navigation {
+      position: relative;
+    }
 
     .main-navigation .menu {
       display: none;
@@ -359,7 +400,10 @@ const isCurrent = (href: string) =>
       border: var(--stroke) solid var(--rule);
       box-shadow: var(--shadow);
     }
-    .main-navigation .menu.open { display: flex; }
+
+    .main-navigation .menu.open {
+      display: flex;
+    }
   }
 
   /* Phone-width header simplification (owner call 2026-08-20): the
@@ -367,7 +411,9 @@ const isCurrent = (href: string) =>
      clock, and the social tray collided with it. Both retire; the
      socials' job moves to the Contact page, one hamburger tap away. */
   @media (--bp-phone) {
-    .masthead-top { display: none; }
+    .masthead-top {
+      display: none;
+    }
   }
 
   /* Search flyout: icon on a primary-filled box. The island
@@ -377,7 +423,12 @@ const isCurrent = (href: string) =>
      the button's own click, since the click leaves focus on the
      button). Without the island the focus-within rule stands, so the
      flyout still opens with no script. */
-  .navigation-search { width: 30px; position: relative; display: inline-block; text-align: center; }
+  .navigation-search {
+    width: 30px;
+    position: relative;
+    display: inline-block;
+    text-align: center;
+  }
 
   .navigation-search-form {
     position: absolute;
@@ -395,10 +446,13 @@ const isCurrent = (href: string) =>
        waits out the fade on close. Under the house all-transition the
        visibility interpolation read hidden at the instant the open
        class landed, so the island's focus() on the field was refused. */
-    transition: opacity 0.1s ease, visibility 0s linear 0.1s;
+    transition:
+      opacity 0.1s ease,
+      visibility 0s linear 0.1s;
   }
 
-  .navigation-search-wrap:not([data-search-js]):focus-within .navigation-search-form,
+  .navigation-search-wrap:not([data-search-js]):focus-within
+    .navigation-search-form,
   .navigation-search-wrap.search-open .navigation-search-form {
     opacity: 1;
     visibility: visible;

@@ -137,7 +137,10 @@ paragraphs joined by a space, cut at a word boundary within
 the reader's cue that the post continues. The run stops at the first
 heading, list, blockquote, code fence, or image line, so a card never
 crosses into a later section; components and the lead-break are
-invisible to it. `content/ExcerptStart.astro` on its own line moves
+invisible to it. An inline `WhenPublished` teaser is dropped and its
+fallback slot's text (if any) kept, since the card cannot know whether
+the target has shipped: it shows what a reader sees while the target
+is hidden. `content/ExcerptStart.astro` on its own line moves
 the start to the paragraph after it, for a post that opens on a TL;DR
 or an aside. `postExcerpt(entry)` is the policy: a published post
 with no prose fails the build naming the slug, a draft warns once per

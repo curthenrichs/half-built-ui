@@ -24,13 +24,6 @@ export default {
         // and would introduce exactly that. Keep this in step with
         // compressHTML in astro.config.mjs.
         astroCompressHTML: "html",
-        // The plugin's html mode re-indents the continuation lines of a
-        // multi-line comment inside <style> on every pass, so a checked
-        // tree could never settle. Leaving <style> and <script> bodies to
-        // stylelint and eslint (their empty-line and padding rules) keeps
-        // Prettier on the frontmatter and the template, where the
-        // whitespace stakes are.
-        embeddedLanguageFormatting: "off",
       },
     },
   ],

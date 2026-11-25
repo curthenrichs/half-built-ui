@@ -62,14 +62,26 @@ const {
     <script is:inline define:vars={{ paletteKey: PALETTE_STORAGE_KEY }}>
       (function () {
         var raw = null;
-        try { raw = localStorage.getItem(paletteKey); } catch (e) { return; }
+        try {
+          raw = localStorage.getItem(paletteKey);
+        } catch (e) {
+          return;
+        }
         if (!raw) return;
         var ramp = null;
-        try { ramp = JSON.parse(raw).ramp; } catch (e) { return; }
+        try {
+          ramp = JSON.parse(raw).ramp;
+        } catch (e) {
+          return;
+        }
         if (!ramp || typeof ramp !== "object") return;
         var hex = /^#[0-9a-f]{6}$/i;
         for (var key in ramp) {
-          if (key.indexOf("--") === 0 && typeof ramp[key] === "string" && hex.test(ramp[key])) {
+          if (
+            key.indexOf("--") === 0 &&
+            typeof ramp[key] === "string" &&
+            hex.test(ramp[key])
+          ) {
             document.documentElement.style.setProperty(key, ramp[key]);
           }
         }
@@ -152,7 +164,10 @@ const {
       import { mountLoadingDemo } from "../scripts/loading-demo";
       import { THEME_STORAGE_KEY } from "../lib/theme-key";
       import { PALETTE_STORAGE_KEY } from "../lib/palette-key";
-      import { ECOSYSTEM_SELF_KEY, ECOSYSTEM_ENDPOINT } from "../lib/ecosystem-config";
+      import {
+        ECOSYSTEM_SELF_KEY,
+        ECOSYSTEM_ENDPOINT,
+      } from "../lib/ecosystem-config";
       mountFocusMode(document.documentElement);
       /* Internal and external links share one measured tooltip island. */
       mountLinkTips(document, { selector: 'a[href^="http"], a[data-tooltip]' });
@@ -175,7 +190,10 @@ const {
            guarded, so this catch is belt and braces against an
            unexpected rejection surfacing as an unhandled console
            error. Either way the server-rendered baseline stands. */
-        void mountEcosystem(document, { endpoint: ECOSYSTEM_ENDPOINT, selfKey: ECOSYSTEM_SELF_KEY }).catch(() => {});
+        void mountEcosystem(document, {
+          endpoint: ECOSYSTEM_ENDPOINT,
+          selfKey: ECOSYSTEM_SELF_KEY,
+        }).catch(() => {});
       }
     </script>
     <slot name="scripts" />

@@ -73,11 +73,19 @@ const photos: Photo[] = hasMany ? images : [{ src: src as ImageMetadata, alt }];
   }
 
   /* The 2px outline comes from .prose img in prose.css. */
-  .step-media :global(img) { width: 100%; height: auto; }
+  .step-media :global(img) {
+    width: 100%;
+    height: auto;
+  }
 
   /* The body is 1fr of the layout's column; nothing here narrows it. */
-  .step-body { min-width: 0; }
-  .step-body :global(p:last-child) { margin-bottom: 0; }
+  .step-body {
+    min-width: 0;
+  }
+
+  .step-body :global(p:last-child) {
+    margin-bottom: 0;
+  }
 
   /* Number chip (owner pick B2): a 28px filled square riding the media
      cell's top-left corner, half outside the frame so it never covers the
@@ -89,7 +97,9 @@ const photos: Photo[] = hasMany ? images : [{ src: src as ImageMetadata, alt }];
      so Step never reads its parent's class. */
   /* stylelint-disable-next-line no-duplicate-selectors -- split from the
      grid rule above so the contract stays grouped with its own comment. */
-  .step-media { margin: var(--step-media-margin, 0); }
+  .step-media {
+    margin: var(--step-media-margin, 0);
+  }
 
   .step-media::before {
     content: counter(walkthrough-step);
@@ -127,7 +137,10 @@ const photos: Photo[] = hasMany ? images : [{ src: src as ImageMetadata, alt }];
   /* Phones (owner pick P2): stack, photo centered above the prose, photos
      of a multi-photo step stacking too. Same breakpoint as MediaText. */
   @media (max-width: 600px) {
-    .step { grid-template-columns: 1fr; gap: 10px; }
+    .step {
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
 
     .step-media {
       grid-auto-flow: row;

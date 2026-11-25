@@ -90,15 +90,29 @@ const heroStyle = heroPosition ? `object-position: ${heroPosition}` : undefined;
 </article>
 
 <style>
-  .post-item { transition: all 0.5s ease-in-out; }
+  .post-item {
+    transition: all 0.5s ease-in-out;
+  }
 
   /* Same outline as MediaText media and gallery plates (owner request);
      on the container so the hover zoom stays clipped inside it. */
-  .post-item-image { position: relative; overflow: hidden; border: var(--stroke) solid var(--rule); }
-  .post-item-image a { display: block; height: 100%; width: 100%; line-height: 0; }
+  .post-item-image {
+    position: relative;
+    overflow: hidden;
+    border: var(--stroke) solid var(--rule);
+  }
+
+  .post-item-image a {
+    display: block;
+    height: 100%;
+    width: 100%;
+    line-height: 0;
+  }
 
   /* The image box clips overflow, so the site-wide ring sits inside. */
-  .post-item-image a:focus-visible { outline-offset: -3px; }
+  .post-item-image a:focus-visible {
+    outline-offset: -3px;
+  }
 
   .post-item-image a :global(img) {
     width: 100%;
@@ -112,7 +126,10 @@ const heroStyle = heroPosition ? `object-position: ${heroPosition}` : undefined;
       transform 0.5s ease-in-out,
       opacity 0.35s ease;
   }
-  .post-item:hover .post-item-image :global(img) { transform: scale(1.07); }
+
+  .post-item:hover .post-item-image :global(img) {
+    transform: scale(1.07);
+  }
 
   /* Stamp from the .draft-stamp pattern; the card's size and stacking
      (above the hover-zoomed image) are here. */
@@ -154,7 +171,11 @@ const heroStyle = heroPosition ? `object-position: ${heroPosition}` : undefined;
   .read-time-comment {
     display: flex;
   }
-  .post-item-content { padding: 15px 0 0; padding-top: 10px; }
+
+  .post-item-content {
+    padding: 15px 0 0;
+    padding-top: 10px;
+  }
 
   .entry-cat .post-categories {
     display: block;
@@ -195,7 +216,10 @@ const heroStyle = heroPosition ? `object-position: ${heroPosition}` : undefined;
     outline: 2px solid currentColor;
     outline-offset: -2px; /* Draws outline inside link to avoid clipping by container overflow */
   }
-  .entry-cat .post-categories a:focus-visible { outline-offset: -2px; }
+
+  .entry-cat .post-categories a:focus-visible {
+    outline-offset: -2px;
+  }
 
   /* Owner-approved divergence from live (2026-07-26): the live theme
      word-breaks titles mid-word (word-break: break-all); ours wraps at
@@ -213,7 +237,10 @@ const heroStyle = heroPosition ? `object-position: ${heroPosition}` : undefined;
     text-decoration-line: underline;
     transition: var(--transition);
   }
-  .entry-title a:hover { outline: 2px solid currentColor; }
+
+  .entry-title a:hover {
+    outline: 2px solid currentColor;
+  }
 
   .entry-meta {
     margin: 0 0 10px;
@@ -235,5 +262,25 @@ const heroStyle = heroPosition ? `object-position: ${heroPosition}` : undefined;
     align-items: center;
     gap: 5px;
   }
-  .post-content { font-size: var(--font-size-sm); }
+
+  /* The author is a real person's name, shown as given: no
+     recapitalizing ("danah boyd" stays lowercase), and a handle with no
+     break point wraps inside the card instead of widening it. min-width
+     lets the item shrink below the name's length; anywhere lowers the
+     text's min-content so the anonymous flex item beside the icon can
+     shrink too. */
+  .entry-meta .post-author {
+    text-transform: none;
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  /* The name wraps; the person glyph beside it keeps its size. */
+  .entry-meta .post-author :global(svg) {
+    flex-shrink: 0;
+  }
+
+  .post-content {
+    font-size: var(--font-size-sm);
+  }
 </style>

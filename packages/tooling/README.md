@@ -26,7 +26,10 @@ Lint presets, the test kit, and the palette math for half-built sites.
   match Astro's own `compressHTML` default (`true`); a consumer that
   turns `compressHTML` off in `astro.config.mjs` must override
   `astroCompressHTML` to match, or the plugin reformats around
-  whitespace the build no longer collapses.
+  whitespace the build no longer collapses. In 0.21.0 the preset also
+  formats `<style>` and `<script>` bodies in `.astro` files, which it
+  skipped before. That is a breaking `prettier --check` change,
+  autofixable with `prettier --write`.
 - `@half-built/tooling/htmlvalidate`: html-validate cannot `extends` a
   package's JSON preset yet, so consumers keep a local copy of this
   file. Needs the optional `html-validate` peer.
@@ -43,11 +46,17 @@ From `test-kit/browser-server.ts`:
   Chromium install; throws naming every path it checked. `CHROME_PATH`
   overrides the search when set. The built-in candidates cover Windows,
   the ubuntu-latest CI runner, and macOS (Chrome and Chromium).
-- `startPreview(port, readyPath)`: spawns `astro preview` on `port` and
-  resolves once `readyPath` answers 200. Refuses to run against a port
-  something else already answers. If the wait fails (a 404, a crashed
-  server, or a timeout) it stops the server it just spawned before
-  rethrowing, so a failed run never leaks a process holding the port.
+- `startPreview(port, readyPath, { requireChrome? })`: spawns `astro
+  preview` on `port` and resolves once `readyPath` answers 200. It
+  probes `localhost`, `127.0.0.1`, and `[::1]`, so it finds the server
+  wherever `localhost` bound (in a container that can be `::1` alone).
+  Refuses to run against a port something else already answers on any
+  of the three. It locates Chrome first, so a machine without one fails
+  before serving; a suite that drives its own browsers (Playwright in
+  its own Docker image, which has no Chrome) passes
+  `requireChrome: false`. If the wait fails (a 404, a crashed server,
+  or a timeout) it stops the server it just spawned before rethrowing,
+  so a failed run never leaks a process holding the port.
 - `stopPreview(server)`: kills the server and, on POSIX, its whole
   detached process group; safe to call on a server that never started.
 - `launchChrome()`: launches headless Chrome with a stated desktop

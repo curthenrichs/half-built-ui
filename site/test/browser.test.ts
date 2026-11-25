@@ -446,6 +446,69 @@ describe.skipIf(!enabled)("browser suite", () => {
     expect(await frameMismatches(await openPhone())).toEqual([]);
   }, 30_000);
 
+  /* A card names whoever wrote the post, so the author line must take a
+     real person's name as it is: a handle with no break point wraps
+     inside the card instead of widening it, and nothing recapitalizes
+     it ("danah boyd" stays lowercase). */
+  const HANDLE =
+    "sam_rivera_makes_small_walking_robots_out_of_old_coat_hangers_and_tape";
+
+  for (const width of ["desktop", "phone"] as const) {
+    it(`a long unbroken author name wraps inside its card (${width})`, async () => {
+      const p = width === "phone" ? await openPhone() : await open();
+
+      const m = await p.$$eval(
+        "#cards .demo-card-grid .post-item",
+        (cards, handle) => {
+          const card = cards.find((c) =>
+            c.querySelector(".post-author")?.textContent.includes(handle),
+          );
+
+          if (!card) return null;
+          const content = card.querySelector(".post-item-content");
+          const meta = card.querySelector(".entry-meta");
+          const author = card.querySelector(".post-author");
+          if (!content || !meta || !author) return null;
+          const c = content.getBoundingClientRect();
+          const a = author.getBoundingClientRect();
+
+          return {
+            metaOverflow: meta.scrollWidth - meta.clientWidth,
+            cardOverflow: card.scrollWidth - card.clientWidth,
+            authorRight: a.right,
+            contentRight: c.right,
+            /* The wrapping name must not squeeze the person glyph. */
+            iconWidth: author.querySelector("svg")?.getBoundingClientRect()
+              .width,
+            docOverflow:
+              document.documentElement.scrollWidth -
+              document.documentElement.clientWidth,
+          };
+        },
+        HANDLE,
+      );
+
+      expect(m).not.toBeNull();
+      expect(m?.metaOverflow).toBeLessThanOrEqual(0);
+      expect(m?.cardOverflow).toBeLessThanOrEqual(0);
+      expect(m?.authorRight).toBeLessThanOrEqual((m?.contentRight ?? 0) + 0.5);
+      expect(m?.docOverflow).toBeLessThanOrEqual(0);
+      expect(m?.iconWidth).toBe(11);
+    }, 30_000);
+  }
+
+  it("a card's author name keeps its own capitalization", async () => {
+    const p = await open();
+
+    const transforms = await p.$$eval(
+      "#cards .demo-card-grid .post-author",
+      (els) => els.map((e) => getComputedStyle(e).textTransform),
+    );
+
+    expect(transforms.length).toBeGreaterThan(0);
+    expect(new Set(transforms)).toEqual(new Set(["none"]));
+  }, 30_000);
+
   it("a post card's hover zoom still scales the image, not its wrapper, inside the clip", async () => {
     const p = await open();
     await p.hover(".post-item");

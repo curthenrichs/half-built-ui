@@ -38,15 +38,24 @@ const label = title ?? type;
     border-color: var(--callout-line);
     margin: 30px 0;
   }
-  .callout::before { pointer-events: none; }
+
+  .callout::before {
+    pointer-events: none;
+  }
 
   /* Placement from .boxed-label-straddle; the type's colors are here. */
   .callout-label {
     color: var(--callout-ink);
     border-color: var(--callout-line);
   }
-  .callout-body { position: relative; }
-  .callout-body > :global(:last-child) { margin-bottom: 0; }
+
+  .callout-body {
+    position: relative;
+  }
+
+  .callout-body > :global(:last-child) {
+    margin-bottom: 0;
+  }
 
   .callout-note,
   .callout-info,
