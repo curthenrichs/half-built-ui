@@ -26,7 +26,10 @@ Lint presets, the test kit, and the palette math for half-built sites.
   match Astro's own `compressHTML` default (`true`); a consumer that
   turns `compressHTML` off in `astro.config.mjs` must override
   `astroCompressHTML` to match, or the plugin reformats around
-  whitespace the build no longer collapses.
+  whitespace the build no longer collapses. In 0.21.0 the preset also
+  formats `<style>` and `<script>` bodies in `.astro` files, which it
+  skipped before. That is a breaking `prettier --check` change,
+  autofixable with `prettier --write`.
 - `@half-built/tooling/htmlvalidate`: html-validate cannot `extends` a
   package's JSON preset yet, so consumers keep a local copy of this
   file. Needs the optional `html-validate` peer.

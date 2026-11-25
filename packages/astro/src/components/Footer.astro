@@ -112,9 +112,13 @@ const year = new Date().getFullYear();
            open, which is the graceful state.
            The value rides define:vars from core/breakpoints.ts. */
         if (window.matchMedia(`(max-width: ${bpPhoneMax}px)`).matches) {
-          document.querySelectorAll(".footer-sitemap-collapsible:not([data-phone-open])").forEach((d) => {
-            d.removeAttribute("open");
-          });
+          document
+            .querySelectorAll(
+              ".footer-sitemap-collapsible:not([data-phone-open])",
+            )
+            .forEach((d) => {
+              d.removeAttribute("open");
+            });
         }
       </script>
     </div>
@@ -122,14 +126,19 @@ const year = new Date().getFullYear();
 </footer>
 
 <style>
-  .site-footer { margin-top: 50px; }
+  .site-footer {
+    margin-top: 50px;
+  }
 
   /* Tint comes from the .tint-overlay pattern (default 0.1 opacity).
      The bottom padding adds --dock-bottom (tokens/primitives.css): a
      site with a viewport-fixed bottom cluster sets it to the room
      that cluster occupies, and the tinted band runs on below the last
      link by that much, so the page scrolls far enough to clear it. */
-  .bottom-footer { padding: 15px 0 calc(20px + var(--dock-bottom, 0px)); z-index: var(--z-raised); }
+  .bottom-footer {
+    padding: 15px 0 calc(20px + var(--dock-bottom, 0px));
+    z-index: var(--z-raised);
+  }
 
   .bottom-footer-info {
     display: flex;
@@ -141,8 +150,13 @@ const year = new Date().getFullYear();
   }
 
   /* Centered like the sitemap below (owner report 2026-08-25). */
-  .site-info { text-align: center; }
-  .site-info-seg { white-space: nowrap; }
+  .site-info {
+    text-align: center;
+  }
+
+  .site-info-seg {
+    white-space: nowrap;
+  }
 
   /* Sitemap columns under the copyright line, centered like it (owner
      feedback 2026-08-01). position: relative lifts the content above the
@@ -171,7 +185,10 @@ const year = new Date().getFullYear();
     margin: 0;
     padding: 0;
   }
-  .footer-sitemap-group li { margin: 4px 0; }
+
+  .footer-sitemap-group li {
+    margin: 4px 0;
+  }
 
   .footer-sitemap a {
     text-decoration: none;
@@ -180,20 +197,38 @@ const year = new Date().getFullYear();
   }
 
   .footer-sitemap a:hover,
-  .footer-sitemap a:focus { opacity: 1; text-decoration: underline; }
+  .footer-sitemap a:focus {
+    opacity: 1;
+    text-decoration: underline;
+  }
 
   /* The monochrome theme makes a color marker invisible (text already IS
      the primary color), so "you are here" is weight, not hue. */
-  .footer-sitemap-self { font-weight: 700; }
-  .footer-sitemap-pending { opacity: 0.55; }
+  .footer-sitemap-self {
+    font-weight: 700;
+  }
+
+  .footer-sitemap-pending {
+    opacity: 0.55;
+  }
 
   /* Collapsible groups: on desktop the summary is nothing but the
      heading it replaced (no marker, no pointer). Mouse toggling is off
      on desktop (owner call); keyboard toggling of a focused
      summary remains, reopening is one keypress. */
-  .footer-sitemap-collapsible summary { list-style: none; cursor: default; pointer-events: none; }
-  .footer-sitemap-collapsible summary::-webkit-details-marker { display: none; }
-  .footer-sitemap-collapsible summary h2 { display: inline-block; }
+  .footer-sitemap-collapsible summary {
+    list-style: none;
+    cursor: default;
+    pointer-events: none;
+  }
+
+  .footer-sitemap-collapsible summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .footer-sitemap-collapsible summary h2 {
+    display: inline-block;
+  }
 
   /* Phones: one centered column, every group behind a boxed +/- marker
      in the square grammar (owner call 2026-08-25); Feeds and Ecosystem
@@ -207,7 +242,11 @@ const year = new Date().getFullYear();
       align-items: center;
       gap: 14px;
     }
-    .footer-sitemap-group { text-align: center; width: 100%; }
+
+    .footer-sitemap-group {
+      text-align: center;
+      width: 100%;
+    }
 
     /* 24px tap targets (WCAG 2.2 target size, 2.5.8). The phone lists
        sat at a 23.3px pitch with 16px link boxes. A 24px line on every
@@ -215,8 +254,14 @@ const year = new Date().getFullYear();
        plain text (the current site, pending entries), and the
        inline-block link takes the whole line box as its target
        (WCAG 2.2, 2.5.8 target size). */
-    .footer-sitemap-group li { margin: 0; line-height: 24px; }
-    .footer-sitemap a { display: inline-block; }
+    .footer-sitemap-group li {
+      margin: 0;
+      line-height: 24px;
+    }
+
+    .footer-sitemap a {
+      display: inline-block;
+    }
 
     .footer-sitemap-collapsible summary {
       display: block;
@@ -239,8 +284,14 @@ const year = new Date().getFullYear();
       font-weight: 700;
       text-align: center;
     }
-    .footer-sitemap-collapsible[open] summary::before { content: "\2212"; }
-    .footer-sitemap-collapsible:not([open]) summary h2 { margin-bottom: 0; }
+
+    .footer-sitemap-collapsible[open] summary::before {
+      content: "\2212";
+    }
+
+    .footer-sitemap-collapsible:not([open]) summary h2 {
+      margin-bottom: 0;
+    }
 
     /* Keyboard focus is the site-wide ring (base/reset.css). */
   }

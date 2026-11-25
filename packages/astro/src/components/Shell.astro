@@ -31,8 +31,15 @@ const {
     <script is:inline define:vars={{ themeKey: themeStorageKey }}>
       (function () {
         var t = null;
-        try { t = localStorage.getItem(themeKey); } catch (e) { /* no storage */ }
-        if (t === "dark" || (t === null && matchMedia("(prefers-color-scheme: dark)").matches)) {
+        try {
+          t = localStorage.getItem(themeKey);
+        } catch (e) {
+          /* no storage */
+        }
+        if (
+          t === "dark" ||
+          (t === null && matchMedia("(prefers-color-scheme: dark)").matches)
+        ) {
           document.documentElement.dataset.theme = "dark";
         }
       })();

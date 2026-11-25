@@ -99,9 +99,20 @@ const Heading: "h2" | "h3" | "h4" = `h${headingLevel}`;
     outline: var(--stroke) solid var(--panel-rule);
     outline-offset: -10px;
   }
-  .subscribe-post { padding: 30px; margin-top: 30px; }
-  .subscribe-sidebar { padding: 24px 22px; margin-bottom: 40px; }
-  .subscribe-page { padding: 30px; }
+
+  .subscribe-post {
+    padding: 30px;
+    margin-top: 30px;
+  }
+
+  .subscribe-sidebar {
+    padding: 24px 22px;
+    margin-bottom: 40px;
+  }
+
+  .subscribe-page {
+    padding: 30px;
+  }
 
   .subscribe-title {
     margin: 0 0 8px;
@@ -110,9 +121,18 @@ const Heading: "h2" | "h3" | "h4" = `h${headingLevel}`;
   }
 
   .subscribe-post .subscribe-title,
-  .subscribe-page .subscribe-title { font-size: var(--font-size-md); }
-  .subscribe-sidebar .subscribe-title { font-size: var(--font-size-base); }
-  .subscribe-blurb { margin: 0 0 16px; font-size: var(--font-size-sm); }
+  .subscribe-page .subscribe-title {
+    font-size: var(--font-size-md);
+  }
+
+  .subscribe-sidebar .subscribe-title {
+    font-size: var(--font-size-base);
+  }
+
+  .subscribe-blurb {
+    margin: 0 0 16px;
+    font-size: var(--font-size-sm);
+  }
 
   /* Form anatomy, focus rings, and press feedback all come from the
      .field-join pattern (patterns.css, house rule 2026-07-30, settled
@@ -134,15 +154,34 @@ const Heading: "h2" | "h3" | "h4" = `h${headingLevel}`;
   }
 
   .subscribe-post .subscribe-form,
-  .subscribe-page .subscribe-form { max-width: 520px; }
+  .subscribe-page .subscribe-form {
+    max-width: 520px;
+  }
 
   /* Fine print sits between form and status so an error line never
      shoves it around; the link inherits the block's ink. Owner wanted it
      smaller than the status line (2026-08-16); xs is the scale's floor,
      so this steps below it off the token rather than hardcoding a size. */
-  .subscribe-fine { margin: 10px 0 0; font-size: calc(var(--font-size-xs) * 0.88); }
-  .subscribe-fine a { color: inherit; }
-  .subscribe-status { margin: 10px 0 0; font-size: var(--font-size-xs); font-weight: 700; }
-  .subscribe-status:empty { display: none; }
-  .subscribe-status-err { color: var(--panel-error); }
+  .subscribe-fine {
+    margin: 10px 0 0;
+    font-size: calc(var(--font-size-xs) * 0.88);
+  }
+
+  .subscribe-fine a {
+    color: inherit;
+  }
+
+  .subscribe-status {
+    margin: 10px 0 0;
+    font-size: var(--font-size-xs);
+    font-weight: 700;
+  }
+
+  .subscribe-status:empty {
+    display: none;
+  }
+
+  .subscribe-status-err {
+    color: var(--panel-error);
+  }
 </style>

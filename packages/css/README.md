@@ -377,9 +377,7 @@ order that converges (Prettier, eslint, stylelint, Prettier again);
 - `npm run format:check`: Prettier at its defaults plus the Astro
   plugin (`@half-built/tooling`'s `prettier.config.mjs`), with
   `astroCompressHTML: "html"` (Astro 5's own default, kept explicit so
-  a newline inside an element never renders as a space) and
-  `embeddedLanguageFormatting: "off"` for `.astro` files, so a
-  multi-line comment inside `<style>` is not re-indented on every pass.
+  a newline inside an element never renders as a space).
 - `npm run lint:css`: stylelint over `packages/*/src/**/*.{css,astro}`
   (`postcss-html` syntax for `.astro`). `color-no-hex` is the
   enforcement point for the hex rule above; its message points back at

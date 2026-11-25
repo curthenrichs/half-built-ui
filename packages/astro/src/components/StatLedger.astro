@@ -34,7 +34,9 @@ const Wrap = label ? "section" : "div";
 </Wrap>
 
 <style>
-  .stat-ledger { margin: 0 0 2em; }
+  .stat-ledger {
+    margin: 0 0 2em;
+  }
 
   .stat-ledger dl {
     display: grid;
@@ -44,8 +46,14 @@ const Wrap = label ? "section" : "div";
     border: var(--stroke) solid var(--rule);
   }
 
-  .stat-ledger-cell { min-width: 0; padding: 16px 14px; }
-  .stat-ledger-cell + .stat-ledger-cell { border-left: var(--stroke) solid var(--rule); }
+  .stat-ledger-cell {
+    min-width: 0;
+    padding: 16px 14px;
+  }
+
+  .stat-ledger-cell + .stat-ledger-cell {
+    border-left: var(--stroke) solid var(--rule);
+  }
 
   .stat-ledger-label {
     margin: 0;
@@ -61,10 +69,14 @@ const Wrap = label ? "section" : "div";
     font-weight: 700;
   }
 
-  .stat-ledger-value-accent { color: var(--accent-1-ink); }
+  .stat-ledger-value-accent {
+    color: var(--accent-1-ink);
+  }
 
   @media (--bp-phone) {
-    .stat-ledger dl { grid-auto-flow: row; }
+    .stat-ledger dl {
+      grid-auto-flow: row;
+    }
 
     .stat-ledger-cell + .stat-ledger-cell {
       border-top: var(--stroke) solid var(--rule);

@@ -1272,7 +1272,9 @@ const npmPackages = [
 </Base>
 
 <style>
-  section { margin-top: 40px; }
+  section {
+    margin-top: 40px;
+  }
 
   .demo-npm-links {
     list-style: none;
@@ -1291,10 +1293,22 @@ const npmPackages = [
   }
 
   /* The pinned loading specimen stands in for a wide image's box. */
-  .demo-img-loading-figure { margin: 20px 0; }
-  .demo-img-loading { aspect-ratio: 3 / 2; }
-  .demo-img-loading-figure figcaption { margin-top: 5px; text-align: center; }
-  .demo-card-grid-narrow { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
+  .demo-img-loading-figure {
+    margin: 20px 0;
+  }
+
+  .demo-img-loading {
+    aspect-ratio: 3 / 2;
+  }
+
+  .demo-img-loading-figure figcaption {
+    margin-top: 5px;
+    text-align: center;
+  }
+
+  .demo-card-grid-narrow {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  }
 
   /* The TwoColumn demo: a ruled frame standing in for the page the row
      would fill. The trailing paragraph and widget margins would only
@@ -1306,7 +1320,9 @@ const npmPackages = [
   }
 
   .demo-two-column :global(.prose > p:last-child),
-  .demo-two-column :global(.widget) { margin-bottom: 0; }
+  .demo-two-column :global(.widget) {
+    margin-bottom: 0;
+  }
 
   /* The derived-excerpt demo: the sample body beside the card it
      yields, the card column the same third a card takes in the grid
@@ -1318,10 +1334,15 @@ const npmPackages = [
     gap: 20px;
     margin: 20px 0;
   }
-  .demo-excerpt > * { margin: 0; }
+
+  .demo-excerpt > * {
+    margin: 0;
+  }
 
   @media (--bp-sidebar) {
-    .demo-excerpt { grid-template-columns: minmax(0, 1fr); }
+    .demo-excerpt {
+      grid-template-columns: minmax(0, 1fr);
+    }
   }
 
   .demo-widget-row {
