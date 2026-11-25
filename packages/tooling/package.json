@@ -1,6 +1,6 @@
 {
   "name": "@half-built/tooling",
-  "version": "0.20.0",
+  "version": "0.21.0",
   "description": "Lint presets, the test kit, and the palette math for half-built sites.",
   "license": "MIT",
   "repository": {
