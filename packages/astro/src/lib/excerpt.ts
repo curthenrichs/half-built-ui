@@ -24,12 +24,27 @@ const LEAD_BREAK = /<div class="lead-break">[\s\S]*?<\/div>/g;
 /* A capitalized tag is a component. It is a block only when it
    occupies whole lines: opening tag starts a line, closing tag ends
    one. Non-greedy to the same close tag; the posts do not nest a
-   component inside itself. A component inline in a sentence (PostLink,
-   WhenPublished around a link) is not matched here and keeps its text
-   through flatten; the built-output suite caught the Robot Migrates
+   component inside itself. A component inline in a sentence (PostLink)
+   is not matched here and keeps its text through flatten, except an
+   inline WhenPublished, which INLINE_TEASER handles below; the built-output suite caught the Robot Migrates
    card as the word "In" on 2026-09-13 when this was not so. */
 const COMPONENT_BLOCK =
   /^[ \t]*<([A-Z][A-Za-z0-9]*)\b[^>]*>[\s\S]*?<\/\1>[ \t]*$/gm;
+
+/* An inline WhenPublished teaser (one inside a sentence; a whole-line
+   one is a COMPONENT_BLOCK above). The card has no posts list, so it
+   cannot know whether the target has shipped; it shows what a reader
+   of the post sees while the target is hidden: the teaser gone, its
+   fallback slot's text (if any) in its place. Before this, the hidden
+   words reached the card, the meta description, the feed, and the
+   search index. */
+const INLINE_TEASER = /<WhenPublished\b[^>]*>([\s\S]*?)<\/WhenPublished>/g;
+
+const FALLBACK_SLOT =
+  /<([A-Za-z][\w.-]*)\b[^>]*\bslot="fallback"[^>]*>([\s\S]*?)<\/\1>/;
+
+const fallbackOf = (_teaser: string, inner: string): string =>
+  FALLBACK_SLOT.exec(inner)?.[2] ?? "";
 
 const SELF_CLOSING = /^[ \t]*<[A-Za-z][A-Za-z0-9-]*\b[^>]*\/>[ \t]*$/gm;
 /* A lowercase tag opening a line is an html block (figure, div,
@@ -53,6 +68,7 @@ function stripBlocks(body: string): string {
     .replace(IMPORT_LINE, "")
     .replace(LEAD_BREAK, "\n\n")
     .replace(COMPONENT_BLOCK, "\n\n")
+    .replace(INLINE_TEASER, fallbackOf)
     .replace(HTML_BLOCK, "\n\n")
     .replace(SELF_CLOSING, "\n\n")
     .replace(MDX_EXPRESSION_LINE, "\n\n");

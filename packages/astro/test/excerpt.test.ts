@@ -212,9 +212,36 @@ describe("deriveExcerpt: inline components inside prose", () => {
     );
   });
 
-  it("keeps a WhenPublished-wrapped inline link's text", () => {
-    const body = `It hosts my <WhenPublished slug="bot"><PostLink slug="bot">trading bot pipeline</PostLink></WhenPublished>. Done.`;
-    expect(deriveExcerpt(body)).toBe("It hosts my trading bot pipeline. Done…");
+  /* A card has no posts list, so it cannot tell whether a teaser's
+     target has shipped. It shows what a reader of the post sees while
+     the target is hidden: the teaser gone, its fallback (if any) in
+     its place. Before this the hidden words reached the card, the meta
+     description, the feed, and the search index. */
+  it("drops an inline WhenPublished teaser from the opening sentence", () => {
+    const body = `Bubbles is a robot dog. <WhenPublished slug="part-2">Part 2 covers the <PostLink slug="part-2">radio link</PostLink>.</WhenPublished> This post is the build.`;
+
+    expect(deriveExcerpt(body)).toBe(
+      "Bubbles is a robot dog. This post is the build…",
+    );
+  });
+
+  it("keeps an inline WhenPublished teaser's fallback text in its place", () => {
+    const body = `The radio gets <WhenPublished slug="part-2">its own <PostLink slug="part-2">post</PostLink><Fragment slot="fallback">a post of its own later</Fragment></WhenPublished>. This one is the chassis.`;
+
+    expect(deriveExcerpt(body)).toBe(
+      "The radio gets a post of its own later. This one is the chassis…",
+    );
+  });
+
+  it("drops each of two inline teasers and keeps the prose between", () => {
+    const body = `One <WhenPublished slug="a">hidden a</WhenPublished>two <WhenPublished slug="b">hidden b</WhenPublished>three.`;
+    expect(deriveExcerpt(body)).toBe("One two three…");
+  });
+
+  it("passes over a paragraph that is only a teaser and opens on the next", () => {
+    const body = `Intro sentence. <WhenPublished slug="a">Only teaser words.</WhenPublished>\n\n<WhenPublished slug="b">A teaser alone in its paragraph.</WhenPublished>\n\nThe next paragraph.`;
+
+    expect(deriveExcerpt(body)).toBe("Intro sentence. The next paragraph…");
   });
 
   it("a paragraph that opens with an inline component is still prose", () => {
