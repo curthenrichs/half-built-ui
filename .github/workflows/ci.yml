@@ -65,11 +65,39 @@ jobs:
       # Chrome is preinstalled at /usr/bin/google-chrome on ubuntu-latest;
       # test-kit/browser-server.ts's candidate list already finds it, so
       # no browser install step is needed for the Puppeteer suites. The
-      # engine smoke (site/test/engines.test.ts) drives Playwright's own
-      # Chromium, Firefox, and WebKit builds, installed here.
-      - run: npx playwright install --with-deps chromium firefox webkit
-      - run: npm run test:browser
+      # engine smoke runs in its own job below.
+      - run: npm run test:browser --workspace site -- --exclude test/engines.test.ts
         env: { BROWSER_TESTS: "1" }
+
+  # The engine smoke (site/test/engines.test.ts) in current Chromium,
+  # Firefox, and WebKit. Playwright's own image for the pinned release
+  # ships the browsers and their system libraries, so nothing is
+  # installed from apt (on the bare runner that step once took over 20
+  # minutes); site/test/ci-images.test.ts keeps the tag and the pin
+  # together.
+  engines:
+    needs: test
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    container: mcr.microsoft.com/playwright:v1.65.1-noble
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+        env:
+          PUPPETEER_SKIP_DOWNLOAD: "1"
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1"
+      - uses: actions/download-artifact@v4
+        with:
+          name: site-dist
+          path: site/dist
+      # Root in another user's HOME: see the floor job's note.
+      - run: npx vitest run test/engines.test.ts
+        working-directory: site
+        env: { BROWSER_TESTS: "1", HOME: /root }
 
   # The demo in the browsers at the support floor (site/floor/run.mjs):
   # Chromium 99 from Playwright 1.18, Firefox 98 and WebKit 15.4 from

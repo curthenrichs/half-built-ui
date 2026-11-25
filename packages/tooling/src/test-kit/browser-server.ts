@@ -42,20 +42,43 @@ export function findChrome(): string {
   return chrome;
 }
 
-async function answers(url: string): Promise<boolean> {
+/* astro preview binds "localhost" to whichever address the resolver
+   hands it first, and Node's fetch may resolve it differently: in a
+   container the server can sit on ::1 alone while fetch tries
+   127.0.0.1. Every probe asks all three, so the kit sees the server
+   wherever it bound; browsers resolve localhost to both on their own. */
+const LOOPBACKS = ["localhost", "127.0.0.1", "[::1]"];
+
+function loopbackUrls(port: number, path: string): string[] {
+  return LOOPBACKS.map((host) => `http://${host}:${port}${path}`);
+}
+
+async function probe(url: string): Promise<Response | undefined> {
   try {
-    await fetch(url);
-    return true;
+    return await fetch(url);
   } catch {
-    return false;
+    return undefined;
   }
 }
 
+/* The first answer from any loopback address, or undefined. */
+async function firstAnswer(urls: string[]): Promise<Response | undefined> {
+  for (const url of urls) {
+    const res = await probe(url);
+    if (res) return res;
+  }
+
+  return undefined;
+}
+
 async function waitForServer(
-  url: string,
+  port: number,
+  path: string,
   proc: ChildProcess,
   tries = 60,
 ): Promise<void> {
+  const url = `http://localhost:${port}${path}`;
+
   for (let i = 0; i < tries; i++) {
     if (proc.exitCode != null) {
       throw new Error(
@@ -63,13 +86,7 @@ async function waitForServer(
       );
     }
 
-    let res: Response | undefined;
-
-    try {
-      res = await fetch(url);
-    } catch {
-      /* not up yet */
-    }
+    const res = await firstAnswer(loopbackUrls(port, path));
 
     if (res?.status === 404) {
       /* The server is up but the page is not where the suite thinks:
@@ -91,15 +108,17 @@ async function waitForServer(
    other tooling session) would answer the wait and the tests would
    validate a server this run does not control. Chrome is located
    before the spawn so a machine without one fails before it has a
-   server to clean up. */
+   server to clean up; a suite that drives its own browsers (Playwright,
+   say, in an image with no Chrome) passes requireChrome: false. */
 export async function startPreview(
   port: number,
   readyPath: string,
+  { requireChrome = true }: { requireChrome?: boolean } = {},
 ): Promise<ChildProcess> {
-  findChrome();
+  if (requireChrome) findChrome();
   const origin = `http://localhost:${port}`;
 
-  if (await answers(`${origin}/`)) {
+  if (await firstAnswer(loopbackUrls(port, "/"))) {
     throw new Error(
       `something already serves ${origin}; kill it before running the browser suites`,
     );
@@ -115,7 +134,7 @@ export async function startPreview(
   });
 
   try {
-    await waitForServer(`${origin}${readyPath}`, server);
+    await waitForServer(port, readyPath, server);
   } catch (err) {
     /* A server that is up but wrong (404) or slow past the wait is
        still running; the caller never receives it to stop, so stop it
