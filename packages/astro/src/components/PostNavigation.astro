@@ -1,4 +1,14 @@
 ---
+/* Prev/next post links: nav.navigation.post-navigation with
+   nav-previous/nav-next and Previous:/Next: subtitles, in the theme's
+   3px-bordered box. Previous = older post, Next = newer, as WordPress does.
+   Owner divergence from the live markup (2026-07-30): the newer post sits
+   LEFT and the older post RIGHT, matching the newest-first reading order
+   of the archives. Do not restore the WP left/right order for fidelity.
+
+   The {" "} after each subtitle is load-bearing: Astro's HTML
+   compression drops a newline between two tags, so without it the link
+   reads "Previous:Title" (it did, 2026-09-10 to 2026-11-24). */
 import type { PostRef } from "./models";
 
 interface Props {
@@ -32,13 +42,13 @@ const labels = {
   <div class="nav-links">
     {next && <div class="nav-next">
       <a href={next.href} rel="next">
-        <span class="nav-subtitle">{labels.next}</span>
+        <span class="nav-subtitle">{labels.next}</span>{" "}
         <span class="nav-title">{next.title}</span>
       </a>
     </div>}
     {prev && <div class="nav-previous">
       <a href={prev.href} rel="prev">
-        <span class="nav-subtitle">{labels.prev}</span>
+        <span class="nav-subtitle">{labels.prev}</span>{" "}
         <span class="nav-title">{prev.title}</span>
       </a>
     </div>}

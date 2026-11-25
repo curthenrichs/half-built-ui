@@ -835,6 +835,24 @@ describe.skipIf(!enabled)("browser suite", () => {
     expect(html).not.toContain("Curt fill in");
   }, 30_000);
 
+  /* A gap between two tags on separate source lines is dropped by
+     Astro's HTML compression, unlike a newline next to text. The
+     2026-09-10 Prettier pass split these spans onto two lines and the
+     links read "Previous:Older post" on every consumer until 2026-11-24. */
+  it("the post navigation reads its label, a space, then the title", async () => {
+    const p = await open();
+
+    const links = await p.$$eval(".post-navigation a", (els) =>
+      els.map((el) => (el as HTMLElement).innerText.replace(/\s+/g, " ")),
+    );
+
+    expect(links.length).toBe(2);
+
+    for (const text of links) {
+      expect(text).toMatch(/^(Next|Previous): \S/);
+    }
+  });
+
   it("a PostLink to a draft degrades to text and a fallback stands in", async () => {
     const p = await open();
     const html = await p.content();
